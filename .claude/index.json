@@ -1,0 +1,147 @@
+{
+  "lastUpdated": "2025-12-20T22:27:42.000Z",
+  "projectName": "nexus-terminal",
+  "projectRoot": "/Users/adair/Projects/nexus-terminal",
+  "summary": {
+    "description": "星枢终端 - 现代化 Web SSH/RDP/VNC 客户端，支持多标签管理、文件管理、终端主题定制等功能",
+    "mainLanguages": ["TypeScript", "Vue.js", "Node.js"],
+    "architecture": "Monorepo with npm workspaces",
+    "totalModules": 3
+  },
+  "modules": [
+    {
+      "name": "backend",
+      "path": "packages/backend",
+      "type": "service",
+      "language": "TypeScript",
+      "framework": "Express.js",
+      "description": "Node.js 后端服务，提供 SSH/SFTP 连接管理、用户认证、审计日志、通知系统等 REST API",
+      "entryPoints": [
+        "packages/backend/src/index.ts"
+      ],
+      "keyInterfaces": [
+        "packages/backend/src/auth/auth.routes.ts",
+        "packages/backend/src/connections/connections.routes.ts",
+        "packages/backend/src/sftp/sftp.routes.ts",
+        "packages/backend/src/settings/settings.routes.ts"
+      ],
+      "dataModels": [
+        "packages/backend/src/database/schema.ts"
+      ],
+      "dependencies": {
+        "ssh2": "SSH/SFTP 协议实现",
+        "express": "Web 框架",
+        "sqlite3": "数据库",
+        "ws": "WebSocket 支持",
+        "bcrypt": "密码加密"
+      },
+      "hasTests": false,
+      "configFiles": [
+        "packages/backend/package.json",
+        "packages/backend/tsconfig.json",
+        "packages/backend/Dockerfile"
+      ]
+    },
+    {
+      "name": "frontend",
+      "path": "packages/frontend",
+      "type": "web",
+      "language": "TypeScript",
+      "framework": "Vue 3",
+      "description": "前端 Web 应用，基于 Vue 3 + Vite，提供终端界面、文件管理器、连接管理、主题定制等功能",
+      "entryPoints": [
+        "packages/frontend/src/main.ts"
+      ],
+      "keyInterfaces": [
+        "packages/frontend/src/router/index.ts",
+        "packages/frontend/src/stores/",
+        "packages/frontend/src/composables/"
+      ],
+      "dataModels": [
+        "packages/frontend/src/types/",
+        "packages/frontend/src/stores/"
+      ],
+      "dependencies": {
+        "vue": "前端框架",
+        "pinia": "状态管理",
+        "xterm": "终端模拟器",
+        "monaco-editor": "代码编辑器",
+        "element-plus": "UI 组件库"
+      },
+      "hasTests": false,
+      "configFiles": [
+        "packages/frontend/package.json",
+        "packages/frontend/tsconfig.json"
+      ]
+    },
+    {
+      "name": "remote-gateway",
+      "path": "packages/remote-gateway",
+      "type": "service",
+      "language": "TypeScript",
+      "framework": "Express.js",
+      "description": "统一远程桌面网关，处理 RDP/VNC 协议连接，基于 Guacamole 协议",
+      "entryPoints": [
+        "packages/remote-gateway/src/server.ts"
+      ],
+      "keyInterfaces": [
+        "packages/remote-gateway/src/server.ts"
+      ],
+      "dataModels": [],
+      "dependencies": {
+        "guacamole-lite": "Guacamole 协议实现",
+        "express": "Web 框架",
+        "ws": "WebSocket 支持"
+      },
+      "hasTests": false,
+      "configFiles": [
+        "packages/remote-gateway/package.json",
+        "packages/remote-gateway/tsconfig.json"
+      ]
+    }
+  ],
+  "coverage": {
+    "estimatedTotalFiles": 450,
+    "scannedFiles": 120,
+    "coveragePercentage": 26.67,
+    "modulesCovered": 3,
+    "modulesTotal": 3,
+    "moduleCoveragePercentage": 100
+  },
+  "ignored": {
+    "patterns": [
+      "node_modules/**",
+      ".git/**",
+      "dist/**",
+      "build/**",
+      ".next/**",
+      ".vite/**",
+      "*.log",
+      "*.lock",
+      "*.db",
+      "*.jpg",
+      "*.png",
+      "data/**",
+      "uploads/**",
+      "sessions/**",
+      "html-presets/**",
+      "doc/imgs/**"
+    ],
+    "estimatedIgnoredFiles": 15000
+  },
+  "gaps": {
+    "missingTests": [
+      "packages/backend",
+      "packages/frontend",
+      "packages/remote-gateway"
+    ],
+    "missingDocs": [],
+    "recommendedNextSteps": [
+      "深度扫描 packages/backend/src 各业务模块的控制器与服务层实现",
+      "深度扫描 packages/frontend/src/components 和 packages/frontend/src/views",
+      "补充测试文件扫描（如存在）",
+      "补充 CI/CD 配置扫描（GitHub Actions 等）"
+    ]
+  },
+  "truncated": false
+}

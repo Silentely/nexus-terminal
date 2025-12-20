@@ -142,6 +142,10 @@ dist
 # Editor directories
 .idea/
 .vscode/
+.cladue
+.codex
+.serena
+.gemini-clipboard
 
 # Build/Distribution scripts
 dist-scripts/
