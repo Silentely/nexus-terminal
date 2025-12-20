@@ -32,6 +32,49 @@ export function createSshTerminalManager(sessionId: string, wsDeps: SshTerminalD
     const terminalOutputBuffer = ref<(string | Uint8Array)[]>([]); // 缓冲 WebSocket 消息直到终端准备好
     const isSshConnected = ref(false); // 跟踪 SSH 连接状态
 
+    // +++ Throttling State +++
+    let isFlushing = false;
+
+    // +++ Flush Buffer Function +++
+    const flushBuffer = () => {
+        if (!terminalInstance.value || terminalOutputBuffer.value.length === 0) {
+            isFlushing = false;
+            return;
+        }
+
+        const buffer = terminalOutputBuffer.value;
+        // Optimization: Handle the common case of a single chunk without copying
+        if (buffer.length === 1) {
+            terminalInstance.value.write(buffer[0]);
+            terminalOutputBuffer.value = [];
+        } else {
+             // Check if all items are strings to optimize joining
+            const allStrings = buffer.every(item => typeof item === 'string');
+            if (allStrings) {
+                // If all strings, join efficiently
+                terminalInstance.value.write((buffer as string[]).join(''));
+            } else {
+                // Mixed content or all binary. Write chunks sequentially (or merge TypedArrays if performant, but sequential write is usually fine for xterm)
+                // Merging Uint8Arrays can be costly. Xterm handles sequential writes well.
+                // However, to truly throttle, we should merge.
+                // For simplicity and safety with mixed types, we iterate. 
+                // Xterm's write buffer handles this well if we do it in one rAF cycle.
+                for (const chunk of buffer) {
+                    terminalInstance.value.write(chunk);
+                }
+            }
+            terminalOutputBuffer.value = [];
+        }
+
+        // Continue flushing if more data arrived during the write (unlikely but possible with microtasks)
+        // or just reset flag to allow next rAF to be scheduled
+        if (terminalOutputBuffer.value.length > 0) {
+            requestAnimationFrame(flushBuffer);
+        } else {
+            isFlushing = false;
+        }
+    };
+
     // 辅助函数：获取终端消息文本
     const getTerminalText = (key: string, params?: Record<string, any>): string => {
         // 确保 i18n key 存在，否则返回原始 key
@@ -70,10 +113,11 @@ export function createSshTerminalManager(sessionId: string, wsDeps: SshTerminalD
 
         // 2. 将此管理器内部缓冲的输出 (terminalOutputBuffer, 来自 ssh:output) 写入终端
         if (terminalOutputBuffer.value.length > 0) {
-            terminalOutputBuffer.value.forEach(data => {
-                 term.write(data);
-            });
-            terminalOutputBuffer.value = []; // 清空内部缓冲区
+            // +++ Trigger flush loop +++
+            if (!isFlushing) {
+                isFlushing = true;
+                requestAnimationFrame(flushBuffer);
+            }
         }
         
         // 可以在这里自动聚焦或执行其他初始化操作
@@ -141,14 +185,16 @@ export function createSshTerminalManager(sessionId: string, wsDeps: SshTerminalD
         // console.log(`[会话 ${sessionId}][SSH前端] 解码后的数据 (尝试写入):`, outputData);
         // --------------------
 
+        // +++ Push to buffer and trigger flush +++
+        terminalOutputBuffer.value.push(outputData);
+        
         if (terminalInstance.value) {
-            // console.log(`[会话 ${sessionId}][SSH前端] 终端实例存在，尝试写入...`);
-            terminalInstance.value.write(outputData);
-            // console.log(`[会话 ${sessionId}][SSH前端] 写入完成。`);
-        } else {
-            // 如果终端还没准备好，先缓冲输出
-            terminalOutputBuffer.value.push(outputData);
+            if (!isFlushing) {
+                isFlushing = true;
+                requestAnimationFrame(flushBuffer);
+            }
         }
+        // If terminalInstance is not ready, data sits in terminalOutputBuffer until handleTerminalReady calls flushBuffer (or manual logic there)
     };
 
     const handleSshConnected = (payload: MessagePayload, message?: WebSocketMessage) => {
