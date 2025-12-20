@@ -153,7 +153,6 @@
 <script setup lang="ts">
 
 import { ref, computed, watch, type PropType, nextTick } from 'vue'; 
-import { ElProgress } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import StatusCharts from './StatusCharts.vue';
 import { useSessionStore } from '../stores/session.store'; // 注入 sessionStore

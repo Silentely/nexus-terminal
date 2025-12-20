@@ -2,14 +2,49 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 import tailwindcss from '@tailwindcss/vite'
+import vitePluginCompression from 'vite-plugin-compression';
+import AutoImport from 'unplugin-auto-import/vite';
+import Components from 'unplugin-vue-components/vite';
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
     // @ts-ignore because the plugin type might not perfectly match Vite's expected PluginOption type
-    (monacoEditorPlugin as any).default({})
+    (monacoEditorPlugin as any).default({}),
+    AutoImport({
+      resolvers: [ElementPlusResolver()],
+      imports: ['vue', 'vue-router', 'pinia'], // 自动导入 Vue 相关函数
+      dts: 'src/auto-imports.d.ts',
+    }),
+    Components({
+      resolvers: [ElementPlusResolver({ importStyle: 'css' })], // 按需加载 Element Plus 组件和 CSS
+      dts: 'src/components.d.ts',
+    }),
+    vitePluginCompression({
+      verbose: true,
+      disable: false,
+      threshold: 10240, // 超过 10kb 进行压缩
+      algorithm: 'gzip',
+      ext: '.gz',
+    }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'monaco-editor': ['monaco-editor'],
+          'element-plus': ['element-plus'],
+          'xterm': ['xterm', '@xterm/addon-fit', '@xterm/addon-search', '@xterm/addon-webgl', 'xterm-addon-web-links'],
+          'guacamole': ['guacamole-common-js'],
+          'chart': ['chart.js', 'vue-chartjs'],
+          'vendor-core': ['vue', 'vue-router', 'pinia', 'axios', 'date-fns']
+        }
+      }
+    }
+  },
   server: {
     proxy: {
       // 将所有 /api 开头的请求代理到后端服务器

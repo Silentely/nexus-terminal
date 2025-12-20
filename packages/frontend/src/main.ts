@@ -10,8 +10,8 @@ import { useAppearanceStore } from './stores/appearance.store';
 import './style.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'splitpanes/dist/splitpanes.css';
-import ElementPlus from 'element-plus';
-import 'element-plus/dist/index.css';
+// Element Plus styles are now auto-imported via unplugin-vue-components
+
 
 
 const pinia = createPinia(); // 创建 Pinia 实例

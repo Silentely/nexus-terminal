@@ -9,6 +9,7 @@ import { storeToRefs } from 'pinia';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 import { SearchAddon, type ISearchOptions } from '@xterm/addon-search';
+import { WebglAddon } from '@xterm/addon-webgl'; // +++ Import WebGL Addon
 import 'xterm/css/xterm.css';
 import { useWorkspaceEventEmitter, useWorkspaceEventSubscriber, useWorkspaceEventOff } from '../composables/workspaceEvents'; // +++ Import subscriber and off
 
@@ -260,6 +261,19 @@ onMounted(() => {
     terminal.loadAddon(fitAddon);
     terminal.loadAddon(new WebLinksAddon());
     terminal.loadAddon(searchAddon); // *** 加载 SearchAddon ***
+
+    // +++ 尝试加载 WebGL Addon +++
+    try {
+        const webglAddon = new WebglAddon();
+        webglAddon.onContextLoss(() => {
+            console.warn(`[Terminal ${props.sessionId}] WebGL context lost. Falling back to DOM renderer.`);
+            webglAddon.dispose();
+        });
+        terminal.loadAddon(webglAddon);
+        console.log(`[Terminal ${props.sessionId}] WebGL renderer enabled.`);
+    } catch (e) {
+        console.warn(`[Terminal ${props.sessionId}] WebGL addon failed to load, falling back to canvas/dom renderer:`, e);
+    }
 
     // 将终端附加到 DOM
     terminal.open(terminalRef.value);
