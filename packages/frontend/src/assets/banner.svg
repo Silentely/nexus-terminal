@@ -1,15 +1,1 @@
-<svg width="450" height="100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-  <defs>
-    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#3B82F6;" /> <!-- Blue -->
-      <stop offset="50%" style="stop-color:#6366F1;" /> <!-- Indigo -->
-      <stop offset="100%" style="stop-color:#A855F7;" /> <!-- Purple -->
-    </linearGradient>
-  </defs>
-  <!-- Logo -->
-  <image xlink:href="./logo.png" x="10" y="10" height="80" width="80"/>
-  <!-- Text -->
-  <text x="105" y="65" font-size="42" font-weight="600" fill="url(#logoGradient)">
-    Nexus Terminal
-  </text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="450" height="100" style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif"><defs><linearGradient id="logoGradient" x1="0%" x2="100%" y1="0%" y2="0%"><stop offset="0%" style="stop-color:#3b82f6"/><stop offset="50%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#a855f7"/></linearGradient></defs><image width="80" height="80" x="10" y="10" xlink:href="./logo.png"/><text x="105" y="65" fill="url(#logoGradient)" font-size="42" font-weight="600">Nexus Terminal</text></svg>
