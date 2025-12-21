@@ -27,7 +27,7 @@ describe('Quick Commands Repository', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('addQuickCommand', () => {
@@ -67,7 +67,7 @@ describe('Quick Commands Repository', () => {
         it('lastID 无效时应抛出异常', async () => {
             (runDb as any).mockResolvedValueOnce({ lastID: 0, changes: 0 });
 
-            await expect(addQuickCommand('Test', 'echo test')).rejects.toThrow('添加快捷指令后未能获取有效的 lastID');
+            await expect(addQuickCommand('Test', 'echo test')).rejects.toThrow('无法添加快捷指令');
         });
 
         it('数据库错误时应抛出异常', async () => {

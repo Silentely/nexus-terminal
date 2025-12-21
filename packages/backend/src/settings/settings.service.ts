@@ -34,6 +34,9 @@ const IP_BLACKLIST_ENABLED_KEY = 'ipBlacklistEnabled'; // IP 黑名单启用设�
 const SHOW_CONNECTION_TAGS_KEY = 'showConnectionTags'; // 连接标签显示设置键
 const SHOW_QUICK_COMMAND_TAGS_KEY = 'showQuickCommandTags'; // 快捷指令标签显示设置键
 const SHOW_STATUS_MONITOR_IP_ADDRESS_KEY = 'showStatusMonitorIpAddress'; // 状态监视器IP显示设置键
+const LOG_LEVEL_KEY = 'logLevel'; // 容器日志等级设置键
+const AUDIT_LOG_MAX_ENTRIES_KEY = 'auditLogMaxEntries'; // 审计日志最大条数设置键
+const DEFAULT_AUDIT_LOG_MAX_ENTRIES = 50000; // 默认审计日志最大条数
  
 export const settingsService = {
   /**
@@ -558,6 +561,79 @@ export const settingsService = {
    } catch (error) {
      console.error(`[Service] Error calling settingsRepository.setSetting for key ${SHOW_STATUS_MONITOR_IP_ADDRESS_KEY}:`, error);
      throw new Error('Failed to save show status monitor IP address setting.');
+   }
+ },
+
+ // --- 容器日志等级设置 ---
+ /**
+  * 获取容器日志等级
+  * @returns 返回日志等级字符串，默认 'info'
+  */
+ async getLogLevel(): Promise<string> {
+   try {
+     const level = await settingsRepository.getSetting(LOG_LEVEL_KEY);
+     const validLevels = ['debug', 'info', 'warn', 'error', 'silent'];
+     if (level && validLevels.includes(level)) {
+       return level;
+     }
+     return 'info';
+   } catch (error) {
+     console.error(`[Service] Error getting log level setting:`, error);
+     return 'info';
+   }
+ },
+
+ /**
+  * 设置容器日志等级
+  * @param level 日志等级 ('debug' | 'info' | 'warn' | 'error' | 'silent')
+  */
+ async setLogLevel(level: string): Promise<void> {
+   const validLevels = ['debug', 'info', 'warn', 'error', 'silent'];
+   if (!validLevels.includes(level)) {
+     throw new Error(`Invalid log level: ${level}. Must be one of: ${validLevels.join(', ')}`);
+   }
+   try {
+     await settingsRepository.setSetting(LOG_LEVEL_KEY, level);
+   } catch (error) {
+     console.error(`[Service] Error setting log level:`, error);
+     throw new Error('Failed to save log level setting.');
+   }
+ },
+
+ // --- 审计日志最大保留条数设置 ---
+ /**
+  * 获取审计日志最大保留条数
+  * @returns 返回最大条数，默认 50000
+  */
+ async getAuditLogMaxEntries(): Promise<number> {
+   try {
+     const maxStr = await settingsRepository.getSetting(AUDIT_LOG_MAX_ENTRIES_KEY);
+     if (maxStr) {
+       const maxNum = parseInt(maxStr, 10);
+       if (!isNaN(maxNum) && maxNum > 0) {
+         return maxNum;
+       }
+     }
+     return DEFAULT_AUDIT_LOG_MAX_ENTRIES;
+   } catch (error) {
+     console.error(`[Service] Error getting audit log max entries:`, error);
+     return DEFAULT_AUDIT_LOG_MAX_ENTRIES;
+   }
+ },
+
+ /**
+  * 设置审计日志最大保留条数
+  * @param maxEntries 最大条数 (正整数)
+  */
+ async setAuditLogMaxEntries(maxEntries: number): Promise<void> {
+   if (!Number.isInteger(maxEntries) || maxEntries <= 0) {
+     throw new Error('Invalid max entries value. Must be a positive integer.');
+   }
+   try {
+     await settingsRepository.setSetting(AUDIT_LOG_MAX_ENTRIES_KEY, String(maxEntries));
+   } catch (error) {
+     console.error(`[Service] Error setting audit log max entries:`, error);
+     throw new Error('Failed to save audit log max entries setting.');
    }
  }
 

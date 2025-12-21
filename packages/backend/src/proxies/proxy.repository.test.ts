@@ -27,7 +27,7 @@ describe('Proxy Repository', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('findProxyByNameTypeHostPort', () => {
@@ -226,11 +226,13 @@ describe('Proxy Repository', () => {
             expect(call[1]).toContain('host = ?');
         });
 
-        it('无字段更新时应返回 false', async () => {
+        it('无字段更新时应至少更新时间戳并返回 true', async () => {
             const result = await updateProxy(1, {});
 
-            expect(result).toBe(false);
-            expect(runDb).not.toHaveBeenCalled();
+            expect(result).toBe(true);
+            expect(runDb).toHaveBeenCalled();
+            const call = (runDb as any).mock.calls[0];
+            expect(call[1]).toContain('updated_at = ?');
         });
 
         it('代理不存在时应返回 false', async () => {

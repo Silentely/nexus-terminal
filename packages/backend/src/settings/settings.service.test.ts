@@ -520,4 +520,70 @@ describe('Settings Service', () => {
             );
         });
     });
+
+    describe('getLogLevel', () => {
+        it('存储值为有效日志等级时应原样返回', async () => {
+            (settingsRepository.getSetting as any).mockResolvedValueOnce('warn');
+            const result = await settingsService.getLogLevel();
+            expect(result).toBe('warn');
+            expect(settingsRepository.getSetting).toHaveBeenCalledWith('logLevel');
+        });
+
+        it('存储值为无效字符串时应回退到 info', async () => {
+            (settingsRepository.getSetting as any).mockResolvedValueOnce('verbose');
+            const result = await settingsService.getLogLevel();
+            expect(result).toBe('info');
+        });
+
+        it('读取失败时应回退到 info', async () => {
+            (settingsRepository.getSetting as any).mockRejectedValueOnce(new Error('boom'));
+            const result = await settingsService.getLogLevel();
+            expect(result).toBe('info');
+        });
+    });
+
+    describe('setLogLevel', () => {
+        it('传入无效日志等级时应抛出异常', async () => {
+            await expect(settingsService.setLogLevel('verbose')).rejects.toThrow('Invalid log level');
+        });
+
+        it('传入有效日志等级时应写入设置', async () => {
+            await settingsService.setLogLevel('error');
+            expect(settingsRepository.setSetting).toHaveBeenCalledWith('logLevel', 'error');
+        });
+    });
+
+    describe('getAuditLogMaxEntries', () => {
+        it('存储值为有效整数时应返回该数值', async () => {
+            (settingsRepository.getSetting as any).mockResolvedValueOnce('1234');
+            const result = await settingsService.getAuditLogMaxEntries();
+            expect(result).toBe(1234);
+            expect(settingsRepository.getSetting).toHaveBeenCalledWith('auditLogMaxEntries');
+        });
+
+        it('存储值为空时应回退到默认值 50000', async () => {
+            (settingsRepository.getSetting as any).mockResolvedValueOnce(null);
+            const result = await settingsService.getAuditLogMaxEntries();
+            expect(result).toBe(50000);
+        });
+
+        it('存储值为无效数字时应回退到默认值 50000', async () => {
+            (settingsRepository.getSetting as any).mockResolvedValueOnce('not-a-number');
+            const result = await settingsService.getAuditLogMaxEntries();
+            expect(result).toBe(50000);
+        });
+    });
+
+    describe('setAuditLogMaxEntries', () => {
+        it('传入非正整数时应抛出异常', async () => {
+            await expect(settingsService.setAuditLogMaxEntries(0)).rejects.toThrow('Invalid max entries');
+            await expect(settingsService.setAuditLogMaxEntries(-1)).rejects.toThrow('Invalid max entries');
+            await expect(settingsService.setAuditLogMaxEntries(1.2)).rejects.toThrow('Invalid max entries');
+        });
+
+        it('传入有效值时应写入设置', async () => {
+            await settingsService.setAuditLogMaxEntries(100);
+            expect(settingsRepository.setSetting).toHaveBeenCalledWith('auditLogMaxEntries', '100');
+        });
+    });
 });

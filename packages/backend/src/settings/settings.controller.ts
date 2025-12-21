@@ -1,13 +1,14 @@
 import { Request, Response } from 'express';
 import { settingsService } from './settings.service';
 import { AuditLogService } from '../audit/audit.service';
-import { NotificationService } from '../notifications/notification.service'; 
+import { NotificationService } from '../notifications/notification.service';
 import { ipBlacklistService } from '../auth/ip-blacklist.service';
-import { exportConnectionsAsEncryptedZip } from '../services/import-export.service'; 
-import { UpdateSidebarConfigDto, UpdateCaptchaSettingsDto, CaptchaSettings } from '../types/settings.types'; 
+import { exportConnectionsAsEncryptedZip } from '../services/import-export.service';
+import { UpdateSidebarConfigDto, UpdateCaptchaSettingsDto, CaptchaSettings } from '../types/settings.types';
 import { AppearanceSettings, UpdateAppearanceDto } from '../types/appearance.types';
 import { getAppearanceSettings, updateAppearanceSettings as updateAppearanceSettingsInRepo } from '../appearance/appearance.repository';
-import i18next from '../i18n'; 
+import i18next from '../i18n';
+import { setLogLevel as setRuntimeLogLevel, type LogLevel } from '../logging/logger';
 
 const auditLogService = new AuditLogService();
 const notificationService = new NotificationService(); 
@@ -572,9 +573,9 @@ async setCaptchaConfig(req: Request, res: Response): Promise<void> {
      res.setHeader('Content-Type', 'application/zip');
      res.setHeader('Content-Disposition', 'attachment; filename="nexus_connections_export.zip"');
      res.send(encryptedZipBuffer);
-     
+
      // auditLogService.logAction('CONNECTIONS_EXPORTED', { userId: (req.user as any)?.id || 'unknown' }); // 移除审计日志
-     
+
 
    } catch (error: any) {
      console.error('[控制器] 导出所有连接时出错:', error);
@@ -585,6 +586,86 @@ async setCaptchaConfig(req: Request, res: Response): Promise<void> {
          res.status(500).json({ message: i18next.t('error.exportFailedGeneric'), error: error.message });
      }
    }
- } // <-- No comma after the last method if it's truly the last one
+ },
+
+ // --- 容器日志等级设置 ---
+ /**
+  * 获取当前容器日志等级
+  */
+ async getLogLevel(req: Request, res: Response): Promise<void> {
+   try {
+     const level = await settingsService.getLogLevel();
+     res.json({ level });
+   } catch (error: any) {
+     console.error('[控制器] 获取日志等级时出错:', error);
+     res.status(500).json({ message: '获取日志等级失败', error: error.message });
+   }
+ },
+
+ /**
+  * 设置容器日志等级
+  */
+ async setLogLevel(req: Request, res: Response): Promise<void> {
+   try {
+     const { level } = req.body;
+     const validLevels = ['debug', 'info', 'warn', 'error', 'silent'];
+
+     if (!level || typeof level !== 'string' || !validLevels.includes(level)) {
+       res.status(400).json({
+         message: `无效的日志等级。必须是以下之一: ${validLevels.join(', ')}`
+       });
+       return;
+     }
+
+     // 保存到数据库
+     await settingsService.setLogLevel(level);
+     // 立即更新运行时日志等级
+     setRuntimeLogLevel(level as LogLevel);
+
+     auditLogService.logAction('SETTINGS_UPDATED', { updatedKeys: ['logLevel'], newValue: level });
+
+     res.status(200).json({ message: '日志等级已成功更新', level });
+   } catch (error: any) {
+     console.error('[控制器] 设置日志等级时出错:', error);
+     res.status(500).json({ message: '设置日志等级失败', error: error.message });
+   }
+ },
+
+ // --- 审计日志最大保留条数设置 ---
+ /**
+  * 获取审计日志最大保留条数
+  */
+ async getAuditLogMaxEntries(req: Request, res: Response): Promise<void> {
+   try {
+     const maxEntries = await settingsService.getAuditLogMaxEntries();
+     res.json({ maxEntries });
+   } catch (error: any) {
+     console.error('[控制器] 获取审计日志最大条数时出错:', error);
+     res.status(500).json({ message: '获取审计日志最大条数失败', error: error.message });
+   }
+ },
+
+ /**
+  * 设置审计日志最大保留条数
+  */
+ async setAuditLogMaxEntries(req: Request, res: Response): Promise<void> {
+   try {
+     const { maxEntries } = req.body;
+
+     if (!Number.isInteger(maxEntries) || maxEntries <= 0) {
+       res.status(400).json({ message: '无效的最大条数，必须是正整数' });
+       return;
+     }
+
+     await settingsService.setAuditLogMaxEntries(maxEntries);
+
+     auditLogService.logAction('SETTINGS_UPDATED', { updatedKeys: ['auditLogMaxEntries'], newValue: maxEntries });
+
+     res.status(200).json({ message: '审计日志最大条数已成功更新', maxEntries });
+   } catch (error: any) {
+     console.error('[控制器] 设置审计日志最大条数时出错:', error);
+     res.status(500).json({ message: '设置审计日志最大条数失败', error: error.message });
+   }
+ }
 
 };

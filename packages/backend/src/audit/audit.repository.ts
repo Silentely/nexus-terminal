@@ -1,6 +1,7 @@
 import { Database } from 'sqlite3';
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
 import { AuditLogEntry, AuditLogActionType } from '../types/audit.types';
+import { settingsService } from '../settings/settings.service';
 
 
 type DbAuditLogRow = AuditLogEntry;
@@ -14,7 +15,7 @@ export class AuditLogRepository {
      * @param details 可选的详细信息（对象或字符串）。
      */
     async addLog(actionType: AuditLogActionType, details?: Record<string, any> | string | null): Promise<void> {
-        const timestamp = Math.floor(Date.now() / 1000); 
+        const timestamp = Math.floor(Date.now() / 1000);
         let detailsString: string | null = null;
 
         if (details) {
@@ -45,10 +46,12 @@ export class AuditLogRepository {
 
     /**
      * 清理旧的审计日志，保持最多 MAX_LOG_ENTRIES 条记录。
+     * 现在从设置中读取最大条数配置。
      * @param db - 数据库实例。
      */
     private async cleanupOldLogs(db: Database): Promise<void> {
-        const MAX_LOG_ENTRIES = 50000; // 设置最大日志条数
+        // 从设置中获取最大日志条数
+        const MAX_LOG_ENTRIES = await settingsService.getAuditLogMaxEntries();
         const countSql = 'SELECT COUNT(*) as total FROM audit_logs';
         const deleteSql = `
             DELETE FROM audit_logs
@@ -72,6 +75,39 @@ export class AuditLogRepository {
         } catch (err: any) {
             console.error(`[审计日志] 日志清理过程中出错: ${err.message}`);
             // 清理失败不应阻止主日志记录流程，仅记录错误。
+        }
+    }
+
+    /**
+     * 删除所有审计日志记录
+     * @returns 删除的记录数
+     */
+    async deleteAllLogs(): Promise<number> {
+        const sql = 'DELETE FROM audit_logs';
+        try {
+            const db = await getDbInstance();
+            const result = await runDb(db, sql, []);
+            console.log(`[审计日志] 已删除所有审计日志，共 ${result.changes} 条记录。`);
+            return result.changes;
+        } catch (err: any) {
+            console.error(`[审计日志] 删除所有日志时出错: ${err.message}`);
+            throw new Error(`删除审计日志失败: ${err.message}`);
+        }
+    }
+
+    /**
+     * 获取审计日志总数
+     * @returns 审计日志总数
+     */
+    async getLogCount(): Promise<number> {
+        const sql = 'SELECT COUNT(*) as total FROM audit_logs';
+        try {
+            const db = await getDbInstance();
+            const countRow = await getDbRow<{ total: number }>(db, sql);
+            return countRow?.total ?? 0;
+        } catch (err: any) {
+            console.error(`[审计日志] 获取日志总数时出错: ${err.message}`);
+            throw new Error(`获取审计日志总数失败: ${err.message}`);
         }
     }
 

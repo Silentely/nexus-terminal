@@ -31,7 +31,7 @@ describe('Connection Repository', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('findAllConnectionsWithTags', () => {
@@ -276,7 +276,7 @@ describe('Connection Repository', () => {
                     proxy_id: null,
                     jump_chain: null,
                 })
-            ).rejects.toThrow('未能获取有效的 lastID');
+            ).rejects.toThrow('创建连接记录失败');
         });
     });
 
@@ -290,10 +290,13 @@ describe('Connection Repository', () => {
             expect(runDb).toHaveBeenCalled();
         });
 
-        it('无字段更新时应返回 false', async () => {
+        it('无字段更新时应至少更新时间戳并返回 true', async () => {
             const result = await updateConnection(1, {});
 
-            expect(result).toBe(false);
+            expect(result).toBe(true);
+            expect(runDb).toHaveBeenCalled();
+            const call = (runDb as any).mock.calls[0];
+            expect(call[1]).toContain('updated_at');
         });
 
         it('连接不存在时应返回 false', async () => {

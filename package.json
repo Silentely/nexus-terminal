@@ -10,7 +10,14 @@
     "doc": "doc"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "npm run -w @nexus-terminal/backend test",
+    "test:frontend": "npm run -w @nexus-terminal/frontend test",
+    "test:watch:backend": "npm run -w @nexus-terminal/backend test:watch",
+    "test:watch:frontend": "npm run -w @nexus-terminal/frontend test:watch",
+    "test:coverage": "npm run test:coverage:backend && npm run test:coverage:frontend",
+    "test:coverage:backend": "npm run -w @nexus-terminal/backend test:coverage",
+    "test:coverage:frontend": "npm run -w @nexus-terminal/frontend test:coverage",
     "postinstall": "patch-package"
   },
   "repository": {

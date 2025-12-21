@@ -69,4 +69,33 @@ export class AuditController {
             res.status(500).json({ message: '获取审计日志失败', error: error.message });
         }
     }
+
+    /**
+     * 删除所有审计日志 (DELETE /api/v1/audit-logs)
+     */
+    async deleteAllLogs(req: Request, res: Response): Promise<void> {
+        try {
+            const deletedCount = await auditLogService.deleteAllLogs();
+            res.status(200).json({
+                message: '审计日志已全部删除',
+                deletedCount
+            });
+        } catch (error: any) {
+            console.error('删除审计日志时出错:', error);
+            res.status(500).json({ message: '删除审计日志失败', error: error.message });
+        }
+    }
+
+    /**
+     * 获取审计日志总数 (GET /api/v1/audit-logs/count)
+     */
+    async getLogCount(req: Request, res: Response): Promise<void> {
+        try {
+            const count = await auditLogService.getLogCount();
+            res.status(200).json({ count });
+        } catch (error: any) {
+            console.error('获取审计日志数量时出错:', error);
+            res.status(500).json({ message: '获取审计日志数量失败', error: error.message });
+        }
+    }
 }

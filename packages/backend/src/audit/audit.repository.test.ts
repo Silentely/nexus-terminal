@@ -23,7 +23,7 @@ describe('AuditLogRepository', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('addLog', () => {
@@ -78,7 +78,11 @@ describe('AuditLogRepository', () => {
 
         it('当日志数量超过限制时应触发清理', async () => {
             // 模拟日志数量超过 50000
-            (getDb as any).mockResolvedValueOnce({ total: 50100 });
+            // 第一次 getDb 调用来自 settingsService.getAuditLogMaxEntries -> settingsRepository.getSetting
+            // 第二次 getDb 调用来自 cleanupOldLogs -> SELECT COUNT(*)
+            (getDb as any)
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce({ total: 50100 });
 
             await repository.addLog('user_login');
 
@@ -181,6 +185,42 @@ describe('AuditLogRepository', () => {
             (getDb as any).mockRejectedValueOnce(new Error('Database error'));
 
             await expect(repository.getLogs()).rejects.toThrow('获取审计日志时出错');
+        });
+    });
+
+    describe('deleteAllLogs', () => {
+        it('应删除所有日志并返回删除条数', async () => {
+            (runDb as any).mockResolvedValueOnce({ changes: 42 });
+            const deleted = await repository.deleteAllLogs();
+            expect(getDbInstance).toHaveBeenCalled();
+            expect(runDb).toHaveBeenCalledWith(expect.anything(), 'DELETE FROM audit_logs', []);
+            expect(deleted).toBe(42);
+        });
+
+        it('数据库错误时应抛出异常', async () => {
+            (runDb as any).mockRejectedValueOnce(new Error('fail'));
+            await expect(repository.deleteAllLogs()).rejects.toThrow('删除审计日志失败');
+        });
+    });
+
+    describe('getLogCount', () => {
+        it('应返回审计日志总数', async () => {
+            (getDb as any).mockResolvedValueOnce({ total: 7 });
+            const count = await repository.getLogCount();
+            expect(getDbInstance).toHaveBeenCalled();
+            expect(getDb).toHaveBeenCalledWith(expect.anything(), 'SELECT COUNT(*) as total FROM audit_logs');
+            expect(count).toBe(7);
+        });
+
+        it('当查询返回 null 时应回退为 0', async () => {
+            (getDb as any).mockResolvedValueOnce(null);
+            const count = await repository.getLogCount();
+            expect(count).toBe(0);
+        });
+
+        it('数据库错误时应抛出异常', async () => {
+            (getDb as any).mockRejectedValueOnce(new Error('boom'));
+            await expect(repository.getLogCount()).rejects.toThrow('获取审计日志总数失败');
         });
     });
 });

@@ -79,13 +79,21 @@ router.get('/export-connections', settingsController.exportAllConnections);
 router.get('/show-status-monitor-ip-address', settingsController.getShowStatusMonitorIpAddress);
 // PUT /api/v1/settings/show-status-monitor-ip-address - 更新设置
 router.put('/show-status-monitor-ip-address', settingsController.setShowStatusMonitorIpAddress);
- 
-export default router;
+
+// +++ 容器日志等级路由 +++
+// GET /api/v1/settings/log-level - 获取日志等级
+router.get('/log-level', settingsController.getLogLevel);
+// PUT /api/v1/settings/log-level - 更新日志等级
+router.put('/log-level', settingsController.setLogLevel);
+
+// +++ 审计日志最大保留条数路由 +++
+// GET /api/v1/settings/audit-log-max-entries - 获取最大条数
+router.get('/audit-log-max-entries', settingsController.getAuditLogMaxEntries);
+// PUT /api/v1/settings/audit-log-max-entries - 更新最大条数
+router.put('/audit-log-max-entries', settingsController.setAuditLogMaxEntries);
 
 // +++ CAPTCHA 配置路由 (需要认证更新) +++
 // PUT /api/v1/settings/captcha - 更新 CAPTCHA 配置
-// 注意：这个路由定义在 `export default router` 之后，这是不正确的。
-// 我会将它移到 `export default router` 之前，并确保它也在 `isAuthenticated` 中间件的作用域内。
-// 然而，既然它已经存在，并且在 `isAuthenticated` 之后（通过 router.use(isAuthenticated)），
-// 我们只需要确保导出路由也在正确的位置。
 router.put('/captcha', settingsController.setCaptchaConfig);
+
+export default router;

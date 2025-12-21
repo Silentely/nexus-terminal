@@ -165,7 +165,7 @@ describe('Terminal Theme Repository', () => {
                     name: 'Test',
                     themeData: { foreground: '#fff', background: '#000' },
                 })
-            ).rejects.toThrow('创建主题后未能获取有效的 lastID');
+            ).rejects.toThrow('创建终端主题失败');
         });
 
         it('创建后无法检索到主题应抛出异常', async () => {
@@ -177,7 +177,7 @@ describe('Terminal Theme Repository', () => {
                     name: 'Test',
                     themeData: { foreground: '#fff', background: '#000' },
                 })
-            ).rejects.toThrow('创建主题后未能检索到');
+            ).rejects.toThrow('创建终端主题失败');
         });
 
         it('主题名称重复时应抛出异常', async () => {

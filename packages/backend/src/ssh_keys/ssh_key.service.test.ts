@@ -37,7 +37,7 @@ describe('SSH Key Service', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     const mockDbRow = {

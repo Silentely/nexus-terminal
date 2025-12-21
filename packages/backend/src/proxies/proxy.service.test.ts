@@ -34,7 +34,7 @@ describe('Proxy Service', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('getAllProxies', () => {

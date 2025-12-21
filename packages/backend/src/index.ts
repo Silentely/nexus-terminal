@@ -1,36 +1,11 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs'; // fs is needed for early env loading if data/.env is checked
-import { formatInTimeZone } from 'date-fns-tz';
+import { installConsoleLogging, setLogLevel as setRuntimeLogLevel, type LogLevel } from './logging/logger';
+import { settingsService } from './settings/settings.service';
 
-// --- 统一日志时间戳（含时区） ---
-// 通过环境变量 LOG_TZ（优先）或 TZ 配置时区，默认 UTC。
-// 运行时覆盖 console 系列方法，为容器日志添加带时区的时间前缀，确保各服务输出一致。
-(() => {
-    const originalConsole = {
-        log: console.log,
-        info: console.info,
-        warn: console.warn,
-        error: console.error,
-        debug: console.debug,
-    };
-
-    const formatTimestamp = () => {
-        const tz = process.env.LOG_TZ || process.env.TZ || 'UTC';
-        try {
-            return `[${formatInTimeZone(new Date(), tz, 'yyyy-MM-dd HH:mm:ss XXX')}]`;
-        } catch {
-            // 回退到 ISO 时间，避免时区配置错误导致崩溃
-            return `[${new Date().toISOString()}]`;
-        }
-    };
-
-    (['log', 'info', 'warn', 'error', 'debug'] as const).forEach((method) => {
-        console[method] = (...args: any[]) => {
-            originalConsole[method](formatTimestamp(), ...args);
-        };
-    });
-})();
+// 统一安装 console 时间戳前缀 + 日志等级过滤（尽量早执行）
+installConsoleLogging();
 
 // --- 开始环境变量的早期加载 ---
 // 1. 加载根目录的 .env 文件 (定义部署模式等)
@@ -248,6 +223,16 @@ const initializeDatabase = async () => {
   }
 };
 
+// 尝试从数据库设置中加载日志等级（用于重启后保持一致）
+const initializeRuntimeLogLevel = async () => {
+    try {
+        const level = await settingsService.getLogLevel();
+        setRuntimeLogLevel(level as LogLevel);
+    } catch (error) {
+        console.warn('[Index] 初始化日志等级失败，将使用默认日志等级。', error);
+    }
+};
+
 // 启动服务器
 const startServer = () => {
     // --- 会话中间件配置 ---
@@ -316,6 +301,7 @@ const startServer = () => {
 const main = async () => {
     await initializeEnvironment(); // 首先初始化环境和密钥
     await initializeDatabase();   // 然后初始化数据库
+    await initializeRuntimeLogLevel(); // 再从设置中初始化运行时日志等级
     startServer();                // 最后启动服务器
 };
 

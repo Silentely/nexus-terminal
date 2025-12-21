@@ -4,9 +4,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock 数据库连接
-const mockPrepare = vi.fn().mockReturnValue({
-    run: vi.fn().mockResolvedValue(undefined),
-    finalize: vi.fn().mockResolvedValue(undefined),
+const { mockPrepare } = vi.hoisted(() => {
+    const mockPrepare = vi.fn().mockReturnValue({
+        run: vi.fn().mockResolvedValue(undefined),
+        finalize: vi.fn().mockResolvedValue(undefined),
+    });
+    return { mockPrepare };
 });
 
 vi.mock('../database/connection', () => ({
@@ -40,7 +43,7 @@ describe('Quick Command Tag Repository', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     const mockTag = {

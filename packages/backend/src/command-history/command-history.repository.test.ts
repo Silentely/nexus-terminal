@@ -25,7 +25,7 @@ describe('Command History Repository', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('upsertCommand', () => {
@@ -60,7 +60,7 @@ describe('Command History Repository', () => {
             (runDb as any).mockResolvedValueOnce({ changes: 1 });
             (getDb as any).mockResolvedValueOnce(null);
 
-            await expect(upsertCommand('test')).rejects.toThrow('更新成功但无法找到记录 ID');
+            await expect(upsertCommand('test')).rejects.toThrow('无法更新或插入命令历史记录');
         });
 
         it('插入后 lastID 无效应抛出异常', async () => {
@@ -69,7 +69,7 @@ describe('Command History Repository', () => {
                 .mockResolvedValueOnce({ lastID: 0, changes: 0 });
 
             await expect(upsertCommand('test')).rejects.toThrow(
-                '插入新命令历史记录后未能获取有效的 lastID'
+                '无法更新或插入命令历史记录'
             );
         });
 

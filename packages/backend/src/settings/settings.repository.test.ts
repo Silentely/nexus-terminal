@@ -26,7 +26,7 @@ describe('Settings Repository', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('settingsRepository.getAllSettings', () => {
@@ -188,7 +188,7 @@ describe('Settings Repository', () => {
         });
 
         it('配置无效时应抛出异常', async () => {
-            await expect(setSidebarConfig({} as any)).rejects.toThrow('提供了无效的侧边栏配置对象');
+            await expect(setSidebarConfig({} as any)).rejects.toThrow('保存侧边栏配置失败。');
         });
 
         it('配置为 null 时应抛出异常', async () => {
@@ -250,11 +250,11 @@ describe('Settings Repository', () => {
         });
 
         it('配置无效时应抛出异常', async () => {
-            await expect(setCaptchaConfig({} as any)).rejects.toThrow('提供了无效的 CAPTCHA 配置对象');
+            await expect(setCaptchaConfig({} as any)).rejects.toThrow('保存 CAPTCHA 配置失败。');
         });
 
         it('enabled 不是布尔值时应抛出异常', async () => {
-            await expect(setCaptchaConfig({ enabled: 'true' } as any)).rejects.toThrow();
+            await expect(setCaptchaConfig({ enabled: 'true' } as any)).rejects.toThrow('保存 CAPTCHA 配置失败。');
         });
     });
 });

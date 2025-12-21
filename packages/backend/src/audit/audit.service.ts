@@ -47,4 +47,20 @@ export class AuditLogService {
         // 将 searchTerm 传递给 repository
         return this.repository.getLogs(limit, offset, actionType, startDate, endDate, searchTerm);
     }
+
+    /**
+     * 删除所有审计日志
+     * @returns 删除的记录数
+     */
+    async deleteAllLogs(): Promise<number> {
+        return this.repository.deleteAllLogs();
+    }
+
+    /**
+     * 获取审计日志总数
+     * @returns 日志总数
+     */
+    async getLogCount(): Promise<number> {
+        return this.repository.getLogCount();
+    }
 }

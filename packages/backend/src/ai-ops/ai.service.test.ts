@@ -56,7 +56,7 @@ describe('AI Service', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('getOrCreateSession', () => {
@@ -227,11 +227,11 @@ describe('AI Service', () => {
 
         it('应统计用户活跃连接', async () => {
             // Setup mock WebSocket state
-            const mockWs = {} as any;
+            const mockWs = { sessionId: 'session-1' } as any;
             const mockState = { sshClient: {} };
-            (clientStates as Map<any, any>).set(mockWs, mockState);
+            (clientStates as Map<any, any>).set('session-1', mockState);
             const userSocketSet = new Set([mockWs]);
-            (userSockets as Map<any, any>).set('1', userSocketSet);
+            (userSockets as Map<any, any>).set(1, userSocketSet);
 
             (getDb as any).mockResolvedValue({ count: 0 });
             (allDb as any).mockResolvedValue([]);

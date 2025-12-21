@@ -26,7 +26,7 @@ describe('AuditLogService', () => {
     });
 
     afterEach(() => {
-        vi.resetAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('logAction', () => {
