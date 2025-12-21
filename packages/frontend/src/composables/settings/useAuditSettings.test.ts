@@ -4,10 +4,14 @@ import { mount } from '@vue/test-utils';
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (_key: string, fallback?: string, params?: Record<string, any>) => {
-      if (!fallback) return _key;
-      if (!params) return fallback;
-      return fallback.replace('{count}', String(params.count ?? ''));
+    t: (_key: string, arg1?: any) => {
+      // 仅覆盖当前测试需要的两种调用方式：
+      // 1) t(key) -> 返回 key
+      // 2) t(key, { count }) -> 返回一个包含 count 的字符串（用于断言）
+      if (!arg1) return _key;
+      const count = (arg1 as any).count;
+      if (count === undefined) return _key;
+      return `已删除 ${String(count)} 条审计日志`;
     },
   }),
 }));

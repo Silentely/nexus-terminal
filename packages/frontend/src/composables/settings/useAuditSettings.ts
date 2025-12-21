@@ -70,7 +70,8 @@ export function useAuditSettings() {
     deleteAuditLogsSuccess.value = false;
     try {
       const response = await apiClient.delete('/audit-logs');
-      deleteAuditLogsMessage.value = t('settings.auditLog.success.deleted', '已删除 {count} 条审计日志', { count: response.data.deletedCount });
+      const deletedCount = response.data?.deletedCount ?? 0;
+      deleteAuditLogsMessage.value = t('settings.auditLog.success.deleted', { count: deletedCount });
       deleteAuditLogsSuccess.value = true;
       showDeleteConfirm.value = false;
       await fetchAuditLogCount();
