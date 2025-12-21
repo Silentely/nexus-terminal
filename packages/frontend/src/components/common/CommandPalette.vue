@@ -60,18 +60,20 @@ import { useRouter } from 'vue-router';
 import { useSessionStore } from '../../stores/session.store';
 import { useAppearanceStore } from '../../stores/appearance.store';
 import { useConnectionsStore } from '../../stores/connections.store';
+import { useUiNotificationsStore } from '../../stores/uiNotifications.store';
 
 const { t } = useI18n();
 const router = useRouter();
 const sessionStore = useSessionStore();
 const appearanceStore = useAppearanceStore();
 const connectionsStore = useConnectionsStore();
+const uiNotificationsStore = useUiNotificationsStore();
 
 interface CommandItem {
   id: string;
   label: string;
   icon: string;
-  action: () => any;
+  action: () => unknown;
   category: string;
   shortcut?: string;
 }
@@ -107,8 +109,8 @@ const close = () => {
 // In a real app, this would be computed from stores dynamically
 const allItems = computed<CommandItem[]>(() => {
   const items: CommandItem[] = [
-    // { id: 'theme-dark', label: 'Theme: Dark', icon: 'fas fa-moon', action: () => appearanceStore.setTheme('dark'), category: 'Appearance' },
-    // { id: 'theme-light', label: 'Theme: Light', icon: 'fas fa-sun', action: () => appearanceStore.setTheme('light'), category: 'Appearance' },
+    { id: 'theme-dark', label: 'Theme: Dark', icon: 'fas fa-moon', action: () => appearanceStore.setTheme('dark'), category: 'Appearance' },
+    { id: 'theme-light', label: 'Theme: Light', icon: 'fas fa-sun', action: () => appearanceStore.setTheme('light'), category: 'Appearance' },
     { id: 'nav-dashboard', label: 'Go to Dashboard', icon: 'fas fa-home', action: () => router.push('/'), category: 'Navigation' },
     { id: 'nav-connections', label: 'Go to Connections', icon: 'fas fa-network-wired', action: () => router.push('/connections'), category: 'Navigation' },
     { id: 'nav-settings', label: 'Go to Settings', icon: 'fas fa-cog', action: () => router.push('/settings'), category: 'Navigation' },
@@ -155,8 +157,15 @@ const handleKeydown = (e: KeyboardEvent) => {
 };
 
 const execute = (item: any) => {
-  item.action();
-  close();
+  Promise.resolve()
+    .then(() => item.action())
+    .catch((error) => {
+      console.error('[CommandPalette] 执行命令失败:', error);
+      uiNotificationsStore.showError(t('commandPalette.actionFailed', '执行失败，请稍后重试'));
+    })
+    .finally(() => {
+      close();
+    });
 };
 
 watch(query, () => {

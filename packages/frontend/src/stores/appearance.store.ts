@@ -5,7 +5,7 @@ import { useDeviceDetection } from '../composables/useDeviceDetection';
 import type { ITheme } from 'xterm';
 import type { TerminalTheme } from '../types/terminal-theme.types'; 
 import type { AppearanceSettings, UpdateAppearanceDto } from '../types/appearance.types';
-import { defaultXtermTheme, defaultUiTheme } from '../features/appearance/config/default-themes';
+import { defaultXtermTheme, defaultUiTheme, darkUiTheme } from '../features/appearance/config/default-themes';
 
 // Helper function to safely parse JSON
 export const safeJsonParse = <T>(jsonString: string | undefined | null, defaultValue: T): T => { 
@@ -277,6 +277,15 @@ export const useAppearanceStore = defineStore('appearance', () => {
      */
     async function resetCustomUiTheme() {
         await saveCustomUiTheme(defaultUiTheme);
+    }
+
+    /**
+     * 切换 UI 主题 (Light/Dark)
+     * @param mode 'light' | 'dark'
+     */
+    async function setTheme(mode: 'light' | 'dark') {
+        const theme = mode === 'dark' ? darkUiTheme : defaultUiTheme;
+        await saveCustomUiTheme(theme);
     }
 
      /**
@@ -914,6 +923,7 @@ export const useAppearanceStore = defineStore('appearance', () => {
         updateAppearanceSettings,
         saveCustomUiTheme,
         resetCustomUiTheme,
+        setTheme, // 导出 setTheme
         setActiveTerminalTheme,
         setTerminalFontFamily,
         setTerminalFontSize, // 设置桌面端字体大小
