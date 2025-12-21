@@ -167,11 +167,12 @@ export async function getSystemHealthSummary(userId?: number | string): Promise<
 
     // 活跃连接数（通过 WebSocket 状态获取，仅统计当前用户）
     let activeConnections = 0;
-    if (userId) {
-        const userSocketSet = userSockets.get(String(userId));
+    if (userId !== undefined && userId !== null) {
+        const userKey = Number(userId);
+        const userSocketSet = userSockets.get(userKey);
         if (userSocketSet) {
             userSocketSet.forEach(ws => {
-                const state = clientStates.get(ws);
+                const state = ws.sessionId ? clientStates.get(ws.sessionId) : undefined;
                 if (state?.sshClient) activeConnections++;
             });
         }
@@ -489,11 +490,12 @@ async function analyzeConnectionStats(userId?: number | string): Promise<{
 
     // 当前活跃（按用户过滤）
     let activeConnections = 0;
-    if (userId) {
-        const userSocketSet = userSockets.get(String(userId));
+    if (userId !== undefined && userId !== null) {
+        const userKey = Number(userId);
+        const userSocketSet = userSockets.get(userKey);
         if (userSocketSet) {
             userSocketSet.forEach(ws => {
-                const state = clientStates.get(ws);
+                const state = ws.sessionId ? clientStates.get(ws.sessionId) : undefined;
                 if (state?.sshClient) activeConnections++;
             });
         }
