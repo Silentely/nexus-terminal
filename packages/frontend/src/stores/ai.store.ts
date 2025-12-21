@@ -62,7 +62,7 @@ export const useAIStore = defineStore('ai', () => {
         try {
             const response = await apiClient.post<AIQueryResponse>('/ai/query', {
                 query,
-                sessionId: currentSessionId.value,
+                ...(currentSessionId.value && { sessionId: currentSessionId.value }),
                 context,
             });
 

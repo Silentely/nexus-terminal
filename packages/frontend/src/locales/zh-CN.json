@@ -1683,5 +1683,47 @@
     "delete": "删除此条历史",
     "copiedSuccess": "路径已复制到剪贴板",
     "copiedError": "复制路径失败"
+  },
+  "batchOps": {
+    "title": "批量执行",
+    "progress": "进度",
+    "selectServers": "选择服务器",
+    "noConnections": "没有可用的 SSH 连接",
+    "commandLabel": "要执行的命令",
+    "commandPlaceholder": "例如 apt-get update",
+    "execute": "广播执行",
+    "cancel": "取消",
+    "sudo": "以 sudo 运行",
+    "concurrency": "并发数",
+    "results": "执行结果",
+    "viewOutput": "查看",
+    "output": "输出",
+    "noOutput": "无输出",
+    "status": {
+      "queued": "队列中",
+      "inProgress": "执行中",
+      "partiallyCompleted": "部分完成",
+      "completed": "已完成",
+      "failed": "已失败",
+      "cancelled": "已取消"
+    }
+  },
+  "aiOps": {
+    "title": "AI 运维助手",
+    "newSession": "新建会话",
+    "history": "历史记录",
+    "sessionHistory": "会话历史",
+    "noSessions": "暂无历史会话",
+    "untitled": "未命名会话",
+    "placeholder": "询问关于服务器或日志的任何问题...",
+    "typing": "AI 正在分析...",
+    "insights": "洞察",
+    "inputPlaceholder": "输入消息...",
+    "suggestions": {
+      "health": "检查系统健康状态",
+      "commands": "分析命令执行模式",
+      "security": "查看安全事件统计",
+      "connections": "连接使用情况"
+    }
   }
 }
