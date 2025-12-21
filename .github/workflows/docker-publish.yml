@@ -1,0 +1,119 @@
+name: Build and Publish Docker Images
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  actions: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - name: backend
+            dockerfile: packages/backend/Dockerfile
+            image: backend
+          - name: frontend
+            dockerfile: packages/frontend/Dockerfile
+            image: frontend
+          - name: remote-gateway
+            dockerfile: packages/remote-gateway/Dockerfile
+            image: remote-gateway
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.service.image }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push ${{ matrix.service.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - name: Show published tags
+        run: |
+          echo "Published: ${{ steps.meta.outputs.tags }}"
+
+  cleanup-old-runs:
+    name: Cleanup workflow runs (3 days)
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Delete runs older than 3 days
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { repo, owner } = context.repo;
+            const cutoff = Date.now() - 3 * 24 * 60 * 60 * 1000;
+            const currentRunId = context.runId;
+            let page = 1;
+            let total = 0;
+            let deleted = 0;
+
+            while (true) {
+              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+                owner,
+                repo,
+                per_page: 100,
+                page,
+              });
+
+              if (!data.workflow_runs.length) break;
+
+              for (const run of data.workflow_runs) {
+                total++;
+                if (run.id === currentRunId) continue;
+                const created = new Date(run.created_at).getTime();
+                const statusOk = ['completed', 'cancelled'].includes(run.status || '');
+                if (!statusOk) continue;
+                if (created >= cutoff) continue;
+
+                await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id });
+                deleted++;
+                core.info(`删除 run ${run.id} (${run.name}) created_at=${run.created_at}`);
+              }
+
+              page++;
+            }
+
+            core.info(`扫描完成：处理 ${total} 条，删除 ${deleted} 条，阈值=3天。`);
