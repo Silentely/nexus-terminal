@@ -182,44 +182,32 @@ export async function getSystemHealthSummary(userId?: number | string): Promise<
         });
     }
 
-    // 24小时内失败登录次数（按用户过滤）
+    // 24小时内失败登录次数（单用户系统，不按用户过滤）
     const failedLogins = await getDb<{ count: number }>(db,
-        userId
-            ? `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ? AND user_id = ?`
-            : `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ?`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ?`,
+        [oneDayAgo]
     );
 
-    // 24小时内 SSH 失败次数（按用户过滤）
+    // 24小时内 SSH 失败次数（单用户系统，不按用户过滤）
     const sshFailures = await getDb<{ count: number }>(db,
-        userId
-            ? `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'SSH_CONNECT_FAILURE' AND timestamp >= ? AND user_id = ?`
-            : `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'SSH_CONNECT_FAILURE' AND timestamp >= ?`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'SSH_CONNECT_FAILURE' AND timestamp >= ?`,
+        [oneDayAgo]
     );
 
-    // 24小时内执行的命令数量（按用户过滤）
+    // 24小时内执行的命令数量（单用户系统，不按用户过滤）
     const commandsExecuted = await getDb<{ count: number }>(db,
-        userId
-            ? `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ? AND user_id = ?`
-            : `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ?`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ?`,
+        [oneDayAgo]
     );
 
-    // 热门连接（基于 SSH 成功连接，按用户过滤）
+    // 热门连接（基于 SSH 成功连接，单用户系统，不按用户过滤）
     const topConnectionsData = await allDb<{ connection_id: number; count: number }>(db,
-        userId
-            ? `SELECT json_extract(details, '$.connectionId') as connection_id, COUNT(*) as count
-               FROM audit_logs
-               WHERE action_type = 'SSH_CONNECT_SUCCESS' AND timestamp >= ? AND user_id = ?
-                 AND json_extract(details, '$.connectionId') IS NOT NULL
-               GROUP BY connection_id ORDER BY count DESC LIMIT 5`
-            : `SELECT json_extract(details, '$.connectionId') as connection_id, COUNT(*) as count
-               FROM audit_logs
-               WHERE action_type = 'SSH_CONNECT_SUCCESS' AND timestamp >= ?
-                 AND json_extract(details, '$.connectionId') IS NOT NULL
-               GROUP BY connection_id ORDER BY count DESC LIMIT 5`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT json_extract(details, '$.connectionId') as connection_id, COUNT(*) as count
+           FROM audit_logs
+           WHERE action_type = 'SSH_CONNECT_SUCCESS' AND timestamp >= ?
+             AND json_extract(details, '$.connectionId') IS NOT NULL
+           GROUP BY connection_id ORDER BY count DESC LIMIT 5`,
+        [oneDayAgo]
     );
 
     // 获取连接名称
@@ -300,25 +288,19 @@ export async function analyzeCommandPatterns(userId?: number | string): Promise<
     const now = Math.floor(Date.now() / 1000);
     const oneDayAgo = now - SECONDS_24H;
 
-    // 总命令数（按用户过滤）
+    // 总命令数（单用户系统，不按用户过滤）
     const totalResult = await getDb<{ count: number }>(db,
-        userId
-            ? `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ? AND user_id = ?`
-            : `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ?`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ?`,
+        [oneDayAgo]
     );
     const totalCommands = totalResult?.count || 0;
 
-    // 热门命令（提取命令名称，不含参数，按用户过滤）
+    // 热门命令（提取命令名称，不含参数，单用户系统，不按用户过滤）
     const topCommandsData = await allDb<{ cmd_name: string; count: number }>(db,
-        userId
-            ? `SELECT SUBSTR(command, 1, INSTR(command || ' ', ' ') - 1) as cmd_name, COUNT(*) as count
-               FROM command_history WHERE timestamp >= ? AND user_id = ?
-               GROUP BY cmd_name ORDER BY count DESC LIMIT 10`
-            : `SELECT SUBSTR(command, 1, INSTR(command || ' ', ' ') - 1) as cmd_name, COUNT(*) as count
-               FROM command_history WHERE timestamp >= ?
-               GROUP BY cmd_name ORDER BY count DESC LIMIT 10`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT SUBSTR(command, 1, INSTR(command || ' ', ' ') - 1) as cmd_name, COUNT(*) as count
+           FROM command_history WHERE timestamp >= ?
+           GROUP BY cmd_name ORDER BY count DESC LIMIT 10`,
+        [oneDayAgo]
     );
 
     const topCommands = topCommandsData.map(item => ({
@@ -327,16 +309,12 @@ export async function analyzeCommandPatterns(userId?: number | string): Promise<
         percentage: totalCommands > 0 ? Math.round((item.count / totalCommands) * 100) : 0
     }));
 
-    // 时间分布（按小时，按用户过滤）
+    // 时间分布（按小时，单用户系统，不按用户过滤）
     const timeDistData = await allDb<{ hour: number; count: number }>(db,
-        userId
-            ? `SELECT (timestamp % 86400) / 3600 as hour, COUNT(*) as count
-               FROM command_history WHERE timestamp >= ? AND user_id = ?
-               GROUP BY hour ORDER BY hour`
-            : `SELECT (timestamp % 86400) / 3600 as hour, COUNT(*) as count
-               FROM command_history WHERE timestamp >= ?
-               GROUP BY hour ORDER BY hour`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT (timestamp % 86400) / 3600 as hour, COUNT(*) as count
+           FROM command_history WHERE timestamp >= ?
+           GROUP BY hour ORDER BY hour`,
+        [oneDayAgo]
     );
 
     const timeDistribution: Record<string, number> = {};
@@ -344,16 +322,14 @@ export async function analyzeCommandPatterns(userId?: number | string): Promise<
         timeDistribution[`${item.hour}:00`] = item.count;
     });
 
-    // 检测异常命令（包含危险关键字，按用户过滤）
+    // 检测异常命令（包含危险关键字，单用户系统，不按用户过滤）
     const dangerousKeywords = ['rm -rf', 'dd if=', 'mkfs', ':(){', '> /dev/sd', 'chmod 777'];
     const unusualCommands: string[] = [];
 
     for (const keyword of dangerousKeywords) {
         const found = await allDb<{ command: string }>(db,
-            userId
-                ? `SELECT DISTINCT command FROM command_history WHERE timestamp >= ? AND user_id = ? AND command LIKE ? LIMIT 3`
-                : `SELECT DISTINCT command FROM command_history WHERE timestamp >= ? AND command LIKE ? LIMIT 3`,
-            userId ? [oneDayAgo, userId, `%${keyword}%`] : [oneDayAgo, `%${keyword}%`]
+            `SELECT DISTINCT command FROM command_history WHERE timestamp >= ? AND command LIKE ? LIMIT 3`,
+            [oneDayAgo, `%${keyword}%`]
         );
         unusualCommands.push(...found.map(f => f.command));
     }
@@ -376,16 +352,12 @@ async function analyzeSecurityEvents(userId?: number | string): Promise<AIInsigh
     const oneDayAgo = now - SECONDS_24H;
     const insights: AIInsight[] = [];
 
-    // 检查登录失败（按用户过滤）
+    // 检查登录失败（单用户系统，不按用户过滤）
     const failedLogins = await allDb<{ details: string; timestamp: number }>(db,
-        userId
-            ? `SELECT details, timestamp FROM audit_logs
-               WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ? AND user_id = ?
-               ORDER BY timestamp DESC LIMIT 10`
-            : `SELECT details, timestamp FROM audit_logs
-               WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ?
-               ORDER BY timestamp DESC LIMIT 10`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT details, timestamp FROM audit_logs
+           WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ?
+           ORDER BY timestamp DESC LIMIT 10`,
+        [oneDayAgo]
     );
 
     if (failedLogins.length > 0) {
@@ -413,14 +385,11 @@ async function analyzeSecurityEvents(userId?: number | string): Promise<AIInsigh
         }
     }
 
-    // 检查 2FA 状态变更（按用户过滤）
+    // 检查 2FA 状态变更（单用户系统，不按用户过滤）
     const twoFactorChanges = await getDb<{ count: number }>(db,
-        userId
-            ? `SELECT COUNT(*) as count FROM audit_logs
-               WHERE action_type IN ('2FA_ENABLED', '2FA_DISABLED') AND timestamp >= ? AND user_id = ?`
-            : `SELECT COUNT(*) as count FROM audit_logs
-               WHERE action_type IN ('2FA_ENABLED', '2FA_DISABLED') AND timestamp >= ?`,
-        userId ? [oneDayAgo, userId] : [oneDayAgo]
+        `SELECT COUNT(*) as count FROM audit_logs
+           WHERE action_type IN ('2FA_ENABLED', '2FA_DISABLED') AND timestamp >= ?`,
+        [oneDayAgo]
     );
 
     if ((twoFactorChanges?.count || 0) > 0) {
@@ -463,20 +432,16 @@ async function analyzeConnectionStats(userId?: number | string): Promise<{
 }> {
     const db = await getDbInstance();
 
-    // 总连接数（按用户过滤）
+    // 总连接数（单用户系统，不按用户过滤）
     const total = await getDb<{ count: number }>(db,
-        userId
-            ? `SELECT COUNT(*) as count FROM connections WHERE user_id = ?`
-            : `SELECT COUNT(*) as count FROM connections`,
-        userId ? [userId] : []
+        `SELECT COUNT(*) as count FROM connections`,
+        []
     );
 
-    // 按类型统计（按用户过滤）
+    // 按类型统计（单用户系统，不按用户过滤）
     const byType = await allDb<{ type: string; count: number }>(db,
-        userId
-            ? `SELECT type, COUNT(*) as count FROM connections WHERE user_id = ? GROUP BY type`
-            : `SELECT type, COUNT(*) as count FROM connections GROUP BY type`,
-        userId ? [userId] : []
+        `SELECT type, COUNT(*) as count FROM connections GROUP BY type`,
+        []
     );
 
     let sshConnections = 0;
@@ -505,14 +470,11 @@ async function analyzeConnectionStats(userId?: number | string): Promise<{
         });
     }
 
-    // 最近使用的连接（按用户过滤）
+    // 最近使用的连接（单用户系统，不按用户过滤）
     const recentlyUsedData = await allDb<{ id: number; name: string; last_connected_at: number | null }>(db,
-        userId
-            ? `SELECT id, name, last_connected_at FROM connections WHERE user_id = ?
-               ORDER BY last_connected_at DESC NULLS LAST LIMIT 5`
-            : `SELECT id, name, last_connected_at FROM connections
-               ORDER BY last_connected_at DESC NULLS LAST LIMIT 5`,
-        userId ? [userId] : []
+        `SELECT id, name, last_connected_at FROM connections
+           ORDER BY last_connected_at DESC NULLS LAST LIMIT 5`,
+        []
     );
 
     const recentlyUsed = recentlyUsedData.map(item => ({
