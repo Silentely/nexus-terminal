@@ -1016,7 +1016,7 @@
       "version": "Version",
       "checkingUpdate": "Checking for update...",
       "latestVersion": "Up to date",
-      "updateAvailable": "Update available: {version}!",
+      "updateAvailable": "Update available: {version}",
       "error": {
         "checkFailed": "Failed to check for updates",
         "checkFailedShort": "Check failed",
@@ -1257,7 +1257,8 @@
       "commandHistory": "Command History",
       "quickCommands": "Quick Commands",
       "dockerManager": "Docker Manager",
-      "suspendedSshSessions": "Suspended Sessions Management"
+      "suspendedSshSessions": "Suspended Sessions Management",
+      "aiAssistant": "AI Ops Assistant"
     },
     "panes": {
       "suspendedSshSessions": "Suspended Session Manager"
@@ -1649,4 +1650,3 @@
     "copiedError": "Failed to copy path"
   }
 }
-

@@ -1,6 +1,36 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs'; // fs is needed for early env loading if data/.env is checked
+import { formatInTimeZone } from 'date-fns-tz';
+
+// --- 统一日志时间戳（含时区） ---
+// 通过环境变量 LOG_TZ（优先）或 TZ 配置时区，默认 UTC。
+// 运行时覆盖 console 系列方法，为容器日志添加带时区的时间前缀，确保各服务输出一致。
+(() => {
+    const originalConsole = {
+        log: console.log,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+        debug: console.debug,
+    };
+
+    const formatTimestamp = () => {
+        const tz = process.env.LOG_TZ || process.env.TZ || 'UTC';
+        try {
+            return `[${formatInTimeZone(new Date(), tz, 'yyyy-MM-dd HH:mm:ss XXX')}]`;
+        } catch {
+            // 回退到 ISO 时间，避免时区配置错误导致崩溃
+            return `[${new Date().toISOString()}]`;
+        }
+    };
+
+    (['log', 'info', 'warn', 'error', 'debug'] as const).forEach((method) => {
+        console[method] = (...args: any[]) => {
+            originalConsole[method](formatTimestamp(), ...args);
+        };
+    });
+})();
 
 // --- 开始环境变量的早期加载 ---
 // 1. 加载根目录的 .env 文件 (定义部署模式等)

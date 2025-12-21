@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch, nextTick, watchEffect } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, watchEffect, type PropType } from 'vue';
 import { Terminal, IDisposable } from 'xterm';
 import { useDeviceDetection } from '../../composables/useDeviceDetection';
 import { useAppearanceStore } from '../../stores/appearance.store';
@@ -18,9 +18,9 @@ import { useTerminalSocket } from '../../composables/terminal/useTerminalSocket'
 
 // 定义 props 和 emits
 const props = defineProps({
-  sessionId: String, // 会话 ID
+  sessionId: { type: String, required: true }, // 会话 ID
   isActive: Boolean, // 标记此终端是否为活动标签页
-  stream: Object, // 用于接收来自 WebSocket 的数据流 (可选)
+  stream: Object as PropType<ReadableStream<string>>, // 用于接收来自 WebSocket 的数据流 (可选)
   options: Object, // xterm 的配置选项
 });
 

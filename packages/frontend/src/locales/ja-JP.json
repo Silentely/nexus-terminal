@@ -558,7 +558,8 @@
             "quickCommands": "クイックコマンド",
             "statusMonitor": "ステータスモニター",
             "terminal": "ターミナル",
-            "suspendedSshSessions": "中断されたセッション管理"
+            "suspendedSshSessions": "中断されたセッション管理",
+            "aiAssistant": "AI運用アシスタント"
         },
         "panes": {
             "suspendedSshSessions": "中断されたセッション管理者"
@@ -1148,7 +1149,7 @@
             "version": "バージョン",
             "checkingUpdate": "更新を確認中...",
             "latestVersion": "最新バージョンです",
-            "updateAvailable": "新しいバージョン {version} が利用可能です！",
+            "updateAvailable": "新しいバージョン {version} が利用可能です",
             "error": {
                 "checkFailed": "更新の確認に失敗しました",
                 "checkFailedShort": "確認失敗",

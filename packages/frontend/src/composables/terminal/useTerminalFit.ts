@@ -103,7 +103,7 @@ export function useTerminalFit(
             resizeObserver.observe(observedElement);
             nextTick(() => {
                 setTimeout(() => {
-                    if (isActive.value && terminal.value && terminalRef.value?.offsetHeight > 0) {
+                    if (isActive.value && terminal.value && terminalRef.value && terminalRef.value.offsetHeight > 0) {
                         fitAndEmitResizeNow();
                         terminal.value.focus();
                     }

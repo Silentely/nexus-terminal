@@ -67,6 +67,15 @@ const sessionStore = useSessionStore();
 const appearanceStore = useAppearanceStore();
 const connectionsStore = useConnectionsStore();
 
+interface CommandItem {
+  id: string;
+  label: string;
+  icon: string;
+  action: () => any;
+  category: string;
+  shortcut?: string;
+}
+
 const isVisible = ref(false);
 const query = ref('');
 const selectedIndex = ref(0);
@@ -96,10 +105,10 @@ const close = () => {
 
 // --- Mock Data / Real Actions ---
 // In a real app, this would be computed from stores dynamically
-const allItems = computed(() => {
-  const items = [
-    { id: 'theme-dark', label: 'Theme: Dark', icon: 'fas fa-moon', action: () => appearanceStore.setTheme('dark'), category: 'Appearance' },
-    { id: 'theme-light', label: 'Theme: Light', icon: 'fas fa-sun', action: () => appearanceStore.setTheme('light'), category: 'Appearance' },
+const allItems = computed<CommandItem[]>(() => {
+  const items: CommandItem[] = [
+    // { id: 'theme-dark', label: 'Theme: Dark', icon: 'fas fa-moon', action: () => appearanceStore.setTheme('dark'), category: 'Appearance' },
+    // { id: 'theme-light', label: 'Theme: Light', icon: 'fas fa-sun', action: () => appearanceStore.setTheme('light'), category: 'Appearance' },
     { id: 'nav-dashboard', label: 'Go to Dashboard', icon: 'fas fa-home', action: () => router.push('/'), category: 'Navigation' },
     { id: 'nav-connections', label: 'Go to Connections', icon: 'fas fa-network-wired', action: () => router.push('/connections'), category: 'Navigation' },
     { id: 'nav-settings', label: 'Go to Settings', icon: 'fas fa-cog', action: () => router.push('/settings'), category: 'Navigation' },

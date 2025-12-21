@@ -20,6 +20,8 @@ COPY packages/frontend/index.html ./packages/frontend/
 COPY packages/frontend/tsconfig.json ./packages/frontend/
 COPY packages/frontend/vite.config.ts ./packages/frontend/
 COPY packages/frontend/public ./packages/frontend/public/
+# 覆盖 VERSION，确保与根版本一致，避免老版本遗留
+COPY VERSION ./packages/frontend/public/VERSION
 
 # Copy the root .env file into the builder stage so Vite can read it during build
 COPY .env ./.env

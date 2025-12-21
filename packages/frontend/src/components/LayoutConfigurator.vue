@@ -168,6 +168,8 @@ const paneLabels = computed(() => ({ // Assuming labels might depend on i18n
   quickCommands: t('layout.pane.quickCommands', '快捷指令'),
   dockerManager: t('layout.pane.dockerManager', 'Docker 管理器'),
   suspendedSshSessions: t('layout.pane.suspendedSshSessions'),
+  aiAssistant: t('layout.pane.aiAssistant', 'AI 智能运维助手'),
+  batchExec: t('layout.pane.batchExec', '批量执行'),
 }));
 
 // --- Methods ---

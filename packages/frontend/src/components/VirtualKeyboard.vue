@@ -18,9 +18,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-const emit = defineEmits({
+const emit = defineEmits<{
   (e: 'send-key', sequence: string): void
-});
+}>();
 
 const isCtrlActive = ref(false);
 const isAltActive = ref(false);

@@ -158,7 +158,7 @@ const connectionsStore = useConnectionsStore();
 const batchStore = useBatchStore();
 
 // 只显示 SSH 类型的连接
-const connections = computed(() => connectionsStore.connections.filter(c => c.type === 'ssh'));
+const connections = computed(() => connectionsStore.connections.filter(c => c.type === 'SSH'));
 const selectedIds = ref<number[]>([]);
 const command = ref('');
 const useSudo = ref(false);

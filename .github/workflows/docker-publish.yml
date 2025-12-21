@@ -2,6 +2,7 @@ name: Build and Publish Docker Images
 
 on:
   push:
+    branches: [ "main" ]
     tags: [ "v*" ]
   workflow_dispatch:
   repository_dispatch:
@@ -51,6 +52,24 @@ jobs:
 
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: 判断构建类型
+        id: build_type
+        run: |
+          # 检测是否来自标签推送
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
+            echo "✅ 检测到标签推送，构建 release 镜像"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "BUILD_TYPE=dev" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+            echo "✅ 检测到 main 分支推送，构建 dev 镜像"
+          else
+            echo "BUILD_TYPE=manual" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+            echo "✅ 手动触发或其他情况"
+          fi
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -70,11 +89,19 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.service.image }}
           tags: |
+            # main 分支推送时构建 dev 标签
+            type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=ref,event=branch,suffix=-dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+
+            # tag 推送时构建 latest 和版本号标签
+            type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
+            type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
+            type=ref,event=tag,enable={{is_default_branch}}
+
+            # 其他情况（手动触发）的备用标签
             type=ref,event=branch
             type=ref,event=tag
             type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.version.outputs.VERSION != '' }}
 
       - name: Build and push ${{ matrix.service.name }}
         uses: docker/build-push-action@v6
@@ -91,7 +118,16 @@ jobs:
 
       - name: Show published tags
         run: |
+          echo "构建类型: ${{ steps.build_type.outputs.BUILD_TYPE }}"
           echo "Published: ${{ steps.meta.outputs.tags }}"
+          echo "================================================"
+          if [[ "${{ steps.build_type.outputs.BUILD_TYPE }}" == "dev" ]]; then
+            echo "🚀 已构建 dev 镜像（从 main 分支）"
+          elif [[ "${{ steps.build_type.outputs.IS_TAG_PUSH }}" == "true" ]]; then
+            echo "🎉 已构建 release 镜像（latest + 版本号）"
+          else
+            echo "🔧 手动触发构建"
+          fi
 
   cleanup-old-runs:
     name: Cleanup workflow runs (3 days)
