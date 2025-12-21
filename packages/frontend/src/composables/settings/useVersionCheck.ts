@@ -36,12 +36,20 @@ export function useVersionCheck() {
         throw new Error('Invalid API response format');
       }
     } catch (error: any) {
-      console.error('检查最新版本失败:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        versionCheckError.value = t('settings.about.error.noReleases');
-      } else if (axios.isAxiosError(error) && error.response?.status === 403) {
-         versionCheckError.value = t('settings.about.error.rateLimit');
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          // 404 是正常情况（仓库还没有 release），使用 warn 级别
+          console.warn('暂无可用的发布版本');
+          versionCheckError.value = t('settings.about.error.noReleases');
+        } else if (error.response?.status === 403) {
+          console.error('GitHub API 访问频率受限:', error);
+          versionCheckError.value = t('settings.about.error.rateLimit');
+        } else {
+          console.error('检查最新版本失败:', error);
+          versionCheckError.value = t('settings.about.error.checkFailed');
+        }
       } else {
+        console.error('检查最新版本失败:', error);
         versionCheckError.value = t('settings.about.error.checkFailed');
       }
     } finally {
