@@ -24,7 +24,7 @@
     "SSH_CONNECT_FAILURE": "SSH 连接失败",
     "SSH_SHELL_FAILURE": "SSH Shell 打开失败",
     "DATABASE_MIGRATION": "数据库迁移",
-    "ADMIN_SETUP_COMPLETE": "初始管理员设置完成",
+    "ADMIN_SETUP_COMPLETE": "初始设置完成",
     "testNotification": "测试通知"
   }
 }

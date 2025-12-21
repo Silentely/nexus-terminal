@@ -663,6 +663,44 @@
         "generic": "修改密码失败，请稍后重试。"
       }
     },
+    "transferPolicies": {
+      "title": "传输策略管理",
+      "add": "添加策略",
+      "edit": "编辑策略",
+      "name": "策略名称",
+      "namePlaceholder": "输入策略名称",
+      "direction": "传输方向",
+      "maxFileSize": "单文件限制",
+      "maxFileSizePlaceholder": "0 表示不限制",
+      "maxTotalSize": "总大小限制",
+      "extensions": "扩展名限制",
+      "allowedExtensions": "允许的扩展名",
+      "allowedExtensionsPlaceholder": "例如: txt, jpg, png (用逗号分隔)",
+      "blockedExtensions": "禁止的扩展名",
+      "blockedExtensionsPlaceholder": "例如: exe, sh, bat (用逗号分隔)",
+      "extensionsTip": "留空则不限制。优先匹配允许列表，如果允许列表为空，则检查禁止列表。",
+      "priority": "优先级",
+      "status": "状态",
+      "createdAt": "创建时间",
+      "saved": "策略已保存",
+      "saveFailed": "保存策略失败",
+      "deleted": "策略已删除",
+      "deleteFailed": "删除策略失败",
+      "deleteConfirm": "确定要删除策略 \"{name}\" 吗？",
+      "scope": {
+        "global": "全局",
+        "user_group": "用户组",
+        "user": "用户",
+        "connection": "连接",
+        "group": "分组"
+      },
+      "direction": {
+        "upload": "仅上传",
+        "download": "仅下载",
+        "both": "双向",
+        "none": "禁止"
+      }
+    },
     "twoFactor": {
       "title": "两步验证 (TOTP)",
       "status": {
@@ -847,7 +885,7 @@
         "SSH_CONNECT_FAILURE": "SSH 连接失败",
         "SSH_SHELL_FAILURE": "SSH Shell 打开失败",
         "DATABASE_MIGRATION": "数据库迁移",
-        "ADMIN_SETUP_COMPLETE": "初始管理员设置完成"
+        "ADMIN_SETUP_COMPLETE": "初始设置完成"
       }
     },
     "appearance": {
@@ -1187,7 +1225,7 @@
         "SSH_CONNECT_FAILURE": "SSH 连接失败",
         "SSH_SHELL_FAILURE": "SSH Shell 打开失败",
         "DATABASE_MIGRATION": "数据库迁移",
-        "ADMIN_SETUP_COMPLETE": "初始管理员设置完成",
+        "ADMIN_SETUP_COMPLETE": "初始设置完成",
         "REMOTE_DESKTOP_CONNECTING": "远程桌面连接中",
         "REMOTE_DESKTOP_CONNECTED": "远程桌面已连接",
         "REMOTE_DESKTOP_DISCONNECTED": "远程桌面已断开",
@@ -1371,7 +1409,7 @@
   },
   "setup": {
     "title": "初始设置",
-    "description": "创建第一个管理员账号。",
+    "description": "创建第一个账号。",
     "username": "用户名",
     "usernamePlaceholder": "输入用户名",
     "password": "密码",
@@ -1471,7 +1509,49 @@
     },
     "noConnectionsWithTag": "该标签下没有连接记录",
     "noConnectionsMatchSearch": "没有连接匹配搜索条件",
-    "searchConnectionsPlaceholder": "搜索连接..."
+    "searchConnectionsPlaceholder": "搜索连接...",
+    "actions": {
+      "connection_connected": "连接已建立",
+      "connection_disconnected": "连接已断开",
+      "auth_login_success": "登录成功",
+      "auth_login_failed": "登录失败",
+      "command_executed": "命令执行",
+      "command_blocked": "命令被拦截",
+      "file_upload": "文件上传",
+      "file_download": "文件下载",
+      "alert_security": "安全告警",
+      "alert_error": "错误告警"
+    },
+    "title": "仪表盘",
+    "refresh": "刷新",
+    "autoRefresh": "自动刷新",
+    "intervals": {
+      "15s": "15秒",
+      "30s": "30秒",
+      "1m": "1分钟",
+      "5m": "5分钟"
+    },
+    "stats": {
+      "activeSessions": "活跃会话",
+      "todayConnections": "今日连接",
+      "loginFailures": "登录失败",
+      "alerts": "告警数",
+      "sessionDuration": "会话时长分布",
+      "systemResources": "系统资源"
+    },
+    "assetHealth": "资产健康",
+    "healthy": "在线",
+    "unreachable": "离线",
+    "total": "总计",
+    "storageStats": "存储统计",
+    "recordings": "录像文件",
+    "database": "数据库",
+    "uploads": "上传文件",
+    "memory": "内存",
+    "disk": "磁盘",
+    "activityTimeline": "活动时间线",
+    "noActivity": "暂无活动记录",
+    "addConnection": "添加连接"
   },
   "terminalTabBar": {
     "selectServerTitle": "选择要连接的服务器",

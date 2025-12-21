@@ -67,7 +67,15 @@ const initAIMessagesTable = async (db: Database): Promise<void> => {
     console.log('[DB Init] AI消息索引创建完成。');
 };
 
-
+/**
+ * 初始化文件传输策略表索引
+ */
+const initTransferPoliciesTable = async (db: Database): Promise<void> => {
+    for (const indexSql of schemaSql.createTransferPoliciesIndexesSQL) {
+        await runDb(db, indexSql);
+    }
+    console.log('[DB Init] 文件传输策略索引创建完成。');
+};
 
 
 
@@ -168,5 +176,12 @@ export const tableDefinitions: TableDefinition[] = [
         name: 'ai_messages',
         sql: schemaSql.createAIMessagesTableSQL,
         init: initAIMessagesTable
+    },
+
+    // 文件传输策略模块
+    {
+        name: 'transfer_policies',
+        sql: schemaSql.createTransferPoliciesTableSQL,
+        init: initTransferPoliciesTable
     },
 ];

@@ -810,7 +810,7 @@ export const needsSetup = async (req: Request, res: Response): Promise<void> => 
 };
 
 /**
- * 处理初始管理员账号设置请求 (POST /api/v1/auth/setup)
+ * 处理初始账号设置请求 (POST /api/v1/auth/setup)
  */
 export const setupAdmin = async (req: Request, res: Response): Promise<void> => {
     const { username, password, confirmPassword } = req.body;
@@ -851,18 +851,18 @@ export const setupAdmin = async (req: Request, res: Response): Promise<void> => 
         );
 
         if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-             console.error('创建初始管理员后未能获取有效的 lastID。可能原因：用户名已存在或其他数据库错误。');
-             throw new Error('创建初始管理员失败，可能用户名已存在。');
+             console.error('创建初始账号后未能获取有效的 lastID。可能原因：用户名已存在或其他数据库错误。');
+             throw new Error('创建初始账号失败，可能用户名已存在。');
         }
         const newUser = { id: result.lastID };
 
 
-        console.log(`初始管理员账号 '${username}' (ID: ${newUser.id}) 已成功创建。`);
+        console.log(`初始账号 '${username}' (ID: ${newUser.id}) 已成功创建。`);
         const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
         auditLogService.logAction('ADMIN_SETUP_COMPLETE', { userId: newUser.id, username, ip: clientIp });
         notificationService.sendNotification('ADMIN_SETUP_COMPLETE', { userId: newUser.id, username, ip: clientIp }); 
 
-        res.status(201).json({ message: '初始管理员账号创建成功！' });
+        res.status(201).json({ message: '初始账号创建成功！' });
 
     } catch (error: any) {
         console.error('初始设置过程中发生内部错误:', error);

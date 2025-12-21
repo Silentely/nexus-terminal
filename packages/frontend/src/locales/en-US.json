@@ -669,6 +669,44 @@
         "generic": "Failed to change password. Please try again later."
       }
     },
+    "transferPolicies": {
+      "title": "Transfer Policies",
+      "add": "Add Policy",
+      "edit": "Edit Policy",
+      "name": "Policy Name",
+      "namePlaceholder": "Enter policy name",
+      "direction": "Direction",
+      "maxFileSize": "Max File Size",
+      "maxFileSizePlaceholder": "0 for unlimited",
+      "maxTotalSize": "Max Total Size",
+      "extensions": "Extensions",
+      "allowedExtensions": "Allowed Extensions",
+      "allowedExtensionsPlaceholder": "e.g., txt, jpg, png (comma separated)",
+      "blockedExtensions": "Blocked Extensions",
+      "blockedExtensionsPlaceholder": "e.g., exe, sh, bat (comma separated)",
+      "extensionsTip": "Leave empty for no limit. Allowed list is checked first; if empty, blocked list is checked.",
+      "priority": "Priority",
+      "status": "Status",
+      "createdAt": "Created At",
+      "saved": "Policy saved",
+      "saveFailed": "Failed to save policy",
+      "deleted": "Policy deleted",
+      "deleteFailed": "Failed to delete policy",
+      "deleteConfirm": "Are you sure you want to delete policy \"{name}\"?",
+      "scope": {
+        "global": "Global",
+        "user_group": "User Group",
+        "user": "User",
+        "connection": "Connection",
+        "group": "Group"
+      },
+      "direction": {
+        "upload": "Upload Only",
+        "download": "Download Only",
+        "both": "Bidirectional",
+        "none": "Disabled"
+      }
+    },
     "twoFactor": {
       "title": "Two-Factor Authentication (TOTP)",
       "status": {
@@ -1465,7 +1503,49 @@
     },
     "noConnectionsWithTag": "No connections found with this tag",
     "noConnectionsMatchSearch": "No connections match your search.",
-    "searchConnectionsPlaceholder": "Search connections..."
+    "searchConnectionsPlaceholder": "Search connections...",
+    "actions": {
+      "connection_connected": "Connection Established",
+      "connection_disconnected": "Connection Disconnected",
+      "auth_login_success": "Login Successful",
+      "auth_login_failed": "Login Failed",
+      "command_executed": "Command Executed",
+      "command_blocked": "Command Blocked",
+      "file_upload": "File Upload",
+      "file_download": "File Download",
+      "alert_security": "Security Alert",
+      "alert_error": "Error Alert"
+    },
+    "title": "Dashboard",
+    "refresh": "Refresh",
+    "autoRefresh": "Auto Refresh",
+    "intervals": {
+      "15s": "15s",
+      "30s": "30s",
+      "1m": "1m",
+      "5m": "5m"
+    },
+    "stats": {
+      "activeSessions": "Active Sessions",
+      "todayConnections": "Today's Connections",
+      "loginFailures": "Login Failures",
+      "alerts": "Alerts",
+      "sessionDuration": "Session Duration",
+      "systemResources": "System Resources"
+    },
+    "assetHealth": "Asset Health",
+    "healthy": "Online",
+    "unreachable": "Offline",
+    "total": "Total",
+    "storageStats": "Storage Stats",
+    "recordings": "Recordings",
+    "database": "Database",
+    "uploads": "Uploads",
+    "memory": "Memory",
+    "disk": "Disk",
+    "activityTimeline": "Activity Timeline",
+    "noActivity": "No activity records",
+    "addConnection": "Add Connection"
   },
   "terminalTabBar": {
     "selectServerTitle": "Select server to connect",

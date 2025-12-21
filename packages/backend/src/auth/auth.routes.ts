@@ -35,7 +35,7 @@ router.get('/captcha/config', getPublicCaptchaConfig);
 // GET /api/v1/auth/needs-setup - 检查是否需要初始设置 (公开访问)
 router.get('/needs-setup', needsSetup);
 
-// POST /api/v1/auth/setup - 执行初始管理员设置 (公开访问，控制器内部检查)
+// POST /api/v1/auth/setup - 执行初始设置 (公开访问，控制器内部检查)
 router.post('/setup', setupAdmin);
 
 // POST /api/v1/auth/login - 用户登录接口 (添加黑名单检查)

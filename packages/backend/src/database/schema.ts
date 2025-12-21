@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     hashed_password TEXT NOT NULL,
-    two_factor_secret TEXT NULL, -- 添加 2FA 密钥列，允许为空
+    two_factor_secret TEXT NULL, -- 2FA 密钥列，允许为空
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 );
@@ -347,4 +347,31 @@ CREATE TABLE IF NOT EXISTS ai_messages (
 export const createAIMessagesIndexesSQL = [
     `CREATE INDEX IF NOT EXISTS idx_ai_messages_session ON ai_messages(session_id);`,
     `CREATE INDEX IF NOT EXISTS idx_ai_messages_session_time ON ai_messages(session_id, timestamp ASC);`
+];
+
+// ========== 文件传输策略模块 ==========
+
+// 文件传输策略表
+export const createTransferPoliciesTableSQL = `
+CREATE TABLE IF NOT EXISTS transfer_policies (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    scope TEXT NOT NULL CHECK(scope IN ('global', 'user_group', 'user', 'connection', 'group')),
+    scope_id TEXT,
+    direction TEXT DEFAULT 'both' CHECK(direction IN ('upload', 'download', 'both', 'none')),
+    max_file_size INTEGER,
+    max_total_size INTEGER,
+    allowed_extensions TEXT,
+    blocked_extensions TEXT,
+    enabled INTEGER DEFAULT 1,
+    priority INTEGER DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+);
+`;
+
+// 文件传输策略索引
+export const createTransferPoliciesIndexesSQL = [
+    `CREATE INDEX IF NOT EXISTS idx_transfer_policies_scope ON transfer_policies(scope, scope_id);`,
+    `CREATE INDEX IF NOT EXISTS idx_transfer_policies_priority ON transfer_policies(priority DESC);`
 ];
