@@ -55,8 +55,14 @@ jobs:
       - name: 判断构建类型
         id: build_type
         run: |
-          # 检测是否来自标签推送
-          if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+          # 检测是否来自 repository_dispatch（由构建与发布触发）
+          PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
+
+          if [[ "${{ github.event_name }}" == "repository_dispatch" && -n "$PAYLOAD_VERSION" ]]; then
+            echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
+            echo "✅ 检测到 repository_dispatch（版本：$PAYLOAD_VERSION），构建 release 镜像"
+          elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
             echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
             echo "✅ 检测到标签推送，构建 release 镜像"
