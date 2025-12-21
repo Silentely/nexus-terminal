@@ -173,9 +173,34 @@ docker compose up -d
 4.  **标签分组折叠栏** 可以直接点击视图里的标签名字修改标签名称
 5.  **自动重连**：在连接断开状态下，可在命令输入框或终端中按回车，或点击连接列表中的同一 SSH 连接以触发自动重连。
 
-### 其他
+###其他
 1. **移动端可以通过双指手势放大缩小终端字体**
 2. 如需启用 Passkey 登录，请在 `.env` 文件中设置 `RP_ID` 和 `RP_ORIGIN` 环境变量。
+
+
+## 🔧 高级配置
+
+### CORS 跨域配置
+
+如果你需要配置额外的允许域名访问远程桌面网关（Remote Gateway），请参考 [CORS 配置文档](./doc/CORS_CONFIG.md)。
+
+**常见场景**：
+- 自定义域名访问
+- 多域名支持
+- 开发环境配置
+
+**快速配置**：
+
+编辑 `docker-compose.yml` 中的 `remote-gateway` 服务：
+
+```yaml
+remote-gateway:
+  environment:
+    # 添加允许的域名（逗号分隔）
+    CORS_ALLOWED_ORIGINS: https://yourdomain.com,https://www.yourdomain.com
+```
+
+详细说明请查看 [**CORS 配置完整文档**](./doc/CORS_CONFIG.md)。
 
 
 ## ⚠️ 注意事项

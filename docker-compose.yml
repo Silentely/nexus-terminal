@@ -34,6 +34,11 @@ services:
       FRONTEND_URL: http://frontend
       MAIN_BACKEND_URL: http://backend:3001
       NODE_ENV: production
+      # CORS 配置（可选）
+      # 如需允许其他域名访问，请配置以下变量（逗号分隔多个域名）
+      # CORS_ALLOWED_ORIGINS: https://yourdomain.com,https://www.yourdomain.com
+      # 开发模式可设置为 true 允许所有来源（不推荐生产环境使用）
+      # CORS_ALLOW_ALL: false
     networks:
       - nexus-terminal-network
     depends_on:

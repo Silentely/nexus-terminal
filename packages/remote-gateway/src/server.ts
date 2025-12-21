@@ -13,6 +13,10 @@ const GUACD_PORT = parseInt(process.env.GUACD_PORT || '4822', 10);
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const MAIN_BACKEND_URL = process.env.MAIN_BACKEND_URL || 'http://localhost:3000';
 
+// CORS 配置：支持环境变量配置额外的允许来源（逗号分隔）
+const CORS_ALLOWED_ORIGINS = process.env.CORS_ALLOWED_ORIGINS || '';
+const CORS_ALLOW_ALL = process.env.CORS_ALLOW_ALL === 'true'; // 开发模式可设置为 true
+
 // --- 启动时生成内存加密密钥 ---
 console.log("[Remote Gateway] 正在为此会话生成新的内存加密密钥...");
 const ENCRYPTION_KEY_STRING = crypto.randomBytes(32).toString('hex');
@@ -24,12 +28,31 @@ const app = express();
 app.use(express.json()); // 用于解析请求体中的 JSON
 const apiServer = http.createServer(app);
 
-const allowedOrigins = [
+// 构建 CORS 允许的来源列表
+const allowedOrigins: string[] = [
     FRONTEND_URL,
     MAIN_BACKEND_URL
 ];
-console.log(`[Remote Gateway] CORS 允许的来源: ${allowedOrigins.join(', ')}`);
-app.use(cors({ origin: allowedOrigins }));
+
+// 添加环境变量中配置的额外来源
+if (CORS_ALLOWED_ORIGINS) {
+    const additionalOrigins = CORS_ALLOWED_ORIGINS.split(',')
+        .map(origin => origin.trim())
+        .filter(origin => origin.length > 0);
+    allowedOrigins.push(...additionalOrigins);
+}
+
+// CORS 配置
+if (CORS_ALLOW_ALL) {
+    console.log(`[Remote Gateway] ⚠️ CORS 允许所有来源（开发模式）`);
+    app.use(cors({ origin: true, credentials: true }));
+} else {
+    console.log(`[Remote Gateway] CORS 允许的来源: ${allowedOrigins.join(', ')}`);
+    app.use(cors({
+        origin: allowedOrigins,
+        credentials: true
+    }));
+}
 
 
 const guacdOptions = {
