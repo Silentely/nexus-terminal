@@ -20,6 +20,7 @@ export default defineConfig({
       dts: 'src/auto-imports.d.ts',
     }),
     Components({
+      dirs: ['src/components', 'src/features'],
       resolvers: [ElementPlusResolver({ importStyle: 'css' })], // 按需加载 Element Plus 组件和 CSS
       dts: 'src/components.d.ts',
     }),

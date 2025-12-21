@@ -6,6 +6,30 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-21 (Phase 3-5 功能实现)
+- **Phase 3: WebSocket 基础设施升级** (Codex Review: 94/100 APPROVE)
+  - 心跳机制：桌面/移动端差异化心跳检测 (`websocket/heartbeat.ts`)
+  - 连接管理：客户端类型检测与验证 (`websocket/connection.ts`)
+  - 状态广播：用户 Socket 映射与死连接清理 (`websocket/state.ts`)
+  - 数据库索引：审计日志查询优化 (`schema.registry.ts`)
+
+- **Phase 4: 批量作业模块** (Codex Review: 92/100 APPROVE)
+  - 新增模块：`packages/backend/src/batch/`
+  - 多服务器命令广播：支持并发执行、取消、进度追踪
+  - 数据表：`batch_tasks`、`batch_subtasks`
+  - WebSocket 实时进度推送
+
+- **Phase 5: AI 智能运维模块** (Codex Review: 90/100 后端, 93/100 前端 APPROVE)
+  - 后端模块：`packages/backend/src/ai-ops/`
+    - AI 会话管理（UUID 标识）
+    - 系统健康分析、命令模式分析、安全事件分析
+    - 连接统计分析、自然语言查询路由
+  - 前端模块：`packages/frontend/src/features/ai-ops/`
+    - AIAssistantPanel 聊天组件（XSS 防护、自动滚动）
+  - 前端模块：`packages/frontend/src/features/batch-ops/`
+    - MultiServerExec 多服务器执行组件
+  - 数据表：`ai_sessions`、`ai_messages`
+
 ### 2025-12-20 22:27:42 (增量更新)
 - **模块文档完善**：为 3 个核心模块生成独立 CLAUDE.md 文档
 - **导航面包屑**：为各模块文档添加返回根文档的导航链接

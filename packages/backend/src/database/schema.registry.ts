@@ -2,9 +2,9 @@ import { Database } from 'sqlite3';
 import * as schemaSql from './schema';
 import * as appearanceRepository from '../appearance/appearance.repository';
 import * as terminalThemeRepository from '../terminal-themes/terminal-theme.repository';
-import * as settingsRepository from '../settings/settings.repository'; 
+import * as settingsRepository from '../settings/settings.repository';
 import { presetTerminalThemes } from '../config/preset-themes-definition';
-import { runDb } from './connection'; 
+import { runDb } from './connection';
 
 /**
  * Interface describing a database table definition for initialization.
@@ -12,8 +12,60 @@ import { runDb } from './connection';
 export interface TableDefinition {
     name: string;
     sql: string;
-    init?: (db: Database) => Promise<void>; 
+    init?: (db: Database) => Promise<void>;
 }
+
+/**
+ * 初始化审计日志表索引
+ * 为 audit_logs 表创建性能优化索引
+ */
+const initAuditLogsTable = async (db: Database): Promise<void> => {
+    // 创建审计日志索引以优化查询性能
+    for (const indexSql of schemaSql.createAuditLogsIndexesSQL) {
+        await runDb(db, indexSql);
+    }
+    console.log('[DB Init] 审计日志索引创建完成。');
+};
+
+/**
+ * 初始化批量任务表索引
+ */
+const initBatchTasksTable = async (db: Database): Promise<void> => {
+    for (const indexSql of schemaSql.createBatchTasksIndexesSQL) {
+        await runDb(db, indexSql);
+    }
+    console.log('[DB Init] 批量任务索引创建完成。');
+};
+
+/**
+ * 初始化批量子任务表索引
+ */
+const initBatchSubTasksTable = async (db: Database): Promise<void> => {
+    for (const indexSql of schemaSql.createBatchSubTasksIndexesSQL) {
+        await runDb(db, indexSql);
+    }
+    console.log('[DB Init] 批量子任务索引创建完成。');
+};
+
+/**
+ * 初始化 AI 会话表索引
+ */
+const initAISessionsTable = async (db: Database): Promise<void> => {
+    for (const indexSql of schemaSql.createAISessionsIndexesSQL) {
+        await runDb(db, indexSql);
+    }
+    console.log('[DB Init] AI会话索引创建完成。');
+};
+
+/**
+ * 初始化 AI 消息表索引
+ */
+const initAIMessagesTable = async (db: Database): Promise<void> => {
+    for (const indexSql of schemaSql.createAIMessagesIndexesSQL) {
+        await runDb(db, indexSql);
+    }
+    console.log('[DB Init] AI消息索引创建完成。');
+};
 
 
 
@@ -56,7 +108,11 @@ export const tableDefinitions: TableDefinition[] = [
         sql: schemaSql.createSettingsTableSQL,
         init: settingsRepository.ensureDefaultSettingsExist // <-- Use the function from the repository
     },
-    { name: 'audit_logs', sql: schemaSql.createAuditLogsTableSQL },
+    {
+        name: 'audit_logs',
+        sql: schemaSql.createAuditLogsTableSQL,
+        init: initAuditLogsTable // 添加索引初始化函数
+    },
     // { name: 'api_keys', sql: schemaSql.createApiKeysTableSQL }, // Removed API Keys table from registry
     // { name: 'passkeys', sql: schemaSql.createPasskeysTableSQL }, // Removed Passkeys table from registry
     { name: 'notification_settings', sql: schemaSql.createNotificationSettingsTableSQL },
@@ -87,4 +143,30 @@ export const tableDefinitions: TableDefinition[] = [
         sql: schemaSql.createAppearanceSettingsTableSQL,
         init: initAppearanceSettingsTable
      }, // Depends on terminal_themes
+
+    // 批量作业模块
+    { name: 'quick_command_tags', sql: schemaSql.createQuickCommandTagsTableSQL },
+    { name: 'quick_command_tag_associations', sql: schemaSql.createQuickCommandTagAssociationsTableSQL },
+    {
+        name: 'batch_tasks',
+        sql: schemaSql.createBatchTasksTableSQL,
+        init: initBatchTasksTable
+    },
+    {
+        name: 'batch_subtasks',
+        sql: schemaSql.createBatchSubTasksTableSQL,
+        init: initBatchSubTasksTable
+    },
+
+    // AI 智能运维模块
+    {
+        name: 'ai_sessions',
+        sql: schemaSql.createAISessionsTableSQL,
+        init: initAISessionsTable
+    },
+    {
+        name: 'ai_messages',
+        sql: schemaSql.createAIMessagesTableSQL,
+        init: initAIMessagesTable
+    },
 ];

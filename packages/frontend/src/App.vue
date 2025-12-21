@@ -12,6 +12,7 @@ import { useSessionStore } from './stores/session.store';
 import { useFavoritePathsStore } from './stores/favoritePaths.store';
 import { storeToRefs } from 'pinia';
 import UINotificationDisplay from './components/UINotificationDisplay.vue';
+import CommandPalette from './components/common/CommandPalette.vue';
 import FileEditorOverlay from './components/FileEditorOverlay.vue';
 import StyleCustomizer from './components/StyleCustomizer.vue';
 import FocusSwitcherConfigurator from './components/FocusSwitcherConfigurator.vue';
@@ -322,6 +323,9 @@ const isElementVisibleAndFocusable = (element: HTMLElement): boolean => {
 
     <!-- 添加全局通知显示 -->
     <UINotificationDisplay />
+
+    <!-- 全局命令面板 -->
+    <CommandPalette />
 
     <!-- 根据设置条件渲染全局文件编辑器弹窗 -->
     <FileEditorOverlay v-if="showPopupFileEditorBoolean" :is-mobile="isMobile" />

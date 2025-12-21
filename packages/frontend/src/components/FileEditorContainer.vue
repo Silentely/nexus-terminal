@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, type PropType, ref, watch, defineExpose, onMounted, onBeforeUnmount, nextTick } from 'vue'; // 添加 nextTick
+import { computed, type PropType, ref, watch, defineExpose, onMounted, onBeforeUnmount, nextTick, defineAsyncComponent } from 'vue'; // 添加 nextTick
 import { useI18n } from 'vue-i18n';
-import MonacoEditor from './MonacoEditor.vue'; 
+const MonacoEditor = defineAsyncComponent(() => import('./MonacoEditor.vue')); 
 import FileEditorTabs from './FileEditorTabs.vue';
 import type { FileTab } from '../stores/fileEditor.store'; 
 import { useFocusSwitcherStore } from '../stores/focusSwitcher.store';

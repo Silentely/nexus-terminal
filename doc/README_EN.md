@@ -30,6 +30,8 @@
 *   Lightweight Node.js-based backend with low resource consumption
 *   Built-in heartbeat keep-alive mechanism to ensure stable connections
 *   Focus Switcher: Allows switching between input components on the page, supporting customizable switching order and hotkeys.
+*   **Batch Command Execution**: Execute commands across multiple servers simultaneously with real-time progress and results display
+*   **AI Smart Assistant**: Built-in AI operations analysis providing system health diagnostics, command pattern analysis, and security event detection
 
 ## 📸 Screenshots
 
@@ -173,6 +175,22 @@ You can right-click in the SSH tab to select "Suspend Session" (long-press on mo
 3. **Tab Bar**: Right-clicking on the SSH tab bar or the file manager tab bar will open a context menu with the following options: Close, Close Tabs to the Left, Close Other Tabs, and Close Tabs to the Right.
 4. **Tab Group Fold Bar**: You can directly click on the tab name in the view to rename the tab.
 5. **Automatic Reconnection**: When the connection is lost, you can press Enter in the command input box or terminal, or click the same SSH connection in the connection list to trigger automatic reconnection.
+
+### Batch Command Execution Component
+
+1. **Select Servers**: In the batch execution panel, check the SSH connections you want to execute commands on, with support for select all/deselect all
+2. **Enter Command**: Type the command to execute in the command input box, with sudo mode support
+3. **Concurrency Control**: Adjust the concurrency limit (default 5) to control the number of simultaneous tasks
+4. **Real-time Progress**: View each server's status and overall progress during execution
+5. **View Output**: Click the "View" button to see the command output for individual servers
+6. **Cancel Task**: Cancel all uncompleted tasks at any time during execution
+
+### AI Smart Assistant Component
+
+1. **Quick Queries**: Click preset suggestions to quickly query system health, command patterns, security events, etc.
+2. **Natural Language Interaction**: Ask questions directly, and the AI assistant will analyze and return relevant data
+3. **Session History**: Click the history button to view and restore previous sessions
+4. **Smart Insights**: AI automatically generates actionable suggestions, categorized by severity level
 
 ### Others
 

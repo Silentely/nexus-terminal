@@ -6,6 +6,34 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-21 (Phase 5 - AI 智能运维)
+- **新增 ai-ops 模块**：实现 AI 智能运维功能
+  - `ai.types.ts`：AI 会话与消息类型定义
+  - `ai.repository.ts`：会话/消息数据访问层
+  - `ai.service.ts`：系统健康分析、命令模式分析、安全事件分析
+  - `ai.controller.ts`：HTTP 请求处理器
+  - `ai.routes.ts`：API 路由定义
+- **新增数据表**：`ai_sessions`、`ai_messages`
+- **Codex 审查通过**：90/100 APPROVE
+
+### 2025-12-21 (Phase 4 - 批量操作)
+- **新增 batch 模块**：实现批量命令执行功能
+  - `batch.types.ts`：批量任务与子任务类型定义
+  - `batch.repository.ts`：任务/子任务数据访问层
+  - `batch.service.ts`：并发执行逻辑（基于 AbortController）
+  - `batch.controller.ts`：HTTP 请求处理器
+  - `batch.routes.ts`：API 路由定义
+- **新增数据表**：`batch_tasks`、`batch_subtasks`
+- **WebSocket 集成**：实时进度推送（batch:subtask:update、batch:overall、batch:log 等）
+- **Codex 审查通过**：92/100 APPROVE
+
+### 2025-12-21 (Phase 3 - WebSocket 基础设施)
+- **心跳机制重构**：支持桌面/移动端差异化心跳间隔
+- **连接状态管理**：clientType 检测与白名单验证
+- **内存泄漏修复**：lastPingTime Map 清理机制
+- **广播优化**：自动清理失效连接
+- **Codex 审查通过**：94/100 APPROVE
+
 ### 2025-12-20 22:27:42
 - **初始化模块文档**：完成后端模块架构分析与文档建立
 - **API 端点索引**：识别 18 个 API 路由模块
@@ -93,6 +121,20 @@ packages/backend/
 │   ├── docker/                     # Docker 容器管理
 │   ├── user/                       # 用户管理
 │   │
+│   ├── batch/                      # 批量操作模块 (Phase 4)
+│   │   ├── batch.types.ts          # 批量任务类型定义
+│   │   ├── batch.repository.ts     # 任务数据访问层
+│   │   ├── batch.service.ts        # 并发执行逻辑
+│   │   ├── batch.controller.ts     # HTTP 请求处理器
+│   │   └── batch.routes.ts         # API 路由定义
+│   │
+│   ├── ai-ops/                     # AI 智能运维模块 (Phase 5)
+│   │   ├── ai.types.ts             # AI 会话/消息类型定义
+│   │   ├── ai.repository.ts        # 会话数据访问层
+│   │   ├── ai.service.ts           # 分析服务逻辑
+│   │   ├── ai.controller.ts        # HTTP 请求处理器
+│   │   └── ai.routes.ts            # API 路由定义
+│   │
 │   ├── database/                   # 数据库层
 │   │   ├── connection.ts           # SQLite 连接管理
 │   │   ├── schema.ts               # 表结构定义
@@ -147,6 +189,8 @@ packages/backend/
 | `/api/v1/transfers` | transfers | 文件传输状态 |
 | `/api/v1/path-history` | path-history | 路径浏览历史 |
 | `/api/v1/favorite-paths` | favorite-paths | 收藏路径管理 |
+| `/api/v1/batch` | batch | 批量命令执行、任务状态查询、取消/删除 |
+| `/api/v1/ai` | ai-ops | AI 会话管理、智能分析查询 |
 | `/api/v1/status` | (内置) | 健康检查 |
 
 ---
@@ -181,6 +225,10 @@ packages/backend/
 | `quick_command_tags` | 快捷指令标签 |
 | `quick_command_tag_associations` | 快捷指令-标签关联 |
 | `ip_blacklist` | IP 封禁记录 |
+| `batch_tasks` | 批量任务主记录（Phase 4） |
+| `batch_subtasks` | 批量任务子任务（Phase 4） |
+| `ai_sessions` | AI 会话记录（Phase 5） |
+| `ai_messages` | AI 消息记录（Phase 5） |
 
 ---
 
@@ -197,6 +245,8 @@ packages/backend/
 - `src/connections/` - SSH/RDP/VNC 连接管理
 - `src/sftp/` - SFTP 文件操作
 - `src/ssh-suspend/` - SSH 会话挂起与恢复
+- `src/batch/` - 批量命令执行（Phase 4）
+- `src/ai-ops/` - AI 智能运维分析（Phase 5）
 
 ### 服务层
 - `src/services/event.service.ts` - 事件发布订阅
@@ -274,4 +324,4 @@ repository.ts → 数据访问与 SQL 操作
 
 ---
 
-**文档生成时间**：2025-12-20 22:27:42
+**文档生成时间**：2025-12-21（Phase 3/4/5 更新）

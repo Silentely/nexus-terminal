@@ -6,6 +6,17 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-21 (Phase 5 - AI 智能运维 & 批量操作前端)
+- **新增 AI 模块**：
+  - `types/ai.types.ts`：AI 会话/消息类型定义
+  - `stores/ai.store.ts`：AI 状态管理（会话、消息、建议）
+  - `features/ai-ops/AIAssistantPanel.vue`：AI 助手聊天面板（含 XSS 防护、自动滚动）
+- **新增 Batch 模块**：
+  - `types/batch.types.ts`：批量任务/子任务类型定义
+  - `stores/batch.store.ts`：批量任务状态管理（WebSocket 事件处理、轮询）
+  - `features/batch-ops/MultiServerExec.vue`：多服务器命令执行面板
+- **Codex 审查通过**：93/100 APPROVE
+
 ### 2025-12-20 22:27:42
 - **初始化模块文档**：完成前端模块架构分析与文档建立
 - **组件索引**：识别 53 个 Vue 组件
@@ -104,13 +115,19 @@ packages/frontend/
 │   │   └── ...                     # 可复用逻辑
 │   │
 │   ├── features/                   # 功能模块
-│   │   └── appearance/             # 外观功能
-│   │       └── config/             # 预设主题配置
+│   │   ├── appearance/             # 外观功能
+│   │   │   └── config/             # 预设主题配置
+│   │   ├── ai-ops/                 # AI 智能运维 (Phase 5)
+│   │   │   └── AIAssistantPanel.vue
+│   │   └── batch-ops/              # 批量操作 (Phase 4)
+│   │       └── MultiServerExec.vue
 │   │
 │   ├── types/                      # TypeScript 类型定义
 │   │   ├── connection.ts
 │   │   ├── settings.ts
 │   │   ├── appearance.ts
+│   │   ├── ai.types.ts             # AI 会话/消息类型 (Phase 5)
+│   │   ├── batch.types.ts          # 批量任务类型 (Phase 4)
 │   │   └── ...
 │   │
 │   ├── utils/                      # 工具函数
@@ -188,6 +205,8 @@ packages/frontend/
 | `useDialogStore` | dialog.store.ts | 全局对话框状态 |
 | `useUINotificationsStore` | uiNotifications.store.ts | UI 通知/Toast |
 | `useFocusSwitcherStore` | focusSwitcher.store.ts | 焦点切换配置 |
+| `useAIStore` | ai.store.ts | AI 会话与消息管理（Phase 5） |
+| `useBatchStore` | batch.store.ts | 批量任务状态管理（Phase 4） |
 
 ---
 
@@ -254,6 +273,12 @@ packages/frontend/
 | `SuspendedSshSessionsModal.vue` | 挂起会话管理 |
 | `NotificationSettings.vue` | 通知设置 |
 
+### AI 与批量操作（Phase 4/5）
+| 组件 | 描述 |
+|-----|------|
+| `AIAssistantPanel.vue` | AI 助手聊天面板（含 XSS 防护、自动滚动、历史会话） |
+| `MultiServerExec.vue` | 多服务器批量命令执行面板（含轮询、状态徽章） |
+
 ---
 
 ## 关键文件清单
@@ -274,6 +299,8 @@ packages/frontend/
 - `src/stores/session.store.ts` - 会话管理
 - `src/stores/connections.store.ts` - 连接管理
 - `src/stores/appearance.store.ts` - 外观主题
+- `src/stores/ai.store.ts` - AI 会话与消息管理（Phase 5）
+- `src/stores/batch.store.ts` - 批量任务状态管理（Phase 4）
 
 ### 样式
 - `src/style.css` - 全局 CSS
@@ -343,4 +370,4 @@ npm run preview
 
 ---
 
-**文档生成时间**：2025-12-20 22:27:42
+**文档生成时间**：2025-12-21（Phase 4/5 更新）

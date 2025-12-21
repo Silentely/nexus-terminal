@@ -18,15 +18,16 @@ import {
     SshSuspendAutoTerminatedNotification,
     SshMarkForSuspendRequest,
     SshMarkedForSuspendAck,
-    SshUnmarkForSuspendRequest,    
-    SshUnmarkedForSuspendAck,      
+    SshUnmarkForSuspendRequest,
+    SshUnmarkedForSuspendAck,
     ClientState
 } from './types';
 import { SshSuspendService } from '../ssh-suspend/ssh-suspend.service';
 import { SftpService } from '../sftp/sftp.service';
 import { cleanupClientConnection } from './utils';
-import { clientStates } from './state';
-import { temporaryLogStorageService } from '../ssh-suspend/temporary-log-storage.service'; 
+import { clientStates, registerUserSocket, unregisterUserSocket } from './state'; // 导入 userId 映射函数
+import { temporaryLogStorageService } from '../ssh-suspend/temporary-log-storage.service';
+import { resetHeartbeat, cleanupHeartbeat } from './heartbeat'; // 导入心跳函数
 
 // Handlers
 import { handleRdpProxyConnection } from './handlers/rdp.handler';
@@ -50,13 +51,43 @@ import {
 
 export function initializeConnectionHandler(wss: WebSocketServer, sshSuspendService: SshSuspendService, sftpService: SftpService): void { // +++ Add sftpService parameter +++
     wss.on('connection', (ws: AuthenticatedWebSocket, request: Request) => {
-        ws.isAlive = true;
+        // 初始化心跳状态
+        ws.missedPongCount = 0;
+        ws.isAlive = true; // 向后兼容
+
+        // 检测客户端类型（从请求头或查询参数）
+        const userAgent = request.headers['user-agent'] || '';
+        const clientTypeParam = (request as any).clientType; // 可从前端显式传递
+
+        // 验证客户端类型参数（仅接受 'desktop' 或 'mobile'）
+        const validClientTypes: Array<'desktop' | 'mobile'> = ['desktop', 'mobile'];
+
+        // 规范化参数（去空格、小写）
+        const normalizedClientType = clientTypeParam
+            ? String(clientTypeParam).trim().toLowerCase()
+            : null;
+
+        const isValidClientType = normalizedClientType && validClientTypes.includes(normalizedClientType as any);
+
+        // 记录被拒绝的客户端类型值（用于审计与灰度）
+        if (clientTypeParam && !isValidClientType) {
+            console.warn(`[WebSocket] 拒绝无效的客户端类型参数: "${clientTypeParam}"（规范化后: "${normalizedClientType}"），已回退到 UA 检测。`);
+        }
+
+        ws.clientType = isValidClientType ? (normalizedClientType as 'desktop' | 'mobile') : detectClientType(userAgent);
+
         const isRdpProxy = (request as any).isRdpProxy;
         const clientIp = (request as any).clientIpAddress || 'unknown'; // Preserved from upgrade handler
 
-        console.log(`WebSocket：客户端 ${ws.username} (ID: ${ws.userId}, IP: ${clientIp}, RDP Proxy: ${isRdpProxy}) 已连接。`);
+        console.log(`WebSocket：客户端 ${ws.username} (ID: ${ws.userId}, IP: ${clientIp}, 类型: ${ws.clientType}, RDP Proxy: ${isRdpProxy}) 已连接。`);
 
-        ws.on('pong', () => { ws.isAlive = true; });
+        // 注册 userId 到 WebSocket 的映射（支持广播功能）
+        if (ws.userId) {
+            registerUserSocket(ws.userId, ws);
+        }
+
+        // 使用新的心跳重置函数
+        ws.on('pong', () => { resetHeartbeat(ws); });
 
         if (isRdpProxy) {
             handleRdpProxyConnection(ws, request);
@@ -439,11 +470,29 @@ export function initializeConnectionHandler(wss: WebSocketServer, sshSuspendServ
 
             ws.on('close', (code, reason) => {
                 console.log(`WebSocket：客户端 ${ws.username} (会话: ${ws.sessionId}) 已断开连接。代码: ${code}, 原因: ${reason.toString()}`);
+
+                // 注销 userId 到 WebSocket 的映射
+                if (ws.userId) {
+                    unregisterUserSocket(ws.userId, ws);
+                }
+
+                // 清理心跳状态
+                cleanupHeartbeat(ws);
+
                 cleanupClientConnection(ws.sessionId);
             });
 
             ws.on('error', (error) => {
                 console.error(`WebSocket：客户端 ${ws.username} (会话: ${ws.sessionId}) 发生错误:`, error);
+
+                // 注销 userId 到 WebSocket 的映射
+                if (ws.userId) {
+                    unregisterUserSocket(ws.userId, ws);
+                }
+
+                // 清理心跳状态
+                cleanupHeartbeat(ws);
+
                 cleanupClientConnection(ws.sessionId); // Ensure cleanup on error too
             });
         }
@@ -471,4 +520,23 @@ export function initializeConnectionHandler(wss: WebSocketServer, sshSuspendServ
     });
 
     console.log('WebSocket connection handler initialized, including SshSuspendService event listener.');
+}
+
+/**
+ * 根据 User-Agent 检测客户端类型
+ * @param userAgent User-Agent 字符串
+ * @returns 'mobile' 或 'desktop'
+ */
+function detectClientType(userAgent: string): 'mobile' | 'desktop' {
+    const mobileKeywords = [
+        'Mobile', 'Android', 'iPhone', 'iPad', 'iPod',
+        'BlackBerry', 'Windows Phone', 'webOS'
+    ];
+
+    const lowerUA = userAgent.toLowerCase();
+    const isMobile = mobileKeywords.some(keyword =>
+        lowerUA.includes(keyword.toLowerCase())
+    );
+
+    return isMobile ? 'mobile' : 'desktop';
 }

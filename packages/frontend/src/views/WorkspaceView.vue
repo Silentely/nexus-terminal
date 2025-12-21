@@ -9,7 +9,7 @@ import AddConnectionFormComponent from '../components/AddConnectionForm.vue';
 import TerminalTabBar from '../components/TerminalTabBar.vue';
 import LayoutRenderer from '../components/LayoutRenderer.vue';
 import LayoutConfigurator from '../components/LayoutConfigurator.vue';
-import Terminal from '../components/Terminal.vue';
+import Terminal from '../features/terminal/Terminal.vue';
 import CommandInputBar from '../components/CommandInputBar.vue'; 
 import VirtualKeyboard from '../components/VirtualKeyboard.vue';
 import FileManager from '../components/FileManager.vue'; 

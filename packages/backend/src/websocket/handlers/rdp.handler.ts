@@ -1,6 +1,7 @@
 import WebSocket, { RawData } from 'ws';
 import { Request } from 'express';
 import { AuthenticatedWebSocket } from '../types';
+import { resetHeartbeat } from '../heartbeat'; // 导入新的心跳重置函数
 
 export function handleRdpProxyConnection(
     ws: AuthenticatedWebSocket,
@@ -9,7 +10,8 @@ export function handleRdpProxyConnection(
     const clientIp = (request as any).clientIpAddress || 'unknown';
     console.log(`WebSocket：RDP 代理客户端 ${ws.username} (ID: ${ws.userId}, IP: ${clientIp}) 已连接。`);
 
-    ws.on('pong', () => { ws.isAlive = true; });
+    // 使用新的心跳重置函数
+    ws.on('pong', () => { resetHeartbeat(ws); });
 
     // Retrieve all necessary parameters passed from the upgrade handler
     const rdpToken = (request as any).rdpToken;

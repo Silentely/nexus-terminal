@@ -18,6 +18,14 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 `;
 
+// 审计日志索引 - 优化查询性能
+export const createAuditLogsIndexesSQL = [
+    // 时间戳索引（降序）- 用于按时间倒序查询最新日志
+    `CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);`,
+    // 操作类型索引 - 用于按操作类型筛选
+    `CREATE INDEX IF NOT EXISTS idx_audit_logs_action_type ON audit_logs(action_type);`
+];
+
 
 
 // Passkeys table definition
@@ -238,10 +246,105 @@ CREATE TABLE IF NOT EXISTS appearance_settings (
 export const createFavoritePathsTableSQL = `
 CREATE TABLE IF NOT EXISTS favorite_paths (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NULL, 
-    path TEXT NOT NULL, 
-    last_used_at INTEGER NULL, 
+    name TEXT NULL,
+    path TEXT NOT NULL,
+    last_used_at INTEGER NULL,
     created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
 );
 `;
+
+// ========== 批量作业模块 ==========
+
+// 批量任务主表
+export const createBatchTasksTableSQL = `
+CREATE TABLE IF NOT EXISTS batch_tasks (
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id INTEGER NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('queued', 'in-progress', 'partially-completed', 'completed', 'failed', 'cancelled')),
+    concurrency_limit INTEGER NOT NULL DEFAULT 5,
+    overall_progress REAL NOT NULL DEFAULT 0,
+    total_subtasks INTEGER NOT NULL,
+    completed_subtasks INTEGER NOT NULL DEFAULT 0,
+    failed_subtasks INTEGER NOT NULL DEFAULT 0,
+    cancelled_subtasks INTEGER NOT NULL DEFAULT 0,
+    message TEXT NULL,
+    payload_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    started_at INTEGER NULL,
+    ended_at INTEGER NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+`;
+
+// 批量任务索引
+export const createBatchTasksIndexesSQL = [
+    `CREATE INDEX IF NOT EXISTS idx_batch_tasks_user_status ON batch_tasks(user_id, status);`,
+    `CREATE INDEX IF NOT EXISTS idx_batch_tasks_updated_at ON batch_tasks(updated_at DESC);`
+];
+
+// 批量子任务表
+export const createBatchSubTasksTableSQL = `
+CREATE TABLE IF NOT EXISTS batch_subtasks (
+    id TEXT PRIMARY KEY NOT NULL,
+    task_id TEXT NOT NULL,
+    connection_id INTEGER NOT NULL,
+    connection_name TEXT NULL,
+    command TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('queued', 'connecting', 'running', 'completed', 'failed', 'cancelled')),
+    progress REAL NOT NULL DEFAULT 0,
+    exit_code INTEGER NULL,
+    output TEXT NULL,
+    message TEXT NULL,
+    started_at INTEGER NULL,
+    ended_at INTEGER NULL,
+    FOREIGN KEY (task_id) REFERENCES batch_tasks(id) ON DELETE CASCADE,
+    FOREIGN KEY (connection_id) REFERENCES connections(id) ON DELETE CASCADE
+);
+`;
+
+// 批量子任务索引
+export const createBatchSubTasksIndexesSQL = [
+    `CREATE INDEX IF NOT EXISTS idx_batch_subtasks_task ON batch_subtasks(task_id);`,
+    `CREATE INDEX IF NOT EXISTS idx_batch_subtasks_task_status ON batch_subtasks(task_id, status);`
+];
+
+// ========== AI 智能运维模块 ==========
+
+// AI 会话表
+export const createAISessionsTableSQL = `
+CREATE TABLE IF NOT EXISTS ai_sessions (
+    id TEXT PRIMARY KEY NOT NULL,
+    user_id INTEGER NOT NULL,
+    title TEXT NULL,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+`;
+
+// AI 会话索引
+export const createAISessionsIndexesSQL = [
+    `CREATE INDEX IF NOT EXISTS idx_ai_sessions_user ON ai_sessions(user_id);`,
+    `CREATE INDEX IF NOT EXISTS idx_ai_sessions_updated ON ai_sessions(updated_at DESC);`
+];
+
+// AI 消息表
+export const createAIMessagesTableSQL = `
+CREATE TABLE IF NOT EXISTS ai_messages (
+    id TEXT PRIMARY KEY NOT NULL,
+    session_id TEXT NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('user', 'assistant', 'system')),
+    content TEXT NOT NULL,
+    timestamp INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    metadata_json TEXT NULL,
+    FOREIGN KEY (session_id) REFERENCES ai_sessions(id) ON DELETE CASCADE
+);
+`;
+
+// AI 消息索引
+export const createAIMessagesIndexesSQL = [
+    `CREATE INDEX IF NOT EXISTS idx_ai_messages_session ON ai_messages(session_id);`,
+    `CREATE INDEX IF NOT EXISTS idx_ai_messages_session_time ON ai_messages(session_id, timestamp ASC);`
+];

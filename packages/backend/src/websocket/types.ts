@@ -1,12 +1,17 @@
 import WebSocket from 'ws';
 import { Client, ClientChannel, SFTPWrapper } from 'ssh2';
 
-// 扩展 WebSocket 类型以包含会话 ID
+// 客户端类型（桌面端或移动端）
+export type ClientType = 'desktop' | 'mobile';
+
+// 扩展 WebSocket 类型以包含会话 ID 和客户端类型
 export interface AuthenticatedWebSocket extends WebSocket {
-    isAlive?: boolean;
+    isAlive?: boolean; // 保留用于向后兼容，但优先使用 missedPongCount
+    missedPongCount?: number; // 连续丢失 pong 的次数
+    clientType?: ClientType; // 客户端类型（桌面端或移动端）
     userId?: number;
     username?: string;
-    sessionId?: string; 
+    sessionId?: string;
 }
 
 // 中心化的客户端状态接口 (统一版本)

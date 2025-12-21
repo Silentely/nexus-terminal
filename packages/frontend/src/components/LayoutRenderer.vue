@@ -84,7 +84,7 @@ const customHtmlLayerRef = ref<HTMLElement | null>(null); // +++ Ref for custom 
 // 使用 defineAsyncComponent 优化加载，并映射 PaneName 到实际组件
 const componentMap: Record<PaneName, Component> = {
   connections: defineAsyncComponent(() => import('./WorkspaceConnectionList.vue')),
-  terminal: defineAsyncComponent(() => import('./Terminal.vue')),
+  terminal: defineAsyncComponent(() => import('../features/terminal/Terminal.vue')),
   commandBar: defineAsyncComponent(() => import('./CommandInputBar.vue')),
   fileManager: defineAsyncComponent(() => import('./FileManager.vue')),
   editor: defineAsyncComponent(() => import('./FileEditorContainer.vue')),
@@ -93,6 +93,8 @@ const componentMap: Record<PaneName, Component> = {
   quickCommands: defineAsyncComponent(() => import('../views/QuickCommandsView.vue')),
   dockerManager: defineAsyncComponent(() => import('./DockerManager.vue')), // <--- 添加 dockerManager 映射
   suspendedSshSessions: defineAsyncComponent(() => import('../views/SuspendedSshSessionsView.vue')),
+  aiAssistant: defineAsyncComponent(() => import('../features/ai-ops/AIAssistantPanel.vue')),
+  batchExec: defineAsyncComponent(() => import('../features/batch-ops/MultiServerExec.vue')),
 };
 
 // --- Computed ---
@@ -136,6 +138,8 @@ const paneLabels = computed(() => ({
   quickCommands: t('layout.pane.quickCommands', '快捷指令'),
   dockerManager: t('layout.pane.dockerManager', 'Docker 管理器'),
   suspendedSshSessions: t('layout.panes.suspendedSshSessions', '挂起会话管理'),
+  aiAssistant: t('layout.pane.aiAssistant', 'AI Assistant'),
+  batchExec: t('layout.pane.batchExec', 'Batch Execution'),
 }));
 
 
@@ -359,6 +363,8 @@ const getIconClasses = (paneName: PaneName): string[] => {
     case 'editor': return ['fas', 'fa-file-alt'];
     case 'statusMonitor': return ['fas', 'fa-tachometer-alt'];
     case 'suspendedSshSessions': return ['fas', 'fa-pause-circle']; // 图标：暂停圈
+    case 'aiAssistant': return ['fas', 'fa-robot'];
+    case 'batchExec': return ['fas', 'fa-tasks'];
     // Add other specific icons here if needed
     default: return ['fas', 'fa-question-circle']; // Default icon
   }
