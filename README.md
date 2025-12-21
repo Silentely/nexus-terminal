@@ -3,7 +3,7 @@
 
 <div align="center">
 
-[![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)][docker-url] [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-4CAF50?style=flat-square)](https://github.com/Heavrnl/nexus-terminal/blob/main/LICENSE)
+[![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)][docker-url] [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-4CAF50?style=flat-square)](https://github.com/Silentely/nexus-terminal/blob/main/LICENSE)
 <br>
 [中文](./README.md) | [English](./doc/README_EN.md)
 
@@ -60,7 +60,7 @@
 
 > 移除了web端的特有功能，如各种登录验证，会话挂起等功能
 
-https://github.com/Heavrnl/nexus-terminal/releases/latest
+https://github.com/Silentely/nexus-terminal/releases/latest
 
 ## 🚀 快速开始
 
@@ -74,9 +74,9 @@ mkdir ./nexus-terminal && cd ./nexus-terminal
 ```
 
 
-下载仓库中的 [**docker-compose.yml**](https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/docker-compose.yml) 和 [**.env**](https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/.env) 文件到当前目录。
+下载仓库中的 [**docker-compose.yml**](https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/docker-compose.yml) 和 [**.env**](https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/.env) 文件到当前目录。
 ```bash
-wget https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/docker-compose.yml -O docker-compose.yml && wget https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/.env -O .env
+wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/docker-compose.yml -O docker-compose.yml && wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/.env -O .env
 ```
 > ⚠️ **注意：**
 >
@@ -182,7 +182,7 @@ docker compose up -d
 
 1.  **双文件管理器**：可以在布局中添加两个文件管理器组件（实验性功能，可能存在不稳定情况）。
 2.  **多文本编辑器**：在同一布局中添加多个文本编辑器的功能尚未实现。
-3. ARMv7 用户请使用此处的 [docker-compose.yml](https://github.com/Heavrnl/nexus-terminal/blob/main/doc/arm/docker-compose.yml)。由于 Apache Guacamole 未提供 guacd 的 ARMv7 架构镜像，所以禁用 RDP 功能，相关镜像暂时不再拉取。
+3. ARMv7 用户请使用此处的 [docker-compose.yml](https://github.com/Silentely/nexus-terminal/blob/main/doc/arm/docker-compose.yml)。由于 Apache Guacamole 未提供 guacd 的 ARMv7 架构镜像，所以禁用 RDP 功能，相关镜像暂时不再拉取。
 4. 关于数据备份，请自行备份目录下的 data 文件夹，本项目不提供相关备份功能。
 5. 由于浏览器限制，非https或者localhost无法复制终端内容，请使用https访问
 
@@ -195,7 +195,7 @@ docker compose up -d
 
 如果你觉得这个项目对你有帮助，欢迎通过以下方式请我喝杯咖啡：
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/0heavrnl)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01GGLJU)
 
 
 ## 📄 开源协议

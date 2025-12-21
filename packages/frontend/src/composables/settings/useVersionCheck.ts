@@ -1,11 +1,10 @@
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-import pkg from '../../../package.json'; // 调整路径以正确导入 package.json
 import { useI18n } from 'vue-i18n';
 
 export function useVersionCheck() {
   const { t } = useI18n();
-  const appVersion = ref(pkg.version);
+  const appVersion = ref<string>('');
   const latestVersion = ref<string | null>(null);
   const isCheckingVersion = ref(false);
   const versionCheckError = ref<string | null>(null);
@@ -15,12 +14,22 @@ export function useVersionCheck() {
     return latestVersion.value && latestVersion.value !== `v${appVersion.value}`;
   });
 
+  const loadAppVersion = async () => {
+    try {
+      const response = await axios.get('/VERSION');
+      appVersion.value = response.data.trim();
+    } catch (error) {
+      console.error('加载应用版本失败:', error);
+      appVersion.value = '未知版本';
+    }
+  };
+
   const checkLatestVersion = async () => {
     isCheckingVersion.value = true;
     versionCheckError.value = null;
     latestVersion.value = null;
     try {
-      const response = await axios.get('https://api.github.com/repos/Heavrnl/nexus-terminal/releases/latest');
+      const response = await axios.get('https://api.github.com/repos/Silentely/nexus-terminal/releases/latest');
       if (response.data && response.data.tag_name) {
         latestVersion.value = response.data.tag_name;
       } else {
@@ -39,6 +48,10 @@ export function useVersionCheck() {
       isCheckingVersion.value = false;
     }
   };
+
+  onMounted(async () => {
+    await loadAppVersion();
+  });
 
   return {
     appVersion,

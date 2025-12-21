@@ -73,7 +73,7 @@ const initializeEditableState = () => {
   // localTerminalCustomHTML.value = terminalCustomHTML.value || ''; // Replaced
   uploadError.value = null;
   currentActiveTab.value = activeHtmlPresetTab.value; // Sync with store state
-  localRemoteHtmlPresetsRepositoryUrl.value = remoteHtmlPresetsRepositoryUrl.value || 'https://github.com/Heavrnl/nexus-terminal/tree/main/doc/custom_html_theme';
+  localRemoteHtmlPresetsRepositoryUrl.value = remoteHtmlPresetsRepositoryUrl.value || 'https://github.com/Silentely/nexus-terminal/tree/main/doc/custom_html_theme';
 };
 
 onMounted(async () => {
@@ -592,7 +592,7 @@ const filteredRemoteHtmlPresets = computed(() => {
             id="remoteRepoUrl"
             v-model="localRemoteHtmlPresetsRepositoryUrl"
             class="flex-grow p-2 border border-border rounded bg-input text-foreground focus:ring-primary focus:border-primary"
-            :placeholder="t('styleCustomizer.remoteRepoUrlPlaceholder', 'https://github.com/Heavrnl/nexus-terminal/tree/main/doc/custom_html_theme')"
+            :placeholder="t('styleCustomizer.remoteRepoUrlPlaceholder', 'https://github.com/Silentely/nexus-terminal/tree/main/doc/custom_html_theme')"
           />
           <button @click="handleSaveRemoteRepositoryUrl" class="px-3 py-1.5 text-sm border border-border rounded bg-header hover:bg-border transition duration-200 ease-in-out whitespace-nowrap flex-shrink-0">
             {{ t('common.save') }}

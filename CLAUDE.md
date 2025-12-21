@@ -141,8 +141,8 @@ sequenceDiagram
 ```bash
 # 1. 下载配置文件
 mkdir nexus-terminal && cd nexus-terminal
-wget https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/docker-compose.yml
-wget https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/.env
+wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/docker-compose.yml
+wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/.env
 
 # 2. 启动服务
 docker compose up -d

@@ -1,11 +1,10 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-import pkg from '../../../package.json'; // 路径相对于当前文件
 import { useI18n } from 'vue-i18n';
 
 export function useAboutSection() {
   const { t } = useI18n();
-  const appVersion = ref(pkg.version);
+  const appVersion = ref<string>('');
 
   // --- Version Check State ---
   const latestVersion = ref<string | null>(null);
@@ -31,13 +30,22 @@ export function useAboutSection() {
     return cleanLatestVersion !== cleanAppVersion && cleanLatestVersion > cleanAppVersion;
   });
 
+  const loadAppVersion = async () => {
+    try {
+      const response = await axios.get('/VERSION');
+      appVersion.value = response.data.trim();
+    } catch (error) {
+      console.error('加载应用版本失败:', error);
+      appVersion.value = '未知版本';
+    }
+  };
 
   const checkLatestVersion = async () => {
     isCheckingVersion.value = true;
     versionCheckError.value = null;
     latestVersion.value = null; // Reset before check
     try {
-      const response = await axios.get('https://api.github.com/repos/Heavrnl/nexus-terminal/releases/latest', {
+      const response = await axios.get('https://api.github.com/repos/Silentely/nexus-terminal/releases/latest', {
         // 移除 headers 以尝试解决潜在的CORS或请求问题，GitHub API 通常不需要特定 headers 进行公共读取
       });
       if (response.data && response.data.tag_name) {
@@ -63,7 +71,8 @@ export function useAboutSection() {
     }
   };
 
-  onMounted(() => {
+  onMounted(async () => {
+    await loadAppVersion();
     checkLatestVersion();
   });
 

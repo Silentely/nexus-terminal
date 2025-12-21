@@ -4,7 +4,7 @@
 
 <div align="center">
 
-[![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)][docker-url] [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-4CAF50?style=flat-square)](https://github.com/Heavrnl/nexus-terminal/blob/main/LICENSE)
+[![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white)][docker-url] [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-4CAF50?style=flat-square)](https://github.com/Silentely/nexus-terminal/blob/main/LICENSE)
 
 [docker-url]: https://hub.docker.com/r/heavrnl/nexus-terminal-frontend
 
@@ -59,7 +59,7 @@
 
 > Removed web-specific features such as various login verifications and session suspension.
 
-https://github.com/Heavrnl/nexus-terminal/releases/latest
+https://github.com/Silentely/nexus-terminal/releases/latest
 
 ## 🚀 Quick Start
 
@@ -74,11 +74,11 @@ mkdir ./nexus-terminal && cd ./nexus-terminal
 
 ---
 
-Download the [**docker-compose.yml**](https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/docker-compose.yml) and [**.env**](https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/.env) files from the repository to your current directory.
+Download the [**docker-compose.yml**](https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/docker-compose.yml) and [**.env**](https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/.env) files from the repository to your current directory.
 
 
 ```bash
-wget https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/docker-compose.yml -O docker-compose.yml && wget https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/.env -O .env
+wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/docker-compose.yml -O docker-compose.yml && wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/.env -O .env
 ```
 
 
@@ -186,7 +186,7 @@ You can right-click in the SSH tab to select "Suspend Session" (long-press on mo
 
 1.  **Dual File Managers**: You can add two file manager components in the layout (experimental feature, may be unstable).
 2.  **Multiple Text Editors**: The functionality to add multiple text editors in the same layout has not yet been implemented.
-3. For **ARMv7** users, please use the [docker-compose.yml](https://github.com/Heavrnl/nexus-terminal/blob/main/doc/arm/docker-compose.yml) provided here.
+3. For **ARMv7** users, please use the [docker-compose.yml](https://github.com/Silentely/nexus-terminal/blob/main/doc/arm/docker-compose.yml) provided here.
 Since Apache Guacamole does not provide an ARMv7-compatible image for `guacd`, the RDP/VNC feature has been disabled, and related images will not be pulled for now.
 4. Since I don't have an ARM machine on hand, I haven't conducted actual testing, so unexpected bugs may occur during runtime.
 5. For data backup, please back up the **data** folder in the directory yourself. This project does not provide any backup functionality.
@@ -200,7 +200,7 @@ Since Apache Guacamole does not provide an ARMv7-compatible image for `guacd`, t
 
 If you find this project helpful, feel free to buy me a coffee through the following ways:
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/0heavrnl)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01GGLJU)
 
 
 ## 📄 License

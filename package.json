@@ -15,15 +15,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Heavrnl/nexus-terminal.git"
+    "url": "git+https://github.com/Silentely/nexus-terminal.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Heavrnl/nexus-terminal/issues"
+    "url": "https://github.com/Silentely/nexus-terminal/issues"
   },
-  "homepage": "https://github.com/Heavrnl/nexus-terminal#readme",
+  "homepage": "https://github.com/Silentely/nexus-terminal#readme",
   "description": "",
   "dependencies": {
     "archiver-zip-encrypted": "^2.0.0",
