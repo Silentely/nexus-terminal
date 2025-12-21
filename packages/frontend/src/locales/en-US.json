@@ -1033,7 +1033,37 @@
       "appearance": "Appearance",
       "about": "About"
     },
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "logLevel": {
+      "title": "Container Log Level",
+      "selectLabel": "Select Log Level",
+      "description": "Controls the verbosity of backend container log output. Debug is most verbose, Silent outputs nothing.",
+      "success": {
+        "saved": "Log level saved successfully."
+      },
+      "error": {
+        "saveFailed": "Failed to save log level."
+      }
+    },
+    "auditLog": {
+      "title": "Audit Log",
+      "maxEntriesLabel": "Maximum Entries",
+      "maxEntriesDescription": "When the number of logs exceeds this value, the system will automatically delete the oldest logs. Minimum value is 100.",
+      "deleteTitle": "Clear Audit Logs",
+      "currentCount": "Current Log Count",
+      "deleteButton": "Delete All Logs",
+      "deleteConfirmText": "Are you sure you want to delete all audit logs? This action cannot be undone!",
+      "confirmDelete": "Confirm Delete",
+      "success": {
+        "maxEntriesSaved": "Maximum entries saved successfully.",
+        "deleted": "Deleted {count} audit logs."
+      },
+      "error": {
+        "invalidMaxEntries": "Please enter an integer greater than or equal to 100.",
+        "maxEntriesSaveFailed": "Failed to save.",
+        "deleteFailed": "Failed to delete."
+      }
+    }
   },
 "notificationController": {
       "errorFetchSettings": "Failed to fetch notification settings",

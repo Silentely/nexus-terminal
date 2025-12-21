@@ -1034,7 +1034,37 @@
       "appearance": "外观",
       "about": "关于"
     },
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "logLevel": {
+      "title": "容器日志等级",
+      "selectLabel": "选择日志等级",
+      "description": "控制后端容器日志输出的详细程度。Debug 最详细，Silent 不输出。",
+      "success": {
+        "saved": "日志等级已保存"
+      },
+      "error": {
+        "saveFailed": "保存日志等级失败"
+      }
+    },
+    "auditLog": {
+      "title": "审计日志",
+      "maxEntriesLabel": "最大保留条数",
+      "maxEntriesDescription": "当日志条数超过此值时，系统将自动删除最旧的日志。最小值为100。",
+      "deleteTitle": "清空审计日志",
+      "currentCount": "当前日志条数",
+      "deleteButton": "删除所有日志",
+      "deleteConfirmText": "确定要删除所有审计日志吗？此操作不可撤销！",
+      "confirmDelete": "确认删除",
+      "success": {
+        "maxEntriesSaved": "最大保留条数已保存",
+        "deleted": "已删除 {count} 条审计日志"
+      },
+      "error": {
+        "invalidMaxEntries": "请输入大于等于100的整数",
+        "maxEntriesSaveFailed": "保存失败",
+        "deleteFailed": "删除失败"
+      }
+    }
   },
 
 "notificationController": {

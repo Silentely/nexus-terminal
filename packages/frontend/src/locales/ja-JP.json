@@ -1156,6 +1156,36 @@
                 "noReleases": "リリースバージョンが見つかりません",
                 "rateLimit": "GitHub API レート制限。後でもう一度お試しください"
             }
+        },
+        "logLevel": {
+          "title": "コンテナログレベル",
+          "selectLabel": "ログレベルを選択",
+          "description": "バックエンドコンテナのログ出力の詳細度を制御します。Debug が最も詳細で、Silent は何も出力しません。",
+          "success": {
+            "saved": "ログレベルが保存されました。"
+          },
+          "error": {
+            "saveFailed": "ログレベルの保存に失敗しました。"
+          }
+        },
+        "auditLog": {
+          "title": "監査ログ",
+          "maxEntriesLabel": "最大保持件数",
+          "maxEntriesDescription": "ログ件数がこの値を超えると、システムは自動的に最も古いログを削除します。最小値は 100 です。",
+          "deleteTitle": "監査ログをクリア",
+          "currentCount": "現在のログ件数",
+          "deleteButton": "すべてのログを削除",
+          "deleteConfirmText": "すべての監査ログを削除してもよろしいですか？この操作は元に戻せません！",
+          "confirmDelete": "削除を確認",
+          "success": {
+            "maxEntriesSaved": "最大保持件数が保存されました。",
+            "deleted": "{count} 件の監査ログを削除しました。"
+          },
+          "error": {
+            "invalidMaxEntries": "100 以上の整数を入力してください。",
+            "maxEntriesSaveFailed": "保存に失敗しました。",
+            "deleteFailed": "削除に失敗しました。"
+          }
         }
     },
     "exportConnections": {

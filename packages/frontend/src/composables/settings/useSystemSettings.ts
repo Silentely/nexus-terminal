@@ -1,8 +1,9 @@
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useSettingsStore } from '../../stores/settings.store';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { availableLocales } from '../../i18n'; 
+import { availableLocales } from '../../i18n';
+import apiClient from '../../utils/apiClient';
 
 export function useSystemSettings() {
   const settingsStore = useSettingsStore();
@@ -163,6 +164,51 @@ export function useSystemSettings() {
     selectedLanguage.value = newVal;
   }, { immediate: true });
 
+  // --- Log Level ---
+  type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
+  const logLevelOptions: { value: LogLevel; label: string }[] = [
+    { value: 'debug', label: 'Debug' },
+    { value: 'info', label: 'Info' },
+    { value: 'warn', label: 'Warn' },
+    { value: 'error', label: 'Error' },
+    { value: 'silent', label: 'Silent' },
+  ];
+  const selectedLogLevel = ref<LogLevel>('info');
+  const logLevelLoading = ref(false);
+  const logLevelMessage = ref('');
+  const logLevelSuccess = ref(false);
+
+  const fetchLogLevel = async () => {
+    try {
+      const response = await apiClient.get('/settings/log-level');
+      selectedLogLevel.value = response.data.level || 'info';
+    } catch (error) {
+      console.error('获取日志等级失败:', error);
+    }
+  };
+
+  const handleUpdateLogLevel = async () => {
+    logLevelLoading.value = true;
+    logLevelMessage.value = '';
+    logLevelSuccess.value = false;
+    try {
+      await apiClient.put('/settings/log-level', { level: selectedLogLevel.value });
+      logLevelMessage.value = t('settings.logLevel.success.saved', '日志等级已保存');
+      logLevelSuccess.value = true;
+    } catch (error: any) {
+      console.error('更新日志等级失败:', error);
+      logLevelMessage.value = error.response?.data?.message || t('settings.logLevel.error.saveFailed', '保存日志等级失败');
+      logLevelSuccess.value = false;
+    } finally {
+      logLevelLoading.value = false;
+    }
+  };
+
+  // Fetch log level on mount
+  onMounted(() => {
+    fetchLogLevel();
+  });
+
   return {
     // Language
     selectedLanguage,
@@ -195,5 +241,13 @@ export function useSystemSettings() {
     dockerSettingsMessage,
     dockerSettingsSuccess,
     handleUpdateDockerSettings,
+
+    // Log Level
+    logLevelOptions,
+    selectedLogLevel,
+    logLevelLoading,
+    logLevelMessage,
+    logLevelSuccess,
+    handleUpdateLogLevel,
   };
 }
