@@ -1120,7 +1120,9 @@
     "error":"失败",
     "alert":"提示",
     "confirm":"确认",
-    "updateSuccess":"更新成功"
+    "updateSuccess":"更新成功",
+    "selectAll": "全选",
+    "deselectAll": "取消全选"
   },
   "layoutConfigurator": {
     "title": "布局管理器",
