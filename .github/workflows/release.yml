@@ -1,0 +1,186 @@
+name: 构建与发布
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号（留空则使用 VERSION 文件中的版本）'
+        required: false
+        type: string
+  repository_dispatch:
+    types: [release-triggered]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取仓库代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: 读取版本号
+        id: version
+        run: |
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "✅ 当前版本：$VERSION"
+
+      - name: 解析发布标签
+        id: release_meta
+        run: |
+          set -euo pipefail
+          VERSION_INPUT=$(jq -r '.inputs.version // ""' "$GITHUB_EVENT_PATH")
+          PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
+          TAG=""
+          VERSION=""
+
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG#v}"
+          elif [[ -n "$VERSION_INPUT" ]]; then
+            VERSION="$VERSION_INPUT"
+            TAG="v${VERSION}"
+          elif [[ -n "$PAYLOAD_VERSION" ]]; then
+            VERSION="$PAYLOAD_VERSION"
+            TAG="v${VERSION}"
+          else
+            VERSION="${{ steps.version.outputs.VERSION }}"
+            TAG="v${VERSION}"
+          fi
+
+          TARGET="$GITHUB_SHA"
+
+          if [[ -z "$TAG" ]]; then
+            echo "❌ 无法解析有效的标签，流程终止"
+            exit 1
+          fi
+
+          echo "✅ 将创建/更新 Release：$TAG (version: $VERSION)"
+          {
+            echo "TAG=$TAG"
+            echo "VERSION=$VERSION"
+            echo "TARGET=$TARGET"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 生成更新日志
+        id: release_notes
+        env:
+          CURRENT_TAG: ${{ steps.release_meta.outputs.TAG }}
+          TARGET_SHA: ${{ steps.release_meta.outputs.TARGET }}
+          VERSION: ${{ steps.release_meta.outputs.VERSION }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'main' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          git fetch --tags --force
+
+          # 查找上一个版本标签
+          PREV_TAG=$(git tag --sort=-version:refname | grep '^v' | grep -v "$CURRENT_TAG" | head -n 1 || true)
+          if [ -n "$PREV_TAG" ]; then
+            PREV_REF="$PREV_TAG"
+            echo "✅ 上一个版本：$PREV_TAG"
+          else
+            PREV_REF=$(git rev-list --max-parents=0 "$TARGET_SHA")
+            echo "ℹ️ 这是第一个版本"
+          fi
+
+          PREV_COMMIT=$(git rev-parse --verify "$PREV_REF^{commit}")
+          CUR_COMMIT=$(git rev-parse --verify "$TARGET_SHA^{commit}")
+
+          PREV_DATE_RAW=$(git show -s --format=%cI "$PREV_COMMIT")
+          CUR_DATE_RAW=$(git show -s --format=%cI "$CUR_COMMIT")
+          PREV_DATE=$(date -u -d "$PREV_DATE_RAW" +"%Y-%m-%dT%H:%M:%SZ")
+          CUR_DATE=$(date -u -d "$CUR_DATE_RAW" +"%Y-%m-%dT%H:%M:%SZ")
+
+          OWNER="${GITHUB_REPOSITORY%/*}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          BASE_BRANCH="${DEFAULT_BRANCH:-main}"
+
+          # 查询已合并的 PR
+          RAW_QUERY="repo:${OWNER}/${REPO} is:pr is:merged base:${BASE_BRANCH} merged:>=${PREV_DATE} merged:<=${CUR_DATE}"
+          QUERY=$(printf '%s' "$RAW_QUERY" | jq -sRr @uri)
+          RESPONSE=$(gh api -X GET search/issues -f q="$QUERY" -f per_page=100)
+
+          PR_LINES=$(echo "$RESPONSE" | jq -r '.items[] | "* " + .title + " by @"+(.user.login // "unknown")+" in #"+(.number|tostring)' || true)
+
+          # 如果没有 PR，使用提交记录
+          COMMITS=$(git log --no-merges --pretty="* %s" "${PREV_REF}..${CUR_COMMIT}" | head -n 50 || true)
+          if [ -z "$PR_LINES" ]; then
+            if [ -n "$COMMITS" ]; then
+              PR_LINES="$COMMITS"
+            else
+              PR_LINES="* 暂无变更记录（无 PR 且无提交）"
+            fi
+          fi
+
+          # 识别新贡献者
+          NEW_LINES=$(echo "$RESPONSE" | jq -r '.items[] | select(.author_association == "FIRST_TIMER" or .author_association == "FIRST_TIME_CONTRIBUTOR") | "* @" + (.user.login // "unknown") + " made their first contribution in #" + (.number|tostring)' || true)
+          if [ -z "$NEW_LINES" ]; then
+            NEW_SECTION=$'## New Contributors\n* No new contributors'
+          else
+            NEW_SECTION=$'## New Contributors\n'"$NEW_LINES"
+          fi
+
+          # 生成完整更新日志 URL
+          if [ -n "$PREV_TAG" ]; then
+            CHANGELOG_URL="https://github.com/${OWNER}/${REPO}/compare/${PREV_TAG}...${CURRENT_TAG}"
+          else
+            CHANGELOG_URL="https://github.com/${OWNER}/${REPO}/commits/${CURRENT_TAG}"
+          fi
+
+          # 输出 Release Notes
+          {
+            echo "BODY<<EOF"
+            echo "## What's Changed"
+            echo "$PR_LINES"
+            echo
+            echo "$NEW_SECTION"
+            echo
+            echo "## Docker Images"
+            echo "Docker 镜像已发布到 GitHub Container Registry："
+            echo
+            echo "\`\`\`bash"
+            echo "# Backend"
+            echo "docker pull ghcr.io/${OWNER}/${REPO}-backend:${VERSION}"
+            echo "docker pull ghcr.io/${OWNER}/${REPO}-backend:latest"
+            echo
+            echo "# Frontend"
+            echo "docker pull ghcr.io/${OWNER}/${REPO}-frontend:${VERSION}"
+            echo "docker pull ghcr.io/${OWNER}/${REPO}-frontend:latest"
+            echo
+            echo "# Remote Gateway"
+            echo "docker pull ghcr.io/${OWNER}/${REPO}-remote-gateway:${VERSION}"
+            echo "docker pull ghcr.io/${OWNER}/${REPO}-remote-gateway:latest"
+            echo "\`\`\`"
+            echo
+            echo "**Full Changelog**: ${CHANGELOG_URL}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release_meta.outputs.TAG }}
+          target_commitish: ${{ steps.release_meta.outputs.TARGET }}
+          name: ${{ steps.release_meta.outputs.TAG }}
+          body: ${{ steps.release_notes.outputs.BODY }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 触发 Docker 构建
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: docker-build-triggered
+          client-payload: '{"version": "${{ steps.release_meta.outputs.VERSION }}", "tag": "${{ steps.release_meta.outputs.TAG }}"}'

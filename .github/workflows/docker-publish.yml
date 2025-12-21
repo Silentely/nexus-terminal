@@ -5,6 +5,8 @@ on:
     branches: [ "main" ]
     tags: [ "v*" ]
   workflow_dispatch:
+  repository_dispatch:
+    types: [docker-build-triggered]
 
 permissions:
   contents: read
@@ -33,6 +35,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: 读取版本号
+        id: version
+        run: |
+          # 从 repository_dispatch payload 读取版本号
+          PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
+
+          if [ -n "$PAYLOAD_VERSION" ]; then
+            VERSION="$PAYLOAD_VERSION"
+            echo "✅ 使用 payload 中的版本号：$VERSION"
+          else
+            # 从 VERSION 文件读取
+            VERSION=$(cat VERSION | tr -d '[:space:]')
+            echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
+          fi
+
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -56,6 +75,7 @@ jobs:
             type=ref,event=tag
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.version.outputs.VERSION != '' }}
 
       - name: Build and push ${{ matrix.service.name }}
         uses: docker/build-push-action@v6

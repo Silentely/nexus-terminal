@@ -1,0 +1,88 @@
+name: 自动打标签（版本变化）
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'VERSION'
+      - 'packages/frontend/public/VERSION'
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 拉取最新代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 检查版本是否变更
+        id: version
+        run: |
+          # 读取当前 VERSION 文件
+          CURRENT_VERSION=$(cat VERSION | tr -d '[:space:]')
+
+          # 验证版本号格式 (语义化版本)
+          if ! echo "$CURRENT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$'; then
+            echo "❌ 版本号格式无效：$CURRENT_VERSION（需符合语义化版本规范）"
+            exit 1
+          fi
+
+          # 获取上一次提交的版本号
+          git checkout HEAD~1 -- VERSION 2>/dev/null || echo "First commit"
+          PREVIOUS_VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "0.0.0")
+          git checkout HEAD -- VERSION
+
+          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+            # 验证版本递增
+            if [ "$PREVIOUS_VERSION" != "0.0.0" ]; then
+              CURRENT_MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+              CURRENT_MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+              CURRENT_PATCH=$(echo $CURRENT_VERSION | cut -d. -f3 | cut -d- -f1)
+              PREV_MAJOR=$(echo $PREVIOUS_VERSION | cut -d. -f1)
+              PREV_MINOR=$(echo $PREVIOUS_VERSION | cut -d. -f2)
+              PREV_PATCH=$(echo $PREVIOUS_VERSION | cut -d. -f3 | cut -d- -f1)
+
+              if [ $CURRENT_MAJOR -lt $PREV_MAJOR ] || \
+                 ([ $CURRENT_MAJOR -eq $PREV_MAJOR ] && [ $CURRENT_MINOR -lt $PREV_MINOR ]) || \
+                 ([ $CURRENT_MAJOR -eq $PREV_MAJOR ] && [ $CURRENT_MINOR -eq $PREV_MINOR ] && [ $CURRENT_PATCH -le $PREV_PATCH ]); then
+                echo "❌ 版本号未递增：$PREVIOUS_VERSION -> $CURRENT_VERSION"
+                exit 1
+              fi
+            fi
+
+            echo "✅ 版本号已更新：$PREVIOUS_VERSION -> $CURRENT_VERSION"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️ 版本号未变更"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 检查目标标签是否已存在
+        if: steps.version.outputs.changed == 'true'
+        id: tag_check
+        run: |
+          if git ls-remote --tags origin | grep -q "refs/tags/v${{ steps.version.outputs.version }}$"; then
+            echo "❌ 标签 v${{ steps.version.outputs.version }} 已存在"
+            exit 1
+          fi
+
+      - name: 创建并推送新标签
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: 触发 Release 工作流
+        if: steps.version.outputs.changed == 'true'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: release-triggered
+          client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
