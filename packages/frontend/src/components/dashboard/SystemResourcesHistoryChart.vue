@@ -116,8 +116,15 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     },
     scales: {
         x: {
-            display: false,
+            display: true,
             grid: { display: false },
+            ticks: {
+                color: textColorSecondary.value,
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 6,
+                font: { size: 10 }
+            }
         },
         y: {
             beginAtZero: true,
