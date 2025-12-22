@@ -15,6 +15,7 @@ import { useWorkspaceEventEmitter, useWorkspaceEventSubscriber, useWorkspaceEven
 // Import extracted composables
 import { useTerminalFit } from '../../composables/terminal/useTerminalFit';
 import { useTerminalSocket } from '../../composables/terminal/useTerminalSocket';
+import { OutputEnhancerAddon } from './addons/output-enhancer';
 
 // 定义 props 和 emits
 const props = defineProps({
@@ -32,6 +33,7 @@ const terminalRef = ref<HTMLElement | null>(null); // xterm 挂载点的引用 (
 const terminalOuterWrapperRef = ref<HTMLElement | null>(null); // 最外层容器的引用
 const terminalInstance = ref<Terminal | null>(null); // 使用 ref 管理 terminal 实例以便传递给 composable
 let searchAddon: SearchAddon | null = null;
+let outputEnhancerAddon: OutputEnhancerAddon | null = null;
 let selectionListenerDisposable: IDisposable | null = null;
 
 const isActiveRef = ref(props.isActive);
@@ -214,6 +216,16 @@ onMounted(() => {
     
     searchAddon = new SearchAddon();
     term.loadAddon(searchAddon);
+    
+    // 加载输出增强插件
+    outputEnhancerAddon = new OutputEnhancerAddon({
+      enabled: true,
+      enableHighlight: true,
+      enableTableFormat: true,
+      enableLinkDetection: true,
+      foldThreshold: 500,
+    });
+    term.loadAddon(outputEnhancerAddon);
 
     try {
         const webglAddon = new WebglAddon();
@@ -295,7 +307,7 @@ onMounted(() => {
 
     term.focus();
 
-    // --- Ctrl+Shift+C/V ---
+    // --- Ctrl+Shift+C/V/O ---
     if (term.textarea) {
         term.textarea.addEventListener('keydown', async (event: KeyboardEvent) => {
             if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
@@ -320,6 +332,16 @@ onMounted(() => {
                     }
                 } catch (err) {
                     console.error('[Terminal] Paste failed:', err);
+                }
+            } else if (event.ctrlKey && event.shiftKey && event.code === 'KeyO') {
+                // Ctrl+Shift+O: 展开最近折叠的输出
+                event.preventDefault();
+                event.stopPropagation();
+                if (outputEnhancerAddon && outputEnhancerAddon.isEnabled()) {
+                    const expanded = outputEnhancerAddon.expandLastFold();
+                    if (!expanded) {
+                        console.log('[Terminal] No folded content to expand');
+                    }
                 }
             }
         });
@@ -370,6 +392,8 @@ onBeforeUnmount(() => {
     terminalInstance.value.dispose();
     terminalInstance.value = null;
   }
+
+  outputEnhancerAddon = null;
 
   if (selectionListenerDisposable) {
       selectionListenerDisposable.dispose();
