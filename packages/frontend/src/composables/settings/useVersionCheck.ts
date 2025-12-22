@@ -36,21 +36,17 @@ export function useVersionCheck() {
     versionCheckError.value = null;
     latestVersion.value = null;
     try {
-      const response = await axios.get('https://api.github.com/repos/Silentely/nexus-terminal/releases/latest');
-      if (response.data && response.data.tag_name) {
-        latestVersion.value = response.data.tag_name;
+      const response = await axios.get('https://raw.githubusercontent.com/Silentely/nexus-terminal/main/VERSION');
+      if (response.data && response.data.trim()) {
+        latestVersion.value = response.data.trim();
       } else {
-        throw new Error('Invalid API response format');
+        throw new Error('Empty VERSION');
       }
     } catch (error: any) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {
-          // 404 是正常情况（仓库还没有 release），使用 warn 级别
           console.warn('暂无可用的发布版本');
           versionCheckError.value = t('settings.about.error.noReleases');
-        } else if (error.response?.status === 403) {
-          console.error('GitHub API 访问频率受限:', error);
-          versionCheckError.value = t('settings.about.error.rateLimit');
         } else {
           console.error('检查最新版本失败:', error);
           versionCheckError.value = t('settings.about.error.checkFailed');
