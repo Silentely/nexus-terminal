@@ -17,17 +17,10 @@ export function useVersionCheck() {
   const loadAppVersion = async () => {
     try {
       const response = await axios.get('/VERSION');
-      let version = response.data.trim();
-
-      // 如果版本号为空或为 "latest"，则显示 "dev"
-      if (!version || version === 'latest' || version === 'dev') {
-        appVersion.value = 'dev';
-      } else {
-        appVersion.value = version;
-      }
+      appVersion.value = response.data.trim();
     } catch (error) {
       console.error('加载应用版本失败:', error);
-      appVersion.value = 'dev';
+      appVersion.value = '未知版本';
     }
   };
 
