@@ -3,19 +3,20 @@
 /* Tailwind Theme Variables Mapping */
 @theme inline {
   /* Base Colors */
-  --color-background: var(--app-bg-color); /* More generic name */
-  --color-foreground: var(--text-color); /* More generic name */
-  --color-app: var(--app-bg-color); /* Keep specific if needed */
-  --color-text-default: var(--text-color); /* Keep specific if needed */
+  --color-background: var(--app-bg-color); 
+  --color-foreground: var(--text-color);
+  --color-app: var(--app-bg-color); 
+  --color-text-default: var(--text-color); 
   --color-text-secondary: var(--text-color-secondary);
-  --color-border: var(--border-color); /* Simplified name */
-  --color-border-default: var(--border-color); /* Keep specific if needed */
+  --color-border: var(--border-color);
+  --color-border-default: var(--border-color); 
   --color-link: var(--link-color);
   --color-link-hover: var(--link-hover-color);
-  --color-link-active: var(--link-active-color); /* Also used as primary/theme color */
-  --color-primary: var(--link-active-color); /* Map primary to active link color */
-  --color-link-active-bg: var(--link-active-bg-color); /* Map active link background */
-  --color-nav-active-bg: var(--nav-item-active-bg-color); /* Map specific nav active background */
+  --color-link-active: var(--link-active-color);
+  --color-primary: var(--link-active-color);
+  --color-link-active-bg: var(--link-active-bg-color);
+  --color-nav-active-bg: var(--nav-item-active-bg-color);
+  --color-surface: var(--header-bg-color);
 
   /* Component Colors */
   --color-header: var(--header-bg-color);
@@ -27,84 +28,102 @@
   --color-icon-hover: var(--icon-hover-color);
   --color-split-line: var(--split-line-color);
   --color-split-line-hover: var(--split-line-hover-color);
+  --color-input: var(--input-bg-color);
   --color-input-focus-border: var(--input-focus-border-color);
   --color-overlay: var(--overlay-bg-color);
-  --color-success: var(--color-success);
-  --color-warning: var(--color-warning);
-  --color-error: var(--color-error);
-  --color-success-text: var(--color-success-text);
-  --color-warning-text: var(--color-warning-text);
-  --color-error-text: var(--color-error-text);
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-error: var(--status-error);
+  --color-success-text: var(--status-success-text);
+  --color-warning-text: var(--status-warning-text);
+  --color-error-text: var(--status-error-text);
 }
 
 /* 全局样式和 CSS 变量定义 */
 :root {
-  /* 基础颜色 */
-  --app-bg-color: #ffffff;       /* 应用背景色 */
-  --text-color: #333333;         /* 主要文字颜色 */
-  --text-color-secondary: #666666; /* 次要文字颜色 */
-  --border-color: #cccccc;       /* 边框颜色 */
-  --link-color: #333;            /* 链接颜色 */
-  --link-hover-color: #0056b3;   /* 链接悬停颜色 */
-  --link-active-color: #007bff;   /* 激活链接/主题色 */
-  --link-active-bg-color: #e0e0ff; /* 激活链接背景色 (类似 indigo-50) */
-  --nav-item-active-bg-color: var(--link-active-bg-color); /* 导航选中项背景色, 默认同激活链接背景 */
+  /* Core Palette - Slate/Zinc based Dark Theme */
+  --app-bg-color: #0f172a;       /* Slate 900 - Deep Background */
+  --text-color: #f1f5f9;         /* Slate 100 - Main Text */
+  --text-color-secondary: #94a3b8; /* Slate 400 - Secondary Text */
+  
+  /* Borders & Dividers */
+  --border-color: #1e293b;       /* Slate 800 - Subtle Borders */
+  --divider-color: #1e293b;
+  
+  /* Brand/Interactive Colors */
+  --link-color: #e2e8f0;         /* Slate 200 */
+  --link-hover-color: #38bdf8;   /* Sky 400 - Bright Hover */
+  --link-active-color: #0ea5e9;  /* Sky 500 - Primary Brand Color */
+  --link-active-bg-color: rgba(14, 165, 233, 0.15); /* Low opacity Sky 500 */
+  --nav-item-active-bg-color: rgba(14, 165, 233, 0.1); 
 
-  /* 组件颜色 */
-  --header-bg-color: #f0f0f0;     /* 头部背景色 */
-  --footer-bg-color: #f0f0f0;     /* 底部背景色 */
-  --button-bg-color: #007bff;     /* 按钮背景色 */
-  --button-text-color: #ffffff;   /* 按钮文字颜色 */
-  --button-hover-bg-color: #0056b3;/* 按钮悬停背景色 */
-  --icon-color: var(--text-color-secondary); /* 图标颜色 */
-  --icon-hover-color: var(--link-hover-color); /* 图标悬停颜色 */
-  --split-line-color: var(--border-color); /* 分割线颜色 */
-  --split-line-hover-color: var(--border-color); /* 分割线悬停颜色 */
-  --input-focus-border-color: var(--link-active-color); /* 输入框聚焦边框颜色 */
-  --input-focus-glow: var(--link-active-color); /* 输入框聚焦光晕值 */
-  --overlay-bg-color: rgba(0, 0, 0, 0.6); /* Added Overlay Background Color */
+  /* Components */
+  --header-bg-color: rgba(15, 23, 42, 0.7); /* Semi-transparent Slate 900 */
+  --footer-bg-color: #1e293b;     /* Slate 800 */
+  
+  /* Buttons */
+  --button-bg-color: #0ea5e9;     /* Sky 500 */
+  --button-text-color: #ffffff;
+  --button-hover-bg-color: #0284c7; /* Sky 600 */
+  
+  /* Icons */
+  --icon-color: #94a3b8;          /* Slate 400 */
+  --icon-hover-color: #f1f5f9;    /* Slate 100 */
+  
+  /* UI Elements */
+  --split-line-color: #1e293b;    /* Slate 800 */
+  --split-line-hover-color: #38bdf8; 
+  --input-bg-color: rgba(255, 255, 255, 0.05);
+  --input-focus-border-color: #0ea5e9;
+  --input-focus-glow-rgb: 14, 165, 233; /* RGB for Sky 500 */
+  --overlay-bg-color: rgba(0, 0, 0, 0.75);
 
-  /* Status Colors */
-  --color-success: #28a745; /* Green */
-  --color-warning: #ffc107; /* Yellow */
-  --color-error: #dc3545;   /* Red */
-  --color-success-text: #ffffff; /* White text for green bg */
-  --color-warning-text: #212529; /* Dark text for yellow bg */
-  --color-error-text: #ffffff;   /* White text for red bg */
+  /* Status */
+  --status-success: #10b981;       /* Emerald 500 */
+  --status-warning: #f59e0b;       /* Amber 500 */
+  --status-error: #ef4444;         /* Red 500 */
+  --status-success-text: #ffffff;
+  --status-warning-text: #ffffff;
+  --status-error-text: #ffffff;
 
-  /* 字体 */
-  --font-family-sans-serif: sans-serif; /* 默认字体 */
+  /* Typography */
+  --font-family-sans-serif: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Roboto Mono', monospace;
 
-  /* 其他 */
-  --base-padding: 1rem;          /* 基础内边距 */
-  --base-margin: 0.5rem;         /* 基础外边距 */
+  /* Spacing */
+  --base-padding: 1.5rem;
+  --base-margin: 0.75rem;
+  
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
 }
 
 /* 应用基础样式 */
 body {
-  margin: 0; /* 移除默认 body margin */
+  margin: 0; 
   font-family: var(--font-family-sans-serif);
   background-color: var(--app-bg-color);
   color: var(--text-color);
-  line-height: 1.6; /* 改善可读性 */
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 全局链接样式 */
 a {
-  /* color: var(--link-color); */ /* 注释掉全局 a 标签的颜色设置，让 Tailwind 类生效 */
-  text-decoration: none; /* 移除下划线 */
+  text-decoration: none; 
 }
 
-/* Removed global a:hover underline rule to avoid conflicts with Tailwind utilities */
-
 /* 全局图标样式 */
-i, .fas, .far, .fab { /* 根据你使用的图标库调整选择器 */
+i, .fas, .far, .fab { 
   color: var(--icon-color);
   transition: color 0.2s ease;
 }
-a:hover i, a:hover .fas, a:hover .far, a:hover .fab, /* 链接内的图标 */
-button:hover i, button:hover .fas, button:hover .far, button:hover .fab, /* 按钮内的图标 */
-.icon-interactive:hover i, .icon-interactive:hover .fas, .icon-interactive:hover .far, .icon-interactive:hover .fab { /* 可交互图标容器 */
+a:hover i, a:hover .fas, a:hover .far, a:hover .fab, 
+button:hover i, button:hover .fas, button:hover .far, button:hover .fab, 
+.icon-interactive:hover i, .icon-interactive:hover .fas, .icon-interactive:hover .far, .icon-interactive:hover .fab { 
   color: var(--icon-hover-color);
 }
 /* 全局分割线样式 */
@@ -114,26 +133,43 @@ hr {
   margin: var(--base-margin) 0;
 }
 
-
-/* 可以添加更多全局样式规则 */
-
 /* 为 xterm 终端添加内边距 */
-
-.xterm{
-  padding: 10px 10px 10px 10px;
-
+.xterm {
+  padding: 12px;
 }
 
 /* 为历史记录和快捷命令列表设置字体 */
-/* 注意：这里的选择器可能需要根据实际组件结构调整 */
 .command-history-item,
-.quick-command-item { /* 假设这些是列表项的类名 */
+.quick-command-item { 
   font-family: var(--font-family-sans-serif);
 }
 
-/* 如果是 Element Plus 的 Table 组件 */
-.el-table .cell {
-  font-family: var(--font-family-sans-serif);
+/* Element Plus 覆盖 */
+.el-table {
+  --el-table-bg-color: transparent !important;
+  --el-table-tr-bg-color: transparent !important;
+  --el-table-header-bg-color: rgba(255, 255, 255, 0.05) !important;
+  --el-table-border-color: var(--border-color) !important;
+  --el-table-text-color: var(--text-color) !important;
+  --el-table-header-text-color: var(--text-color-secondary) !important;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.el-table th.el-table__cell {
+    background-color: var(--el-table-header-bg-color) !important;
+}
+
+.el-card {
+  --el-card-bg-color: rgba(30, 41, 59, 0.7) !important; /* Slate 800 with opacity */
+  --el-card-border-color: var(--border-color) !important;
+  color: var(--text-color) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.el-drawer, .el-dialog {
+    --el-bg-color: #1e293b !important;
+    --el-text-color-primary: var(--text-color) !important;
 }
 
 /* Override splitpanes default theme pane background */
@@ -143,84 +179,86 @@ hr {
 
 /* Style the splitpane splitter */
 .splitpanes.default-theme .splitpanes__splitter {
-  background-color: var(--app-bg-color) !important; /* Use important to ensure override */
-  border-left: 1px solid var(--border-color); /* Add a subtle border */
+  background-color: transparent !important; 
+  border-left: 1px solid var(--border-color); 
   border-right: 1px solid var(--border-color);
   box-sizing: border-box;
-  transition: background-color 0.2s ease; /* Add transition for hover effect */
+  transition: background-color 0.2s ease, border-color 0.2s ease; 
 }
 .splitpanes.default-theme .splitpanes__splitter:hover {
-  background-color: var(--link-active-color) !important; /* Highlight on hover, keep important */
+  background-color: var(--link-active-color) !important; 
+  border-color: var(--link-active-color) !important;
 }
 .splitpanes--vertical > .splitpanes__splitter {
-  width: 7px; /* Adjust width as needed */
+  width: 1px; /* Thinner splitters */
   border-top: none;
   border-bottom: none;
+  border-right: none; /* Single border */
 }
 .splitpanes--horizontal > .splitpanes__splitter {
-  height: 7px; /* Adjust height as needed */
+  height: 1px; 
   border-left: none;
   border-right: none;
   border-top: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: none;
 }
 
 /* Style scrollbars */
 ::-webkit-scrollbar {
-  width: 8px; /* Width of vertical scrollbar */
-  height: 8px; /* Height of horizontal scrollbar */
+  width: 6px; 
+  height: 6px; 
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--app-bg-color); /* Scrollbar track background */
-  border-radius: 4px;
+  background: transparent; 
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--border-color); /* Scrollbar handle color */
-  border-radius: 4px;
-  border: 2px solid var(--app-bg-color); /* Creates padding around thumb */
+  background-color: #334155; 
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-color-secondary); /* Scrollbar handle hover color */
+  background-color: #475569; 
 }
 
 /* Input focus styles */
 input:focus, textarea:focus, select:focus {
-    border-color: var(--input-focus-border-color) !important; /* Use new variable, !important might be needed depending on specificity */
+    border-color: var(--input-focus-border-color) !important; 
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(var(--input-focus-glow-rgb), 0.2) !important; /* Use new variable, !important might be needed */
+    box-shadow: 0 0 0 2px rgba(var(--input-focus-glow-rgb), 0.2) !important; 
 }
 
-/* Ensure icons inside primary buttons are white */
 button.bg-primary i,
 button.bg-primary .fas,
 button.bg-primary .far,
 button.bg-primary .fab {
-  color: white !important; /* Force white color */
+  color: white !important; 
 }
 
-/* Optional: Keep icon white even on hover for primary buttons */
 button.bg-primary:hover i,
 button.bg-primary:hover .fas,
 button.bg-primary:hover .far,
 button.bg-primary:hover .fab {
-  color: white !important; /* Keep white on hover */
+  color: white !important; 
 }
 
-/* 移除按钮的聚焦光圈 */
 button:focus {
   outline: none !important;
-  box-shadow: none !important; /* 同时移除 box-shadow 以防其被用于聚焦指示 */
+  box-shadow: none !important; 
 }
 
-/* 针对使用 :focus-visible 的浏览器 */
 button:focus-visible {
   outline: none !important;
   box-shadow: none !important;
 }
-/* 当鼠标悬停在按钮上时，鼠标指针变为手型 */
+
 button:hover {
   cursor: pointer;
+}
+
+/* Dashboard specific overrides */
+.dashboard-date-picker-popper {
+  background-color: var(--header-bg-color) !important;
+  border-color: var(--border-color) !important;
 }

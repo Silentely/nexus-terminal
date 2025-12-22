@@ -279,20 +279,20 @@ const isElementVisibleAndFocusable = (element: HTMLElement): boolean => {
   <div id="app-container">
     <!-- *** 修改 v-if 条件以使用 isHeaderVisible *** -->
     <!-- Header with Tailwind classes using theme variables -->
-	    <header v-if="isAuthenticated && (!isWorkspaceRoute || isHeaderVisible)" class="sticky top-0 z-10 flex items-center h-14 pl-3 pr-6 bg-header border-b border-border shadow-sm"> <!-- 减少左侧内边距 -->
+	    <header v-if="isAuthenticated && (!isWorkspaceRoute || isHeaderVisible)" class="sticky top-0 z-50 flex items-center h-16 pl-4 pr-6 bg-header backdrop-blur-md border-b border-border/50 shadow-sm transition-all duration-300"> <!-- Modernized Header -->
       <!-- Nav with Tailwind classes -->
       <nav ref="navRef" class="flex items-center justify-between w-full relative"> <!-- Added relative positioning for underline -->
         <!-- Left navigation links with Tailwind classes using theme variables -->
-        <div class="flex items-center space-x-1">
+        <div class="flex items-center space-x-2">
           <!-- 项目 Logo -->
-          <img src="./assets/logo.png" alt="Project Logo" class="h-10 w-auto"> <!-- 移除右侧外边距，使其更靠左 -->
-            <RouterLink to="/" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap" active-class="text-link-active bg-nav-active-bg">{{ t('nav.dashboard') }}</RouterLink> <!-- 恢复仪表盘链接, 始终可见 -->
-            <RouterLink to="/workspace" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap" active-class="text-link-active bg-nav-active-bg">{{ t('nav.terminal') }}</RouterLink> <!-- 保持可见 -->
-            <RouterLink to="/connections" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap" active-class="text-link-active bg-nav-active-bg">{{ t('nav.connections') }}</RouterLink> <!-- 连接管理链接 -->
-            <RouterLink to="/proxies" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap" active-class="text-link-active bg-nav-active-bg">{{ t('nav.proxies') }}</RouterLink> <!-- 移动端隐藏 -->
-            <RouterLink to="/notifications" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap" active-class="text-link-active bg-nav-active-bg">{{ t('nav.notifications') }}</RouterLink> <!-- 移动端隐藏 -->
-            <RouterLink to="/audit-logs" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap" active-class="text-link-active bg-nav-active-bg">{{ t('nav.auditLogs') }}</RouterLink> <!-- 移动端隐藏 -->
-            <RouterLink to="/settings" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap" active-class="text-link-active bg-nav-active-bg">{{ t('nav.settings') }}</RouterLink> <!-- 保持可见 -->
+          <img src="./assets/logo.png" alt="Project Logo" class="h-8 w-auto mr-2 opacity-90 hover:opacity-100 transition-opacity"> 
+            <RouterLink to="/" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.dashboard') }}</RouterLink>
+            <RouterLink to="/workspace" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.terminal') }}</RouterLink>
+            <RouterLink to="/connections" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.connections') }}</RouterLink>
+            <RouterLink to="/proxies" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.proxies') }}</RouterLink>
+            <RouterLink to="/notifications" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.notifications') }}</RouterLink>
+            <RouterLink to="/audit-logs" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.auditLogs') }}</RouterLink>
+            <RouterLink to="/settings" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.settings') }}</RouterLink>
         </div>
         <!-- Right navigation links with Tailwind classes using theme variables -->
         <div class="flex items-center space-x-1">

@@ -440,11 +440,15 @@ onBeforeUnmount(() => {
             :title="session.connectionName"
         >
           <!-- Status dot -->
-          <span :class="['w-2 h-2 rounded-full mr-2 flex-shrink-0',
-                         session.isMarkedForSuspend ? 'bg-blue-500' : // +++ 如果已标记待挂起，则为蓝色 +++
-                         session.status === 'connected' ? 'bg-green-500' :
-                         session.status === 'connecting' ? 'bg-yellow-500 animate-pulse' :
-                         session.status === 'disconnected' ? 'bg-red-500' : 'bg-gray-400']"></span>
+          <span class="w-2 h-2 rounded-full mr-2 flex-shrink-0 transition-colors duration-300"
+                :style="{
+                    backgroundColor: session.isMarkedForSuspend ? 'var(--color-primary)' :
+                                   session.status === 'connected' ? 'var(--color-success)' :
+                                   session.status === 'connecting' ? 'var(--color-warning)' :
+                                   session.status === 'disconnected' ? 'var(--color-error)' : 'var(--text-color-secondary)',
+                    boxShadow: session.status === 'connected' ? '0 0 6px var(--color-success)' : 'none'
+                }"
+                :class="{'animate-pulse': session.status === 'connecting'}"></span>
           <span class="truncate text-sm" style="transform: translateY(-1px);">{{ session.connectionName }}</span>
           <button class="ml-2 p-0.5 rounded-full text-text-secondary hover:bg-border hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150"
                   :class="{'text-foreground hover:bg-header': session.sessionId === activeSessionId}"
