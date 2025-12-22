@@ -6,6 +6,7 @@ import type { Locale } from 'date-fns';
 import { useDashboardStore } from '../stores/dashboard.store';
 import { useConnectionsStore, type ConnectionInfo } from '../stores/connections.store';
 import { useAuditLogStore } from '../stores/audit.store';
+import { useUiNotificationsStore } from '../stores/uiNotifications.store';
 import SessionDurationChart from '../components/dashboard/SessionDurationChart.vue';
 import SystemResourcesHistoryChart from '../components/dashboard/SystemResourcesHistoryChart.vue';
 
@@ -17,6 +18,7 @@ const { t, locale } = useI18n();
 const dashboardStore = useDashboardStore();
 const connectionsStore = useConnectionsStore();
 const auditLogStore = useAuditLogStore();
+const uiNotifications = useUiNotificationsStore();
 
 const { stats, assetHealth, timeline, storage, systemResources, systemResourcesHistory, timeRange, isLoading } = storeToRefs(dashboardStore);
 const { connections } = storeToRefs(connectionsStore);
@@ -27,6 +29,20 @@ const connectionToEdit = ref<ConnectionInfo | null>(null);
 const autoRefresh = ref(true);
 const refreshInterval = ref(30000);
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+// 统计卡片图标配置
+const statIconConfig = {
+    activeSessions: { icon: 'fa-terminal', color: 'blue' },
+    connections: { icon: 'fa-plug', color: 'green' },
+    avgDuration: { icon: 'fa-clock', color: 'yellow' },
+    loginFailures: { icon: 'fa-exclamation-circle', color: 'red' },
+    commandBlocks: { icon: 'fa-ban', color: 'red' },
+    alerts: { icon: 'fa-bell', color: 'orange' }
+} as const;
+
+// Computed 缓存优化列表渲染
+const recentTimeline = computed(() => timeline.value?.slice(0, 10) || []);
+const recentConnections = computed(() => connections.value?.slice(0, 10) || []);
 
 const startOfToday = () => {
     const d = new Date();
@@ -92,14 +108,24 @@ const getAssetStatusType = (status: string): 'success' | 'danger' | 'info' => {
 
 const getActionIcon = (actionType: string): string => dashboardStore.getActionIcon(actionType);
 
-const handleRefresh = () => {
-    dashboardStore.fetchAllData(timeRange.value);
+const handleRefresh = async () => {
+    try {
+        await dashboardStore.fetchAllData(timeRange.value);
+    } catch (error) {
+        console.error('[Dashboard] 刷新失败:', error);
+        uiNotifications.showError(t('dashboard.errors.refreshFailed') || '刷新数据失败，请稍后重试');
+    }
 };
 
-const handleTimeRangeChange = () => {
-    const range = toSecondsRange(dateTimeRange.value);
-    dashboardStore.setTimeRange(range);
-    dashboardStore.fetchAllData(range);
+const handleTimeRangeChange = async () => {
+    try {
+        const range = toSecondsRange(dateTimeRange.value);
+        dashboardStore.setTimeRange(range);
+        await dashboardStore.fetchAllData(range);
+    } catch (error) {
+        console.error('[Dashboard] 时间范围变更失败:', error);
+        uiNotifications.showError(t('dashboard.errors.timeRangeFailed') || '时间范围变更失败，请稍后重试');
+    }
 };
 
 const startAutoRefresh = () => {
@@ -127,14 +153,19 @@ watch(refreshInterval, () => {
 });
 
 onMounted(async () => {
-    const initialRange = toSecondsRange(dateTimeRange.value);
-    dashboardStore.setTimeRange(initialRange);
-    await Promise.all([
-        dashboardStore.fetchAllData(initialRange),
-        connectionsStore.fetchConnections(),
-        auditLogStore.fetchLogs({ page: 1, limit: 10, sortOrder: 'desc', isDashboardRequest: true })
-    ]);
-    startAutoRefresh();
+    try {
+        const initialRange = toSecondsRange(dateTimeRange.value);
+        dashboardStore.setTimeRange(initialRange);
+        await Promise.all([
+            dashboardStore.fetchAllData(initialRange),
+            connectionsStore.fetchConnections(),
+            auditLogStore.fetchLogs({ page: 1, limit: 10, sortOrder: 'desc', isDashboardRequest: true })
+        ]);
+        startAutoRefresh();
+    } catch (error) {
+        console.error('[Dashboard] 初始化失败:', error);
+        uiNotifications.showError(t('dashboard.errors.initFailed') || '仪表盘初始化失败，请刷新页面重试');
+    }
 });
 
 onUnmounted(() => {
@@ -152,9 +183,14 @@ const handleFormClose = () => {
 };
 
 const handleConnectionModified = async () => {
-    showAddEditConnectionForm.value = false;
-    connectionToEdit.value = null;
-    await connectionsStore.fetchConnections();
+    try {
+        showAddEditConnectionForm.value = false;
+        connectionToEdit.value = null;
+        await connectionsStore.fetchConnections();
+    } catch (error) {
+        console.error('[Dashboard] 连接列表更新失败:', error);
+        uiNotifications.showError(t('dashboard.errors.connectionsFailed') || '连接列表更新失败，请稍后重试');
+    }
 };
 
 const getProgressColor = (percent: number): string => {
@@ -195,12 +231,12 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         format="YYYY-MM-DD HH:mm"
                         :clearable="false"
                         @change="handleTimeRangeChange"
-                        class="w-full md:!w-[320px]"
+                        class="w-full md:max-w-[320px]"
                     />
                 </div>
                 
                 <div class="flex items-center gap-4 justify-between md:justify-start">
-                    <el-select v-model="refreshInterval" class="!w-32">
+                    <el-select v-model="refreshInterval" class="w-32">
                         <el-option :value="15000" :label="t('dashboard.intervals.15s')" />
                         <el-option :value="30000" :label="t('dashboard.intervals.30s')" />
                         <el-option :value="60000" :label="t('dashboard.intervals.1m')" />
@@ -229,8 +265,8 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         :value="stats?.sessions?.active || 0"
                     >
                         <template #prefix>
-                            <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900 mr-2">
-                                <i class="fas fa-terminal text-blue-500 dark:text-blue-300"></i>
+                            <div :class="`p-2 rounded-lg bg-${statIconConfig.activeSessions.color}-100 dark:bg-${statIconConfig.activeSessions.color}-900 mr-2`">
+                                <i :class="['fas', statIconConfig.activeSessions.icon, `text-${statIconConfig.activeSessions.color}-500`, `dark:text-${statIconConfig.activeSessions.color}-300`]"></i>
                             </div>
                         </template>
                     </el-statistic>
@@ -243,8 +279,8 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         :value="stats?.sessions?.todayConnections || 0"
                     >
                         <template #prefix>
-                            <div class="p-2 rounded-lg bg-green-100 dark:bg-green-900 mr-2">
-                                <i class="fas fa-plug text-green-500 dark:text-green-300"></i>
+                            <div :class="`p-2 rounded-lg bg-${statIconConfig.connections.color}-100 dark:bg-${statIconConfig.connections.color}-900 mr-2`">
+                                <i :class="['fas', statIconConfig.connections.icon, `text-${statIconConfig.connections.color}-500`, `dark:text-${statIconConfig.connections.color}-300`]"></i>
                             </div>
                         </template>
                     </el-statistic>
@@ -258,8 +294,8 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         :formatter="(v: number) => formatDuration(v)"
                     >
                         <template #prefix>
-                            <div class="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900 mr-2">
-                                <i class="fas fa-clock text-yellow-500 dark:text-yellow-300"></i>
+                            <div :class="`p-2 rounded-lg bg-${statIconConfig.avgDuration.color}-100 dark:bg-${statIconConfig.avgDuration.color}-900 mr-2`">
+                                <i :class="['fas', statIconConfig.avgDuration.icon, `text-${statIconConfig.avgDuration.color}-500`, `dark:text-${statIconConfig.avgDuration.color}-300`]"></i>
                             </div>
                         </template>
                     </el-statistic>
@@ -276,8 +312,8 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         :value="stats?.security?.loginFailures || 0"
                     >
                         <template #prefix>
-                            <div class="p-2 rounded-lg bg-red-100 dark:bg-red-900 mr-2">
-                                <i class="fas fa-exclamation-circle text-red-500 dark:text-red-300"></i>
+                            <div :class="`p-2 rounded-lg bg-${statIconConfig.loginFailures.color}-100 dark:bg-${statIconConfig.loginFailures.color}-900 mr-2`">
+                                <i :class="['fas', statIconConfig.loginFailures.icon, `text-${statIconConfig.loginFailures.color}-500`, `dark:text-${statIconConfig.loginFailures.color}-300`]"></i>
                             </div>
                         </template>
                     </el-statistic>
@@ -290,8 +326,8 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         :value="stats?.security?.commandBlocks || 0"
                     >
                         <template #prefix>
-                            <div class="p-2 rounded-lg bg-red-100 dark:bg-red-900 mr-2">
-                                <i class="fas fa-ban text-red-500 dark:text-red-300"></i>
+                            <div :class="`p-2 rounded-lg bg-${statIconConfig.commandBlocks.color}-100 dark:bg-${statIconConfig.commandBlocks.color}-900 mr-2`">
+                                <i :class="['fas', statIconConfig.commandBlocks.icon, `text-${statIconConfig.commandBlocks.color}-500`, `dark:text-${statIconConfig.commandBlocks.color}-300`]"></i>
                             </div>
                         </template>
                     </el-statistic>
@@ -304,8 +340,8 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         :value="stats?.security?.alerts || 0"
                     >
                         <template #prefix>
-                            <div class="p-2 rounded-lg bg-orange-100 dark:bg-orange-900 mr-2">
-                                <i class="fas fa-bell text-orange-500 dark:text-orange-300"></i>
+                            <div :class="`p-2 rounded-lg bg-${statIconConfig.alerts.color}-100 dark:bg-${statIconConfig.alerts.color}-900 mr-2`">
+                                <i :class="['fas', statIconConfig.alerts.icon, `text-${statIconConfig.alerts.color}-500`, `dark:text-${statIconConfig.alerts.color}-300`]"></i>
                             </div>
                         </template>
                     </el-statistic>
@@ -406,15 +442,15 @@ const formatDuration = (seconds: number | null | undefined): string => {
                     </template>
                     <div v-if="assetHealth">
                         <div class="flex flex-wrap gap-2 mb-4">
-                            <el-tag type="success" effect="light" class="!text-sm">
+                            <el-tag type="success" effect="light" class="text-sm">
                                 <i class="fas fa-check-circle mr-1"></i>
                                 {{ t('dashboard.healthy') }}: {{ assetHealth.healthy }}
                             </el-tag>
-                            <el-tag type="danger" effect="light" class="!text-sm">
+                            <el-tag type="danger" effect="light" class="text-sm">
                                 <i class="fas fa-times-circle mr-1"></i>
                                 {{ t('dashboard.unreachable') }}: {{ assetHealth.unreachable }}
                             </el-tag>
-                            <el-tag type="info" effect="light" class="!text-sm">
+                            <el-tag type="info" effect="light" class="text-sm">
                                 <i class="fas fa-server mr-1"></i>
                                 {{ t('dashboard.total') }}: {{ assetHealth.total }}
                             </el-tag>
@@ -484,9 +520,9 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         </div>
                     </template>
                     <div class="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                        <el-timeline v-if="timeline.length > 0">
+                        <el-timeline v-if="recentTimeline.length > 0">
                             <el-timeline-item
-                                v-for="event in timeline.slice(0, 10)"
+                                v-for="event in recentTimeline"
                                 :key="event.id"
                                 :timestamp="formatRelativeTime(event.timestamp)"
                                 placement="top"
@@ -524,9 +560,9 @@ const formatDuration = (seconds: number | null | undefined): string => {
                             </el-button>
                         </div>
                     </template>
-                    <div v-if="connections.length > 0" class="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div v-if="recentConnections.length > 0" class="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                         <div
-                            v-for="conn in connections.slice(0, 10)"
+                            v-for="conn in recentConnections"
                             :key="conn.id"
                             class="p-3 border-b border-[var(--el-border-color-lighter)] last:border-0 hover:bg-[var(--el-fill-color-light)] transition-colors rounded mb-1"
                         >
