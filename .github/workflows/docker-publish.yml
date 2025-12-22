@@ -109,15 +109,15 @@ jobs:
             # main 分支推送时构建 dev 标签
             type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
 
-            # tag 推送时构建 latest 和版本号标签
+            # tag 推送时构建 latest、版本号和 SHA 标签
             type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
             type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
-            type=ref,event=tag,enable={{is_default_branch}}
+            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
 
             # 其他情况（手动触发）的备用标签
-            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' }}
-            type=ref,event=tag
-            type=sha
+            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' && steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+            type=ref,event=tag,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
 
       - name: Build and push ${{ matrix.service.name }}
         uses: docker/build-push-action@v6

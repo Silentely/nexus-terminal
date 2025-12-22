@@ -10,8 +10,17 @@ export function useVersionCheck() {
   const versionCheckError = ref<string | null>(null);
 
   const isUpdateAvailable = computed(() => {
-    // 简单的字符串比较，假设 tag 格式为 vX.Y.Z
-    return latestVersion.value && latestVersion.value !== `v${appVersion.value}`;
+    if (!latestVersion.value) return false;
+
+    // 清除 'v' 前缀后进行比较
+    const cleanLatestVersion = latestVersion.value.startsWith('v')
+      ? latestVersion.value.substring(1)
+      : latestVersion.value;
+    const cleanAppVersion = appVersion.value.startsWith('v')
+      ? appVersion.value.substring(1)
+      : appVersion.value;
+
+    return cleanLatestVersion !== cleanAppVersion;
   });
 
   const loadAppVersion = async () => {
