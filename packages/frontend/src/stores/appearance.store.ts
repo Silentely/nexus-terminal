@@ -18,6 +18,29 @@ export const safeJsonParse = <T>(jsonString: string | undefined | null, defaultV
     }
 };
 
+/**
+ * 判断十六进制颜色是否为深色
+ */
+const isColorDark = (hexColor: string): boolean => {
+    if (!hexColor || !hexColor.startsWith('#')) return false;
+    const color = hexColor.substring(1);
+    let r, g, b;
+    if (color.length === 3) {
+        r = parseInt(color[0] + color[0], 16);
+        g = parseInt(color[1] + color[1], 16);
+        b = parseInt(color[2] + color[2], 16);
+    } else if (color.length === 6) {
+        r = parseInt(color.substring(0, 2), 16);
+        g = parseInt(color.substring(2, 4), 16);
+        b = parseInt(color.substring(4, 6), 16);
+    } else {
+        return false;
+    }
+    // 使用 HSP (Highest Saturated Point) 方程计算亮度
+    const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+    return hsp < 127.5; // 阈值取中间值
+};
+
 export const useAppearanceStore = defineStore('appearance', () => {
     const { isMobile } = useDeviceDetection(); // + 获取设备检测结果
 
@@ -44,6 +67,12 @@ export const useAppearanceStore = defineStore('appearance', () => {
     const previewTerminalThemeData = ref<ITheme | null>(null);
 
     // --- Computed Properties (Getters) ---
+
+    // 页面背景颜色是否为深色
+    const isDark = computed(() => {
+        const bgColor = currentUiTheme.value['--app-bg-color'] || '#ffffff';
+        return isColorDark(bgColor);
+    });
 
     // 移除 availableTerminalThemes 计算属性，直接使用 allTerminalThemes
     // 当前应用的 UI 主题 (CSS 变量对象)
@@ -889,6 +918,15 @@ export const useAppearanceStore = defineStore('appearance', () => {
         applyUiTheme(newTheme);
     }, { deep: true, immediate: true }); // 添加 immediate: true 确保初始加载时应用默认主题
 
+    // 监听深色模式状态并应用到 html 标签
+    watch(isDark, (val) => {
+        if (val) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, { immediate: true });
+
     // 监听页面背景变化并应用
     watch(pageBackgroundImage, () => { // 只监听图片变化
         applyPageBackground();
@@ -899,6 +937,7 @@ export const useAppearanceStore = defineStore('appearance', () => {
         isLoading,
         error,
         initialAppearanceDataLoaded,
+        isDark, // 导出 isDark
         // State refs (原始数据)
         appearanceSettings,
         allTerminalThemes, // 导出重命名后的 ref

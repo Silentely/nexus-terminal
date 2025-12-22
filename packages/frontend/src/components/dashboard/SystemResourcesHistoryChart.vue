@@ -8,6 +8,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Line } from 'vue-chartjs';
+import { useAppearanceStore } from '../../stores/appearance.store';
 import {
     Chart as ChartJS,
     Title,
@@ -33,6 +34,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const appearanceStore = useAppearanceStore();
+
+const textColor = computed(() => appearanceStore.currentUiTheme['--text-color'] || '#333333');
+const textColorSecondary = computed(() => appearanceStore.currentUiTheme['--text-color-secondary'] || '#666666');
+const borderColor = computed(() => appearanceStore.currentUiTheme['--border-color'] || '#cccccc');
 
 const labels = computed(() =>
     props.history.map((p) => {
@@ -52,24 +58,27 @@ const chartData = computed<ChartData<'line'>>(() => ({
             data: props.history.map((p) => p.cpuPercent),
             borderColor: '#409eff',
             backgroundColor: 'rgba(64, 158, 255, 0.15)',
-            tension: 0.25,
+            tension: 0.3,
             pointRadius: 0,
+            fill: true,
         },
         {
             label: t('dashboard.memory'),
             data: props.history.map((p) => p.memPercent),
             borderColor: '#67c23a',
             backgroundColor: 'rgba(103, 194, 58, 0.15)',
-            tension: 0.25,
+            tension: 0.3,
             pointRadius: 0,
+            fill: true,
         },
         {
             label: t('dashboard.disk'),
             data: props.history.map((p) => p.diskPercent),
             borderColor: '#e6a23c',
             backgroundColor: 'rgba(230, 162, 60, 0.15)',
-            tension: 0.25,
+            tension: 0.3,
             pointRadius: 0,
+            fill: true,
         },
     ],
 }));
@@ -78,9 +87,32 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: { display: true, position: 'bottom' },
-        tooltip: { enabled: true },
+        legend: { 
+            display: true, 
+            position: 'bottom',
+            labels: {
+                color: textColor.value,
+                usePointStyle: true,
+                padding: 15,
+                font: { size: 11 }
+            }
+        },
+        tooltip: { 
+            enabled: true,
+            backgroundColor: appearanceStore.currentUiTheme['--header-bg-color'] || 'rgba(0,0,0,0.8)',
+            titleColor: textColor.value,
+            bodyColor: textColor.value,
+            borderColor: borderColor.value,
+            borderWidth: 1,
+            mode: 'index',
+            intersect: false
+        },
         title: { display: false },
+    },
+    interaction: {
+        mode: 'nearest',
+        axis: 'x',
+        intersect: false
     },
     scales: {
         x: {
@@ -90,7 +122,15 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
         y: {
             beginAtZero: true,
             max: 100,
-            ticks: { stepSize: 25 },
+            ticks: { 
+                stepSize: 25,
+                color: textColorSecondary.value,
+                font: { size: 10 }
+            },
+            grid: {
+                color: borderColor.value,
+                drawTicks: false
+            }
         },
     },
 }));

@@ -55,27 +55,27 @@ export const defaultUiTheme: Record<string, string> = {
 };
 
 export const darkUiTheme: Record<string, string> = {
-  '--app-bg-color': '#1e1e1e',
-  '--text-color': '#d4d4d4',
-  '--text-color-secondary': '#aaaaaa',
-  '--border-color': '#333333',
-  '--link-color': '#9CDcfe',
-  '--link-hover-color': '#b3e0ff',
-  '--link-active-color': '#007acc',
-  '--link-active-bg-color': '#333333',
+  '--app-bg-color': '#0f172a', /* Slate 900 */
+  '--text-color': '#f8fafc',    /* Slate 50 */
+  '--text-color-secondary': '#94a3b8', /* Slate 400 */
+  '--border-color': '#1e293b',  /* Slate 800 */
+  '--link-color': '#38bdf8',    /* Sky 400 */
+  '--link-hover-color': '#7dd3fc', /* Sky 300 */
+  '--link-active-color': '#0ea5e9', /* Sky 500 */
+  '--link-active-bg-color': 'rgba(14, 165, 233, 0.15)',
   '--nav-item-active-bg-color': 'var(--link-active-bg-color)',
-  '--header-bg-color': '#252526',
-  '--footer-bg-color': '#252526',
-  '--button-bg-color': '#0e639c',
+  '--header-bg-color': 'rgba(15, 23, 42, 0.9)', /* Slate 900 semi-transparent */
+  '--footer-bg-color': '#0f172a',
+  '--button-bg-color': '#0ea5e9', /* Sky 500 */
   '--button-text-color': '#ffffff',
-  '--button-hover-bg-color': '#1177bb',
+  '--button-hover-bg-color': '#0284c7', /* Sky 600 */
   '--icon-color': 'var(--text-color-secondary)',
   '--icon-hover-color': 'var(--link-hover-color)',
   '--split-line-color': 'var(--border-color)',
-  '--split-line-hover-color': '#555555',
+  '--split-line-hover-color': 'var(--link-active-color)',
   '--input-focus-border-color': 'var(--link-active-color)',
   '--input-focus-glow': 'var(--link-active-color)',
-  '--overlay-bg-color': 'rgba(0, 0, 0, 0.6)',
+  '--overlay-bg-color': 'rgba(0, 0, 0, 0.75)',
   '--font-family-sans-serif': 'sans-serif',
   '--base-padding': '1rem',
   '--base-margin': '0.5rem',

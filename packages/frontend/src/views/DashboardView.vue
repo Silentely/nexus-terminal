@@ -269,7 +269,7 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         <h3 class="text-3xl font-bold text-foreground">{{ stats?.sessions?.active || 0 }}</h3>
                     </div>
                     <div class="p-3 rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors duration-300">
-                        <i class="fas fa-terminal text-xl"></i>
+                        <i class="fas fa-terminal text-xl !text-current"></i>
                     </div>
                 </div>
             </div>
@@ -282,7 +282,7 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         <h3 class="text-3xl font-bold text-foreground">{{ stats?.sessions?.todayConnections || 0 }}</h3>
                     </div>
                     <div class="p-3 rounded-lg bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
-                        <i class="fas fa-plug text-xl"></i>
+                        <i class="fas fa-plug text-xl !text-current"></i>
                     </div>
                 </div>
             </div>
@@ -295,7 +295,7 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         <h3 class="text-3xl font-bold text-foreground">{{ formatDuration(stats?.sessions?.avgDuration) }}</h3>
                     </div>
                     <div class="p-3 rounded-lg bg-amber-500/10 text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-colors duration-300">
-                        <i class="fas fa-clock text-xl"></i>
+                        <i class="fas fa-clock text-xl !text-current"></i>
                     </div>
                 </div>
             </div>
@@ -309,7 +309,7 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         <p class="text-sm font-medium text-muted">{{ t('dashboard.stats.loginFailures') }}</p>
                         <h3 class="text-2xl font-bold text-foreground mt-1">{{ stats?.security?.loginFailures || 0 }}</h3>
                     </div>
-                    <i class="fas fa-exclamation-circle text-red-500/80 text-2xl group-hover:scale-110 transition-transform"></i>
+                    <i class="fas fa-exclamation-circle text-red-500/80 text-2xl group-hover:scale-110 transition-transform !text-current"></i>
                 </div>
             </div>
              <div class="stat-card group border-l-4 border-l-orange-500/50">
@@ -318,7 +318,7 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         <p class="text-sm font-medium text-muted">{{ t('dashboard.stats.commandBlocks') }}</p>
                         <h3 class="text-2xl font-bold text-foreground mt-1">{{ stats?.security?.commandBlocks || 0 }}</h3>
                     </div>
-                    <i class="fas fa-ban text-orange-500/80 text-2xl group-hover:scale-110 transition-transform"></i>
+                    <i class="fas fa-ban text-orange-500/80 text-2xl group-hover:scale-110 transition-transform !text-current"></i>
                 </div>
             </div>
              <div class="stat-card group border-l-4 border-l-yellow-500/50">
@@ -327,7 +327,7 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         <p class="text-sm font-medium text-muted">{{ t('dashboard.stats.alerts') }}</p>
                         <h3 class="text-2xl font-bold text-foreground mt-1">{{ stats?.security?.alerts || 0 }}</h3>
                     </div>
-                    <i class="fas fa-bell text-yellow-500/80 text-2xl group-hover:scale-110 transition-transform"></i>
+                    <i class="fas fa-bell text-yellow-500/80 text-2xl group-hover:scale-110 transition-transform !text-current"></i>
                 </div>
             </div>
         </div>
@@ -492,48 +492,77 @@ const formatDuration = (seconds: number | null | undefined): string => {
 .bg-background { background-color: var(--app-bg-color); }
 .text-foreground { color: var(--text-color); }
 .text-muted { color: var(--text-color-secondary); }
-.bg-surface { background-color: var(--header-bg-color); } /* Use semi-transparent header bg for surface */
+.bg-surface { background-color: var(--header-bg-color); }
 .border-border { border-color: var(--border-color); }
 
 .stat-card {
-    background: rgba(30, 41, 59, 0.4); /* Glassy card */
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
+    background: var(--card-bg, rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border, var(--border-color));
+    border-radius: 1.25rem;
     padding: 1.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    border-color: var(--link-active-color); /* Highlight border on hover */
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.25);
+    border-color: var(--link-active-color);
+    background: var(--card-hover-bg, rgba(255, 255, 255, 0.05));
+}
+
+.stat-card:hover::before {
+    opacity: 1;
 }
 
 .content-card {
-    background: rgba(30, 41, 59, 0.4);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
+    background: var(--card-bg, rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border, var(--border-color));
+    border-radius: 1.25rem;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     height: 100%;
+    transition: border-color 0.3s ease;
+}
+
+.content-card:hover {
+    border-color: rgba(var(--input-focus-glow-rgb, 14, 165, 233), 0.3);
 }
 
 .card-header {
-    padding: 1rem 1.5rem;
+    padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.01);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -546,9 +575,20 @@ const formatDuration = (seconds: number | null | undefined): string => {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: var(--border-color);
-    border-radius: 3px;
+    border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: var(--text-color-secondary);
+}
+
+/* Dark mode specific adjustments for card backgrounds if variables aren't defined */
+:deep(.dark) .stat-card,
+:deep(.dark) .content-card {
+    --card-bg: rgba(30, 41, 59, 0.5);
+    --card-border: rgba(255, 255, 255, 0.08);
+}
+
+:deep(.dark) .stat-card:hover {
+    --card-hover-bg: rgba(30, 41, 59, 0.7);
 }
 </style>

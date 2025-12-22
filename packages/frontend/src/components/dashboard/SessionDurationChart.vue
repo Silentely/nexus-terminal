@@ -8,6 +8,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Bar } from 'vue-chartjs';
+import { useAppearanceStore } from '../../stores/appearance.store';
 import {
     Chart as ChartJS,
     BarElement,
@@ -26,6 +27,11 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const appearanceStore = useAppearanceStore();
+
+const textColor = computed(() => appearanceStore.currentUiTheme['--text-color'] || '#333333');
+const textColorSecondary = computed(() => appearanceStore.currentUiTheme['--text-color-secondary'] || '#666666');
+const borderColor = computed(() => appearanceStore.currentUiTheme['--border-color'] || '#cccccc');
 
 const values = computed(() => ([
     props.distribution.lt5min ?? 0,
@@ -55,17 +61,37 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-        legend: { display: false },
-        tooltip: { enabled: true },
+        legend: { 
+            display: false 
+        },
+        tooltip: { 
+            enabled: true,
+            backgroundColor: appearanceStore.currentUiTheme['--header-bg-color'] || 'rgba(0,0,0,0.8)',
+            titleColor: textColor.value,
+            bodyColor: textColor.value,
+            borderColor: borderColor.value,
+            borderWidth: 1,
+        },
     },
     scales: {
         x: {
-            ticks: { maxRotation: 0, minRotation: 0 },
+            ticks: { 
+                maxRotation: 0, 
+                minRotation: 0,
+                color: textColorSecondary.value
+            },
             grid: { display: false },
         },
         y: {
             beginAtZero: true,
-            ticks: { precision: 0 },
+            ticks: { 
+                precision: 0,
+                color: textColorSecondary.value
+            },
+            grid: {
+                color: borderColor.value,
+                drawTicks: false
+            }
         },
     },
 }));
