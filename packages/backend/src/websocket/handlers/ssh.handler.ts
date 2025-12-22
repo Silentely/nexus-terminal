@@ -58,6 +58,7 @@ export async function handleSshConnect(
             sshClient: sshClient,
             dbConnectionId: dbConnectionIdAsNumber,
             connectionName: connInfo!.name,
+            connectedAt: Math.floor(Date.now() / 1000),
             ipAddress: clientIp,
             isShellReady: false,
         };

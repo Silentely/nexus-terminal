@@ -1,13 +1,17 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import apiClient from '../utils/apiClient';
-import { useAuthStore } from './auth.store';
+
+export interface DashboardTimeRange {
+    start: number; // unix seconds
+    end: number; // unix seconds
+}
 
 export interface DashboardStats {
     sessions: {
         active: number;
         todayConnections: number;
-        avgDuration: number;
+        avgDuration: number; // seconds
         durationDistribution: Record<string, number>;
     };
     security: {
@@ -15,6 +19,7 @@ export interface DashboardStats {
         commandBlocks: number;
         alerts: number;
     };
+    range?: DashboardTimeRange;
     timestamp: number;
 }
 
@@ -74,12 +79,21 @@ export interface SystemResources {
     };
 }
 
+export interface SystemResourcesHistoryPoint {
+    timestamp: number;
+    cpuPercent: number;
+    memPercent: number;
+    diskPercent: number;
+}
+
 interface DashboardState {
     stats: DashboardStats | null;
     assetHealth: AssetHealth | null;
     timeline: TimelineEvent[];
     storage: StorageStats | null;
     systemResources: SystemResources | null;
+    systemResourcesHistory: SystemResourcesHistoryPoint[];
+    timeRange: DashboardTimeRange | null;
     isLoading: boolean;
     error: string | null;
     lastUpdate: number | null;
@@ -92,17 +106,34 @@ export const useDashboardStore = defineStore('dashboard', () => {
         timeline: [],
         storage: null,
         systemResources: null,
+        systemResourcesHistory: [],
+        timeRange: null,
         isLoading: false,
         error: null,
         lastUpdate: null
     });
 
-    const fetchStats = async () => {
+    const setTimeRange = (range: DashboardTimeRange | null) => {
+        state.value.timeRange = range;
+    };
+
+    const getEffectiveTimeRange = (range?: DashboardTimeRange | null): DashboardTimeRange | null => {
+        return range ?? state.value.timeRange;
+    };
+
+    const fetchStats = async (range?: DashboardTimeRange | null) => {
         state.value.isLoading = true;
         state.value.error = null;
 
         try {
-            const response = await apiClient.get<DashboardStats>('/dashboard/stats');
+            const effectiveRange = getEffectiveTimeRange(range);
+            const params = new URLSearchParams();
+            if (effectiveRange) {
+                params.set('start', String(effectiveRange.start));
+                params.set('end', String(effectiveRange.end));
+            }
+            const suffix = params.toString() ? `?${params.toString()}` : '';
+            const response = await apiClient.get<DashboardStats>(`/dashboard/stats${suffix}`);
             state.value.stats = response.data;
             state.value.lastUpdate = Date.now();
         } catch (err: any) {
@@ -122,10 +153,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
         }
     };
 
-    const fetchTimeline = async (limit: number = 20) => {
+    const fetchTimeline = async (limit: number = 20, range?: DashboardTimeRange | null) => {
         try {
+            const effectiveRange = getEffectiveTimeRange(range);
+            const params = new URLSearchParams();
+            params.set('limit', String(Math.min(limit, 200)));
+            if (effectiveRange) {
+                params.set('start', String(effectiveRange.start));
+                params.set('end', String(effectiveRange.end));
+            }
             const response = await apiClient.get<{ events: TimelineEvent[] }>(
-                `/dashboard/timeline?limit=${Math.min(limit, 200)}`
+                `/dashboard/timeline?${params.toString()}`
             );
             state.value.timeline = response.data.events;
         } catch (err: any) {
@@ -142,21 +180,33 @@ export const useDashboardStore = defineStore('dashboard', () => {
         }
     };
 
+    const pushSystemResourcesHistory = (resources: SystemResources) => {
+        const nextPoint: SystemResourcesHistoryPoint = {
+            timestamp: resources.timestamp,
+            cpuPercent: resources.cpuPercent,
+            memPercent: resources.memPercent,
+            diskPercent: resources.diskPercent,
+        };
+        const next = [...state.value.systemResourcesHistory, nextPoint].slice(-60);
+        state.value.systemResourcesHistory = next;
+    };
+
     const fetchSystemResources = async () => {
         try {
             const response = await apiClient.get<SystemResources>('/dashboard/system');
             state.value.systemResources = response.data;
+            pushSystemResourcesHistory(response.data);
         } catch (err: any) {
             console.error('获取系统资源失败:', err);
         }
     };
 
-    const fetchAllData = async () => {
+    const fetchAllData = async (range?: DashboardTimeRange | null) => {
         state.value.isLoading = true;
         await Promise.all([
-            fetchStats(),
+            fetchStats(range),
             fetchAssetHealth(),
-            fetchTimeline(),
+            fetchTimeline(20, range),
             fetchStorage(),
             fetchSystemResources(),
         ]);
@@ -170,14 +220,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
         return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
     };
 
-    const getActionLabel = (actionType: string): string => {
-        return `dashboard.actions.${actionType}`;
-    };
-
     const getActionIcon = (actionType: string): string => {
         const icons: Record<string, string> = {
             'connection_connected': 'fa-plug',
             'connection_disconnected': 'fa-unlink',
+            'session_suspended': 'fa-pause-circle',
             'auth_login_success': 'fa-check-circle',
             'auth_login_failed': 'fa-exclamation-circle',
             'command_executed': 'fa-terminal',
@@ -197,9 +244,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
         timeline: computed(() => state.value.timeline),
         storage: computed(() => state.value.storage),
         systemResources: computed(() => state.value.systemResources),
+        systemResourcesHistory: computed(() => state.value.systemResourcesHistory),
+        timeRange: computed(() => state.value.timeRange),
         isLoading: computed(() => state.value.isLoading),
         error: computed(() => state.value.error),
         lastUpdate: computed(() => state.value.lastUpdate),
+        setTimeRange,
         fetchStats,
         fetchAssetHealth,
         fetchTimeline,
@@ -207,7 +257,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
         fetchSystemResources,
         fetchAllData,
         formatBytes,
-        getActionLabel,
         getActionIcon
     };
 });

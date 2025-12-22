@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
 import * as Service from './dashboard.service';
 
+const parseTimestampSeconds = (raw: unknown): number | null => {
+    if (raw === undefined || raw === null) return null;
+    const parsed = typeof raw === 'string' ? parseInt(raw, 10) : Number(raw);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    // 兼容毫秒时间戳（>= 10^12 基本可以认为是 ms）
+    if (parsed >= 1_000_000_000_000) return Math.floor(parsed / 1000);
+    return Math.floor(parsed);
+};
+
 /**
  * 获取仪表盘统计数据
  */
@@ -10,10 +19,11 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
 
         let timeRange: { start: number; end: number } | undefined;
         if (start && end) {
-            timeRange = {
-                start: parseInt(start as string, 10),
-                end: parseInt(end as string, 10)
-            };
+            const startSeconds = parseTimestampSeconds(start);
+            const endSeconds = parseTimestampSeconds(end);
+            if (startSeconds && endSeconds) {
+                timeRange = { start: startSeconds, end: endSeconds };
+            }
         }
 
         const stats = await Service.getDashboardStats(timeRange);
@@ -43,7 +53,18 @@ export const getAssetHealth = async (req: Request, res: Response): Promise<void>
 export const getTimeline = async (req: Request, res: Response): Promise<void> => {
     try {
         const limit = parseInt(req.query.limit as string, 10) || 20;
-        const timeline = await Service.getActivityTimeline(limit);
+        const { start, end } = req.query;
+
+        let timeRange: { start: number; end: number } | undefined;
+        if (start && end) {
+            const startSeconds = parseTimestampSeconds(start);
+            const endSeconds = parseTimestampSeconds(end);
+            if (startSeconds && endSeconds) {
+                timeRange = { start: startSeconds, end: endSeconds };
+            }
+        }
+
+        const timeline = await Service.getActivityTimeline(limit, timeRange);
         res.status(200).json({ events: timeline });
     } catch (error: any) {
         console.error('Controller: 获取活动时间线失败:', error);

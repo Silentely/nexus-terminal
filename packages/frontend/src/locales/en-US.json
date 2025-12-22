@@ -669,44 +669,6 @@
         "generic": "Failed to change password. Please try again later."
       }
     },
-    "transferPolicies": {
-      "title": "Transfer Policies",
-      "add": "Add Policy",
-      "edit": "Edit Policy",
-      "name": "Policy Name",
-      "namePlaceholder": "Enter policy name",
-      "direction": "Direction",
-      "maxFileSize": "Max File Size",
-      "maxFileSizePlaceholder": "0 for unlimited",
-      "maxTotalSize": "Max Total Size",
-      "extensions": "Extensions",
-      "allowedExtensions": "Allowed Extensions",
-      "allowedExtensionsPlaceholder": "e.g., txt, jpg, png (comma separated)",
-      "blockedExtensions": "Blocked Extensions",
-      "blockedExtensionsPlaceholder": "e.g., exe, sh, bat (comma separated)",
-      "extensionsTip": "Leave empty for no limit. Allowed list is checked first; if empty, blocked list is checked.",
-      "priority": "Priority",
-      "status": "Status",
-      "createdAt": "Created At",
-      "saved": "Policy saved",
-      "saveFailed": "Failed to save policy",
-      "deleted": "Policy deleted",
-      "deleteFailed": "Failed to delete policy",
-      "deleteConfirm": "Are you sure you want to delete policy \"{name}\"?",
-      "scope": {
-        "global": "Global",
-        "user_group": "User Group",
-        "user": "User",
-        "connection": "Connection",
-        "group": "Group"
-      },
-      "direction": {
-        "upload": "Upload Only",
-        "download": "Download Only",
-        "both": "Bidirectional",
-        "none": "Disabled"
-      }
-    },
     "twoFactor": {
       "title": "Two-Factor Authentication (TOTP)",
       "status": {
@@ -1507,6 +1469,7 @@
     "actions": {
       "connection_connected": "Connection Established",
       "connection_disconnected": "Connection Disconnected",
+      "session_suspended": "Session Suspended",
       "auth_login_success": "Login Successful",
       "auth_login_failed": "Login Failed",
       "command_executed": "Command Executed",
@@ -1519,6 +1482,18 @@
     "title": "Dashboard",
     "refresh": "Refresh",
     "autoRefresh": "Auto Refresh",
+    "timeRange": {
+      "label": "Time Range",
+      "start": "Start",
+      "end": "End",
+      "to": "to",
+      "shortcuts": {
+        "last1h": "Last 1 hour",
+        "last24h": "Last 24 hours",
+        "today": "Today",
+        "last7d": "Last 7 days"
+      }
+    },
     "intervals": {
       "15s": "15s",
       "30s": "30s",
@@ -1528,10 +1503,19 @@
     "stats": {
       "activeSessions": "Active Sessions",
       "todayConnections": "Today's Connections",
+      "connections": "Connections",
+      "avgDuration": "Average Duration",
       "loginFailures": "Login Failures",
+      "commandBlocks": "Command Blocks",
       "alerts": "Alerts",
       "sessionDuration": "Session Duration",
       "systemResources": "System Resources"
+    },
+    "durationBuckets": {
+      "lt5min": "< 5 min",
+      "5minTo30min": "5-30 min",
+      "30minTo1hr": "30-60 min",
+      "gt1hr": "> 1 hr"
     },
     "assetHealth": "Asset Health",
     "healthy": "Online",

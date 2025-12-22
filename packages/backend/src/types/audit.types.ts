@@ -50,6 +50,20 @@ export type AuditLogActionType =
   | 'SSH_CONNECT_FAILURE'
   //   - SSH_SHELL_FAILURE:   { userId?: number, username?: string, connectionId: number, connectionName?: string, sessionId: string, ip?: string, reason: string }
   | 'SSH_SHELL_FAILURE'
+  //   - SSH_DISCONNECT:      { userId?: number, username?: string, connectionId: number, connectionName?: string, sessionId: string, ip?: string, durationSeconds?: number }
+  | 'SSH_DISCONNECT'
+  //   - SSH_SESSION_SUSPENDED: { userId?: number, username?: string, connectionId: number, connectionName?: string, sessionId: string, ip?: string }
+  | 'SSH_SESSION_SUSPENDED'
+
+  // File Transfer (SFTP / transfers)
+  //   - FILE_UPLOAD:   { userId?: number, username?: string, connectionId?: number, sessionId?: string, path?: string, size?: number }
+  | 'FILE_UPLOAD'
+  //   - FILE_DOWNLOAD: { userId?: number, username?: string, connectionId?: number, sessionId?: string, path?: string, size?: number }
+  | 'FILE_DOWNLOAD'
+
+  // Command security
+  //   - COMMAND_BLOCKED: { userId?: number, username?: string, connectionId?: number, sessionId?: string, ip?: string, reason?: string, command?: string }
+  | 'COMMAND_BLOCKED'
 
   // System/Error
   | 'DATABASE_MIGRATION'

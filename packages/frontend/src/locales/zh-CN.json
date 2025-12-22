@@ -663,44 +663,6 @@
         "generic": "修改密码失败，请稍后重试。"
       }
     },
-    "transferPolicies": {
-      "title": "传输策略管理",
-      "add": "添加策略",
-      "edit": "编辑策略",
-      "name": "策略名称",
-      "namePlaceholder": "输入策略名称",
-      "direction": "传输方向",
-      "maxFileSize": "单文件限制",
-      "maxFileSizePlaceholder": "0 表示不限制",
-      "maxTotalSize": "总大小限制",
-      "extensions": "扩展名限制",
-      "allowedExtensions": "允许的扩展名",
-      "allowedExtensionsPlaceholder": "例如: txt, jpg, png (用逗号分隔)",
-      "blockedExtensions": "禁止的扩展名",
-      "blockedExtensionsPlaceholder": "例如: exe, sh, bat (用逗号分隔)",
-      "extensionsTip": "留空则不限制。优先匹配允许列表，如果允许列表为空，则检查禁止列表。",
-      "priority": "优先级",
-      "status": "状态",
-      "createdAt": "创建时间",
-      "saved": "策略已保存",
-      "saveFailed": "保存策略失败",
-      "deleted": "策略已删除",
-      "deleteFailed": "删除策略失败",
-      "deleteConfirm": "确定要删除策略 \"{name}\" 吗？",
-      "scope": {
-        "global": "全局",
-        "user_group": "用户组",
-        "user": "用户",
-        "connection": "连接",
-        "group": "分组"
-      },
-      "direction": {
-        "upload": "仅上传",
-        "download": "仅下载",
-        "both": "双向",
-        "none": "禁止"
-      }
-    },
     "twoFactor": {
       "title": "两步验证 (TOTP)",
       "status": {
@@ -1513,6 +1475,7 @@
     "actions": {
       "connection_connected": "连接已建立",
       "connection_disconnected": "连接已断开",
+      "session_suspended": "会话已挂起",
       "auth_login_success": "登录成功",
       "auth_login_failed": "登录失败",
       "command_executed": "命令执行",
@@ -1525,6 +1488,18 @@
     "title": "仪表盘",
     "refresh": "刷新",
     "autoRefresh": "自动刷新",
+    "timeRange": {
+      "label": "时间范围",
+      "start": "开始时间",
+      "end": "结束时间",
+      "to": "至",
+      "shortcuts": {
+        "last1h": "最近1小时",
+        "last24h": "最近24小时",
+        "today": "今天",
+        "last7d": "最近7天"
+      }
+    },
     "intervals": {
       "15s": "15秒",
       "30s": "30秒",
@@ -1534,10 +1509,19 @@
     "stats": {
       "activeSessions": "活跃会话",
       "todayConnections": "今日连接",
+      "connections": "连接数",
+      "avgDuration": "平均时长",
       "loginFailures": "登录失败",
+      "commandBlocks": "命令拦截",
       "alerts": "告警数",
       "sessionDuration": "会话时长分布",
       "systemResources": "系统资源"
+    },
+    "durationBuckets": {
+      "lt5min": "< 5分钟",
+      "5minTo30min": "5-30分钟",
+      "30minTo1hr": "30-60分钟",
+      "gt1hr": "> 1小时"
     },
     "assetHealth": "资产健康",
     "healthy": "在线",

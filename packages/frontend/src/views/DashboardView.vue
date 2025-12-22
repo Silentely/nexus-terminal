@@ -6,6 +6,8 @@ import type { Locale } from 'date-fns';
 import { useDashboardStore } from '../stores/dashboard.store';
 import { useConnectionsStore, type ConnectionInfo } from '../stores/connections.store';
 import { useAuditLogStore } from '../stores/audit.store';
+import SessionDurationChart from '../components/dashboard/SessionDurationChart.vue';
+import SystemResourcesHistoryChart from '../components/dashboard/SystemResourcesHistoryChart.vue';
 
 defineOptions({
     name: 'EnhancedDashboard'
@@ -16,7 +18,7 @@ const dashboardStore = useDashboardStore();
 const connectionsStore = useConnectionsStore();
 const auditLogStore = useAuditLogStore();
 
-const { stats, assetHealth, timeline, storage, systemResources, isLoading } = storeToRefs(dashboardStore);
+const { stats, assetHealth, timeline, storage, systemResources, systemResourcesHistory, timeRange, isLoading } = storeToRefs(dashboardStore);
 const { connections } = storeToRefs(connectionsStore);
 
 // State
@@ -25,6 +27,38 @@ const connectionToEdit = ref<ConnectionInfo | null>(null);
 const autoRefresh = ref(true);
 const refreshInterval = ref(30000);
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
+
+const startOfToday = () => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+};
+
+const dateTimeRange = ref<[Date, Date]>([startOfToday(), new Date()]);
+
+const toSecondsRange = (range: [Date, Date]) => ({
+    start: Math.floor(range[0].getTime() / 1000),
+    end: Math.floor(range[1].getTime() / 1000),
+});
+
+const rangeShortcuts = computed(() => [
+    {
+        text: t('dashboard.timeRange.shortcuts.last1h'),
+        value: () => [new Date(Date.now() - 60 * 60 * 1000), new Date()],
+    },
+    {
+        text: t('dashboard.timeRange.shortcuts.last24h'),
+        value: () => [new Date(Date.now() - 24 * 60 * 60 * 1000), new Date()],
+    },
+    {
+        text: t('dashboard.timeRange.shortcuts.today'),
+        value: () => [startOfToday(), new Date()],
+    },
+    {
+        text: t('dashboard.timeRange.shortcuts.last7d'),
+        value: () => [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), new Date()],
+    },
+]);
 
 const dateFnsLocales: Record<string, Locale> = {
     'en-US': enUS,
@@ -60,14 +94,20 @@ const getAssetStatusType = (status: string): 'success' | 'danger' | 'info' => {
 const getActionIcon = (actionType: string): string => dashboardStore.getActionIcon(actionType);
 
 const handleRefresh = () => {
-    dashboardStore.fetchAllData();
+    dashboardStore.fetchAllData(timeRange.value);
+};
+
+const handleTimeRangeChange = () => {
+    const range = toSecondsRange(dateTimeRange.value);
+    dashboardStore.setTimeRange(range);
+    dashboardStore.fetchAllData(range);
 };
 
 const startAutoRefresh = () => {
     if (refreshTimer) clearInterval(refreshTimer);
     if (autoRefresh.value) {
         refreshTimer = setInterval(() => {
-            dashboardStore.fetchAllData();
+            dashboardStore.fetchAllData(timeRange.value);
         }, refreshInterval.value);
     }
 };
@@ -88,8 +128,11 @@ watch(refreshInterval, () => {
 });
 
 onMounted(async () => {
+    // 初始化 timeRange（默认为“今天到现在”）
+    const initialRange = toSecondsRange(dateTimeRange.value);
+    dashboardStore.setTimeRange(initialRange);
     await Promise.all([
-        dashboardStore.fetchAllData(),
+        dashboardStore.fetchAllData(initialRange),
         connectionsStore.fetchConnections(),
         auditLogStore.fetchLogs({ page: 1, limit: 10, sortOrder: 'desc', isDashboardRequest: true })
     ]);
@@ -127,6 +170,16 @@ const getProgressColor = (percent: number): string => {
     if (percent < 80) return '#e6a23c';
     return '#f56c6c';
 };
+
+const formatDuration = (seconds: number | null | undefined): string => {
+    if (!seconds || seconds <= 0) return '-';
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    const restMins = mins % 60;
+    return `${hrs}h ${restMins}m`;
+};
 </script>
 
 <template>
@@ -135,6 +188,21 @@ const getProgressColor = (percent: number): string => {
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">{{ t('dashboard.title') }}</h1>
             <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-muted">{{ t('dashboard.timeRange.label') }}</span>
+                    <el-date-picker
+                        v-model="dateTimeRange"
+                        type="datetimerange"
+                        :shortcuts="rangeShortcuts"
+                        :range-separator="t('dashboard.timeRange.to')"
+                        :start-placeholder="t('dashboard.timeRange.start')"
+                        :end-placeholder="t('dashboard.timeRange.end')"
+                        format="YYYY-MM-DD HH:mm"
+                        :clearable="false"
+                        @change="handleTimeRangeChange"
+                        style="width: 360px"
+                    />
+                </div>
                 <el-select v-model="refreshInterval" style="width: 120px">
                     <el-option :value="15000" :label="t('dashboard.intervals.15s')" />
                     <el-option :value="30000" :label="t('dashboard.intervals.30s')" />
@@ -149,9 +217,9 @@ const getProgressColor = (percent: number): string => {
             </div>
         </div>
 
-        <!-- Session & Security Stats -->
+        <!-- Session Stats -->
         <el-row :gutter="20" class="mb-6">
-            <el-col :span="6">
+            <el-col :span="8">
                 <el-card shadow="hover" class="stat-card">
                     <el-statistic
                         :title="t('dashboard.stats.activeSessions')"
@@ -163,10 +231,10 @@ const getProgressColor = (percent: number): string => {
                     </el-statistic>
                 </el-card>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="8">
                 <el-card shadow="hover" class="stat-card">
                     <el-statistic
-                        :title="t('dashboard.stats.todayConnections')"
+                        :title="t('dashboard.stats.connections')"
                         :value="stats?.sessions?.todayConnections || 0"
                     >
                         <template #prefix>
@@ -175,7 +243,24 @@ const getProgressColor = (percent: number): string => {
                     </el-statistic>
                 </el-card>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="8">
+                <el-card shadow="hover" class="stat-card">
+                    <el-statistic
+                        :title="t('dashboard.stats.avgDuration')"
+                        :value="stats?.sessions?.avgDuration || 0"
+                        :formatter="(v: number) => formatDuration(v)"
+                    >
+                        <template #prefix>
+                            <i class="fas fa-clock text-warning"></i>
+                        </template>
+                    </el-statistic>
+                </el-card>
+            </el-col>
+        </el-row>
+
+        <!-- Security Stats -->
+        <el-row :gutter="20" class="mb-6">
+            <el-col :span="8">
                 <el-card shadow="hover" class="stat-card">
                     <el-statistic
                         :title="t('dashboard.stats.loginFailures')"
@@ -187,7 +272,19 @@ const getProgressColor = (percent: number): string => {
                     </el-statistic>
                 </el-card>
             </el-col>
-            <el-col :span="6">
+            <el-col :span="8">
+                <el-card shadow="hover" class="stat-card">
+                    <el-statistic
+                        :title="t('dashboard.stats.commandBlocks')"
+                        :value="stats?.security?.commandBlocks || 0"
+                    >
+                        <template #prefix>
+                            <i class="fas fa-ban text-danger"></i>
+                        </template>
+                    </el-statistic>
+                </el-card>
+            </el-col>
+            <el-col :span="8">
                 <el-card shadow="hover" class="stat-card">
                     <el-statistic
                         :title="t('dashboard.stats.alerts')"
@@ -208,39 +305,11 @@ const getProgressColor = (percent: number): string => {
                     <template #header>
                         <span>{{ t('dashboard.stats.sessionDuration') }}</span>
                     </template>
-                    <div v-if="stats?.sessions?.durationDistribution" class="duration-distribution">
-                        <div class="distribution-item">
-                            <span class="label">&lt; 5min</span>
-                            <el-progress
-                                :percentage="getPercentage(stats.sessions.durationDistribution.lt5min, stats.sessions.todayConnections)"
-                                :stroke-width="8"
-                            />
-                            <span class="value">{{ stats.sessions.durationDistribution.lt5min }}</span>
+                    <div v-if="stats?.sessions?.durationDistribution">
+                        <div class="text-sm text-muted mb-2">
+                            {{ t('dashboard.stats.avgDuration') }}：{{ formatDuration(stats.sessions.avgDuration) }}
                         </div>
-                        <div class="distribution-item">
-                            <span class="label">5-30min</span>
-                            <el-progress
-                                :percentage="getPercentage(stats.sessions.durationDistribution['5min-30min'], stats.sessions.todayConnections)"
-                                :stroke-width="8"
-                            />
-                            <span class="value">{{ stats.sessions.durationDistribution['5min-30min'] || 0 }}</span>
-                        </div>
-                        <div class="distribution-item">
-                            <span class="label">30min-1hr</span>
-                            <el-progress
-                                :percentage="getPercentage(stats.sessions.durationDistribution['30min-1hr'], stats.sessions.todayConnections)"
-                                :stroke-width="8"
-                            />
-                            <span class="value">{{ stats.sessions.durationDistribution['30min-1hr'] || 0 }}</span>
-                        </div>
-                        <div class="distribution-item">
-                            <span class="label">&gt; 1hr</span>
-                            <el-progress
-                                :percentage="getPercentage(stats.sessions.durationDistribution.gt1hr, stats.sessions.todayConnections)"
-                                :stroke-width="8"
-                            />
-                            <span class="value">{{ stats.sessions.durationDistribution.gt1hr }}</span>
-                        </div>
+                        <SessionDurationChart :distribution="stats.sessions.durationDistribution" />
                     </div>
                     <el-skeleton v-else :rows="3" />
                 </el-card>
@@ -277,6 +346,9 @@ const getProgressColor = (percent: number): string => {
                                 :color="getProgressColor(systemResources.diskPercent)"
                             />
                             <span class="value">{{ formatBytes(systemResources.diskUsed) }}</span>
+                        </div>
+                        <div v-if="systemResourcesHistory.length > 1" class="mt-4">
+                            <SystemResourcesHistoryChart :history="systemResourcesHistory" />
                         </div>
                     </div>
                     <el-skeleton v-else :rows="3" />
@@ -365,7 +437,7 @@ const getProgressColor = (percent: number): string => {
                         >
                             <div class="timeline-content">
                                 <i :class="['fas', getActionIcon(event.actionType), 'mr-2']"></i>
-                                <span>{{ event.actionLabel }}</span>
+                                <span>{{ t(event.actionLabel) }}</span>
                                 <p v-if="event.details" class="text-muted text-sm mt-1">
                                     {{ event.details }}
                                 </p>
