@@ -55,6 +55,9 @@ export class OutputProcessor {
   private enableHighlight = true;
   private enableTableFormat = true;
   private enableLinkDetection = true;
+  private lastLargeFileWarning = 0;  // 跟踪大文件警告时间
+  private lastSlowProcessWarning = 0;  // 跟踪慢处理警告时间
+  private readonly warningThrottleMs = 5000;  // 警告节流：5秒
 
   constructor(options?: {
     foldThreshold?: number;
@@ -69,7 +72,7 @@ export class OutputProcessor {
   }
 
   process(output: string): ProcessedOutput {
-    const startTime = performance.now();
+    const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
 
     const normalized = this.normalizeNewlines(output);
     const sanitized = this.stripAnsiCodes(normalized);
@@ -77,7 +80,11 @@ export class OutputProcessor {
 
     // 大文件保护：超过 5000 行跳过高亮处理，避免性能问题
     if (lineCount > 5000) {
-      console.warn(`[OutputProcessor] 跳过高亮处理：输出行数 ${lineCount} 超过阈值 5000`);
+      const now = Date.now();
+      if (now - this.lastLargeFileWarning > this.warningThrottleMs) {
+        console.warn(`[OutputProcessor] 跳过高亮处理：输出行数 ${lineCount} 超过阈值 5000`);
+        this.lastLargeFileWarning = now;
+      }
       return {
         type: OutputType.TEXT,
         content: sanitized,
@@ -116,9 +123,13 @@ export class OutputProcessor {
     }
 
     // 性能监控：处理时间超过 100ms 时发出警告
-    const duration = performance.now() - startTime;
+    const duration = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - startTime;
     if (duration > 100) {
-      console.warn(`[OutputProcessor] 处理耗时过长：${duration.toFixed(2)}ms（${lineCount} 行，类型：${detectedType}）`);
+      const now = Date.now();
+      if (now - this.lastSlowProcessWarning > this.warningThrottleMs) {
+        console.warn(`[OutputProcessor] 处理耗时过长：${duration.toFixed(2)}ms（${lineCount} 行，类型：${detectedType}）`);
+        this.lastSlowProcessWarning = now;
+      }
     }
 
     return {

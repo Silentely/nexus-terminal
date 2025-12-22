@@ -74,7 +74,7 @@ export class OutputEnhancerAddon implements ITerminalAddon {
       }
 
       // 节流机制：高频输出时跳过处理，避免 CPU 飙升
-      const now = performance.now();
+      const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
       if (now - this.lastProcessTime < this.throttleMs) {
         this.originalWrite(data, callback);
         return;
@@ -170,11 +170,21 @@ export class OutputEnhancerAddon implements ITerminalAddon {
     }
 
     // 内存保护：限制单个折叠块最大 1MB，避免内存耗尽
-    if (remaining.length > this.maxFoldBlockSize) {
-      const truncated = remaining.slice(0, this.maxFoldBlockSize);
+    const remainingBytes = new TextEncoder().encode(remaining).length;
+    if (remainingBytes > this.maxFoldBlockSize) {
+      // 按字节安全截断：逐步减少字符数直到字节大小符合要求
+      let truncated = remaining;
+      let targetLength = Math.floor(remaining.length * this.maxFoldBlockSize / remainingBytes);
+
+      while (new TextEncoder().encode(truncated).length > this.maxFoldBlockSize && targetLength > 0) {
+        truncated = remaining.slice(0, targetLength);
+        targetLength = Math.floor(targetLength * 0.9); // 每次减少10%
+      }
+
       const truncatedLines = truncated.split('\n').length;
+      const actualBytes = new TextEncoder().encode(truncated).length;
       remaining = truncated + `\n${ANSI_DIM}[... 内容过长已截断，已隐藏 ${hiddenLines - truncatedLines} 行]${ANSI_RESET}`;
-      console.warn(`[OutputEnhancerAddon] 折叠块内容过大（${(remaining.length / 1024 / 1024).toFixed(2)}MB），已截断到 1MB`);
+      console.warn(`[OutputEnhancerAddon] 折叠块内容过大（${(remainingBytes / 1024 / 1024).toFixed(2)}MB），已截断到 ${(actualBytes / 1024 / 1024).toFixed(2)}MB`);
     }
 
     const foldId = this.generateFoldId();
