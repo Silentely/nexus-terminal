@@ -39,7 +39,6 @@ COPY --from=builder /app/packages/frontend/dist /usr/share/nginx/html
 
 
 COPY packages/frontend/nginx.conf /etc/nginx/conf.d/default.conf
-COPY packages/frontend/nginx-maps.conf /etc/nginx/conf.d/00-maps.conf
 
 
 EXPOSE 80
