@@ -90,7 +90,6 @@ const getAssetStatusType = (status: string): 'success' | 'danger' | 'info' => {
     }
 };
 
-// 直接使用后端返回的 actionLabel，不再通过 i18n 拼装
 const getActionIcon = (actionType: string): string => dashboardStore.getActionIcon(actionType);
 
 const handleRefresh = () => {
@@ -128,7 +127,6 @@ watch(refreshInterval, () => {
 });
 
 onMounted(async () => {
-    // 初始化 timeRange（默认为“今天到现在”）
     const initialRange = toSecondsRange(dateTimeRange.value);
     dashboardStore.setTimeRange(initialRange);
     await Promise.all([
@@ -159,12 +157,6 @@ const handleConnectionModified = async () => {
     await connectionsStore.fetchConnections();
 };
 
-// Helper functions
-const getPercentage = (value: number, total: number): number => {
-    if (!total || total === 0) return 0;
-    return Math.round((value / total) * 100);
-};
-
 const getProgressColor = (percent: number): string => {
     if (percent < 50) return '#67c23a';
     if (percent < 80) return '#e6a23c';
@@ -183,13 +175,16 @@ const formatDuration = (seconds: number | null | undefined): string => {
 </script>
 
 <template>
-    <div class="dashboard p-6">
+    <div class="dashboard p-4 md:p-6 min-h-full bg-[var(--el-bg-color-page)]">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">{{ t('dashboard.title') }}</h1>
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm text-muted">{{ t('dashboard.timeRange.label') }}</span>
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+            <h1 class="text-2xl font-bold text-[var(--el-text-color-primary)]">{{ t('dashboard.title') }}</h1>
+            
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full lg:w-auto">
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <span class="text-sm text-[var(--el-text-color-secondary)] whitespace-nowrap hidden md:inline">
+                        {{ t('dashboard.timeRange.label') }}
+                    </span>
                     <el-date-picker
                         v-model="dateTimeRange"
                         type="datetimerange"
@@ -200,58 +195,72 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         format="YYYY-MM-DD HH:mm"
                         :clearable="false"
                         @change="handleTimeRangeChange"
-                        style="width: 360px"
+                        class="w-full md:!w-[320px]"
                     />
                 </div>
-                <el-select v-model="refreshInterval" style="width: 120px">
-                    <el-option :value="15000" :label="t('dashboard.intervals.15s')" />
-                    <el-option :value="30000" :label="t('dashboard.intervals.30s')" />
-                    <el-option :value="60000" :label="t('dashboard.intervals.1m')" />
-                    <el-option :value="300000" :label="t('dashboard.intervals.5m')" />
-                </el-select>
-                <el-switch v-model="autoRefresh" :active-text="t('dashboard.autoRefresh')" />
-                <el-button @click="handleRefresh" :loading="isLoading">
-                    <i class="fas fa-sync-alt mr-1"></i>
-                    {{ t('dashboard.refresh') }}
-                </el-button>
+                
+                <div class="flex items-center gap-4 justify-between md:justify-start">
+                    <el-select v-model="refreshInterval" class="!w-32">
+                        <el-option :value="15000" :label="t('dashboard.intervals.15s')" />
+                        <el-option :value="30000" :label="t('dashboard.intervals.30s')" />
+                        <el-option :value="60000" :label="t('dashboard.intervals.1m')" />
+                        <el-option :value="300000" :label="t('dashboard.intervals.5m')" />
+                    </el-select>
+                    
+                    <el-switch v-model="autoRefresh" :active-text="t('dashboard.autoRefresh')" />
+                    
+                    <el-button @click="handleRefresh" :loading="isLoading" circle class="md:hidden">
+                        <i class="fas fa-sync-alt"></i>
+                    </el-button>
+                    <el-button @click="handleRefresh" :loading="isLoading" class="hidden md:flex">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        {{ t('dashboard.refresh') }}
+                    </el-button>
+                </div>
             </div>
         </div>
 
         <!-- Session Stats -->
         <el-row :gutter="20" class="mb-6">
-            <el-col :span="8">
-                <el-card shadow="hover" class="stat-card">
+            <el-col :xs="24" :sm="8" :lg="8" class="mb-4 sm:mb-0">
+                <el-card shadow="hover" class="h-full">
                     <el-statistic
                         :title="t('dashboard.stats.activeSessions')"
                         :value="stats?.sessions?.active || 0"
                     >
                         <template #prefix>
-                            <i class="fas fa-terminal text-primary"></i>
+                            <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900 mr-2">
+                                <i class="fas fa-terminal text-blue-500 dark:text-blue-300"></i>
+                            </div>
                         </template>
                     </el-statistic>
                 </el-card>
             </el-col>
-            <el-col :span="8">
-                <el-card shadow="hover" class="stat-card">
+            <el-col :xs="24" :sm="8" :lg="8" class="mb-4 sm:mb-0">
+                <el-card shadow="hover" class="h-full">
                     <el-statistic
                         :title="t('dashboard.stats.connections')"
                         :value="stats?.sessions?.todayConnections || 0"
                     >
                         <template #prefix>
-                            <i class="fas fa-plug text-success"></i>
+                            <div class="p-2 rounded-lg bg-green-100 dark:bg-green-900 mr-2">
+                                <i class="fas fa-plug text-green-500 dark:text-green-300"></i>
+                            </div>
                         </template>
                     </el-statistic>
                 </el-card>
             </el-col>
-            <el-col :span="8">
-                <el-card shadow="hover" class="stat-card">
+            <el-col :xs="24" :sm="8" :lg="8">
+                <el-card shadow="hover" class="h-full">
                     <el-statistic
                         :title="t('dashboard.stats.avgDuration')"
                         :value="stats?.sessions?.avgDuration || 0"
                         :formatter="(v: number) => formatDuration(v)"
                     >
                         <template #prefix>
-                            <i class="fas fa-clock text-warning"></i>
+                            <div class="p-2 rounded-lg bg-yellow-100 dark:bg-yellow-900 mr-2">
+                                <i class="fas fa-clock text-yellow-500 dark:text-yellow-300"></i>
+                            </div>
                         </template>
                     </el-statistic>
                 </el-card>
@@ -260,38 +269,44 @@ const formatDuration = (seconds: number | null | undefined): string => {
 
         <!-- Security Stats -->
         <el-row :gutter="20" class="mb-6">
-            <el-col :span="8">
-                <el-card shadow="hover" class="stat-card">
+            <el-col :xs="24" :sm="8" :lg="8" class="mb-4 sm:mb-0">
+                <el-card shadow="hover" class="h-full">
                     <el-statistic
                         :title="t('dashboard.stats.loginFailures')"
                         :value="stats?.security?.loginFailures || 0"
                     >
                         <template #prefix>
-                            <i class="fas fa-exclamation-circle text-danger"></i>
+                            <div class="p-2 rounded-lg bg-red-100 dark:bg-red-900 mr-2">
+                                <i class="fas fa-exclamation-circle text-red-500 dark:text-red-300"></i>
+                            </div>
                         </template>
                     </el-statistic>
                 </el-card>
             </el-col>
-            <el-col :span="8">
-                <el-card shadow="hover" class="stat-card">
+            <el-col :xs="24" :sm="8" :lg="8" class="mb-4 sm:mb-0">
+                <el-card shadow="hover" class="h-full">
                     <el-statistic
                         :title="t('dashboard.stats.commandBlocks')"
                         :value="stats?.security?.commandBlocks || 0"
                     >
                         <template #prefix>
-                            <i class="fas fa-ban text-danger"></i>
+                            <div class="p-2 rounded-lg bg-red-100 dark:bg-red-900 mr-2">
+                                <i class="fas fa-ban text-red-500 dark:text-red-300"></i>
+                            </div>
                         </template>
                     </el-statistic>
                 </el-card>
             </el-col>
-            <el-col :span="8">
-                <el-card shadow="hover" class="stat-card">
+            <el-col :xs="24" :sm="8" :lg="8">
+                <el-card shadow="hover" class="h-full">
                     <el-statistic
                         :title="t('dashboard.stats.alerts')"
                         :value="stats?.security?.alerts || 0"
                     >
                         <template #prefix>
-                            <i class="fas fa-bell text-warning"></i>
+                            <div class="p-2 rounded-lg bg-orange-100 dark:bg-orange-900 mr-2">
+                                <i class="fas fa-bell text-orange-500 dark:text-orange-300"></i>
+                            </div>
                         </template>
                     </el-statistic>
                 </el-card>
@@ -300,185 +315,239 @@ const formatDuration = (seconds: number | null | undefined): string => {
 
         <!-- Session Duration & System Resources -->
         <el-row :gutter="20" class="mb-6">
-            <el-col :span="12">
-                <el-card shadow="hover">
+            <el-col :xs="24" :lg="12" class="mb-6 lg:mb-0">
+                <el-card shadow="hover" class="h-full">
                     <template #header>
-                        <span>{{ t('dashboard.stats.sessionDuration') }}</span>
+                        <div class="flex items-center gap-2 font-medium">
+                            <i class="fas fa-chart-bar text-[var(--el-color-primary)]"></i>
+                            <span>{{ t('dashboard.stats.sessionDuration') }}</span>
+                        </div>
                     </template>
-                    <div v-if="stats?.sessions?.durationDistribution">
-                        <div class="text-sm text-muted mb-2">
+                    <div v-if="stats?.sessions?.durationDistribution" class="h-full">
+                        <div class="text-sm text-[var(--el-text-color-secondary)] mb-4 flex items-center gap-2">
+                            <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
                             {{ t('dashboard.stats.avgDuration') }}：{{ formatDuration(stats.sessions.avgDuration) }}
                         </div>
-                        <SessionDurationChart :distribution="stats.sessions.durationDistribution" />
+                        <div class="h-[250px]">
+                            <SessionDurationChart :distribution="stats.sessions.durationDistribution" />
+                        </div>
                     </div>
-                    <el-skeleton v-else :rows="3" />
+                    <el-skeleton v-else :rows="3" animated />
                 </el-card>
             </el-col>
-            <el-col :span="12">
-                <el-card shadow="hover">
+            <el-col :xs="24" :lg="12">
+                <el-card shadow="hover" class="h-full">
                     <template #header>
-                        <span>{{ t('dashboard.stats.systemResources') }}</span>
+                        <div class="flex items-center gap-2 font-medium">
+                            <i class="fas fa-server text-[var(--el-color-primary)]"></i>
+                            <span>{{ t('dashboard.stats.systemResources') }}</span>
+                        </div>
                     </template>
-                    <div v-if="systemResources" class="system-resources">
-                        <div class="resource-item">
-                            <span class="label">CPU</span>
-                            <el-progress
-                                :percentage="systemResources.cpuPercent"
-                                :stroke-width="10"
-                                :color="getProgressColor(systemResources.cpuPercent)"
-                            />
-                            <span class="value">{{ systemResources.cpuPercent }}%</span>
+                    <div v-if="systemResources" class="space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <span class="w-16 text-sm text-[var(--el-text-color-regular)]">CPU</span>
+                                <el-progress
+                                    :percentage="systemResources.cpuPercent"
+                                    :stroke-width="12"
+                                    :color="getProgressColor(systemResources.cpuPercent)"
+                                    class="flex-1"
+                                >
+                                    <template #default="{ percentage }">
+                                        <span class="text-xs font-medium">{{ percentage }}%</span>
+                                    </template>
+                                </el-progress>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="w-16 text-sm text-[var(--el-text-color-regular)]">{{ t('dashboard.memory') }}</span>
+                                <el-progress
+                                    :percentage="systemResources.memPercent"
+                                    :stroke-width="12"
+                                    :color="getProgressColor(systemResources.memPercent)"
+                                    class="flex-1"
+                                >
+                                    <template #default="{ percentage }">
+                                        <span class="text-xs font-medium">{{ formatBytes(systemResources.memUsed) }} ({{ percentage }}%)</span>
+                                    </template>
+                                </el-progress>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="w-16 text-sm text-[var(--el-text-color-regular)]">{{ t('dashboard.disk') }}</span>
+                                <el-progress
+                                    :percentage="systemResources.diskPercent"
+                                    :stroke-width="12"
+                                    :color="getProgressColor(systemResources.diskPercent)"
+                                    class="flex-1"
+                                >
+                                    <template #default="{ percentage }">
+                                        <span class="text-xs font-medium">{{ formatBytes(systemResources.diskUsed) }} ({{ percentage }}%)</span>
+                                    </template>
+                                </el-progress>
+                            </div>
                         </div>
-                        <div class="resource-item">
-                            <span class="label">{{ t('dashboard.memory') }}</span>
-                            <el-progress
-                                :percentage="systemResources.memPercent"
-                                :stroke-width="10"
-                                :color="getProgressColor(systemResources.memPercent)"
-                            />
-                            <span class="value">{{ formatBytes(systemResources.memUsed) }}</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="label">{{ t('dashboard.disk') }}</span>
-                            <el-progress
-                                :percentage="systemResources.diskPercent"
-                                :stroke-width="10"
-                                :color="getProgressColor(systemResources.diskPercent)"
-                            />
-                            <span class="value">{{ formatBytes(systemResources.diskUsed) }}</span>
-                        </div>
-                        <div v-if="systemResourcesHistory.length > 1" class="mt-4">
+                        <div v-if="systemResourcesHistory.length > 1" class="h-[180px] mt-6 pt-4 border-t border-[var(--el-border-color-lighter)]">
                             <SystemResourcesHistoryChart :history="systemResourcesHistory" />
                         </div>
                     </div>
-                    <el-skeleton v-else :rows="3" />
+                    <el-skeleton v-else :rows="3" animated />
                 </el-card>
             </el-col>
         </el-row>
 
         <!-- Asset Health & Storage -->
         <el-row :gutter="20" class="mb-6">
-            <el-col :span="12">
-                <el-card shadow="hover">
+            <el-col :xs="24" :lg="12" class="mb-6 lg:mb-0">
+                <el-card shadow="hover" class="h-full">
                     <template #header>
-                        <span>{{ t('dashboard.assetHealth') }}</span>
+                        <div class="flex items-center gap-2 font-medium">
+                            <i class="fas fa-heartbeat text-[var(--el-color-danger)]"></i>
+                            <span>{{ t('dashboard.assetHealth') }}</span>
+                        </div>
                     </template>
-                    <div v-if="assetHealth" class="asset-health">
-                        <div class="health-summary mb-4">
-                            <el-tag type="success" size="large">
+                    <div v-if="assetHealth">
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <el-tag type="success" effect="light" class="!text-sm">
+                                <i class="fas fa-check-circle mr-1"></i>
                                 {{ t('dashboard.healthy') }}: {{ assetHealth.healthy }}
                             </el-tag>
-                            <el-tag type="danger" size="large">
+                            <el-tag type="danger" effect="light" class="!text-sm">
+                                <i class="fas fa-times-circle mr-1"></i>
                                 {{ t('dashboard.unreachable') }}: {{ assetHealth.unreachable }}
                             </el-tag>
-                            <el-tag type="info" size="large">
+                            <el-tag type="info" effect="light" class="!text-sm">
+                                <i class="fas fa-server mr-1"></i>
                                 {{ t('dashboard.total') }}: {{ assetHealth.total }}
                             </el-tag>
                         </div>
-                        <div class="asset-list" style="max-height: 200px; overflow-y: auto;">
+                        <div class="max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                             <div
                                 v-for="asset in assetHealth.assets.slice(0, 10)"
                                 :key="asset.id"
-                                class="asset-item flex justify-between items-center py-2"
+                                class="flex justify-between items-center py-3 border-b border-[var(--el-border-color-lighter)] last:border-0 hover:bg-[var(--el-fill-color-light)] px-2 rounded transition-colors"
                             >
-                                <span>{{ asset.name }}</span>
-                                <el-tag :type="getAssetStatusType(asset.status)" size="small">
-                                    {{ asset.status }}
-                                    <span v-if="asset.latency">({{ asset.latency }}ms)</span>
-                                </el-tag>
+                                <span class="text-sm font-medium">{{ asset.name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <el-tag :type="getAssetStatusType(asset.status)" size="small" effect="dark">
+                                        {{ asset.status }}
+                                    </el-tag>
+                                    <span v-if="asset.latency" class="text-xs text-[var(--el-text-color-secondary)] w-12 text-right">
+                                        {{ asset.latency }}ms
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <el-skeleton v-else :rows="4" />
+                    <el-skeleton v-else :rows="4" animated />
                 </el-card>
             </el-col>
-            <el-col :span="12">
-                <el-card shadow="hover">
+            <el-col :xs="24" :lg="12">
+                <el-card shadow="hover" class="h-full">
                     <template #header>
-                        <span>{{ t('dashboard.storageStats') }}</span>
+                        <div class="flex items-center gap-2 font-medium">
+                            <i class="fas fa-hdd text-[var(--el-color-warning)]"></i>
+                            <span>{{ t('dashboard.storageStats') }}</span>
+                        </div>
                     </template>
-                    <div v-if="storage" class="storage-stats">
-                        <div class="storage-item">
-                            <span class="label">{{ t('dashboard.recordings') }}</span>
-                            <span class="value">{{ storage.formatted.recordings }}</span>
-                        </div>
-                        <div class="storage-item">
-                            <span class="label">{{ t('dashboard.database') }}</span>
-                            <span class="value">{{ storage.formatted.database }}</span>
-                        </div>
-                        <div class="storage-item">
-                            <span class="label">{{ t('dashboard.uploads') }}</span>
-                            <span class="value">{{ storage.formatted.uploads }}</span>
-                        </div>
-                        <el-divider />
-                        <div class="storage-item total">
-                            <span class="label">{{ t('dashboard.total') }}</span>
-                            <span class="value">{{ storage.formatted.total }}</span>
+                    <div v-if="storage" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 rounded-lg bg-[var(--el-fill-color-light)]">
+                                <div class="text-xs text-[var(--el-text-color-secondary)] mb-1">{{ t('dashboard.recordings') }}</div>
+                                <div class="text-lg font-bold">{{ storage.formatted.recordings }}</div>
+                            </div>
+                            <div class="p-4 rounded-lg bg-[var(--el-fill-color-light)]">
+                                <div class="text-xs text-[var(--el-text-color-secondary)] mb-1">{{ t('dashboard.database') }}</div>
+                                <div class="text-lg font-bold">{{ storage.formatted.database }}</div>
+                            </div>
+                            <div class="p-4 rounded-lg bg-[var(--el-fill-color-light)]">
+                                <div class="text-xs text-[var(--el-text-color-secondary)] mb-1">{{ t('dashboard.uploads') }}</div>
+                                <div class="text-lg font-bold">{{ storage.formatted.uploads }}</div>
+                            </div>
+                            <div class="p-4 rounded-lg bg-[var(--el-color-primary-light-9)]">
+                                <div class="text-xs text-[var(--el-color-primary)] mb-1">{{ t('dashboard.total') }}</div>
+                                <div class="text-lg font-bold text-[var(--el-color-primary)]">{{ storage.formatted.total }}</div>
+                            </div>
                         </div>
                     </div>
-                    <el-skeleton v-else :rows="4" />
+                    <el-skeleton v-else :rows="4" animated />
                 </el-card>
             </el-col>
         </el-row>
 
         <!-- Activity Timeline & Recent Connections -->
         <el-row :gutter="20">
-            <el-col :span="12">
-                <el-card shadow="hover">
+            <el-col :xs="24" :lg="12" class="mb-6 lg:mb-0">
+                <el-card shadow="hover" class="h-full">
                     <template #header>
-                        <span>{{ t('dashboard.activityTimeline') }}</span>
+                        <div class="flex items-center gap-2 font-medium">
+                            <i class="fas fa-history text-[var(--el-color-info)]"></i>
+                            <span>{{ t('dashboard.activityTimeline') }}</span>
+                        </div>
                     </template>
-                    <el-timeline v-if="timeline.length > 0">
-                        <el-timeline-item
-                            v-for="event in timeline.slice(0, 10)"
-                            :key="event.id"
-                            :timestamp="formatRelativeTime(event.timestamp)"
-                            placement="top"
-                        >
-                            <div class="timeline-content">
-                                <i :class="['fas', getActionIcon(event.actionType), 'mr-2']"></i>
-                                <span>{{ t(event.actionLabel) }}</span>
-                                <p v-if="event.details" class="text-muted text-sm mt-1">
-                                    {{ event.details }}
-                                </p>
-                            </div>
-                        </el-timeline-item>
-                    </el-timeline>
-                    <div v-else class="text-center text-muted">
-                        {{ t('dashboard.noActivity') }}
+                    <div class="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                        <el-timeline v-if="timeline.length > 0">
+                            <el-timeline-item
+                                v-for="event in timeline.slice(0, 10)"
+                                :key="event.id"
+                                :timestamp="formatRelativeTime(event.timestamp)"
+                                placement="top"
+                                :type="event.actionType === 'login' ? 'primary' : 'info'"
+                                :hollow="true"
+                            >
+                                <div class="card p-2 rounded hover:bg-[var(--el-fill-color-lighter)] transition-colors">
+                                    <div class="flex items-center gap-2 font-medium text-sm">
+                                        <i :class="['fas', getActionIcon(event.actionType)]" class="text-[var(--el-text-color-secondary)]"></i>
+                                        <span>{{ t(event.actionLabel) }}</span>
+                                    </div>
+                                    <p v-if="event.details" class="text-xs text-[var(--el-text-color-secondary)] mt-1 break-words">
+                                        {{ event.details }}
+                                    </p>
+                                </div>
+                            </el-timeline-item>
+                        </el-timeline>
+                        <div v-else class="text-center text-[var(--el-text-color-secondary)] py-8">
+                            {{ t('dashboard.noActivity') }}
+                        </div>
                     </div>
                 </el-card>
             </el-col>
-            <el-col :span="12">
-                <el-card shadow="hover">
+            <el-col :xs="24" :lg="12">
+                <el-card shadow="hover" class="h-full">
                     <template #header>
-                        <span>{{ t('dashboard.recentConnections') }}</span>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2 font-medium">
+                                <i class="fas fa-network-wired text-[var(--el-color-success)]"></i>
+                                <span>{{ t('dashboard.recentConnections') }}</span>
+                            </div>
+                            <el-button type="primary" link @click="openAddConnectionForm">
+                                <i class="fas fa-plus mr-1"></i>
+                                {{ t('dashboard.addConnection') }}
+                            </el-button>
+                        </div>
                     </template>
-                    <div v-if="connections.length > 0" class="connection-list" style="max-height: 300px; overflow-y: auto;">
+                    <div v-if="connections.length > 0" class="max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                         <div
                             v-for="conn in connections.slice(0, 10)"
                             :key="conn.id"
-                            class="connection-item p-3 border-b border-gray-200 last:border-0"
+                            class="p-3 border-b border-[var(--el-border-color-lighter)] last:border-0 hover:bg-[var(--el-fill-color-light)] transition-colors rounded mb-1"
                         >
                             <div class="flex justify-between items-center">
-                                <div>
-                                    <span class="font-medium">{{ conn.name || conn.host }}</span>
-                                    <span class="text-muted text-sm ml-2">
-                                        {{ conn.username }}@{{ conn.host }}:{{ conn.port }}
-                                    </span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-[var(--el-fill-color)] flex items-center justify-center text-[var(--el-text-color-secondary)]">
+                                        <i class="fas" :class="conn.type === 'SSH' ? 'fa-terminal' : conn.type === 'RDP' ? 'fa-desktop' : 'fa-network-wired'"></i>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-medium text-sm">{{ conn.name || conn.host }}</span>
+                                        <span class="text-xs text-[var(--el-text-color-secondary)]">
+                                            {{ conn.username }}@{{ conn.host }}:{{ conn.port }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <el-tag size="small">{{ conn.type }}</el-tag>
+                                <el-tag size="small" :type="conn.type === 'SSH' ? 'warning' : 'success'" effect="plain">{{ conn.type }}</el-tag>
                             </div>
                         </div>
                     </div>
-                    <div v-else class="text-center text-muted">
+                    <div v-else class="text-center text-[var(--el-text-color-secondary)] py-8">
                         {{ t('dashboard.noConnections') }}
-                    </div>
-                    <div class="mt-4 text-right">
-                        <el-button type="primary" @click="openAddConnectionForm">
-                            <i class="fas fa-plus mr-1"></i>
-                            {{ t('dashboard.addConnection') }}
-                        </el-button>
                     </div>
                 </el-card>
             </el-col>
@@ -496,142 +565,18 @@ const formatDuration = (seconds: number | null | undefined): string => {
 </template>
 
 <style scoped>
-.dashboard {
-    background-color: var(--el-bg-color-page);
-    min-height: 100%;
+/* Custom scrollbar for webkit browsers */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
 }
-
-.stat-card {
-    height: 100%;
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
 }
-
-.duration-distribution .distribution-item,
-.system-resources .resource-item,
-.storage-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--el-border-color);
+    border-radius: 3px;
 }
-
-.duration-distribution .distribution-item .label,
-.system-resources .resource-item .label,
-.storage-item .label {
-    width: 80px;
-    flex-shrink: 0;
-}
-
-.duration-distribution .distribution-item .value,
-.system-resources .resource-item .value,
-.storage-item .value {
-    width: 80px;
-    text-align: right;
-    flex-shrink: 0;
-}
-
-.storage-item.total {
-    font-weight: bold;
-}
-
-.health-summary {
-    display: flex;
-    gap: 12px;
-}
-
-.asset-item {
-    border-bottom: 1px solid var(--el-border-color-lighter);
-}
-
-.asset-item:last-child {
-    border-bottom: none;
-}
-
-.timeline-content {
-    display: flex;
-    align-items: center;
-}
-
-.mr-1 {
-    margin-right: 4px;
-}
-
-.mr-2 {
-    margin-right: 8px;
-}
-
-.mt-1 {
-    margin-top: 4px;
-}
-
-.mt-4 {
-    margin-top: 16px;
-}
-
-.mb-4 {
-    margin-bottom: 16px;
-}
-
-.mb-6 {
-    margin-bottom: 24px;
-}
-
-.text-primary {
-    color: var(--el-color-primary);
-}
-
-.text-success {
-    color: var(--el-color-success);
-}
-
-.text-danger {
-    color: var(--el-color-danger);
-}
-
-.text-warning {
-    color: var(--el-color-warning);
-}
-
-.text-muted {
-    color: var(--el-text-color-secondary);
-}
-
-.text-sm {
-    font-size: 12px;
-}
-
-.font-bold {
-    font-weight: bold;
-}
-
-.font-medium {
-    font-weight: 500;
-}
-
-.flex {
-    display: flex;
-}
-
-.justify-between {
-    justify-content: space-between;
-}
-
-.items-center {
-    align-items: center;
-}
-
-.p-3 {
-    padding: 12px;
-}
-
-.border-b {
-    border-bottom: 1px solid var(--el-border-color);
-}
-
-.border-gray-200 {
-    border-color: var(--el-border-color-lighter);
-}
-
-.last\:border-0:last-child {
-    border-bottom: none;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--el-text-color-secondary);
 }
 </style>
