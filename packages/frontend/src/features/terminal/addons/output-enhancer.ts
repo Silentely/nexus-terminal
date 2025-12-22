@@ -39,6 +39,9 @@ export class OutputEnhancerAddon implements ITerminalAddon {
   private foldedBlocks: FoldedBlock[] = [];
   private foldCounter = 0;
   private readonly maxFoldedBlocks = 24;
+  private readonly maxFoldBlockSize = 1024 * 1024; // 单个折叠块最大 1MB
+  private readonly throttleMs = 16; // 约 60fps，避免高频输出卡顿
+  private lastProcessTime = 0;
 
   constructor(options: OutputEnhancerOptions = {}) {
     this.enabled = options.enabled ?? true;
@@ -69,6 +72,14 @@ export class OutputEnhancerAddon implements ITerminalAddon {
         this.originalWrite(data, callback);
         return;
       }
+
+      // 节流机制：高频输出时跳过处理，避免 CPU 飙升
+      const now = performance.now();
+      if (now - this.lastProcessTime < this.throttleMs) {
+        this.originalWrite(data, callback);
+        return;
+      }
+      this.lastProcessTime = now;
 
       const processed = this.processor.process(data);
       const content = this.applyFolding(processed);
@@ -151,11 +162,19 @@ export class OutputEnhancerAddon implements ITerminalAddon {
     const lines = result.content.split('\n');
     const previewCount = Math.min(this.options.foldPreviewLines, lines.length);
     const preview = lines.slice(0, previewCount).join('\n');
-    const remaining = lines.slice(previewCount).join('\n');
+    let remaining = lines.slice(previewCount).join('\n');
     const hiddenLines = Math.max(0, lines.length - previewCount);
 
     if (hiddenLines === 0 || !remaining.trim()) {
       return result.content;
+    }
+
+    // 内存保护：限制单个折叠块最大 1MB，避免内存耗尽
+    if (remaining.length > this.maxFoldBlockSize) {
+      const truncated = remaining.slice(0, this.maxFoldBlockSize);
+      const truncatedLines = truncated.split('\n').length;
+      remaining = truncated + `\n${ANSI_DIM}[... 内容过长已截断，已隐藏 ${hiddenLines - truncatedLines} 行]${ANSI_RESET}`;
+      console.warn(`[OutputEnhancerAddon] 折叠块内容过大（${(remaining.length / 1024 / 1024).toFixed(2)}MB），已截断到 1MB`);
     }
 
     const foldId = this.generateFoldId();

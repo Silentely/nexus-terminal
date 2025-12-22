@@ -216,16 +216,22 @@ onMounted(() => {
     
     searchAddon = new SearchAddon();
     term.loadAddon(searchAddon);
-    
-    // 加载输出增强插件
-    outputEnhancerAddon = new OutputEnhancerAddon({
-      enabled: true,
-      enableHighlight: true,
-      enableTableFormat: true,
-      enableLinkDetection: true,
-      foldThreshold: 500,
-    });
-    term.loadAddon(outputEnhancerAddon);
+
+    // 加载输出增强插件（添加错误处理，避免插件加载失败导致终端崩溃）
+    try {
+      outputEnhancerAddon = new OutputEnhancerAddon({
+        enabled: true,
+        enableHighlight: true,
+        enableTableFormat: true,
+        enableLinkDetection: true,
+        foldThreshold: 500,
+      });
+      term.loadAddon(outputEnhancerAddon);
+      console.log(`[Terminal ${props.sessionId}] OutputEnhancerAddon 加载成功`);
+    } catch (error) {
+      console.error(`[Terminal ${props.sessionId}] OutputEnhancerAddon 加载失败，降级使用原始终端：`, error);
+      outputEnhancerAddon = null; // 降级：不使用输出增强功能
+    }
 
     try {
         const webglAddon = new WebglAddon();
@@ -393,7 +399,11 @@ onBeforeUnmount(() => {
     terminalInstance.value = null;
   }
 
-  outputEnhancerAddon = null;
+  // 显式调用 dispose() 清理资源，然后设置为 null
+  if (outputEnhancerAddon) {
+    outputEnhancerAddon.dispose();
+    outputEnhancerAddon = null;
+  }
 
   if (selectionListenerDisposable) {
       selectionListenerDisposable.dispose();

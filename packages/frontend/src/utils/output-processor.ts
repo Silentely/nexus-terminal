@@ -69,9 +69,27 @@ export class OutputProcessor {
   }
 
   process(output: string): ProcessedOutput {
+    const startTime = performance.now();
+
     const normalized = this.normalizeNewlines(output);
     const sanitized = this.stripAnsiCodes(normalized);
     const lineCount = sanitized.length ? sanitized.split('\n').length : 0;
+
+    // 大文件保护：超过 5000 行跳过高亮处理，避免性能问题
+    if (lineCount > 5000) {
+      console.warn(`[OutputProcessor] 跳过高亮处理：输出行数 ${lineCount} 超过阈值 5000`);
+      return {
+        type: OutputType.TEXT,
+        content: sanitized,
+        metadata: {
+          lineCount,
+          isLong: lineCount > this.foldThreshold,
+          shouldFold: lineCount > this.foldThreshold,
+          foldThreshold: this.foldThreshold,
+        },
+      };
+    }
+
     const detectedType = this.detectType(sanitized);
 
     let content = sanitized;
@@ -95,6 +113,12 @@ export class OutputProcessor {
 
     if (this.enableLinkDetection) {
       content = this.highlightLinks(content);
+    }
+
+    // 性能监控：处理时间超过 100ms 时发出警告
+    const duration = performance.now() - startTime;
+    if (duration > 100) {
+      console.warn(`[OutputProcessor] 处理耗时过长：${duration.toFixed(2)}ms（${lineCount} 行，类型：${detectedType}）`);
     }
 
     return {
@@ -278,8 +302,12 @@ export class OutputProcessor {
   }
 
   private highlightLinks(text: string): string {
+    // URL 高亮
     let result = text.replace(/(https?:\/\/[^\s]+)/g, `${ANSI.BLUE}${ANSI.BOLD}$1${ANSI.RESET}`);
-    result = result.replace(/(^|[\s"'\(\[])((?:\/[\w.+-]+)+\/?)/g, (_match, prefix: string, path: string) => {
+
+    // 路径高亮（优化正则防止 ReDoS 攻击）
+    // 限制路径深度最多 20 层，避免嵌套量词导致的回溯爆炸
+    result = result.replace(/(^|[\s"'\(\[])(\/([\w.+-]+\/){0,20}[\w.+-]*)/g, (_match, prefix: string, path: string) => {
       if (prefix.endsWith(':') || path.startsWith('//')) {
         return `${prefix}${path}`;
       }
