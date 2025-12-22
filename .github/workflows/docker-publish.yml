@@ -44,9 +44,13 @@ jobs:
           if [ -n "$PAYLOAD_VERSION" ]; then
             VERSION="$PAYLOAD_VERSION"
             echo "✅ 使用 payload 中的版本号：$VERSION"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            # main 分支构建时使用 dev 版本号
+            VERSION="dev"
+            echo "✅ 使用 main 分支版本号：$VERSION"
           else
             # 从 VERSION 文件读取
-            VERSION=$(cat VERSION | tr -d '[:space:]')
+            VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "latest")
             echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
           fi
 
@@ -97,7 +101,6 @@ jobs:
           tags: |
             # main 分支推送时构建 dev 标签
             type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
-            type=ref,event=branch,suffix=-dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
 
             # tag 推送时构建 latest 和版本号标签
             type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
@@ -105,7 +108,7 @@ jobs:
             type=ref,event=tag,enable={{is_default_branch}}
 
             # 其他情况（手动触发）的备用标签
-            type=ref,event=branch
+            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' }}
             type=ref,event=tag
             type=sha
 
