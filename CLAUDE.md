@@ -6,6 +6,12 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-22 (Phase 6-11 规划)
+- **个人版路线图草案**：新增 `doc/PERSONAL_ROADMAP.md`，聚焦单用户工作流
+- **规划范围**：Phase 6-11 及长期愿景（AI Copilot、插件体系等）
+- **实施策略**：分阶段列出 DB 结构、后端/前端目录规划、估算工期
+- **定位重申**：强调无需多用户/权限体系，聚焦个人运维效率
+
 ### 2025-12-21 (Phase 3-5 功能实现)
 - **Phase 3: WebSocket 基础设施升级** (Codex Review: 94/100 APPROVE)
   - 心跳机制：桌面/移动端差异化心跳检测 (`websocket/heartbeat.ts`)
@@ -154,7 +160,7 @@ sequenceDiagram
 
 | 文档 | 描述 |
 |-----|------|
-| [ROADMAP.md](./doc/ROADMAP.md) | 功能发展规划：基于 next-terminal 等项目的功能分析，包含 P0-P2 优先级功能规划、实施路线图、技术建议 |
+| [PERSONAL_ROADMAP.md](./doc/PERSONAL_ROADMAP.md) | **个人版功能规划**：Phase 6-11 详细实施计划，包含命令模板、工作区快照、AI 推荐、知识库等功能的数据库设计、模块架构、工作量评估 |
 
 ---
 
