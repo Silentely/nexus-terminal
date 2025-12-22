@@ -213,14 +213,11 @@ const formatDuration = (seconds: number | null | undefined): string => {
 <template>
     <div class="dashboard p-4 md:p-6 min-h-full bg-[var(--el-bg-color-page)]">
         <!-- Header -->
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-            <h1 class="text-2xl font-bold text-[var(--el-text-color-primary)]">{{ t('dashboard.title') }}</h1>
-            
-            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full lg:w-auto">
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    <span class="text-sm text-[var(--el-text-color-secondary)] whitespace-nowrap hidden md:inline">
-                        {{ t('dashboard.timeRange.label') }}
-                    </span>
+        <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+            <h1 class="text-2xl font-bold">{{ t('dashboard.title') }}</h1>
+            <div class="flex items-center gap-4 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm text-muted">{{ t('dashboard.timeRange.label') }}</span>
                     <el-date-picker
                         v-model="dateTimeRange"
                         type="datetimerange"
@@ -231,27 +228,33 @@ const formatDuration = (seconds: number | null | undefined): string => {
                         format="YYYY-MM-DD HH:mm"
                         :clearable="false"
                         @change="handleTimeRangeChange"
-                        class="w-full md:max-w-[320px]"
+                        style="width: 320px"
                     />
                 </div>
                 
-                <div class="flex items-center gap-4 justify-between md:justify-start">
-                    <el-select v-model="refreshInterval" class="w-32">
-                        <el-option :value="15000" :label="t('dashboard.intervals.15s')" />
-                        <el-option :value="30000" :label="t('dashboard.intervals.30s')" />
-                        <el-option :value="60000" :label="t('dashboard.intervals.1m')" />
-                        <el-option :value="300000" :label="t('dashboard.intervals.5m')" />
+                <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-1 px-3 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-2">
+                        <el-switch 
+                            v-model="autoRefresh" 
+                            size="small"
+                        />
+                        <span class="text-sm text-muted">{{ t('dashboard.autoRefresh') }}</span>
+                    </div>
+                    
+                    <el-select v-model="refreshInterval" style="width: 90px" size="small" :disabled="!autoRefresh">
+                        <el-option :value="15000" label="15s" />
+                        <el-option :value="30000" label="30s" />
+                        <el-option :value="60000" label="1m" />
+                        <el-option :value="300000" label="5m" />
                     </el-select>
                     
-                    <el-switch v-model="autoRefresh" :active-text="t('dashboard.autoRefresh')" />
+                    <el-divider direction="vertical" />
                     
-                    <el-button @click="handleRefresh" :loading="isLoading" circle class="md:hidden">
-                        <i class="fas fa-sync-alt"></i>
-                    </el-button>
-                    <el-button @click="handleRefresh" :loading="isLoading" class="hidden md:flex">
-                        <i class="fas fa-sync-alt mr-2"></i>
-                        {{ t('dashboard.refresh') }}
-                    </el-button>
+                    <el-tooltip :content="t('dashboard.refresh')" placement="top">
+                        <el-button @click="handleRefresh" :loading="isLoading" circle size="small" type="primary" plain>
+                            <i class="fas fa-sync-alt"></i>
+                        </el-button>
+                    </el-tooltip>
                 </div>
             </div>
         </div>
@@ -455,13 +458,13 @@ const formatDuration = (seconds: number | null | undefined): string => {
                                 {{ t('dashboard.total') }}: {{ assetHealth.total }}
                             </el-tag>
                         </div>
-                        <div class="max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div class="asset-list" style="max-height: 200px; overflow-y: auto;">
                             <div
-                                v-for="asset in assetHealth.assets.slice(0, 10)"
+                                v-for="asset in assetHealth.assets"
                                 :key="asset.id"
-                                class="flex justify-between items-center py-3 border-b border-[var(--el-border-color-lighter)] last:border-0 hover:bg-[var(--el-fill-color-light)] px-2 rounded transition-colors"
+                                class="asset-item flex justify-between items-center py-2"
                             >
-                                <span class="text-sm font-medium">{{ asset.name }}</span>
+                                <span>{{ asset.name }}</span>
                                 <div class="flex items-center gap-2">
                                     <el-tag :type="getAssetStatusType(asset.status)" size="small" effect="dark">
                                         {{ asset.status }}
