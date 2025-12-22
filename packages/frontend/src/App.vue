@@ -285,14 +285,14 @@ const isElementVisibleAndFocusable = (element: HTMLElement): boolean => {
         <!-- Left navigation links with Tailwind classes using theme variables -->
         <div class="flex items-center space-x-2">
           <!-- 项目 Logo -->
-          <img src="./assets/logo.png" alt="Project Logo" class="h-8 w-auto mr-2 opacity-90 hover:opacity-100 transition-opacity"> 
-            <RouterLink to="/" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.dashboard') }}</RouterLink>
-            <RouterLink to="/workspace" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.terminal') }}</RouterLink>
-            <RouterLink to="/connections" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.connections') }}</RouterLink>
-            <RouterLink to="/proxies" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.proxies') }}</RouterLink>
-            <RouterLink to="/notifications" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.notifications') }}</RouterLink>
-            <RouterLink to="/audit-logs" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.auditLogs') }}</RouterLink>
-            <RouterLink to="/settings" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-white hover:bg-white/10 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.settings') }}</RouterLink>
+          <img src="./assets/logo.png" alt="Project Logo" class="h-8 w-auto mr-2 opacity-90 hover:opacity-100 transition-opacity">
+            <RouterLink to="/" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.dashboard') }}</RouterLink>
+            <RouterLink to="/workspace" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.terminal') }}</RouterLink>
+            <RouterLink to="/connections" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.connections') }}</RouterLink>
+            <RouterLink to="/proxies" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.proxies') }}</RouterLink>
+            <RouterLink to="/notifications" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.notifications') }}</RouterLink>
+            <RouterLink to="/audit-logs" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.auditLogs') }}</RouterLink>
+            <RouterLink to="/settings" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.settings') }}</RouterLink>
         </div>
         <!-- Right navigation links with Tailwind classes using theme variables -->
         <div class="flex items-center space-x-1">
@@ -304,8 +304,8 @@ const isElementVisibleAndFocusable = (element: HTMLElement): boolean => {
           </a>
           <!-- PWA Install Button - REMOVED FROM HERE -->
           <a href="#" @click.prevent="openStyleCustomizer" :title="t('nav.customizeStyle')" class="px-2 py-2 rounded-md text-lg text-icon hover:text-icon-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out"><i class="fas fa-paint-brush"></i></a>
-          <RouterLink v-if="!isAuthenticated" to="/login" class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap">{{ t('nav.login') }}</RouterLink>
-          <a href="#" v-if="isAuthenticated" @click.prevent="handleLogout" class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-link-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out whitespace-nowrap">{{ t('nav.logout') }}</a>
+          <RouterLink v-if="!isAuthenticated" to="/login" class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 hover:no-underline transition duration-150 ease-in-out whitespace-nowrap">{{ t('nav.login') }}</RouterLink>
+          <a href="#" v-if="isAuthenticated" @click.prevent="handleLogout" class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 hover:no-underline transition duration-150 ease-in-out whitespace-nowrap">{{ t('nav.logout') }}</a>
         </div>
         <!-- Sliding underline element with Tailwind classes using theme variables (JS still controls positioning) -->
         <div ref="underlineRef" class="absolute bottom-0 h-0.5 bg-link-active rounded transition-all duration-300 ease-in-out pointer-events-none opacity-0 transform translate-y-1.5"></div> <!-- Changed translate-y-1 to translate-y-1.5 -->

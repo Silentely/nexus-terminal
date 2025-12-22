@@ -41,42 +41,42 @@
 
 /* 全局样式和 CSS 变量定义 */
 :root {
-  /* Core Palette - Slate/Zinc based Dark Theme */
-  --app-bg-color: #0f172a;       /* Slate 900 - Deep Background */
-  --text-color: #f1f5f9;         /* Slate 100 - Main Text */
-  --text-color-secondary: #94a3b8; /* Slate 400 - Secondary Text */
-  
+  /* Core Palette - Light Theme */
+  --app-bg-color: #ffffff;        /* White Background */
+  --text-color: #1f2937;          /* Gray 800 - Main Text */
+  --text-color-secondary: #6b7280; /* Gray 500 - Secondary Text */
+
   /* Borders & Dividers */
-  --border-color: #1e293b;       /* Slate 800 - Subtle Borders */
-  --divider-color: #1e293b;
-  
+  --border-color: #e5e7eb;        /* Gray 200 - Subtle Borders */
+  --divider-color: #e5e7eb;
+
   /* Brand/Interactive Colors */
-  --link-color: #e2e8f0;         /* Slate 200 */
-  --link-hover-color: #38bdf8;   /* Sky 400 - Bright Hover */
-  --link-active-color: #0ea5e9;  /* Sky 500 - Primary Brand Color */
+  --link-color: #1f2937;          /* Gray 800 */
+  --link-hover-color: #0ea5e9;    /* Sky 500 - Bright Hover */
+  --link-active-color: #0ea5e9;   /* Sky 500 - Primary Brand Color */
   --link-active-bg-color: rgba(14, 165, 233, 0.15); /* Low opacity Sky 500 */
-  --nav-item-active-bg-color: rgba(14, 165, 233, 0.1); 
+  --nav-item-active-bg-color: rgba(14, 165, 233, 0.1);
 
   /* Components */
-  --header-bg-color: rgba(15, 23, 42, 0.7); /* Semi-transparent Slate 900 */
-  --footer-bg-color: #1e293b;     /* Slate 800 */
-  
+  --header-bg-color: rgba(255, 255, 255, 0.95); /* Semi-transparent White */
+  --footer-bg-color: #f9fafb;     /* Gray 50 */
+
   /* Buttons */
   --button-bg-color: #0ea5e9;     /* Sky 500 */
   --button-text-color: #ffffff;
   --button-hover-bg-color: #0284c7; /* Sky 600 */
-  
+
   /* Icons */
-  --icon-color: #94a3b8;          /* Slate 400 */
-  --icon-hover-color: #f1f5f9;    /* Slate 100 */
-  
+  --icon-color: #6b7280;          /* Gray 500 */
+  --icon-hover-color: #1f2937;    /* Gray 800 */
+
   /* UI Elements */
-  --split-line-color: #1e293b;    /* Slate 800 */
-  --split-line-hover-color: #38bdf8; 
-  --input-bg-color: rgba(255, 255, 255, 0.05);
+  --split-line-color: #e5e7eb;    /* Gray 200 */
+  --split-line-hover-color: #0ea5e9;
+  --input-bg-color: #ffffff;
   --input-focus-border-color: #0ea5e9;
   --input-focus-glow-rgb: 14, 165, 233; /* RGB for Sky 500 */
-  --overlay-bg-color: rgba(0, 0, 0, 0.75);
+  --overlay-bg-color: rgba(0, 0, 0, 0.6);
 
   /* Status */
   --status-success: #10b981;       /* Emerald 500 */
