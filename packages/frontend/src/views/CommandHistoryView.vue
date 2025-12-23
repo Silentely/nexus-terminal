@@ -3,7 +3,8 @@
     <!-- Container for controls and list -->
     <div class="flex flex-col flex-grow overflow-hidden bg-background">
       <!-- Controls Area -->
-      <div class="flex items-center p-2 flex-shrink-0 gap-2 bg-background"> <!-- Reduced padding p-3 to p-2 -->
+      <div class="flex items-center p-2 flex-shrink-0 gap-2 bg-background">
+        <!-- Reduced padding p-3 to p-2 -->
         <input
           type="text"
           :placeholder="$t('commandHistory.searchPlaceholder', '搜索历史记录...')"
@@ -16,19 +17,30 @@
           class="flex-grow min-w-0 px-4 py-1.5 border border-border/50 rounded-lg bg-input text-foreground text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition duration-150 ease-in-out"
         />
         <!-- Clear Button -->
-        <button @click="confirmClearAll" class="w-8 h-8 border border-border/50 rounded-lg text-text-secondary hover:bg-error/10 hover:text-error hover:border-error/50 transition-colors duration-150 flex-shrink-0 flex items-center justify-center" :title="$t('commandHistory.clear', '清空')"> <!-- Use w-8 h-8 -->
+        <button
+          @click="confirmClearAll"
+          class="w-8 h-8 border border-border/50 rounded-lg text-text-secondary hover:bg-error/10 hover:text-error hover:border-error/50 transition-colors duration-150 flex-shrink-0 flex items-center justify-center"
+          :title="$t('commandHistory.clear', '清空')"
+        >
+          <!-- Use w-8 h-8 -->
           <i class="fas fa-trash-alt text-base"></i>
         </button>
       </div>
       <!-- List Area -->
       <div class="flex-grow overflow-y-auto p-2">
-<!-- Loading State (Only show if loading AND no history is displayed yet) -->
-        <div v-if="isLoading && filteredHistory.length === 0" class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full">
+        <!-- Loading State (Only show if loading AND no history is displayed yet) -->
+        <div
+          v-if="isLoading && filteredHistory.length === 0"
+          class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full"
+        >
           <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
           <p>{{ $t('commandHistory.loading', '加载中...') }}</p>
         </div>
         <!-- Empty State -->
-        <div v-else-if="filteredHistory.length === 0" class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full">
+        <div
+          v-else-if="filteredHistory.length === 0"
+          class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full"
+        >
           <i class="fas fa-history text-xl mb-2"></i>
           <p>{{ $t('commandHistory.empty', '没有历史记录') }}</p>
         </div>
@@ -44,15 +56,27 @@
             :title="entry.command"
           >
             <!-- Command Text -->
-            <span class="truncate mr-2 flex-grow font-mono text-sm text-foreground">{{ entry.command }}</span>
+            <span class="truncate mr-2 flex-grow font-mono text-sm text-foreground">{{
+              entry.command
+            }}</span>
             <!-- Actions (Show on Hover) -->
-            <div class="flex items-center flex-shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+            <div
+              class="flex items-center flex-shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+            >
               <!-- Copy Button -->
-              <button @click.stop="copyCommand(entry.command)" class="p-1.5 rounded hover:bg-black/10 transition-colors duration-150 text-text-secondary hover:text-primary" :title="$t('commandHistory.copy', '复制')">
+              <button
+                @click.stop="copyCommand(entry.command)"
+                class="p-1.5 rounded hover:bg-black/10 transition-colors duration-150 text-text-secondary hover:text-primary"
+                :title="$t('commandHistory.copy', '复制')"
+              >
                 <i class="fas fa-copy text-sm"></i>
               </button>
               <!-- Delete Button -->
-              <button @click.stop="deleteSingleCommand(entry.id)" class="ml-1 p-1.5 rounded hover:bg-black/10 transition-colors duration-150 text-text-secondary hover:text-error" :title="$t('commandHistory.delete', '删除')">
+              <button
+                @click.stop="deleteSingleCommand(entry.id)"
+                class="ml-1 p-1.5 rounded hover:bg-black/10 transition-colors duration-150 text-text-secondary hover:text-error"
+                :title="$t('commandHistory.delete', '删除')"
+              >
                 <i class="fas fa-times text-sm"></i>
               </button>
             </div>
@@ -65,14 +89,19 @@
     <div
       v-if="commandHistoryContextMenuVisible"
       class="fixed bg-background border border-border/50 shadow-xl rounded-lg py-1.5 z-50 min-w-[180px] command-history-context-menu"
-      :style="{ top: `${commandHistoryContextMenuPosition.y}px`, left: `${commandHistoryContextMenuPosition.x}px` }"
+      :style="{
+        top: `${commandHistoryContextMenuPosition.y}px`,
+        left: `${commandHistoryContextMenuPosition.x}px`,
+      }"
       @click.stop
     >
       <ul class="list-none p-0 m-0">
         <li
           v-if="commandHistoryContextTargetEntry"
           class="group px-4 py-1.5 cursor-pointer flex items-center text-foreground hover:bg-primary/10 hover:text-primary text-sm transition-colors duration-150 rounded-md mx-1"
-          @click="handleCommandHistoryMenuAction('sendToAllSessions', commandHistoryContextTargetEntry!)"
+          @click="
+            handleCommandHistoryMenuAction('sendToAllSessions', commandHistoryContextTargetEntry!)
+          "
         >
           <span>{{ t('commandHistory.actions.sendToAllSessions', '发送到全部会话') }}</span>
         </li>
@@ -88,9 +117,9 @@ import { useCommandHistoryStore, CommandHistoryEntryFE } from '../stores/command
 import { useUiNotificationsStore } from '../stores/uiNotifications.store';
 import { useI18n } from 'vue-i18n';
 import { useFocusSwitcherStore } from '../stores/focusSwitcher.store';
-import { useWorkspaceEventEmitter } from '../composables/workspaceEvents'; 
-import { useSessionStore } from '../stores/session.store'; 
-import type { SessionState } from '../stores/session/types'; 
+import { useWorkspaceEventEmitter } from '../composables/workspaceEvents';
+import { useSessionStore } from '../stores/session.store';
+import type { SessionState } from '../stores/session/types';
 import { useConnectionsStore } from '../stores/connections.store';
 import { useConfirmDialog } from '../composables/useConfirmDialog';
 
@@ -120,19 +149,21 @@ const filteredHistory = computed(() => commandHistoryStore.filteredHistory);
 const isLoading = computed(() => commandHistoryStore.isLoading);
 const { selectedIndex: storeSelectedIndex } = storeToRefs(commandHistoryStore); // Get selectedIndex reactively
 
-
 // --- 生命周期钩子 ---
 onMounted(() => {
   // 视图挂载时获取历史记录 (如果 store 中还没有的话)
   if (commandHistoryStore.historyList.length === 0) {
-      commandHistoryStore.fetchHistory();
+    commandHistoryStore.fetchHistory();
   }
 });
 
 // +++ 注册/注销自定义聚焦动作 +++
 onMounted(() => {
   // +++ 保存返回的注销函数 +++
-  unregisterFocus = focusSwitcherStore.registerFocusAction('commandHistorySearch', focusSearchInput);
+  unregisterFocus = focusSwitcherStore.registerFocusAction(
+    'commandHistorySearch',
+    focusSearchInput
+  );
 });
 onBeforeUnmount(() => {
   // +++ 调用保存的注销函数 +++
@@ -151,7 +182,8 @@ const updateSearchTerm = (event: Event) => {
 };
 
 // 滚动到选中的项目
-const scrollToSelected = async (index: number) => { // Accept index as argument
+const scrollToSelected = async (index: number) => {
+  // Accept index as argument
   await nextTick(); // 等待 DOM 更新
   if (index < 0 || !historyListRef.value) return;
 
@@ -203,16 +235,20 @@ const handleSearchInputBlur = () => {
   setTimeout(() => {
     // 检查焦点是否还在组件内部的其他可聚焦元素上（例如按钮）
     // 如果焦点移出整个组件区域，则重置选择
-    if (document.activeElement !== searchInputRef.value && !historyListRef.value?.contains(document.activeElement)) {
-       commandHistoryStore.resetSelection();
+    if (
+      document.activeElement !== searchInputRef.value &&
+      !historyListRef.value?.contains(document.activeElement)
+    ) {
+      commandHistoryStore.resetSelection();
     }
   }, 100); // 短暂延迟
 };
 
 // 确认清空所有历史记录
-const confirmClearAll = async () => { // 注意 async
+const confirmClearAll = async () => {
+  // 注意 async
   const confirmed = await showConfirmDialog({
-    message: t('commandHistory.confirmClear', '确定要清空所有历史记录吗？')
+    message: t('commandHistory.confirmClear', '确定要清空所有历史记录吗？'),
   });
   if (confirmed) {
     commandHistoryStore.clearAllHistory();
@@ -254,43 +290,48 @@ defineExpose({ focusSearchInput });
 
 // +++ 右键菜单方法 +++
 const showCommandHistoryContextMenu = (event: MouseEvent, entry: CommandHistoryEntryFE) => {
-event.preventDefault();
-commandHistoryContextTargetEntry.value = entry;
-commandHistoryContextMenuPosition.value = { x: event.clientX, y: event.clientY };
-commandHistoryContextMenuVisible.value = true;
-document.addEventListener('click', closeCommandHistoryContextMenu, { once: true });
+  event.preventDefault();
+  commandHistoryContextTargetEntry.value = entry;
+  commandHistoryContextMenuPosition.value = { x: event.clientX, y: event.clientY };
+  commandHistoryContextMenuVisible.value = true;
+  document.addEventListener('click', closeCommandHistoryContextMenu, { once: true });
 
-// 使用 nextTick 获取菜单尺寸并调整位置以防止超出屏幕
-nextTick(() => {
-  const menuElement = document.querySelector('.command-history-context-menu') as HTMLElement;
-  if (menuElement) {
-    const menuRect = menuElement.getBoundingClientRect();
-    let finalX = commandHistoryContextMenuPosition.value.x;
-    let finalY = commandHistoryContextMenuPosition.value.y;
-    const menuWidth = menuRect.width;
-    const menuHeight = menuRect.height;
+  // 使用 nextTick 获取菜单尺寸并调整位置以防止超出屏幕
+  nextTick(() => {
+    const menuElement = document.querySelector('.command-history-context-menu') as HTMLElement;
+    if (menuElement) {
+      const menuRect = menuElement.getBoundingClientRect();
+      let finalX = commandHistoryContextMenuPosition.value.x;
+      let finalY = commandHistoryContextMenuPosition.value.y;
+      const menuWidth = menuRect.width;
+      const menuHeight = menuRect.height;
 
-    // 调整水平位置
-    if (finalX + menuWidth > window.innerWidth) {
-      finalX = window.innerWidth - menuWidth - 5;
+      // 调整水平位置
+      if (finalX + menuWidth > window.innerWidth) {
+        finalX = window.innerWidth - menuWidth - 5;
+      }
+
+      // 调整垂直位置
+      if (finalY + menuHeight > window.innerHeight) {
+        finalY = window.innerHeight - menuHeight - 5;
+      }
+
+      // 确保菜单不超出屏幕左上角
+      finalX = Math.max(5, finalX);
+      finalY = Math.max(5, finalY);
+
+      // 更新位置
+      if (
+        finalX !== commandHistoryContextMenuPosition.value.x ||
+        finalY !== commandHistoryContextMenuPosition.value.y
+      ) {
+        console.log(
+          `[CommandHistoryView] Adjusting command history context menu position: (${commandHistoryContextMenuPosition.value.x}, ${commandHistoryContextMenuPosition.value.y}) -> (${finalX}, ${finalY})`
+        );
+        commandHistoryContextMenuPosition.value = { x: finalX, y: finalY };
+      }
     }
-
-    // 调整垂直位置
-    if (finalY + menuHeight > window.innerHeight) {
-      finalY = window.innerHeight - menuHeight - 5;
-    }
-
-    // 确保菜单不超出屏幕左上角
-    finalX = Math.max(5, finalX);
-    finalY = Math.max(5, finalY);
-
-    // 更新位置
-    if (finalX !== commandHistoryContextMenuPosition.value.x || finalY !== commandHistoryContextMenuPosition.value.y) {
-      console.log(`[CommandHistoryView] Adjusting command history context menu position: (${commandHistoryContextMenuPosition.value.x}, ${commandHistoryContextMenuPosition.value.y}) -> (${finalX}, ${finalY})`);
-      commandHistoryContextMenuPosition.value = { x: finalX, y: finalY };
-    }
-  }
-});
+  });
 };
 
 const closeCommandHistoryContextMenu = () => {
@@ -299,23 +340,31 @@ const closeCommandHistoryContextMenu = () => {
   document.removeEventListener('click', closeCommandHistoryContextMenu);
 };
 
-const handleCommandHistoryMenuAction = (action: 'sendToAllSessions', entry: CommandHistoryEntryFE) => {
+const handleCommandHistoryMenuAction = (
+  action: 'sendToAllSessions',
+  entry: CommandHistoryEntryFE
+) => {
   closeCommandHistoryContextMenu();
   if (action === 'sendToAllSessions') {
     const activeSshSessions = Array.from(sessionStore.sessions.values()).filter(
       (s: SessionState) => {
         if (s.wsManager.connectionStatus.value !== 'connected') return false;
-        const connInfo = connectionsStore.connections.find(c => c.id === Number(s.connectionId));
+        const connInfo = connectionsStore.connections.find((c) => c.id === Number(s.connectionId));
         return connInfo?.type === 'SSH';
       }
     );
 
     if (activeSshSessions.length > 0) {
       activeSshSessions.forEach((session: SessionState) => {
-        emitWorkspaceEvent('terminal:sendCommand', { sessionId: session.sessionId, command: entry.command });
+        emitWorkspaceEvent('terminal:sendCommand', {
+          sessionId: session.sessionId,
+          command: entry.command,
+        });
       });
       uiNotificationsStore.addNotification({
-        message: t('commandHistory.notifications.sentToAllSessions', { count: activeSshSessions.length }),
+        message: t('commandHistory.notifications.sentToAllSessions', {
+          count: activeSshSessions.length,
+        }),
         type: 'success',
       });
     } else {
@@ -327,4 +376,3 @@ const handleCommandHistoryMenuAction = (action: 'sendToAllSessions', entry: Comm
   }
 };
 </script>
-

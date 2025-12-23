@@ -54,13 +54,14 @@ export const useDialogStore = defineStore('dialog', () => {
   };
 
   const handleCancel = () => {
-    if (state.value.resolvePromise) { // Resolve with false on cancel
+    if (state.value.resolvePromise) {
+      // Resolve with false on cancel
       state.value.resolvePromise(false);
     }
     state.value.visible = false;
     // No need to reset state here, showDialog will do it
   };
-  
+
   // For actions that might take time, to show a loading spinner on the confirm button
   const setLoading = (loading: boolean) => {
     state.value.isLoading = loading;

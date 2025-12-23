@@ -1,9 +1,7 @@
-
-
 import type { Ref } from 'vue';
-import type { FileTab as OriginalFileTab } from '../fileEditor.store'; 
-import type { WsConnectionStatus } from '../../composables/useWebSocketConnection'; 
-import type { DockerManagerInstance as OriginalDockerManagerInstance } from '../../composables/useDockerManager'; 
+import type { FileTab as OriginalFileTab } from '../fileEditor.store';
+import type { WsConnectionStatus } from '../../composables/useWebSocketConnection';
+import type { DockerManagerInstance as OriginalDockerManagerInstance } from '../../composables/useDockerManager';
 
 // 导入工厂函数仅用于通过 ReturnType 推导实例类型
 // 这些导入仅用于类型推断，不在运行时使用
@@ -11,7 +9,6 @@ import type { createWebSocketConnectionManager } from '../../composables/useWebS
 import type { createSftpActionsManager } from '../../composables/useSftpActions';
 import type { createSshTerminalManager } from '../../composables/useSshTerminal';
 import type { createStatusMonitorManager } from '../../composables/useStatusMonitor';
-
 
 // 使用 ReturnType 定义其他管理器实例类型
 export type WsManagerInstance = ReturnType<typeof createWebSocketConnectionManager>;

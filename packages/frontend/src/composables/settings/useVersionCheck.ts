@@ -38,7 +38,9 @@ export function useVersionCheck() {
     versionCheckError.value = null;
     latestVersion.value = null;
     try {
-      const response = await axios.get('https://raw.githubusercontent.com/Silentely/nexus-terminal/main/VERSION');
+      const response = await axios.get(
+        'https://raw.githubusercontent.com/Silentely/nexus-terminal/main/VERSION'
+      );
       if (response.data && response.data.trim()) {
         latestVersion.value = response.data.trim();
       } else {

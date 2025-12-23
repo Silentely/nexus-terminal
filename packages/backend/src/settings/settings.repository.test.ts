@@ -5,256 +5,260 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock 数据库连接
 vi.mock('../database/connection', () => ({
-    getDbInstance: vi.fn().mockResolvedValue({}),
-    runDb: vi.fn().mockResolvedValue({ changes: 1 }),
-    getDb: vi.fn(),
-    allDb: vi.fn().mockResolvedValue([]),
+  getDbInstance: vi.fn().mockResolvedValue({}),
+  runDb: vi.fn().mockResolvedValue({ changes: 1 }),
+  getDb: vi.fn(),
+  allDb: vi.fn().mockResolvedValue([]),
 }));
 
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import {
-    settingsRepository,
-    getSidebarConfig,
-    setSidebarConfig,
-    getCaptchaConfig,
-    setCaptchaConfig,
+  settingsRepository,
+  getSidebarConfig,
+  setSidebarConfig,
+  getCaptchaConfig,
+  setCaptchaConfig,
 } from './settings.repository';
 
 describe('Settings Repository', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('settingsRepository.getAllSettings', () => {
+    it('应返回所有设置项', async () => {
+      const mockSettings = [
+        { key: 'setting1', value: 'value1' },
+        { key: 'setting2', value: 'value2' },
+      ];
+      (allDb as any).mockResolvedValueOnce(mockSettings);
+
+      const result = await settingsRepository.getAllSettings();
+
+      expect(result).toEqual(mockSettings);
+      expect(allDb).toHaveBeenCalled();
     });
 
-    afterEach(() => {
-        vi.clearAllMocks();
+    it('无设置时应返回空数组', async () => {
+      (allDb as any).mockResolvedValueOnce([]);
+
+      const result = await settingsRepository.getAllSettings();
+
+      expect(result).toHaveLength(0);
     });
 
-    describe('settingsRepository.getAllSettings', () => {
-        it('应返回所有设置项', async () => {
-            const mockSettings = [
-                { key: 'setting1', value: 'value1' },
-                { key: 'setting2', value: 'value2' },
-            ];
-            (allDb as any).mockResolvedValueOnce(mockSettings);
+    it('数据库错误时应抛出异常', async () => {
+      (allDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-            const result = await settingsRepository.getAllSettings();
+      await expect(settingsRepository.getAllSettings()).rejects.toThrow('获取设置失败');
+    });
+  });
 
-            expect(result).toEqual(mockSettings);
-            expect(allDb).toHaveBeenCalled();
-        });
+  describe('settingsRepository.getSetting', () => {
+    it('应返回指定键的值', async () => {
+      (getDb as any).mockResolvedValueOnce({ value: 'test-value' });
 
-        it('无设置时应返回空数组', async () => {
-            (allDb as any).mockResolvedValueOnce([]);
+      const result = await settingsRepository.getSetting('testKey');
 
-            const result = await settingsRepository.getAllSettings();
-
-            expect(result).toHaveLength(0);
-        });
-
-        it('数据库错误时应抛出异常', async () => {
-            (allDb as any).mockRejectedValueOnce(new Error('Database error'));
-
-            await expect(settingsRepository.getAllSettings()).rejects.toThrow('获取设置失败');
-        });
+      expect(result).toBe('test-value');
     });
 
-    describe('settingsRepository.getSetting', () => {
-        it('应返回指定键的值', async () => {
-            (getDb as any).mockResolvedValueOnce({ value: 'test-value' });
+    it('键不存在时应返回 null', async () => {
+      (getDb as any).mockResolvedValueOnce(null);
 
-            const result = await settingsRepository.getSetting('testKey');
+      const result = await settingsRepository.getSetting('nonExistent');
 
-            expect(result).toBe('test-value');
-        });
-
-        it('键不存在时应返回 null', async () => {
-            (getDb as any).mockResolvedValueOnce(null);
-
-            const result = await settingsRepository.getSetting('nonExistent');
-
-            expect(result).toBeNull();
-        });
-
-        it('数据库错误时应抛出异常', async () => {
-            (getDb as any).mockRejectedValueOnce(new Error('Database error'));
-
-            await expect(settingsRepository.getSetting('key')).rejects.toThrow('获取设置项 key 失败');
-        });
+      expect(result).toBeNull();
     });
 
-    describe('settingsRepository.setSetting', () => {
-        it('应成功设置设置项', async () => {
-            await settingsRepository.setSetting('testKey', 'testValue');
+    it('数据库错误时应抛出异常', async () => {
+      (getDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-            expect(runDb).toHaveBeenCalled();
-            const call = (runDb as any).mock.calls[0];
-            expect(call[1]).toContain('INSERT INTO settings');
-            expect(call[2]).toContain('testKey');
-            expect(call[2]).toContain('testValue');
-        });
+      await expect(settingsRepository.getSetting('key')).rejects.toThrow('获取设置项 key 失败');
+    });
+  });
 
-        it('数据库错误时应抛出异常', async () => {
-            (runDb as any).mockRejectedValueOnce(new Error('Database error'));
+  describe('settingsRepository.setSetting', () => {
+    it('应成功设置设置项', async () => {
+      await settingsRepository.setSetting('testKey', 'testValue');
 
-            await expect(settingsRepository.setSetting('key', 'value')).rejects.toThrow('设置设置项 key 失败');
-        });
+      expect(runDb).toHaveBeenCalled();
+      const call = (runDb as any).mock.calls[0];
+      expect(call[1]).toContain('INSERT INTO settings');
+      expect(call[2]).toContain('testKey');
+      expect(call[2]).toContain('testValue');
     });
 
-    describe('settingsRepository.deleteSetting', () => {
-        it('删除成功时应返回 true', async () => {
-            (runDb as any).mockResolvedValueOnce({ changes: 1 });
+    it('数据库错误时应抛出异常', async () => {
+      (runDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-            const result = await settingsRepository.deleteSetting('testKey');
+      await expect(settingsRepository.setSetting('key', 'value')).rejects.toThrow(
+        '设置设置项 key 失败'
+      );
+    });
+  });
 
-            expect(result).toBe(true);
-            expect(runDb).toHaveBeenCalled();
-        });
+  describe('settingsRepository.deleteSetting', () => {
+    it('删除成功时应返回 true', async () => {
+      (runDb as any).mockResolvedValueOnce({ changes: 1 });
 
-        it('键不存在时应返回 false', async () => {
-            (runDb as any).mockResolvedValueOnce({ changes: 0 });
+      const result = await settingsRepository.deleteSetting('testKey');
 
-            const result = await settingsRepository.deleteSetting('nonExistent');
-
-            expect(result).toBe(false);
-        });
-
-        it('数据库错误时应抛出异常', async () => {
-            (runDb as any).mockRejectedValueOnce(new Error('Database error'));
-
-            await expect(settingsRepository.deleteSetting('key')).rejects.toThrow('删除设置项 key 失败');
-        });
+      expect(result).toBe(true);
+      expect(runDb).toHaveBeenCalled();
     });
 
-    describe('settingsRepository.setMultipleSettings', () => {
-        it('应成功批量设置', async () => {
-            const settings = { key1: 'value1', key2: 'value2' };
+    it('键不存在时应返回 false', async () => {
+      (runDb as any).mockResolvedValueOnce({ changes: 0 });
 
-            await settingsRepository.setMultipleSettings(settings);
+      const result = await settingsRepository.deleteSetting('nonExistent');
 
-            expect(runDb).toHaveBeenCalledTimes(2);
-        });
-
-        it('批量设置失败时应抛出异常', async () => {
-            (runDb as any).mockRejectedValueOnce(new Error('Database error'));
-
-            await expect(
-                settingsRepository.setMultipleSettings({ key1: 'value1' })
-            ).rejects.toThrow('批量设置失败');
-        });
+      expect(result).toBe(false);
     });
 
-    describe('getSidebarConfig', () => {
-        it('应返回存储的侧栏配置', async () => {
-            const mockConfig = { left: ['connections'], right: ['dockerManager'] };
-            (getDb as any).mockResolvedValueOnce({ value: JSON.stringify(mockConfig) });
+    it('数据库错误时应抛出异常', async () => {
+      (runDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-            const result = await getSidebarConfig();
+      await expect(settingsRepository.deleteSetting('key')).rejects.toThrow('删除设置项 key 失败');
+    });
+  });
 
-            expect(result).toEqual(mockConfig);
-        });
+  describe('settingsRepository.setMultipleSettings', () => {
+    it('应成功批量设置', async () => {
+      const settings = { key1: 'value1', key2: 'value2' };
 
-        it('无配置时应返回默认值', async () => {
-            (getDb as any).mockResolvedValueOnce(null);
+      await settingsRepository.setMultipleSettings(settings);
 
-            const result = await getSidebarConfig();
-
-            expect(result).toEqual({ left: [], right: [] });
-        });
-
-        it('配置格式无效时应返回默认值', async () => {
-            (getDb as any).mockResolvedValueOnce({ value: 'invalid-json' });
-
-            const result = await getSidebarConfig();
-
-            expect(result).toEqual({ left: [], right: [] });
-        });
-
-        it('配置结构无效时应返回默认值', async () => {
-            (getDb as any).mockResolvedValueOnce({ value: JSON.stringify({ left: 'not-array' }) });
-
-            const result = await getSidebarConfig();
-
-            expect(result).toEqual({ left: [], right: [] });
-        });
+      expect(runDb).toHaveBeenCalledTimes(2);
     });
 
-    describe('setSidebarConfig', () => {
-        it('应成功保存侧栏配置', async () => {
-            const config = { left: ['connections'], right: [] };
+    it('批量设置失败时应抛出异常', async () => {
+      (runDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-            await setSidebarConfig(config);
+      await expect(settingsRepository.setMultipleSettings({ key1: 'value1' })).rejects.toThrow(
+        '批量设置失败'
+      );
+    });
+  });
 
-            expect(runDb).toHaveBeenCalled();
-        });
+  describe('getSidebarConfig', () => {
+    it('应返回存储的侧栏配置', async () => {
+      const mockConfig = { left: ['connections'], right: ['dockerManager'] };
+      (getDb as any).mockResolvedValueOnce({ value: JSON.stringify(mockConfig) });
 
-        it('配置无效时应抛出异常', async () => {
-            await expect(setSidebarConfig({} as any)).rejects.toThrow('保存侧边栏配置失败。');
-        });
+      const result = await getSidebarConfig();
 
-        it('配置为 null 时应抛出异常', async () => {
-            await expect(setSidebarConfig(null as any)).rejects.toThrow();
-        });
+      expect(result).toEqual(mockConfig);
     });
 
-    describe('getCaptchaConfig', () => {
-        it('应返回存储的 CAPTCHA 配置', async () => {
-            const mockConfig = {
-                enabled: true,
-                provider: 'hcaptcha',
-                hcaptchaSiteKey: 'site-key',
-                hcaptchaSecretKey: 'secret-key',
-                recaptchaSiteKey: '',
-                recaptchaSecretKey: '',
-            };
-            (getDb as any).mockResolvedValueOnce({ value: JSON.stringify(mockConfig) });
+    it('无配置时应返回默认值', async () => {
+      (getDb as any).mockResolvedValueOnce(null);
 
-            const result = await getCaptchaConfig();
+      const result = await getSidebarConfig();
 
-            expect(result.enabled).toBe(true);
-            expect(result.provider).toBe('hcaptcha');
-            expect(result.hcaptchaSiteKey).toBe('site-key');
-        });
-
-        it('无配置时应返回默认值', async () => {
-            (getDb as any).mockResolvedValueOnce(null);
-
-            const result = await getCaptchaConfig();
-
-            expect(result.enabled).toBe(false);
-            expect(result.provider).toBe('none');
-        });
-
-        it('配置格式无效时应返回默认值', async () => {
-            (getDb as any).mockResolvedValueOnce({ value: 'invalid-json' });
-
-            const result = await getCaptchaConfig();
-
-            expect(result.enabled).toBe(false);
-        });
+      expect(result).toEqual({ left: [], right: [] });
     });
 
-    describe('setCaptchaConfig', () => {
-        it('应成功保存 CAPTCHA 配置', async () => {
-            const config = {
-                enabled: true,
-                provider: 'hcaptcha' as const,
-                hcaptchaSiteKey: 'site-key',
-                hcaptchaSecretKey: 'secret-key',
-                recaptchaSiteKey: '',
-                recaptchaSecretKey: '',
-            };
+    it('配置格式无效时应返回默认值', async () => {
+      (getDb as any).mockResolvedValueOnce({ value: 'invalid-json' });
 
-            await setCaptchaConfig(config);
+      const result = await getSidebarConfig();
 
-            expect(runDb).toHaveBeenCalled();
-        });
-
-        it('配置无效时应抛出异常', async () => {
-            await expect(setCaptchaConfig({} as any)).rejects.toThrow('保存 CAPTCHA 配置失败。');
-        });
-
-        it('enabled 不是布尔值时应抛出异常', async () => {
-            await expect(setCaptchaConfig({ enabled: 'true' } as any)).rejects.toThrow('保存 CAPTCHA 配置失败。');
-        });
+      expect(result).toEqual({ left: [], right: [] });
     });
+
+    it('配置结构无效时应返回默认值', async () => {
+      (getDb as any).mockResolvedValueOnce({ value: JSON.stringify({ left: 'not-array' }) });
+
+      const result = await getSidebarConfig();
+
+      expect(result).toEqual({ left: [], right: [] });
+    });
+  });
+
+  describe('setSidebarConfig', () => {
+    it('应成功保存侧栏配置', async () => {
+      const config = { left: ['connections'], right: [] };
+
+      await setSidebarConfig(config);
+
+      expect(runDb).toHaveBeenCalled();
+    });
+
+    it('配置无效时应抛出异常', async () => {
+      await expect(setSidebarConfig({} as any)).rejects.toThrow('保存侧边栏配置失败。');
+    });
+
+    it('配置为 null 时应抛出异常', async () => {
+      await expect(setSidebarConfig(null as any)).rejects.toThrow();
+    });
+  });
+
+  describe('getCaptchaConfig', () => {
+    it('应返回存储的 CAPTCHA 配置', async () => {
+      const mockConfig = {
+        enabled: true,
+        provider: 'hcaptcha',
+        hcaptchaSiteKey: 'site-key',
+        hcaptchaSecretKey: 'secret-key',
+        recaptchaSiteKey: '',
+        recaptchaSecretKey: '',
+      };
+      (getDb as any).mockResolvedValueOnce({ value: JSON.stringify(mockConfig) });
+
+      const result = await getCaptchaConfig();
+
+      expect(result.enabled).toBe(true);
+      expect(result.provider).toBe('hcaptcha');
+      expect(result.hcaptchaSiteKey).toBe('site-key');
+    });
+
+    it('无配置时应返回默认值', async () => {
+      (getDb as any).mockResolvedValueOnce(null);
+
+      const result = await getCaptchaConfig();
+
+      expect(result.enabled).toBe(false);
+      expect(result.provider).toBe('none');
+    });
+
+    it('配置格式无效时应返回默认值', async () => {
+      (getDb as any).mockResolvedValueOnce({ value: 'invalid-json' });
+
+      const result = await getCaptchaConfig();
+
+      expect(result.enabled).toBe(false);
+    });
+  });
+
+  describe('setCaptchaConfig', () => {
+    it('应成功保存 CAPTCHA 配置', async () => {
+      const config = {
+        enabled: true,
+        provider: 'hcaptcha' as const,
+        hcaptchaSiteKey: 'site-key',
+        hcaptchaSecretKey: 'secret-key',
+        recaptchaSiteKey: '',
+        recaptchaSecretKey: '',
+      };
+
+      await setCaptchaConfig(config);
+
+      expect(runDb).toHaveBeenCalled();
+    });
+
+    it('配置无效时应抛出异常', async () => {
+      await expect(setCaptchaConfig({} as any)).rejects.toThrow('保存 CAPTCHA 配置失败。');
+    });
+
+    it('enabled 不是布尔值时应抛出异常', async () => {
+      await expect(setCaptchaConfig({ enabled: 'true' } as any)).rejects.toThrow(
+        '保存 CAPTCHA 配置失败。'
+      );
+    });
+  });
 });

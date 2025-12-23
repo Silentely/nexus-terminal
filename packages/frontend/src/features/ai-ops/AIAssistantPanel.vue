@@ -5,7 +5,9 @@
       <div class="flex items-center gap-2">
         <i class="fas fa-robot text-primary"></i>
         <span class="font-medium text-sm">{{ t('aiOps.title', 'AI Assistant') }}</span>
-        <span v-if="aiStore.currentSessionId" class="text-xs text-text-secondary">({{ truncateSessionId }})</span>
+        <span v-if="aiStore.currentSessionId" class="text-xs text-text-secondary"
+          >({{ truncateSessionId }})</span
+        >
       </div>
       <div class="flex items-center gap-2">
         <button
@@ -40,7 +42,10 @@
         <div v-if="aiStore.isLoading" class="p-4 text-center text-text-secondary text-sm">
           <i class="fas fa-spinner fa-spin mr-2"></i>{{ t('common.loading', 'Loading...') }}
         </div>
-        <div v-else-if="aiStore.sessions.length === 0" class="p-4 text-center text-text-secondary text-sm">
+        <div
+          v-else-if="aiStore.sessions.length === 0"
+          class="p-4 text-center text-text-secondary text-sm"
+        >
           {{ t('aiOps.noSessions', 'No previous sessions') }}
         </div>
         <div v-else class="divide-y divide-border">
@@ -51,7 +56,9 @@
             @click="loadSessionHistory(session.sessionId)"
           >
             <div class="flex-1 min-w-0">
-              <div class="text-sm font-medium truncate">{{ session.title || t('aiOps.untitled', 'Untitled') }}</div>
+              <div class="text-sm font-medium truncate">
+                {{ session.title || t('aiOps.untitled', 'Untitled') }}
+              </div>
               <div class="text-xs text-text-secondary">{{ formatDate(session.updatedAt) }}</div>
             </div>
             <button
@@ -68,7 +75,10 @@
     <!-- Chat Area -->
     <div class="flex-grow overflow-y-auto p-4 space-y-4 custom-scrollbar" ref="chatContainer">
       <!-- Empty State -->
-      <div v-if="aiStore.messages.length === 0 && !aiStore.isLoading" class="text-center text-text-secondary text-sm mt-8">
+      <div
+        v-if="aiStore.messages.length === 0 && !aiStore.isLoading"
+        class="text-center text-text-secondary text-sm mt-8"
+      >
         <i class="fas fa-magic text-2xl mb-2 opacity-50"></i>
         <p>{{ t('aiOps.placeholder', 'Ask me anything about your servers or logs...') }}</p>
         <div class="mt-4 space-y-2">
@@ -78,7 +88,8 @@
             @click="sendSuggestion(suggestion.query)"
             class="block w-full text-left px-3 py-2 text-xs bg-header border border-border rounded hover:border-primary transition-colors"
           >
-            <i :class="['fas mr-2', suggestion.icon]"></i>{{ t(suggestion.labelKey, suggestion.label) }}
+            <i :class="['fas mr-2', suggestion.icon]"></i
+            >{{ t(suggestion.labelKey, suggestion.label) }}
           </button>
         </div>
       </div>
@@ -87,14 +98,17 @@
       <div
         v-for="msg in aiStore.messages"
         :key="msg.id"
-        :class="['flex flex-col max-w-[85%]', msg.role === 'user' ? 'self-end items-end' : 'self-start items-start']"
+        :class="[
+          'flex flex-col max-w-[85%]',
+          msg.role === 'user' ? 'self-end items-end' : 'self-start items-start',
+        ]"
       >
         <div
           :class="[
             'px-3 py-2 rounded-lg text-sm whitespace-pre-wrap',
             msg.role === 'user'
               ? 'bg-primary text-white'
-              : 'bg-header border border-border text-foreground'
+              : 'bg-header border border-border text-foreground',
           ]"
           v-html="formatMessage(msg.content)"
         ></div>
@@ -102,15 +116,23 @@
       </div>
 
       <!-- Typing Indicator -->
-      <div v-if="aiStore.isTyping" class="self-start flex items-center gap-2 text-text-secondary text-xs italic">
+      <div
+        v-if="aiStore.isTyping"
+        class="self-start flex items-center gap-2 text-text-secondary text-xs italic"
+      >
         <i class="fas fa-spinner fa-spin"></i>
         {{ t('aiOps.typing', 'AI is analyzing...') }}
       </div>
 
       <!-- Error Message -->
-      <div v-if="aiStore.error" class="self-center text-red-500 text-xs bg-red-500/10 px-3 py-2 rounded">
+      <div
+        v-if="aiStore.error"
+        class="self-center text-red-500 text-xs bg-red-500/10 px-3 py-2 rounded"
+      >
         <i class="fas fa-exclamation-circle mr-1"></i>{{ aiStore.error }}
-        <button @click="aiStore.clearError()" class="ml-2 underline">{{ t('common.dismiss', 'Dismiss') }}</button>
+        <button @click="aiStore.clearError()" class="ml-2 underline">
+          {{ t('common.dismiss', 'Dismiss') }}
+        </button>
       </div>
     </div>
 
@@ -120,10 +142,16 @@
         @click="showInsights = !showInsights"
         class="w-full px-4 py-2 text-xs flex items-center justify-between bg-header/30 hover:bg-header/50"
       >
-        <span><i class="fas fa-lightbulb mr-2 text-yellow-500"></i>{{ t('aiOps.insights', 'Insights') }} ({{ aiStore.insights.length }})</span>
+        <span
+          ><i class="fas fa-lightbulb mr-2 text-yellow-500"></i
+          >{{ t('aiOps.insights', 'Insights') }} ({{ aiStore.insights.length }})</span
+        >
         <i :class="['fas', showInsights ? 'fa-chevron-down' : 'fa-chevron-up']"></i>
       </button>
-      <div v-if="showInsights" class="px-4 py-2 space-y-2 max-h-32 overflow-y-auto custom-scrollbar bg-header/20">
+      <div
+        v-if="showInsights"
+        class="px-4 py-2 space-y-2 max-h-32 overflow-y-auto custom-scrollbar bg-header/20"
+      >
         <div
           v-for="(insight, idx) in aiStore.insights"
           :key="idx"
@@ -201,10 +229,34 @@ const showInsights = ref(false);
 
 // 快速建议
 const quickSuggestions = [
-  { key: 'health', query: '系统健康状态如何？', icon: 'fa-heartbeat', labelKey: 'aiOps.suggestions.health', label: 'Check System Health' },
-  { key: 'commands', query: '分析最近的命令执行模式', icon: 'fa-terminal', labelKey: 'aiOps.suggestions.commands', label: 'Analyze Command Patterns' },
-  { key: 'security', query: '查看安全事件统计', icon: 'fa-shield-alt', labelKey: 'aiOps.suggestions.security', label: 'View Security Events' },
-  { key: 'connections', query: '连接使用情况怎样？', icon: 'fa-network-wired', labelKey: 'aiOps.suggestions.connections', label: 'Connection Status' },
+  {
+    key: 'health',
+    query: '系统健康状态如何？',
+    icon: 'fa-heartbeat',
+    labelKey: 'aiOps.suggestions.health',
+    label: 'Check System Health',
+  },
+  {
+    key: 'commands',
+    query: '分析最近的命令执行模式',
+    icon: 'fa-terminal',
+    labelKey: 'aiOps.suggestions.commands',
+    label: 'Analyze Command Patterns',
+  },
+  {
+    key: 'security',
+    query: '查看安全事件统计',
+    icon: 'fa-shield-alt',
+    labelKey: 'aiOps.suggestions.security',
+    label: 'View Security Events',
+  },
+  {
+    key: 'connections',
+    query: '连接使用情况怎样？',
+    icon: 'fa-network-wired',
+    labelKey: 'aiOps.suggestions.connections',
+    label: 'Connection Status',
+  },
 ];
 
 // 截断会话 ID 显示
@@ -222,7 +274,12 @@ const formatTime = (ts: Date | string | number) => {
 // 格式化日期
 const formatDate = (ts: Date | string | number) => {
   const date = ts instanceof Date ? ts : new Date(ts);
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
 // 格式化消息（支持 Markdown 基础格式，已做 XSS 防护）

@@ -34,8 +34,8 @@ function base64UrlToUint8Array(base64urlString: string): Uint8Array {
   try {
     return Buffer.from(base64, 'base64');
   } catch (e) {
-    console.error("Failed to decode base64url string to Buffer:", base64urlString, e);
-    throw new Error("Invalid base64url string for Buffer conversion");
+    console.error('Failed to decode base64url string to Buffer:', base64urlString, e);
+    throw new Error('Invalid base64url string for Buffer conversion');
   }
 }
 
@@ -53,10 +53,16 @@ export class PasskeyService {
 
     const existingPasskeys = await this.passkeyRepo.getPasskeysByUserId(userId);
 
-    const excludeCredentials: {id: string, type: 'public-key', transports?: AuthenticatorTransportFuture[]}[] = existingPasskeys.map(pk => ({
+    const excludeCredentials: {
+      id: string;
+      type: 'public-key';
+      transports?: AuthenticatorTransportFuture[];
+    }[] = existingPasskeys.map((pk) => ({
       id: pk.credential_id,
       type: 'public-key',
-      transports: pk.transports ? JSON.parse(pk.transports) as AuthenticatorTransportFuture[] : undefined,
+      transports: pk.transports
+        ? (JSON.parse(pk.transports) as AuthenticatorTransportFuture[])
+        : undefined,
     }));
 
     const options: GenerateRegistrationOptionsOpts = {
@@ -86,11 +92,11 @@ export class PasskeyService {
   ): Promise<VerifiedRegistrationResponse & { newPasskeyToSave?: NewPasskey }> {
     const userId = parseInt(userHandleFromClient, 10);
     if (isNaN(userId)) {
-        throw new Error('Invalid user handle provided.');
+      throw new Error('Invalid user handle provided.');
     }
     const user = await this.userRepo.findUserById(userId);
     if (!user) {
-        throw new Error('User not found for the provided handle.');
+      throw new Error('User not found for the provided handle.');
     }
 
     // The actual WebAuthn response is nested within the received object
@@ -98,7 +104,10 @@ export class PasskeyService {
 
     // Add a check for the presence of credential ID before calling the library
     if (!actualRegistrationResponse || !actualRegistrationResponse.id) {
-      console.error('Missing credential ID in actualRegistrationResponse from client:', registrationResponseJSON);
+      console.error(
+        'Missing credential ID in actualRegistrationResponse from client:',
+        registrationResponseJSON
+      );
       throw new Error('Registration failed: Missing or malformed credential ID from client.');
     }
 
@@ -113,31 +122,41 @@ export class PasskeyService {
     const verification = await verifyRegistrationResponse(verifyOpts);
 
     if (verification.verified && verification.registrationInfo) {
-      const regInfo = verification.registrationInfo; 
-      
+      const regInfo = verification.registrationInfo;
+
       // Based on the logs, credentialPublicKey, credentialID, counter, and transports
       // are nested within regInfo.credential.
       // credentialBackedUp is at the top level of regInfo.
       const credentialDetails = (regInfo as any).credential;
-      const credentialBackedUp = (regInfo as any).credentialBackedUp; // This seems to be at the top level
+      const { credentialBackedUp } = regInfo as any; // This seems to be at the top level
 
-      if (!credentialDetails || typeof credentialDetails.publicKey !== 'object' || typeof credentialDetails.id !== 'string' || typeof credentialDetails.counter !== 'number') {
-        console.error('Verification successful, but registrationInfo.credential structure is unexpected or missing:', regInfo);
-        throw new Error('Failed to process registration info due to unexpected credential structure.');
+      if (
+        !credentialDetails ||
+        typeof credentialDetails.publicKey !== 'object' ||
+        typeof credentialDetails.id !== 'string' ||
+        typeof credentialDetails.counter !== 'number'
+      ) {
+        console.error(
+          'Verification successful, but registrationInfo.credential structure is unexpected or missing:',
+          regInfo
+        );
+        throw new Error(
+          'Failed to process registration info due to unexpected credential structure.'
+        );
       }
 
       const credentialPublicKey = credentialDetails.publicKey;
       const credentialID = credentialDetails.id;
-      const counter = credentialDetails.counter;
-      const transports = credentialDetails.transports; // This might be undefined, handle appropriately
-      
+      const { counter } = credentialDetails;
+      const { transports } = credentialDetails; // This might be undefined, handle appropriately
+
       const publicKeyBase64 = Buffer.from(credentialPublicKey).toString('base64');
 
       const newPasskeyEntry: NewPasskey = {
         user_id: user.id,
         credential_id: credentialID,
         public_key: publicKeyBase64,
-        counter: counter,
+        counter,
         transports: transports ? JSON.stringify(transports) : null,
         backed_up: !!credentialBackedUp,
       };
@@ -147,16 +166,20 @@ export class PasskeyService {
   }
 
   async generateAuthenticationOptions(username?: string) {
-    let allowCredentials: {id: string, type: 'public-key', transports?: AuthenticatorTransportFuture[]}[] | undefined = undefined;
+    let allowCredentials:
+      | { id: string; type: 'public-key'; transports?: AuthenticatorTransportFuture[] }[]
+      | undefined;
 
     if (username) {
       const user = await this.userRepo.findUserByUsername(username);
       if (user) {
         const userPasskeys = await this.passkeyRepo.getPasskeysByUserId(user.id);
-        allowCredentials = userPasskeys.map(pk => ({
+        allowCredentials = userPasskeys.map((pk) => ({
           id: pk.credential_id,
           type: 'public-key',
-          transports: pk.transports ? JSON.parse(pk.transports) as AuthenticatorTransportFuture[] : undefined,
+          transports: pk.transports
+            ? (JSON.parse(pk.transports) as AuthenticatorTransportFuture[])
+            : undefined,
         }));
       }
     }
@@ -175,17 +198,24 @@ export class PasskeyService {
   async verifyAuthentication(
     authenticationResponseJSON: AuthenticationResponseJSON,
     expectedChallenge: string
-  ): Promise<VerifiedAuthenticationResponse & { passkey?: Passkey, userId?: number }> {
-    
+  ): Promise<VerifiedAuthenticationResponse & { passkey?: Passkey; userId?: number }> {
     // Decode and check authenticatorData length
-    if (authenticationResponseJSON.response && authenticationResponseJSON.response.authenticatorData) {
+    if (
+      authenticationResponseJSON.response &&
+      authenticationResponseJSON.response.authenticatorData
+    ) {
       try {
-        const authenticatorDataBytes = base64UrlToUint8Array(authenticationResponseJSON.response.authenticatorData);
+        const authenticatorDataBytes = base64UrlToUint8Array(
+          authenticationResponseJSON.response.authenticatorData
+        );
         if (authenticatorDataBytes.length < 37) {
           // console.warn(`[PasskeyService] WARNING: Decoded authenticatorData length (${authenticatorDataBytes.length} bytes) is less than the expected minimum of 37 bytes. This may lead to CBOR parsing errors and subsequent failures (e.g., 'cannot read counter').`);
         }
       } catch (e: any) {
-        console.error('[PasskeyService] Error decoding authenticatorData from client response:', e.message);
+        console.error(
+          '[PasskeyService] Error decoding authenticatorData from client response:',
+          e.message
+        );
         // Potentially re-throw or handle as a critical error, as this is unexpected.
       }
     } else {
@@ -194,40 +224,61 @@ export class PasskeyService {
 
     const credentialIdFromResponse = authenticationResponseJSON.id;
     if (!credentialIdFromResponse) {
-        console.error('[PasskeyService] Credential ID missing from authentication response.');
-        throw new Error('Credential ID missing from authentication response.');
+      console.error('[PasskeyService] Credential ID missing from authentication response.');
+      throw new Error('Credential ID missing from authentication response.');
     }
 
     const passkey = await this.passkeyRepo.getPasskeyByCredentialId(credentialIdFromResponse);
     if (!passkey) {
-      console.error('[PasskeyService] Passkey not found for credential ID:', credentialIdFromResponse);
+      console.error(
+        '[PasskeyService] Passkey not found for credential ID:',
+        credentialIdFromResponse
+      );
       throw new Error('Authentication failed. Passkey not found.');
     }
 
     let authenticatorCredentialID: Uint8Array;
     try {
-        authenticatorCredentialID = base64UrlToUint8Array(passkey.credential_id);
+      authenticatorCredentialID = base64UrlToUint8Array(passkey.credential_id);
     } catch (e: any) {
-        console.error('[PasskeyService] Error decoding credential_id to Uint8Array:', passkey.credential_id, e.message);
-        throw new Error('Failed to decode credential_id.');
+      console.error(
+        '[PasskeyService] Error decoding credential_id to Uint8Array:',
+        passkey.credential_id,
+        e.message
+      );
+      throw new Error('Failed to decode credential_id.');
     }
 
     let authenticatorPublicKey: Uint8Array; // Changed type from Buffer to Uint8Array
     try {
-        const pkBuffer = Buffer.from(passkey.public_key, 'base64');
-        // Ensure it's a plain Uint8Array instance
-        authenticatorPublicKey = new Uint8Array(pkBuffer.buffer, pkBuffer.byteOffset, pkBuffer.byteLength);
+      const pkBuffer = Buffer.from(passkey.public_key, 'base64');
+      // Ensure it's a plain Uint8Array instance
+      authenticatorPublicKey = new Uint8Array(
+        pkBuffer.buffer,
+        pkBuffer.byteOffset,
+        pkBuffer.byteLength
+      );
     } catch (e: any) {
-        console.error('[PasskeyService] Error decoding public_key to Uint8Array:', passkey.public_key, e.message);
-        throw new Error('Failed to decode public_key.');
+      console.error(
+        '[PasskeyService] Error decoding public_key to Uint8Array:',
+        passkey.public_key,
+        e.message
+      );
+      throw new Error('Failed to decode public_key.');
     }
-    
+
     let authenticatorTransports: AuthenticatorTransportFuture[] | undefined;
     try {
-        authenticatorTransports = passkey.transports ? JSON.parse(passkey.transports) as AuthenticatorTransportFuture[] : undefined;
+      authenticatorTransports = passkey.transports
+        ? (JSON.parse(passkey.transports) as AuthenticatorTransportFuture[])
+        : undefined;
     } catch (e: any) {
-        console.error('[PasskeyService] Error parsing transports JSON:', passkey.transports, e.message);
-        authenticatorTransports = undefined;
+      console.error(
+        '[PasskeyService] Error parsing transports JSON:',
+        passkey.transports,
+        e.message
+      );
+      authenticatorTransports = undefined;
     }
 
     // This object structure should match what @simplewebauthn/server expects for its `credential` option parameter.
@@ -238,7 +289,9 @@ export class PasskeyService {
       counter: passkey.counter,
       transports: authenticatorTransports,
       credentialBackedUp: !!passkey.backed_up,
-      credentialDeviceType: (passkey.backed_up ? 'multiDevice' : 'singleDevice') as 'multiDevice' | 'singleDevice',
+      credentialDeviceType: (passkey.backed_up ? 'multiDevice' : 'singleDevice') as
+        | 'multiDevice'
+        | 'singleDevice',
     };
 
     // Reverting to 'any' for verifyOpts due to issues with the library's
@@ -268,7 +321,7 @@ export class PasskeyService {
   async listPasskeysByUserId(userId: number): Promise<Partial<Passkey>[]> {
     const passkeys = await this.passkeyRepo.getPasskeysByUserId(userId);
     // 只返回部分信息以避免泄露敏感数据
-    return passkeys.map(pk => ({
+    return passkeys.map((pk) => ({
       credential_id: pk.credential_id,
       created_at: pk.created_at,
       last_used_at: pk.last_used_at,
@@ -310,13 +363,12 @@ export class PasskeyService {
       }
       const passkeys = await this.passkeyRepo.getPasskeysByUserId(user.id);
       return passkeys.length > 0;
-    } else {
-      // 如果没有提供用户名，检查整个系统中是否存在任何 passkey
-      // 这对于“可发现凭证”场景可能有用，或者简单地检查系统是否启用了 passkey 功能
-      const anyPasskey = await this.passkeyRepo.getFirstPasskey();
-      return !!anyPasskey;
     }
+    // 如果没有提供用户名，检查整个系统中是否存在任何 passkey
+    // 这对于“可发现凭证”场景可能有用，或者简单地检查系统是否启用了 passkey 功能
+    const anyPasskey = await this.passkeyRepo.getFirstPasskey();
+    return !!anyPasskey;
   }
 }
- 
+
 export const passkeyService = new PasskeyService(passkeyRepository, userRepository);

@@ -9,28 +9,34 @@ Remote Gateway 服务支持灵活的 CORS（跨域资源共享）配置，可以
 ## 环境变量
 
 ### 1. `CORS_ALLOWED_ORIGINS`
+
 **类型**: 字符串（逗号分隔）
 **默认值**: 空
 **描述**: 额外允许的 CORS 来源，支持多个域名（逗号分隔）
 
 **示例**:
+
 ```env
 CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com,https://admin.yourdomain.com
 ```
 
 ### 2. `CORS_ALLOW_ALL`
+
 **类型**: 布尔值（`true` 或 `false`）
 **默认值**: `false`
 **描述**: 是否允许所有来源访问（仅用于开发环境，**生产环境强烈不推荐**）
 
 **示例**:
+
 ```env
 CORS_ALLOW_ALL=true  # ⚠️ 仅用于开发/测试
 ```
 
 ### 3. `FRONTEND_URL` 和 `MAIN_BACKEND_URL`
+
 **类型**: 字符串（URL）
 **默认值**:
+
 - `FRONTEND_URL`: `http://localhost:5173`
 - `MAIN_BACKEND_URL`: `http://localhost:3000`
 
@@ -80,11 +86,13 @@ CORS_ALLOW_ALL=false
 **情况 1: 错误域名不是你的应用**
 
 如果看到类似 `keylol.cloudflareaccess.com` 或 `ssh.cosr.eu` 的域名：
+
 - ✅ 这些错误**不是来自你的应用代码**
 - ✅ 通常是浏览器扩展、广告拦截器或代理软件尝试加载资源
 - ✅ 这些错误**不影响应用功能**，可以安全忽略
 
 **排查方法**:
+
 1. 在无痕窗口中测试（禁用所有扩展）
 2. 禁用广告拦截器（如 uBlock Origin、AdGuard）
 3. 检查 VPN 或代理软件
@@ -92,6 +100,7 @@ CORS_ALLOW_ALL=false
 **情况 2: 错误域名是你的应用**
 
 如果看到自己的域名被 CORS 拦截：
+
 1. 检查 `docker-compose.yml` 中的 `FRONTEND_URL` 和 `MAIN_BACKEND_URL` 是否正确
 2. 如需支持额外域名，配置 `CORS_ALLOWED_ORIGINS`
 3. 重启 remote-gateway 服务：`docker-compose restart remote-gateway`
@@ -106,6 +115,7 @@ environment:
 ```
 
 注意：
+
 - ✅ 包含协议（`http://` 或 `https://`）
 - ✅ 不要添加尾部斜杠
 - ✅ 多个域名用逗号分隔，不要有空格
@@ -116,7 +126,7 @@ environment:
 
 ```yaml
 environment:
-  CORS_ALLOW_ALL: true  # ⚠️ 生产环境禁用！
+  CORS_ALLOW_ALL: true # ⚠️ 生产环境禁用！
 ```
 
 生产环境**必须明确配置允许的域名**，不能使用 `CORS_ALLOW_ALL=true`。

@@ -1,7 +1,19 @@
 // packages/backend/src/types/settings.types.ts
 
 // Define PaneName here as it's logically related to layout/sidebar settings
-export type PaneName = 'connections' | 'terminal' | 'commandBar' | 'fileManager' | 'editor' | 'statusMonitor' | 'commandHistory' | 'quickCommands' | 'dockerManager' | 'suspendedSshSessions' | 'aiAssistant' | 'batchExec';
+export type PaneName =
+  | 'connections'
+  | 'terminal'
+  | 'commandBar'
+  | 'fileManager'
+  | 'editor'
+  | 'statusMonitor'
+  | 'commandHistory'
+  | 'quickCommands'
+  | 'dockerManager'
+  | 'suspendedSshSessions'
+  | 'aiAssistant'
+  | 'batchExec';
 
 /**
  * 布局节点接口 (Mirrors frontend definition for backend use)
@@ -19,8 +31,8 @@ export interface LayoutNode {
  * 侧栏配置数据结构 (Managed by Settings Repository/Service)
  */
 export interface SidebarConfig {
-    left: PaneName[];
-    right: PaneName[];
+  left: PaneName[];
+  right: PaneName[];
 }
 
 /**
@@ -38,12 +50,12 @@ export type CaptchaProvider = 'hcaptcha' | 'recaptcha' | 'none';
  * CAPTCHA 设置接口
  */
 export interface CaptchaSettings {
-    enabled: boolean; // 是否启用 CAPTCHA
-    provider: CaptchaProvider; // 当前选择的提供商
-    hcaptchaSiteKey?: string; // hCaptcha 站点密钥 (公开)
-    hcaptchaSecretKey?: string; // hCaptcha 秘密密钥 (保密) - 后端存储和使用
-    recaptchaSiteKey?: string; // Google reCAPTCHA v2 站点密钥 (公开)
-    recaptchaSecretKey?: string; // Google reCAPTCHA v2 秘密密钥 (保密) - 后端存储和使用
+  enabled: boolean; // 是否启用 CAPTCHA
+  provider: CaptchaProvider; // 当前选择的提供商
+  hcaptchaSiteKey?: string; // hCaptcha 站点密钥 (公开)
+  hcaptchaSecretKey?: string; // hCaptcha 秘密密钥 (保密) - 后端存储和使用
+  recaptchaSiteKey?: string; // Google reCAPTCHA v2 站点密钥 (公开)
+  recaptchaSecretKey?: string; // Google reCAPTCHA v2 秘密密钥 (保密) - 后端存储和使用
 }
 
 /**
@@ -51,12 +63,12 @@ export interface CaptchaSettings {
  * (可以添加验证规则)
  */
 export interface UpdateCaptchaSettingsDto {
-    enabled?: boolean;
-    provider?: CaptchaProvider;
-    hcaptchaSiteKey?: string;
-    hcaptchaSecretKey?: string;
-    recaptchaSiteKey?: string;
-    recaptchaSecretKey?: string;
+  enabled?: boolean;
+  provider?: CaptchaProvider;
+  hcaptchaSiteKey?: string;
+  hcaptchaSecretKey?: string;
+  recaptchaSiteKey?: string;
+  recaptchaSecretKey?: string;
 }
 
 /**
@@ -64,10 +76,10 @@ export interface UpdateCaptchaSettingsDto {
  * 注意：这只是一个示例结构，实际可能需要根据 SettingsRepository 的实现调整
  */
 export interface AppSettings {
-    sidebar?: SidebarConfig;
-    captcha?: CaptchaSettings;
-    showStatusMonitorIpAddress?: boolean; // 是否在状态监视器中显示IP地址
-    // 可以添加其他设置模块，例如：
-    // security?: SecuritySettings;
-    // general?: GeneralSettings;
+  sidebar?: SidebarConfig;
+  captcha?: CaptchaSettings;
+  showStatusMonitorIpAddress?: boolean; // 是否在状态监视器中显示IP地址
+  // 可以添加其他设置模块，例如：
+  // security?: SecuritySettings;
+  // general?: GeneralSettings;
 }

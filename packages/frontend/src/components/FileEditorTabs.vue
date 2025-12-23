@@ -64,7 +64,7 @@ const closeContextMenu = () => {
 
 // 用于全局点击监听器的函数
 const closeContextMenuOnClickOutside = (event: MouseEvent) => {
-    closeContextMenu();
+  closeContextMenu();
 };
 
 // + Update function signature to receive payload
@@ -72,9 +72,10 @@ const handleContextMenuAction = (payload: { action: string; targetId: string | n
   const { action, targetId } = payload;
   console.log(`[FileTabs] handleContextMenuAction received payload:`, JSON.stringify(payload)); // + Log received payload
   // const targetId = contextTargetTabId.value; // No longer needed
-  if (!targetId || typeof targetId !== 'string') { // Ensure targetId is a string (tab ID)
-      console.warn('[FileTabs] handleContextMenuAction called but targetId is null or not a string.');
-      return;
+  if (!targetId || typeof targetId !== 'string') {
+    // Ensure targetId is a string (tab ID)
+    console.warn('[FileTabs] handleContextMenuAction called but targetId is null or not a string.');
+    return;
   }
 
   console.log(`[FileTabs] Context menu action '${action}' requested for tab ID: ${targetId}`); // Keep original log
@@ -103,7 +104,7 @@ const contextMenuItems = computed(() => {
   const targetId = contextTargetTabId.value;
   if (!targetId) return [];
 
-  const currentIndex = props.tabs.findIndex(t => t.id === targetId);
+  const currentIndex = props.tabs.findIndex((t) => t.id === targetId);
   const totalTabs = props.tabs.length;
 
   items.push({ label: 'tabs.contextMenu.close', action: 'close' });
@@ -125,9 +126,8 @@ const contextMenuItems = computed(() => {
 
 // +++ 组件卸载前移除全局监听器 +++
 onBeforeUnmount(() => {
-    document.removeEventListener('click', closeContextMenuOnClickOutside, { capture: true });
+  document.removeEventListener('click', closeContextMenuOnClickOutside, { capture: true });
 });
-
 </script>
 
 <template>
@@ -139,7 +139,12 @@ onBeforeUnmount(() => {
       class="tab-item"
       :class="{ active: tab.id === activeTabId }"
       @click="handleActivate(tab.id)"
-      @contextmenu.prevent="(event) => { console.log(`[FileTabs Template Debug] Context menu for tab.id: ${tab.id}`); showContextMenu(event, tab.id); }"
+      @contextmenu.prevent="
+        (event) => {
+          console.log(`[FileTabs Template Debug] Context menu for tab.id: ${tab.id}`);
+          showContextMenu(event, tab.id);
+        }
+      "
       :title="tab.filePath"
     >
       <span class="tab-filename">{{ tab.filename }}</span>
@@ -194,7 +199,6 @@ onBeforeUnmount(() => {
   background-color: #666;
 }
 
-
 .tab-item {
   display: flex;
   align-items: center;
@@ -234,9 +238,8 @@ onBeforeUnmount(() => {
   font-weight: normal;
 }
 .tab-item.active .modified-indicator {
-    color: #ffffff; /* 激活标签的修改指示器颜色 */
+  color: #ffffff; /* 激活标签的修改指示器颜色 */
 }
-
 
 .close-tab-btn {
   background: none;
@@ -248,12 +251,14 @@ onBeforeUnmount(() => {
   margin-left: 4px;
   border-radius: 3px;
   opacity: 0.6; /* 默认稍透明 */
-  transition: opacity 0.1s ease-in-out, background-color 0.1s ease-in-out;
+  transition:
+    opacity 0.1s ease-in-out,
+    background-color 0.1s ease-in-out;
 }
 
 .tab-item:hover .close-tab-btn,
 .tab-item.active .close-tab-btn {
-    opacity: 1; /* 悬停或激活时完全显示 */
+  opacity: 1; /* 悬停或激活时完全显示 */
 }
 
 .close-tab-btn:hover {
@@ -262,7 +267,7 @@ onBeforeUnmount(() => {
 }
 
 .no-tabs-placeholder {
-    flex-grow: 1; /* 占据剩余空间 */
-    /* 可以添加样式 */
+  flex-grow: 1; /* 占据剩余空间 */
+  /* 可以添加样式 */
 }
 </style>

@@ -34,7 +34,6 @@ const editingPathItem = ref<FavoritePathItem | null>(null);
 const modalContentRef = ref<HTMLElement | null>(null);
 const modalStyle = ref<Record<string, string>>({});
 
-
 const filteredPaths = computed(() => {
   if (!searchTerm.value) {
     return favoritePathsStore.favoritePaths;
@@ -53,8 +52,6 @@ const currentSortBy = computed(() => favoritePathsStore.currentSortBy);
 const sortButtonIcon = computed(() => {
   return currentSortBy.value === 'name' ? 'fas fa-sort-alpha-down' : 'fas fa-clock';
 });
-
-
 
 const toggleSort = () => {
   const newSortBy = currentSortBy.value === 'name' ? 'last_used_at' : 'name';
@@ -85,7 +82,7 @@ const openEditModal = (pathItem: FavoritePathItem) => {
 
 const handleDelete = async (pathItem: FavoritePathItem) => {
   const confirmed = await showConfirmDialog({
-    message: t('favoritePaths.confirmDelete', { name: pathItem.name || pathItem.path })
+    message: t('favoritePaths.confirmDelete', { name: pathItem.name || pathItem.path }),
   });
   if (confirmed) {
     try {
@@ -107,9 +104,11 @@ const handleSendToTerminal = (pathItem: FavoritePathItem) => {
       console.error('[FavoritePathsModal] Failed to send command to active terminal:', error);
     }
   } else {
-    console.warn('[FavoritePathsModal] No active session with a terminal manager found to send path to.');
+    console.warn(
+      '[FavoritePathsModal] No active session with a terminal manager found to send path to.'
+    );
   }
-  closeModal(); 
+  closeModal();
 };
 
 const closeModal = () => {
@@ -131,7 +130,7 @@ const updatePosition = () => {
     nextTick(updatePosition);
     return;
   }
-  
+
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
@@ -176,31 +175,35 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 
   if (modalContentRef.value && !modalContentRef.value.contains(event.target as Node)) {
-    if (!showAddEditModal.value) { 
+    if (!showAddEditModal.value) {
       closeModal();
     }
   }
 };
 
-watch(() => props.isVisible, (newValue: boolean) => {
-  if (newValue) {
-    searchTerm.value = '';
-    document.addEventListener('mousedown', handleClickOutside);
-    nextTick(() => { // Ensure DOM is ready for measurements
-      updatePosition(); // Calculate initial position
-      window.addEventListener('resize', updatePosition); // Adjust position on window resize
-    });
-  } else {
-    document.removeEventListener('mousedown', handleClickOutside);
-    window.removeEventListener('resize', updatePosition); // Clean up resize listener
+watch(
+  () => props.isVisible,
+  (newValue: boolean) => {
+    if (newValue) {
+      searchTerm.value = '';
+      document.addEventListener('mousedown', handleClickOutside);
+      nextTick(() => {
+        // Ensure DOM is ready for measurements
+        updatePosition(); // Calculate initial position
+        window.addEventListener('resize', updatePosition); // Adjust position on window resize
+      });
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', updatePosition); // Clean up resize listener
+    }
   }
-});
+);
 
 onMounted(() => {
   if (props.isVisible) {
-    searchTerm.value = ''; 
+    searchTerm.value = '';
     document.addEventListener('mousedown', handleClickOutside);
-    nextTick(() => { 
+    nextTick(() => {
       updatePosition();
       window.addEventListener('resize', updatePosition);
     });
@@ -211,7 +214,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleClickOutside);
   window.removeEventListener('resize', updatePosition); // Ensure resize listener is cleaned up
 });
-
 </script>
 
 <template>
@@ -251,13 +253,23 @@ onBeforeUnmount(() => {
 
       <!-- Path List -->
       <div class="overflow-y-auto flex-grow p-1 text-sm">
-        <div v-if="favoritePathsStore.isLoading && filteredPaths.length === 0" class="p-3 text-center text-text-secondary">
+        <div
+          v-if="favoritePathsStore.isLoading && filteredPaths.length === 0"
+          class="p-3 text-center text-text-secondary"
+        >
           <i class="fas fa-spinner fa-spin mr-1"></i>
           {{ t('favoritePaths.loading', 'Loading favorites...') }}
         </div>
-        <div v-else-if="!favoritePathsStore.isLoading && filteredPaths.length === 0" class="p-3 text-center text-text-secondary">
+        <div
+          v-else-if="!favoritePathsStore.isLoading && filteredPaths.length === 0"
+          class="p-3 text-center text-text-secondary"
+        >
           <i class="fas fa-star-half-alt mr-1"></i>
-          {{ searchTerm ? t('favoritePaths.noResults', 'No matching favorites found.') : t('favoritePaths.noFavorites', 'No favorite paths yet. Add one!') }}
+          {{
+            searchTerm
+              ? t('favoritePaths.noResults', 'No matching favorites found.')
+              : t('favoritePaths.noFavorites', 'No favorite paths yet. Add one!')
+          }}
         </div>
         <ul v-else-if="filteredPaths.length > 0" class="list-none m-0 p-0">
           <li
@@ -275,23 +287,28 @@ onBeforeUnmount(() => {
                 {{ favPath.path }}
               </p>
             </div>
-            <div class="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+            <div
+              class="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+            >
               <button
                 @click.stop="handleSendToTerminal(favPath)"
                 class="p-1.5 rounded text-text-secondary hover:text-primary hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                :title="t('favoritePaths.sendToTerminal', 'Send to Terminal')">
+                :title="t('favoritePaths.sendToTerminal', 'Send to Terminal')"
+              >
                 <i class="fas fa-terminal text-xs"></i>
               </button>
               <button
                 @click.stop="openEditModal(favPath)"
                 class="p-1.5 rounded text-text-secondary hover:text-primary hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                :title="t('common.edit')">
+                :title="t('common.edit')"
+              >
                 <i class="fas fa-pencil-alt text-xs"></i>
               </button>
               <button
                 @click.stop="handleDelete(favPath)"
                 class="p-1.5 rounded text-text-secondary hover:text-error hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-                :title="t('common.delete')">
+                :title="t('common.delete')"
+              >
                 <i class="fas fa-trash-alt text-xs"></i>
               </button>
             </div>
@@ -306,9 +323,12 @@ onBeforeUnmount(() => {
       :is-visible="showAddEditModal"
       :path-data="editingPathItem"
       @close="showAddEditModal = false"
-      @save-success="() => { favoritePathsStore.fetchFavoritePaths(t); showAddEditModal = false; }"
+      @save-success="
+        () => {
+          favoritePathsStore.fetchFavoritePaths(t);
+          showAddEditModal = false;
+        }
+      "
     />
-  </div> 
+  </div>
 </template>
-
-

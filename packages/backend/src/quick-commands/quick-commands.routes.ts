@@ -4,7 +4,6 @@ import { isAuthenticated } from '../auth/auth.middleware';
 
 const router = Router();
 
-
 router.use(isAuthenticated);
 
 // 定义路由

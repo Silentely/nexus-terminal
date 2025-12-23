@@ -1,6 +1,6 @@
 import { ref } from 'vue';
-import { useAuthStore } from '../../stores/auth.store';
 import { useI18n } from 'vue-i18n';
+import { useAuthStore } from '../../stores/auth.store';
 
 export function useChangePassword() {
   const authStore = useAuthStore();

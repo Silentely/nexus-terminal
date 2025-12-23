@@ -13,12 +13,7 @@ export interface UseFileManagerKeyboardNavigationOptions {
 }
 
 export function useFileManagerKeyboardNavigation(options: UseFileManagerKeyboardNavigationOptions) {
-  const {
-    filteredFileList,
-    currentPath,
-    fileListContainerRef,
-    onEnterPress,
-  } = options;
+  const { filteredFileList, currentPath, fileListContainerRef, onEnterPress } = options;
 
   // --- 状态 Refs ---
   const selectedIndex = ref<number>(-1); // 键盘选中索引 (-1 表示未选中, 0 代表 '..', 1+ 代表 filteredList 的 index + 1)
@@ -42,11 +37,11 @@ export function useFileManagerKeyboardNavigation(options: UseFileManagerKeyboard
     const selectedRow = rows[selectedIndex.value] as HTMLElement;
 
     if (selectedRow) {
-        // 使用 scrollIntoView 使元素可见，滚动最小距离
-        selectedRow.scrollIntoView({
-            behavior: 'smooth', // 可以使用 'auto' 来实现即时滚动
-            block: 'nearest',
-        });
+      // 使用 scrollIntoView 使元素可见，滚动最小距离
+      selectedRow.scrollIntoView({
+        behavior: 'smooth', // 可以使用 'auto' 来实现即时滚动
+        block: 'nearest',
+      });
     }
   };
 
@@ -57,32 +52,49 @@ export function useFileManagerKeyboardNavigation(options: UseFileManagerKeyboard
     let currentEffectiveIndex = selectedIndex.value;
 
     switch (event.key) {
-        case 'ArrowDown':
-            event.preventDefault();
-            currentEffectiveIndex = (currentEffectiveIndex + 1) % totalItems.value;
-            selectedIndex.value = currentEffectiveIndex;
-            scrollToSelected();
-            break;
-        case 'ArrowUp':
-            event.preventDefault();
-            currentEffectiveIndex = (currentEffectiveIndex - 1 + totalItems.value) % totalItems.value;
-            selectedIndex.value = currentEffectiveIndex;
-            scrollToSelected();
-            break;
-        case 'Enter':
-            event.preventDefault();
-            if (selectedIndex.value === 0 && hasParentLink.value) {
-                // 选中 '..'
-                // 创建一个临时的 '..' FileListItem 对象传递给回调
-                onEnterPress({ filename: '..', longname: '..', attrs: { isDirectory: true, isFile: false, isSymbolicLink: false, size: 0, uid: 0, gid: 0, mode: 0, atime: 0, mtime: 0 } });
-            } else if (selectedIndex.value > 0) {
-                // 选中列表中的项
-                const itemIndexInFilteredList = selectedIndex.value - (hasParentLink.value ? 1 : 0);
-                if (itemIndexInFilteredList >= 0 && itemIndexInFilteredList < filteredFileList.value.length) {
-                    onEnterPress(filteredFileList.value[itemIndexInFilteredList]);
-                }
-            }
-            break;
+      case 'ArrowDown':
+        event.preventDefault();
+        currentEffectiveIndex = (currentEffectiveIndex + 1) % totalItems.value;
+        selectedIndex.value = currentEffectiveIndex;
+        scrollToSelected();
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        currentEffectiveIndex = (currentEffectiveIndex - 1 + totalItems.value) % totalItems.value;
+        selectedIndex.value = currentEffectiveIndex;
+        scrollToSelected();
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (selectedIndex.value === 0 && hasParentLink.value) {
+          // 选中 '..'
+          // 创建一个临时的 '..' FileListItem 对象传递给回调
+          onEnterPress({
+            filename: '..',
+            longname: '..',
+            attrs: {
+              isDirectory: true,
+              isFile: false,
+              isSymbolicLink: false,
+              size: 0,
+              uid: 0,
+              gid: 0,
+              mode: 0,
+              atime: 0,
+              mtime: 0,
+            },
+          });
+        } else if (selectedIndex.value > 0) {
+          // 选中列表中的项
+          const itemIndexInFilteredList = selectedIndex.value - (hasParentLink.value ? 1 : 0);
+          if (
+            itemIndexInFilteredList >= 0 &&
+            itemIndexInFilteredList < filteredFileList.value.length
+          ) {
+            onEnterPress(filteredFileList.value[itemIndexInFilteredList]);
+          }
+        }
+        break;
     }
   };
 

@@ -45,9 +45,12 @@ export function useAboutSection() {
     versionCheckError.value = null;
     latestVersion.value = null; // Reset before check
     try {
-      const response = await axios.get('https://api.github.com/repos/Silentely/nexus-terminal/releases/latest', {
-        // 移除 headers 以尝试解决潜在的CORS或请求问题，GitHub API 通常不需要特定 headers 进行公共读取
-      });
+      const response = await axios.get(
+        'https://api.github.com/repos/Silentely/nexus-terminal/releases/latest',
+        {
+          // 移除 headers 以尝试解决潜在的CORS或请求问题，GitHub API 通常不需要特定 headers 进行公共读取
+        }
+      );
       if (response.data && response.data.tag_name) {
         latestVersion.value = response.data.tag_name;
       } else {
@@ -61,14 +64,23 @@ export function useAboutSection() {
           versionCheckError.value = t('settings.about.error.noReleases', '没有找到发布版本。');
         } else if (error.response?.status === 403) {
           console.error('GitHub API 访问频率受限:', error);
-          versionCheckError.value = t('settings.about.error.rateLimit', 'API 访问频率受限，请稍后再试。');
+          versionCheckError.value = t(
+            'settings.about.error.rateLimit',
+            'API 访问频率受限，请稍后再试。'
+          );
         } else {
           console.error('检查最新版本失败:', error);
-          versionCheckError.value = t('settings.about.error.checkFailed', '检查更新失败，请检查网络连接或稍后再试。');
+          versionCheckError.value = t(
+            'settings.about.error.checkFailed',
+            '检查更新失败，请检查网络连接或稍后再试。'
+          );
         }
       } else {
         console.error('检查最新版本失败:', error);
-        versionCheckError.value = t('settings.about.error.checkFailed', '检查更新失败，请检查网络连接或稍后再试。');
+        versionCheckError.value = t(
+          'settings.about.error.checkFailed',
+          '检查更新失败，请检查网络连接或稍后再试。'
+        );
       }
     } finally {
       isCheckingVersion.value = false;

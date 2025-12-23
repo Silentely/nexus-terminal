@@ -1,5 +1,4 @@
-![banner.png](https://lsky.tuyu.me/i/2025/04/30/681209e053db7.png)
----
+## ![banner.png](https://lsky.tuyu.me/i/2025/04/30/681209e053db7.png)
 
 <div align="center">
 
@@ -11,52 +10,46 @@
 
 </div>
 
-
 ## 📖 概述
 
 **星枢终端（Nexus Terminal）** 是一款现代化、功能丰富的 Web SSH / RDP / VNC 客户端，致力于提供高度可定制的远程连接体验。提供独立的本地桌面端。
 
 ## ✨ 功能特性
 
-*   多标签页管理 SSH 与 SFTP 连接
-*   支持 RDP/VNC 协议
-*   支持 PWA
-*   采用 Monaco Editor，支持在线编辑文件
-*   集成多重登录安全机制，包括人机验证（hCaptcha、Google reCAPTCHA）与双因素认证（2FA）
-*   高度可定制的界面主题与布局风格
-*   内置简易 Docker 容器管理面板，便于容器运维
-*   支持 IP 白名单与黑名单，异常访问自动封禁
-*   通知系统（如登录提醒、异常告警）
-*   审计日志，全面记录用户行为与系统变更
-*   基于 Node.js 的轻量级后端，资源占用低
-*   内置心跳保活机制，确保连接稳定
-*   **批量命令执行**：支持多服务器同时执行命令，实时显示执行进度与结果
-*   **AI 智能助手**：内置 AI 运维分析，提供系统健康诊断、命令模式分析、安全事件检测
+- 多标签页管理 SSH 与 SFTP 连接
+- 支持 RDP/VNC 协议
+- 支持 PWA
+- 采用 Monaco Editor，支持在线编辑文件
+- 集成多重登录安全机制，包括人机验证（hCaptcha、Google reCAPTCHA）与双因素认证（2FA）
+- 高度可定制的界面主题与布局风格
+- 内置简易 Docker 容器管理面板，便于容器运维
+- 支持 IP 白名单与黑名单，异常访问自动封禁
+- 通知系统（如登录提醒、异常告警）
+- 审计日志，全面记录用户行为与系统变更
+- 基于 Node.js 的轻量级后端，资源占用低
+- 内置心跳保活机制，确保连接稳定
+- **批量命令执行**：支持多服务器同时执行命令，实时显示执行进度与结果
+- **AI 智能助手**：内置 AI 运维分析，提供系统健康诊断、命令模式分析、安全事件检测
 
 ## 📸 截图
 
-
-
-
-
-|                            终端界面（Light）                            |
-|:-------------------------------------------------------------:|
+|                              终端界面（Light）                              |
+| :-------------------------------------------------------------------------: |
 | ![workspace_light.png](https://lsky.tuyu.me/i/2025/04/30/68120a8dd0489.png) |
 
 ---
 
-|                            终端界面（Dark）                            |
-|:-------------------------------------------------------------:|
+|                               终端界面（Dark）                               |
+| :--------------------------------------------------------------------------: |
 | ![workspace_darker.png](https://lsky.tuyu.me/i/2025/04/30/68120aa275a76.png) |
 
 ---
 
-|                            移动端界面1                            |                            移动端界面2                            |
-|:-------------------------------------------------------------:|:-------------------------------------------------------------:|
-| ![1746339196937.png](https://lsky.tuyu.me/i/2025/05/04/6817056948ac2.png) |![1746339222136.png](https://lsky.tuyu.me/i/2025/05/04/681705820fe01.png) |
+|                                移动端界面1                                |                                移动端界面2                                |
+| :-----------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
+| ![1746339196937.png](https://lsky.tuyu.me/i/2025/05/04/6817056948ac2.png) | ![1746339222136.png](https://lsky.tuyu.me/i/2025/05/04/681705820fe01.png) |
 
 ---
-
 
 ## 🖥️ 桌面端
 
@@ -71,24 +64,24 @@ https://github.com/Silentely/nexus-terminal/releases/latest
 > 建议在 Debian（AMD64 架构）环境中部署，因本人无 ARM 设备，无法保证其兼容性。
 
 新建文件夹
+
 ```bash
 mkdir ./nexus-terminal && cd ./nexus-terminal
 ```
 
-
 下载仓库中的 [**docker-compose.yml**](https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/docker-compose.yml) 和 [**.env**](https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/.env) 文件到当前目录。
+
 ```bash
 wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/docker-compose.yml -O docker-compose.yml && wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/.env -O .env
 ```
+
 > ⚠️ **注意：**
 >
-> * **arm64 用户**请将 `docker-compose.yml` 中的镜像 `guacamole/guacd:latest` 替换为 `guacamole/guacd:1.6.0-RC1`。
-> * **armv7 用户**请参考下方注意事项。
-
-
-
+> - **arm64 用户**请将 `docker-compose.yml` 中的镜像 `guacamole/guacd:latest` 替换为 `guacamole/guacd:1.6.0-RC1`。
+> - **armv7 用户**请参考下方注意事项。
 
 配置 nginx
+
 ```conf
 location / {
     proxy_http_version 1.1;
@@ -105,11 +98,10 @@ location / {
 }
 ```
 
-
-
 为 docker 配置IPv6（可选，如果你不使用ipv6连接服务器可以不配置）
 
 在`/etc/docker/daemon.json`加入以下内容
+
 ```json
 {
   "ipv6": true,
@@ -118,7 +110,9 @@ location / {
   "experimental": true
 }
 ```
+
 重启docker服务
+
 ```
 sudo systemctl restart docker
 ```
@@ -130,26 +124,31 @@ docker compose up -d
 ```
 
 ### 3️⃣ 更新
+
 注意：docker-compose 运行不需要拉取仓库源码，除非你打算自己build，否则只需要在项目目录执行以下命令即可更新。
+
 ```bash
 docker compose down
 ```
+
 ```bash
 docker compose pull
 ```
+
 ```bash
 docker compose up -d
 ```
+
 ## 📚 使用指南
 
 ### 挂起会话组件
+
 你可以在 SSH 标签页中右键选择“挂起会话”（移动界面长按即可）。一旦挂起，即使网页断开连接，后端也会自动接管并保持 SSH 连接不中断。你可以随时通过面板组件重新恢复会话，整个过程确保编译、长任务等操作不会因网络波动等原因中断。
 
 ### 命令输入框组件
 
 1.  **标签页切换**：当命令输入框获得焦点时，使用 `Alt + ↑/↓` 切换 SSH 会话标签页，使用 `Alt + ←/→` 切换文本编辑器标签页。
 2.  **命令同步**（需在设置中开启）：开启后，在命令输入框中输入的文字将实时同步到选定的目标输入源。使用 `↑/↓` 键选择菜单命令项，然后按下 `Enter` 发送选中的指令。
-
 
 ### 文件管理器组件
 
@@ -160,8 +159,8 @@ docker compose up -d
 5.  **右键菜单**：提供复制、粘贴、剪切、删除、重命名、修改权限等常用文件操作。
 
 ### 终端组件
-1.  Ctrl + Shift + C 复制，Ctrl + Shift + V 粘贴
 
+1.  Ctrl + Shift + C 复制，Ctrl + Shift + V 粘贴
 
 ### 历史命令组件
 
@@ -192,9 +191,9 @@ docker compose up -d
 4. **智能洞察**：AI 会自动生成可操作的建议，并按严重程度分类显示
 
 ### 其他
+
 1. **移动端可以通过双指手势放大缩小终端字体**
 2. 如需启用 Passkey 登录，请在 `.env` 文件中设置 `RP_ID` 和 `RP_ORIGIN` 环境变量。
-
 
 ## 🔧 高级配置
 
@@ -203,6 +202,7 @@ docker compose up -d
 如果你需要配置额外的允许域名访问远程桌面网关（Remote Gateway），请参考 [CORS 配置文档](./doc/CORS_CONFIG.md)。
 
 **常见场景**：
+
 - 自定义域名访问
 - 多域名支持
 - 开发环境配置
@@ -220,19 +220,17 @@ remote-gateway:
 
 详细说明请查看 [**CORS 配置完整文档**](./doc/CORS_CONFIG.md)。
 
-
 ## ⚠️ 注意事项
 
 1.  **双文件管理器**：可以在布局中添加两个文件管理器组件（实验性功能，可能存在不稳定情况）。
 2.  **多文本编辑器**：在同一布局中添加多个文本编辑器的功能尚未实现。
-3. ARMv7 用户请使用此处的 [docker-compose.yml](https://github.com/Silentely/nexus-terminal/blob/main/doc/arm/docker-compose.yml)。由于 Apache Guacamole 未提供 guacd 的 ARMv7 架构镜像，所以禁用 RDP 功能，相关镜像暂时不再拉取。
-4. 关于数据备份，请自行备份目录下的 data 文件夹，本项目不提供相关备份功能。
-5. 由于浏览器限制，非https或者localhost无法复制终端内容，请使用https访问
-
+3.  ARMv7 用户请使用此处的 [docker-compose.yml](https://github.com/Silentely/nexus-terminal/blob/main/doc/arm/docker-compose.yml)。由于 Apache Guacamole 未提供 guacd 的 ARMv7 架构镜像，所以禁用 RDP 功能，相关镜像暂时不再拉取。
+4.  关于数据备份，请自行备份目录下的 data 文件夹，本项目不提供相关备份功能。
+5.  由于浏览器限制，非https或者localhost无法复制终端内容，请使用https访问
 
 ## 💐 致谢
 
-*   预设主题方案来源于优秀的 [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) 项目。
+- 预设主题方案来源于优秀的 [iTerm2-Color-Schemes](https://github.com/mbadolato/iTerm2-Color-Schemes) 项目。
 
 ## ☕ 捐赠
 
@@ -240,8 +238,6 @@ remote-gateway:
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/W7W01GGLJU)
 
-
 ## 📄 开源协议
 
 本项目采用 [GPL-3.0](LICENSE) 开源协议，详细信息请参阅 [LICENSE](LICENSE) 文件。
-

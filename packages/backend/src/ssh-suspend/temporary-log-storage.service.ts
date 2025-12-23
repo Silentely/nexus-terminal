@@ -51,7 +51,9 @@ export class TemporaryLogStorageService {
 
       if (stat && stat.size >= MAX_LOG_SIZE_BYTES) {
         // 文件过大，执行轮替策略：清空文件
-        console.log(`日志文件 '${filePath}' 大小达到 ${MAX_LOG_SIZE_BYTES / (1024 * 1024)}MB，执行轮替（清空）。`);
+        console.log(
+          `日志文件 '${filePath}' 大小达到 ${MAX_LOG_SIZE_BYTES / (1024 * 1024)}MB，执行轮替（清空）。`
+        );
         await fs.writeFile(filePath, data, 'utf8'); // 清空并写入新数据
       } else {
         await fs.appendFile(filePath, data, 'utf8');
@@ -111,8 +113,8 @@ export class TemporaryLogStorageService {
       await this.ensureLogDirectoryExists();
       const files = await fs.readdir(LOG_DIRECTORY);
       return files
-        .filter(file => file.endsWith('.log'))
-        .map(file => file.replace(/\.log$/, ''));
+        .filter((file) => file.endsWith('.log'))
+        .map((file) => file.replace(/\.log$/, ''));
     } catch (error) {
       console.error(`列出日志目录 '${LOG_DIRECTORY}' 中的文件失败:`, error);
       return []; // 发生错误时返回空数组

@@ -10,12 +10,11 @@ import { useSettingsStore } from '../stores/settings.store';
 import { useSessionStore } from '../stores/session.store';
 import { useAppearanceStore } from '../stores/appearance.store';
 
-
 const { t } = useI18n();
 const fileEditorStore = useFileEditorStore();
 const settingsStore = useSettingsStore();
 const sessionStore = useSessionStore();
-const appearanceStore = useAppearanceStore(); 
+const appearanceStore = useAppearanceStore();
 
 // --- 本地状态控制弹窗显示 ---
 const isVisible = ref(false);
@@ -28,10 +27,10 @@ const props = defineProps<{
 // --- 从 Store 获取状态 ---
 // 全局 Store (用于共享模式和触发器)
 const {
-    popupTrigger,
-    popupFileInfo, // 包含 sessionId 和 filePath
-    activeTabId: globalActiveTabIdRef, // 获取全局 activeTabId
-    // tabs: globalTabsRef, // 不再使用 storeToRefs 获取 tabs
+  popupTrigger,
+  popupFileInfo, // 包含 sessionId 和 filePath
+  activeTabId: globalActiveTabIdRef, // 获取全局 activeTabId
+  // tabs: globalTabsRef, // 不再使用 storeToRefs 获取 tabs
 } = storeToRefs(fileEditorStore);
 
 // 设置 Store (用于判断模式)
@@ -43,30 +42,30 @@ const { currentEditorFontSize, currentEditorFontFamily } = storeToRefs(appearanc
 // --- 从 Store 获取方法 ---
 // 全局 Store Actions (用于共享模式)
 const {
-   saveFile: saveGlobalFile,
-   closeTab: closeGlobalTab,
-   setActiveTab: setGlobalActiveTab,
-   updateFileContent: updateGlobalFileContent,
-   // + 添加右键菜单操作 actions
-   closeOtherTabs, // 修正：移除 Global 后缀
-   closeTabsToTheRight, // 修正：移除 Global 后缀
-   closeTabsToTheLeft, // 修正：移除 Global 后缀
-   changeEncoding: changeGlobalEncoding, // +++ 全局编码更改 action +++
-   updateTabScrollPosition, // 全局滚动位置更新 action
+  saveFile: saveGlobalFile,
+  closeTab: closeGlobalTab,
+  setActiveTab: setGlobalActiveTab,
+  updateFileContent: updateGlobalFileContent,
+  // + 添加右键菜单操作 actions
+  closeOtherTabs, // 修正：移除 Global 后缀
+  closeTabsToTheRight, // 修正：移除 Global 后缀
+  closeTabsToTheLeft, // 修正：移除 Global 后缀
+  changeEncoding: changeGlobalEncoding, // +++ 全局编码更改 action +++
+  updateTabScrollPosition, // 全局滚动位置更新 action
 } = fileEditorStore;
 
 // 会话 Store Actions (用于非共享模式)
 const {
-   saveFileInSession,
-   closeEditorTabInSession,
-   setActiveEditorTabInSession,
-   updateFileContentInSession,
-   // + 添加右键菜单操作 actions
-   closeOtherTabsInSession,
-   closeTabsToTheRightInSession,
-   closeTabsToTheLeftInSession,
-   changeEncodingInSession, // +++ 会话编码更改 action +++
-   updateTabScrollPositionInSession, // 会话滚动位置更新 action
+  saveFileInSession,
+  closeEditorTabInSession,
+  setActiveEditorTabInSession,
+  updateFileContentInSession,
+  // + 添加右键菜单操作 actions
+  closeOtherTabsInSession,
+  closeTabsToTheRightInSession,
+  closeTabsToTheLeftInSession,
+  changeEncodingInSession, // +++ 会话编码更改 action +++
+  updateTabScrollPositionInSession, // 会话滚动位置更新 action
 } = sessionStore;
 
 // --- 移除本地文件状态 ---
@@ -98,27 +97,28 @@ const codeMirrorMobileEditorRef = ref<InstanceType<typeof CodeMirrorMobileEditor
 
 // --- 计算属性，用于模板绑定 ---
 const popupStyle = computed(() => {
-    if (props.isMobile) {
-        return {
-            width: '100vw',
-            height: '100vh',
-            maxWidth: '100%',
-            maxHeight: '100%',
-            borderRadius: '0',
-        };
-    } else {
-        return {
-            width: `${popupWidthPx.value}px`,
-            height: `${popupHeightPx.value}px`,
-        };
-    }
+  if (props.isMobile) {
+    return {
+      width: '100vw',
+      height: '100vh',
+      maxWidth: '100%',
+      maxHeight: '100%',
+      borderRadius: '0',
+    };
+  } else {
+    return {
+      width: `${popupWidthPx.value}px`,
+      height: `${popupHeightPx.value}px`,
+    };
+  }
 });
 
 // --- 动态计算属性 (根据模式选择数据源) ---
 
 // +++ Function to calculate and set the select width (copied from FileEditorContainer) +++
 const updateSelectWidth = () => {
-  nextTick(() => { // Ensure DOM is updated before measuring
+  nextTick(() => {
+    // Ensure DOM is updated before measuring
     if (!encodingSelectRef.value) return;
 
     const selectElement = encodingSelectRef.value;
@@ -156,67 +156,66 @@ const updateSelectWidth = () => {
 
 // 获取当前弹窗关联的会话 (仅非共享模式需要)
 const currentSession = computed(() => {
-    if (shareFileEditorTabsBoolean.value || !popupFileInfo.value?.sessionId) {
-        return null;
-    }
-    return sessionStore.sessions.get(popupFileInfo.value.sessionId) ?? null;
+  if (shareFileEditorTabsBoolean.value || !popupFileInfo.value?.sessionId) {
+    return null;
+  }
+  return sessionStore.sessions.get(popupFileInfo.value.sessionId) ?? null;
 });
 
 // 获取当前模式下的标签页列表
 const orderedTabs = computed(() => {
-    // 直接访问 store.tabs
-    if (shareFileEditorTabsBoolean.value) {
-        return Array.from(fileEditorStore.tabs.values()); // 直接访问 store
-    } else {
-        // 非共享模式保持不变，因为它依赖 sessionStore
-        return currentSession.value?.editorTabs.value ?? [];
-    }
+  // 直接访问 store.tabs
+  if (shareFileEditorTabsBoolean.value) {
+    return Array.from(fileEditorStore.tabs.values()); // 直接访问 store
+  } else {
+    // 非共享模式保持不变，因为它依赖 sessionStore
+    return currentSession.value?.editorTabs.value ?? [];
+  }
 });
 
 // 获取当前模式下的活动标签页 ID
 const activeTabId = computed(() => {
-    if (shareFileEditorTabsBoolean.value) {
-        return globalActiveTabIdRef.value; // 全局 Store
-    } else {
-        return currentSession.value?.activeEditorTabId.value ?? null; // 会话 Store
-    }
+  if (shareFileEditorTabsBoolean.value) {
+    return globalActiveTabIdRef.value; // 全局 Store
+  } else {
+    return currentSession.value?.activeEditorTabId.value ?? null; // 会话 Store
+  }
 });
 
 // 获取当前模式下的活动标签页对象
 const activeTab = computed((): FileTab | null => {
-    const currentId = activeTabId.value;
-    if (!currentId) return null;
+  const currentId = activeTabId.value;
+  if (!currentId) return null;
 
-    // 直接访问 store.tabs
-    if (shareFileEditorTabsBoolean.value) {
-        return fileEditorStore.tabs.get(currentId) ?? null; // 直接访问 store
-    } else {
-        // 非共享模式保持不变
-        return currentSession.value?.editorTabs.value.find(tab => tab.id === currentId) ?? null;
-    }
+  // 直接访问 store.tabs
+  if (shareFileEditorTabsBoolean.value) {
+    return fileEditorStore.tabs.get(currentId) ?? null; // 直接访问 store
+  } else {
+    // 非共享模式保持不变
+    return currentSession.value?.editorTabs.value.find((tab) => tab.id === currentId) ?? null;
+  }
 });
 
 // Monaco 编辑器内容绑定 (根据模式调用不同 action)
 const activeEditorContent = computed({
-    get: () => activeTab.value?.content ?? '',
-    set: (value) => {
-        const currentActiveTab = activeTab.value; // 缓存当前活动标签
-        if (!currentActiveTab) return;
+  get: () => activeTab.value?.content ?? '',
+  set: (value) => {
+    const currentActiveTab = activeTab.value; // 缓存当前活动标签
+    if (!currentActiveTab) return;
 
-        if (shareFileEditorTabsBoolean.value) {
-            updateGlobalFileContent(currentActiveTab.id, value); // 全局 Store
-        } else {
-            // 非共享模式需要 sessionId
-            const sessionId = popupFileInfo.value?.sessionId;
-            if (sessionId) {
-                updateFileContentInSession(sessionId, currentActiveTab.id, value); // 会话 Store
-            } else {
-                console.error("[FileEditorOverlay] 无法更新内容：非共享模式下缺少 sessionId。");
-            }
-        }
-    },
+    if (shareFileEditorTabsBoolean.value) {
+      updateGlobalFileContent(currentActiveTab.id, value); // 全局 Store
+    } else {
+      // 非共享模式需要 sessionId
+      const sessionId = popupFileInfo.value?.sessionId;
+      if (sessionId) {
+        updateFileContentInSession(sessionId, currentActiveTab.id, value); // 会话 Store
+      } else {
+        console.error('[FileEditorOverlay] 无法更新内容：非共享模式下缺少 sessionId。');
+      }
+    }
+  },
 });
-
 
 // --- 从 activeTab 派生的计算属性 (保持不变，因为 activeTab 已动态化) ---
 const currentTabIsLoading = computed(() => activeTab.value?.isLoading ?? false);
@@ -292,90 +291,90 @@ const encodingOptions = ref([
 
 // 保存当前激活的标签页
 const handleSaveRequest = () => {
-    const currentActiveTab = activeTab.value;
-    if (!currentActiveTab) return;
+  const currentActiveTab = activeTab.value;
+  if (!currentActiveTab) return;
 
-    if (shareFileEditorTabsBoolean.value) {
-        saveGlobalFile(currentActiveTab.id); // 全局 Store
+  if (shareFileEditorTabsBoolean.value) {
+    saveGlobalFile(currentActiveTab.id); // 全局 Store
+  } else {
+    const sessionId = popupFileInfo.value?.sessionId;
+    if (sessionId) {
+      saveFileInSession(sessionId, currentActiveTab.id); // 会话 Store
     } else {
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            saveFileInSession(sessionId, currentActiveTab.id); // 会话 Store
-        } else {
-             console.error("[FileEditorOverlay] 无法保存：非共享模式下缺少 sessionId。");
-        }
+      console.error('[FileEditorOverlay] 无法保存：非共享模式下缺少 sessionId。');
     }
+  }
 };
 
 // 激活标签页
 const handleActivateTab = (tabId: string) => {
-    if (shareFileEditorTabsBoolean.value) {
-        setGlobalActiveTab(tabId); // 全局 Store
+  if (shareFileEditorTabsBoolean.value) {
+    setGlobalActiveTab(tabId); // 全局 Store
+  } else {
+    const sessionId = popupFileInfo.value?.sessionId;
+    if (sessionId) {
+      setActiveEditorTabInSession(sessionId, tabId); // 会话 Store
     } else {
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            setActiveEditorTabInSession(sessionId, tabId); // 会话 Store
-        } else {
-             console.error("[FileEditorOverlay] 无法激活标签页：非共享模式下缺少 sessionId。");
-        }
+      console.error('[FileEditorOverlay] 无法激活标签页：非共享模式下缺少 sessionId。');
     }
+  }
 };
 
 // 关闭标签页
 const handleCloseTab = (tabId: string) => {
-     if (shareFileEditorTabsBoolean.value) {
-        closeGlobalTab(tabId); // 全局 Store
+  if (shareFileEditorTabsBoolean.value) {
+    closeGlobalTab(tabId); // 全局 Store
+  } else {
+    const sessionId = popupFileInfo.value?.sessionId;
+    if (sessionId) {
+      closeEditorTabInSession(sessionId, tabId); // 会话 Store
     } else {
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            closeEditorTabInSession(sessionId, tabId); // 会话 Store
-        } else {
-             console.error("[FileEditorOverlay] 无法关闭标签页：非共享模式下缺少 sessionId。");
-        }
+      console.error('[FileEditorOverlay] 无法关闭标签页：非共享模式下缺少 sessionId。');
     }
+  }
 };
 
 // +++ 处理右键菜单事件 +++
 const handleCloseOtherTabs = (targetTabId: string) => {
-    console.log(`[FileEditorOverlay] handleCloseOtherTabs called for target: ${targetTabId}`); // Add log
-    if (shareFileEditorTabsBoolean.value) {
-        closeOtherTabs(targetTabId); 
+  console.log(`[FileEditorOverlay] handleCloseOtherTabs called for target: ${targetTabId}`); // Add log
+  if (shareFileEditorTabsBoolean.value) {
+    closeOtherTabs(targetTabId);
+  } else {
+    const sessionId = popupFileInfo.value?.sessionId;
+    if (sessionId) {
+      closeOtherTabsInSession(sessionId, targetTabId); // 会话 Store
     } else {
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            closeOtherTabsInSession(sessionId, targetTabId); // 会话 Store
-        } else {
-            console.error("[FileEditorOverlay] 无法关闭其他标签页：非共享模式下缺少 sessionId。");
-        }
+      console.error('[FileEditorOverlay] 无法关闭其他标签页：非共享模式下缺少 sessionId。');
     }
+  }
 };
 
 const handleCloseRightTabs = (targetTabId: string) => {
-    console.log(`[FileEditorOverlay] handleCloseRightTabs called for target: ${targetTabId}`); // Add log
-    if (shareFileEditorTabsBoolean.value) {
-        closeTabsToTheRight(targetTabId); 
+  console.log(`[FileEditorOverlay] handleCloseRightTabs called for target: ${targetTabId}`); // Add log
+  if (shareFileEditorTabsBoolean.value) {
+    closeTabsToTheRight(targetTabId);
+  } else {
+    const sessionId = popupFileInfo.value?.sessionId;
+    if (sessionId) {
+      closeTabsToTheRightInSession(sessionId, targetTabId); // 会话 Store
     } else {
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            closeTabsToTheRightInSession(sessionId, targetTabId); // 会话 Store
-        } else {
-            console.error("[FileEditorOverlay] 无法关闭右侧标签页：非共享模式下缺少 sessionId。");
-        }
+      console.error('[FileEditorOverlay] 无法关闭右侧标签页：非共享模式下缺少 sessionId。');
     }
+  }
 };
 
 const handleCloseLeftTabs = (targetTabId: string) => {
-    console.log(`[FileEditorOverlay] handleCloseLeftTabs called for target: ${targetTabId}`); // Add log
-    if (shareFileEditorTabsBoolean.value) {
-        closeTabsToTheLeft(targetTabId); // 修正：调用正确的 action 名称
+  console.log(`[FileEditorOverlay] handleCloseLeftTabs called for target: ${targetTabId}`); // Add log
+  if (shareFileEditorTabsBoolean.value) {
+    closeTabsToTheLeft(targetTabId); // 修正：调用正确的 action 名称
+  } else {
+    const sessionId = popupFileInfo.value?.sessionId;
+    if (sessionId) {
+      closeTabsToTheLeftInSession(sessionId, targetTabId); // 会话 Store
     } else {
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            closeTabsToTheLeftInSession(sessionId, targetTabId); // 会话 Store
-        } else {
-            console.error("[FileEditorOverlay] 无法关闭左侧标签页：非共享模式下缺少 sessionId。");
-        }
+      console.error('[FileEditorOverlay] 无法关闭左侧标签页：非共享模式下缺少 sessionId。');
     }
+  }
 };
 
 // +++ 处理编码更改事件 +++
@@ -385,43 +384,51 @@ const handleEncodingChange = (event: Event) => {
   const currentActiveTab = activeTab.value;
 
   if (currentActiveTab && newEncoding && newEncoding !== currentSelectedEncoding.value) {
-    console.log(`[EditorOverlay] Encoding changed to ${newEncoding} for tab ${currentActiveTab.id}`);
+    console.log(
+      `[EditorOverlay] Encoding changed to ${newEncoding} for tab ${currentActiveTab.id}`
+    );
     if (shareFileEditorTabsBoolean.value) {
-        changeGlobalEncoding(currentActiveTab.id, newEncoding); // 全局 Store
+      changeGlobalEncoding(currentActiveTab.id, newEncoding); // 全局 Store
     } else {
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            changeEncodingInSession(sessionId, currentActiveTab.id, newEncoding); // 会话 Store
-        } else {
-             console.error("[FileEditorOverlay] 无法更改编码：非共享模式下缺少 sessionId。");
-        }
+      const sessionId = popupFileInfo.value?.sessionId;
+      if (sessionId) {
+        changeEncodingInSession(sessionId, currentActiveTab.id, newEncoding); // 会话 Store
+      } else {
+        console.error('[FileEditorOverlay] 无法更改编码：非共享模式下缺少 sessionId。');
+      }
     }
   }
 };
 
 // +++ 处理编辑器滚动事件 +++
-const handleEditorScroll = ({ scrollTop, scrollLeft }: { scrollTop: number; scrollLeft: number }) => {
-    const currentActiveTab = activeTab.value;
-    if (!currentActiveTab) return;
+const handleEditorScroll = ({
+  scrollTop,
+  scrollLeft,
+}: {
+  scrollTop: number;
+  scrollLeft: number;
+}) => {
+  const currentActiveTab = activeTab.value;
+  if (!currentActiveTab) return;
 
-    if (shareFileEditorTabsBoolean.value) {
-        // 全局 Store
-        updateTabScrollPosition(currentActiveTab.id, scrollTop, scrollLeft);
+  if (shareFileEditorTabsBoolean.value) {
+    // 全局 Store
+    updateTabScrollPosition(currentActiveTab.id, scrollTop, scrollLeft);
+  } else {
+    // 非共享模式需要 sessionId
+    const sessionId = popupFileInfo.value?.sessionId;
+    if (sessionId) {
+      // 会话 Store
+      updateTabScrollPositionInSession(sessionId, currentActiveTab.id, scrollTop, scrollLeft);
     } else {
-        // 非共享模式需要 sessionId
-        const sessionId = popupFileInfo.value?.sessionId;
-        if (sessionId) {
-            // 会话 Store
-            updateTabScrollPositionInSession(sessionId, currentActiveTab.id, scrollTop, scrollLeft);
-        } else {
-            console.error("[FileEditorOverlay] 无法更新滚动位置：非共享模式下缺少 sessionId。");
-        }
+      console.error('[FileEditorOverlay] 无法更新滚动位置：非共享模式下缺少 sessionId。');
     }
+  }
 };
 
 // +++ 处理编辑器字体大小更新事件 +++
 const handleEditorFontSizeUpdate = (newSize: number) => {
-    appearanceStore.setEditorFontSize(newSize);
+  appearanceStore.setEditorFontSize(newSize);
 };
 
 // +++ 打开搜索面板 +++
@@ -430,83 +437,84 @@ const handleOpenSearch = () => {
     codeMirrorMobileEditorRef.value.openSearch();
   }
 };
- 
+
 // 关闭弹窗 (保持不变)
 const handleCloseContainer = () => {
-    isVisible.value = false;
+  isVisible.value = false;
 };
-
 
 // --- 拖拽调整大小逻辑 ---
 const startResize = (event: MouseEvent) => {
-    isResizing.value = true;
-    startX.value = event.clientX;
-    startY.value = event.clientY;
-    startWidthPx.value = popupWidthPx.value;
-    startHeightPx.value = popupHeightPx.value;
-    document.addEventListener('mousemove', handleResize);
-    document.addEventListener('mouseup', stopResize);
-    document.body.style.cursor = 'nwse-resize'; // 设置拖拽光标
-    document.body.style.userSelect = 'none'; // 禁止拖拽时选中文本
+  isResizing.value = true;
+  startX.value = event.clientX;
+  startY.value = event.clientY;
+  startWidthPx.value = popupWidthPx.value;
+  startHeightPx.value = popupHeightPx.value;
+  document.addEventListener('mousemove', handleResize);
+  document.addEventListener('mouseup', stopResize);
+  document.body.style.cursor = 'nwse-resize'; // 设置拖拽光标
+  document.body.style.userSelect = 'none'; // 禁止拖拽时选中文本
 };
 
 const handleResize = (event: MouseEvent) => {
-    if (!isResizing.value) return;
-    const diffX = event.clientX - startX.value;
-    const diffY = event.clientY - startY.value;
-    popupWidthPx.value = Math.max(minWidth, startWidthPx.value + diffX);
-    popupHeightPx.value = Math.max(minHeight, startHeightPx.value + diffY);
+  if (!isResizing.value) return;
+  const diffX = event.clientX - startX.value;
+  const diffY = event.clientY - startY.value;
+  popupWidthPx.value = Math.max(minWidth, startWidthPx.value + diffX);
+  popupHeightPx.value = Math.max(minHeight, startHeightPx.value + diffY);
 };
 
 const stopResize = () => {
-    if (isResizing.value) {
-        isResizing.value = false;
-        document.removeEventListener('mousemove', handleResize);
-        document.removeEventListener('mouseup', stopResize);
-        document.body.style.cursor = ''; // 恢复默认光标
+  if (isResizing.value) {
+    isResizing.value = false;
+    document.removeEventListener('mousemove', handleResize);
+    document.removeEventListener('mouseup', stopResize);
+    document.body.style.cursor = ''; // 恢复默认光标
     document.body.style.userSelect = ''; // 恢复文本选择
-    }
+  }
 };
 
 // 监听 popupTrigger 的变化来显示弹窗
 watch(popupTrigger, () => {
-    if (!showPopupFileEditorBoolean.value || !popupFileInfo.value) {
-        console.log('[FileEditorOverlay] Popup trigger changed, but overlay is disabled or file info is missing.');
-        isVisible.value = false;
-        return;
-    }
+  if (!showPopupFileEditorBoolean.value || !popupFileInfo.value) {
+    console.log(
+      '[FileEditorOverlay] Popup trigger changed, but overlay is disabled or file info is missing.'
+    );
+    isVisible.value = false;
+    return;
+  }
 
-    const { filePath, sessionId } = popupFileInfo.value;
-    console.log(`[FileEditorOverlay] Triggered for file: ${filePath} in session: ${sessionId}`);
+  const { filePath, sessionId } = popupFileInfo.value;
+  console.log(`[FileEditorOverlay] Triggered for file: ${filePath} in session: ${sessionId}`);
 
-    isVisible.value = true;
-
-
+  isVisible.value = true;
 });
 
 // +++ 监听 activeTab 的变化，更新 select 宽度 +++
-watch(activeTab, () => {
+watch(
+  activeTab,
+  () => {
     updateSelectWidth();
-}, { immediate: true }); // immediate: true ensures it runs on initial load too
+  },
+  { immediate: true }
+); // immediate: true ensures it runs on initial load too
 
 watch(currentSelectedEncoding, () => {
   updateSelectWidth();
 });
 
-
 // 组件卸载时清理事件监听器
 onBeforeUnmount(() => {
-    stopResize(); // 确保移除监听器
+  stopResize(); // 确保移除监听器
 });
-
 </script>
 
 <template>
   <!-- 使用本地 isVisible 控制显示 (App.vue 中已有 v-if="showPopupFileEditorBoolean") -->
-  <div v-if="isVisible" class="editor-overlay-backdrop" @click.self="handleCloseContainer"> <!-- 恢复点击背景关闭 -->
+  <div v-if="isVisible" class="editor-overlay-backdrop" @click.self="handleCloseContainer">
+    <!-- 恢复点击背景关闭 -->
     <!-- 编辑器弹窗/容器，应用动态样式 -->
     <div class="editor-popup" :style="popupStyle">
-
       <!-- 标签栏 (使用动态计算属性和事件处理器) -->
       <FileEditorTabs
         :tabs="orderedTabs"
@@ -521,7 +529,10 @@ onBeforeUnmount(() => {
       <!-- 编辑器头部 (使用动态计算属性) -->
       <div v-if="activeTab" class="editor-header" :class="{ 'is-mobile': props.isMobile }">
         <span>
-          {{ t('fileManager.editingFile') }}<template v-if="shareFileEditorTabsBoolean && currentTabSessionName">({{ currentTabSessionName }})</template>: {{ currentTabFilePath }}
+          {{ t('fileManager.editingFile')
+          }}<template v-if="shareFileEditorTabsBoolean && currentTabSessionName"
+            >({{ currentTabSessionName }})</template
+          >: {{ currentTabFilePath }}
           <span v-if="currentTabIsModified" class="modified-indicator">*</span>
         </span>
         <div class="editor-actions">
@@ -539,12 +550,19 @@ onBeforeUnmount(() => {
               </option>
             </select>
           </div>
-          <span v-else-if="activeTab" class="encoding-select-placeholder">{{ t('fileManager.loadingEncoding', '加载中...') }}</span>
+          <span v-else-if="activeTab" class="encoding-select-placeholder">{{
+            t('fileManager.loadingEncoding', '加载中...')
+          }}</span>
 
-
-          <span v-if="currentTabSaveStatus === 'saving'" class="save-status saving">{{ t('fileManager.saving') }}...</span>
-          <span v-if="currentTabSaveStatus === 'success'" class="save-status success">✅ {{ t('fileManager.saveSuccess') }}</span>
-          <span v-if="currentTabSaveStatus === 'error'" class="save-status error">❌ {{ t('fileManager.saveError') }}: {{ currentTabSaveError }}</span>
+          <span v-if="currentTabSaveStatus === 'saving'" class="save-status saving"
+            >{{ t('fileManager.saving') }}...</span
+          >
+          <span v-if="currentTabSaveStatus === 'success'" class="save-status success"
+            >✅ {{ t('fileManager.saveSuccess') }}</span
+          >
+          <span v-if="currentTabSaveStatus === 'error'" class="save-status error"
+            >❌ {{ t('fileManager.saveError') }}: {{ currentTabSaveError }}</span
+          >
           <!-- +++ 移动端搜索按钮 (Font Awesome) +++ -->
           <button
             v-if="props.isMobile && activeTab && !currentTabIsLoading"
@@ -554,25 +572,59 @@ onBeforeUnmount(() => {
           >
             <i class="fas fa-search"></i>
           </button>
-          <button @click="handleSaveRequest" :disabled="currentTabIsSaving || currentTabIsLoading || !!currentTabLoadingError || !activeTab" class="save-btn">
+          <button
+            @click="handleSaveRequest"
+            :disabled="
+              currentTabIsSaving || currentTabIsLoading || !!currentTabLoadingError || !activeTab
+            "
+            class="save-btn"
+          >
             {{ t('fileManager.actions.save') }}
           </button>
 
-          <button v-if="!props.isMobile" @click="handleCloseContainer" class="close-editor-btn" :title="t('fileManager.actions.closeEditor')">✖</button>
+          <button
+            v-if="!props.isMobile"
+            @click="handleCloseContainer"
+            class="close-editor-btn"
+            :title="t('fileManager.actions.closeEditor')"
+          >
+            ✖
+          </button>
         </div>
-        <button v-if="props.isMobile" @click="handleCloseContainer" class="close-editor-btn" :title="t('fileManager.actions.closeEditor')">✖</button>
+        <button
+          v-if="props.isMobile"
+          @click="handleCloseContainer"
+          class="close-editor-btn"
+          :title="t('fileManager.actions.closeEditor')"
+        >
+          ✖
+        </button>
       </div>
-       <!-- 如果没有活动标签页 -->
-      <div v-else class="editor-header editor-header-placeholder" :class="{ 'is-mobile': props.isMobile }">
+      <!-- 如果没有活动标签页 -->
+      <div
+        v-else
+        class="editor-header editor-header-placeholder"
+        :class="{ 'is-mobile': props.isMobile }"
+      >
         <span>{{ t('fileManager.noOpenFile') }}</span>
-         <button @click="handleCloseContainer" class="close-editor-btn" :title="t('fileManager.actions.closeEditor')">✖</button>
+        <button
+          @click="handleCloseContainer"
+          class="close-editor-btn"
+          :title="t('fileManager.actions.closeEditor')"
+        >
+          ✖
+        </button>
       </div>
 
       <!-- 编辑器内容区域 (现在基于 activeTab) -->
       <div class="editor-content-area">
-        <div v-if="currentTabIsLoading" class="editor-loading">{{ t('fileManager.loadingFile') }}</div>
-        <div v-else-if="currentTabLoadingError" class="editor-error">{{ currentTabLoadingError }}</div>
-        
+        <div v-if="currentTabIsLoading" class="editor-loading">
+          {{ t('fileManager.loadingFile') }}
+        </div>
+        <div v-else-if="currentTabLoadingError" class="editor-error">
+          {{ currentTabLoadingError }}
+        </div>
+
         <!-- Desktop Editor -->
         <MonacoEditor
           v-else-if="activeTab && !props.isMobile"
@@ -599,18 +651,19 @@ onBeforeUnmount(() => {
           @request-save="handleSaveRequest"
           ref="codeMirrorMobileEditorRef"
         />
-         <!-- 如果容器可见但没有活动标签页 -->
+        <!-- 如果容器可见但没有活动标签页 -->
         <div v-else class="editor-placeholder">{{ t('fileManager.selectFileToEdit') }}</div>
       </div>
 
       <!-- 添加拖拽手柄 -->
       <div class="resize-handle" @mousedown.prevent="startResize"></div>
+    </div>
+    <!-- 关闭 editor-popup -->
+  </div>
+  <!-- 关闭 editor-overlay-backdrop -->
 
-    </div> <!-- 关闭 editor-popup -->
-  </div> <!-- 关闭 editor-overlay-backdrop -->
-
-   <!-- 可以添加一个最小化状态的显示 -->
-   <!--
+  <!-- 可以添加一个最小化状态的显示 -->
+  <!--
    <div v-if="editorVisibleState === 'minimized'" class="editor-minimized-bar" @click="setEditorVisibility('visible')">
        <span>File Editor</span>
        <button @click.stop="handleCloseContainer">✖</button>
@@ -669,7 +722,6 @@ onBeforeUnmount(() => {
   }
 }
 
-
 .editor-header {
   display: flex;
   padding: 0.5rem 1rem;
@@ -682,7 +734,7 @@ onBeforeUnmount(() => {
 .editor-header.is-mobile {
   flex-direction: column;
   align-items: flex-start;
-  position: relative; 
+  position: relative;
   padding: 1.5rem 2.5rem 0.5rem 1rem;
 }
 
@@ -693,7 +745,7 @@ onBeforeUnmount(() => {
 }
 
 .editor-header-placeholder {
-    color: #888;
+  color: #888;
 }
 
 .editor-header-placeholder.is-mobile {
@@ -710,9 +762,9 @@ onBeforeUnmount(() => {
 }
 
 .modified-indicator {
-    color: #ffeb3b;
-    margin-left: 4px;
-    font-weight: bold;
+  color: #ffeb3b;
+  margin-left: 4px;
+  font-weight: bold;
 }
 
 .close-editor-btn {
@@ -727,27 +779,23 @@ onBeforeUnmount(() => {
   color: white;
 }
 
-
 .editor-header:not(.is-mobile) .editor-actions .close-editor-btn {
-  position: static; 
+  position: static;
 }
-
 
 .editor-header.is-mobile > .close-editor-btn {
   position: absolute;
-  top: 1.5rem; 
-  right: 1rem; 
-  z-index: 10;
-}
-
-
-.editor-header-placeholder.is-mobile > .close-editor-btn {
-  position: absolute;
-  top: 1.5rem; 
+  top: 1.5rem;
   right: 1rem;
   z-index: 10;
 }
 
+.editor-header-placeholder.is-mobile > .close-editor-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1rem;
+  z-index: 10;
+}
 
 .editor-header-placeholder:not(.is-mobile) > .close-editor-btn {
   position: static;
@@ -755,14 +803,16 @@ onBeforeUnmount(() => {
 
 /* 编辑器内容区域，包含加载、错误、编辑器实例 */
 .editor-content-area {
-    flex-grow: 1;
-    display: flex; /* 使内部元素能填充 */
-    flex-direction: column;
-    overflow: hidden; /* 内部编辑器滚动 */
-    position: relative; /* 用于占位符定位 */
+  flex-grow: 1;
+  display: flex; /* 使内部元素能填充 */
+  flex-direction: column;
+  overflow: hidden; /* 内部编辑器滚动 */
+  position: relative; /* 用于占位符定位 */
 }
 
-.editor-loading, .editor-error, .editor-placeholder {
+.editor-loading,
+.editor-error,
+.editor-placeholder {
   padding: 2rem;
   text-align: center;
   font-size: 1.1em;
@@ -773,79 +823,88 @@ onBeforeUnmount(() => {
   color: #888;
 }
 .editor-error {
-    color: #ff8a8a;
+  color: #ff8a8a;
 }
 .editor-placeholder {
-    color: #666;
+  color: #666;
 }
 
-
 .editor-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .editor-header.is-mobile .editor-actions {
-    flex-wrap: wrap;
-    max-width: 100%;
-    justify-content: flex-start;
-    margin-top: 1rem;
+  flex-wrap: wrap;
+  max-width: 100%;
+  justify-content: flex-start;
+  margin-top: 1rem;
 }
 
 .editor-header:not(.is-mobile) .editor-actions {
-    margin-top: 0; 
+  margin-top: 0;
 }
 
 .save-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    cursor: pointer;
-    border-radius: 3px;
-    font-size: 0.9em;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 0.9em;
 }
 .save-btn:disabled {
-    background-color: #aaa;
-    cursor: not-allowed;
+  background-color: #aaa;
+  cursor: not-allowed;
 }
 .save-btn:hover:not(:disabled) {
-    background-color: #45a049;
+  background-color: #45a049;
 }
 
 .search-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem; 
-  height: 1.75rem; 
+  width: 1.75rem;
+  height: 1.75rem;
   background-color: transparent;
   border: none;
-  border-radius: 0.25rem; 
+  border-radius: 0.25rem;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s; 
-  padding: 0; 
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+  padding: 0;
   color: #ccc;
 }
 .search-btn:hover {
-  background-color: rgba(0, 0, 0, 0.1); 
-  color: #f0f0f0; 
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #f0f0f0;
 }
 .search-btn i {
   font-size: 1rem;
-  line-height: 1; 
+  line-height: 1;
 }
 
 .save-status {
-    font-size: 0.9em;
-    padding: 0.2rem 0.5rem;
-    border-radius: 3px;
-    white-space: nowrap;
+  font-size: 0.9em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  white-space: nowrap;
 }
-.save-status.saving { color: #888; }
-.save-status.success { color: #4CAF50; background-color: #e8f5e9; }
-.save-status.error { color: #f44336; background-color: #ffebee; }
+.save-status.saving {
+  color: #888;
+}
+.save-status.success {
+  color: #4caf50;
+  background-color: #e8f5e9;
+}
+.save-status.error {
+  color: #f44336;
+  background-color: #ffebee;
+}
 
 .editor-instance {
   flex-grow: 1;
@@ -854,22 +913,20 @@ onBeforeUnmount(() => {
 
 /* 拖拽手柄样式 */
 .resize-handle {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 15px;
-    height: 15px;
-    background-color: rgba(255, 255, 255, 0.2); /* 半透明手柄 */
-    border-top: 1px solid #555;
-    border-left: 1px solid #555;
-    cursor: nwse-resize; /* 斜向拖拽光标 */
-    z-index: 1001; /* 确保在内容之上 */
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 15px;
+  height: 15px;
+  background-color: rgba(255, 255, 255, 0.2); /* 半透明手柄 */
+  border-top: 1px solid #555;
+  border-left: 1px solid #555;
+  cursor: nwse-resize; /* 斜向拖拽光标 */
+  z-index: 1001; /* 确保在内容之上 */
 }
 .resize-handle:hover {
-    background-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(255, 255, 255, 0.4);
 }
-
-
 
 .encoding-select-wrapper {
   display: inline-block; /* 让 wrapper 包裹内容 */
@@ -896,11 +953,11 @@ onBeforeUnmount(() => {
 }
 
 .encoding-select-placeholder {
-    font-size: 0.85em;
-    color: #888;
-    padding: 0.3rem 0.5rem;
-    display: inline-block;
-    min-width: 80px; /* 与 select 大致对齐 */
-    text-align: center;
+  font-size: 0.85em;
+  color: #888;
+  padding: 0.3rem 0.5rem;
+  display: inline-block;
+  min-width: 80px; /* 与 select 大致对齐 */
+  text-align: center;
 }
 </style>

@@ -16,9 +16,12 @@ const { t } = useI18n();
 
 const dialogVisible = ref(props.visible);
 
-watch(() => props.visible, (newValue) => {
-  dialogVisible.value = newValue;
-});
+watch(
+  () => props.visible,
+  (newValue) => {
+    dialogVisible.value = newValue;
+  }
+);
 
 watch(dialogVisible, (newValue) => {
   if (newValue !== props.visible) {
@@ -29,7 +32,7 @@ watch(dialogVisible, (newValue) => {
 const handleOk = () => {
   emit('ok');
   // 通常点击"确定"后对话框会关闭，如果store管理visible，则由store处理
-  // emit('update:visible', false); 
+  // emit('update:visible', false);
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -49,7 +52,6 @@ watch(dialogVisible, (isVisible) => {
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown);
 });
-
 </script>
 
 <template>
@@ -57,7 +59,7 @@ onBeforeUnmount(() => {
     <div
       v-if="dialogVisible"
       class="fixed inset-0 z-[9999] flex items-center justify-center bg-overlay p-4"
-      @mousedown.self="handleOk" 
+      @mousedown.self="handleOk"
     >
       <div
         class="bg-background text-foreground p-5 rounded-lg shadow-xl border border-border w-full max-w-md flex flex-col"

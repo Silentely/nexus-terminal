@@ -29,14 +29,15 @@ const layoutStore = useLayoutStore();
 const focusSwitcherStore = useFocusSwitcherStore(); // +++ 实例化焦点切换 Store +++
 const sessionStore = useSessionStore(); // +++ 实例化 Session Store +++
 const dialogStore = useDialogStore(); // +++ 实例化 DialogStore +++
-const { state: dialogState } = storeToRefs(dialogStore); 
+const { state: dialogState } = storeToRefs(dialogStore);
 const favoritePathsStore = useFavoritePathsStore(); // +++ 实例化 favoritePathsStore +++
 const { isAuthenticated } = storeToRefs(authStore);
 const { showPopupFileEditorBoolean } = storeToRefs(settingsStore);
 const { isStyleCustomizerVisible } = storeToRefs(appearanceStore);
 const { isLayoutVisible, isHeaderVisible } = storeToRefs(layoutStore); // 添加 isHeaderVisible
 const { isConfiguratorVisible: isFocusSwitcherVisible } = storeToRefs(focusSwitcherStore);
-const { isRdpModalOpen, rdpConnectionInfo, isVncModalOpen, vncConnectionInfo } = storeToRefs(sessionStore); // +++ 获取 RDP 和 VNC 状态 +++
+const { isRdpModalOpen, rdpConnectionInfo, isVncModalOpen, vncConnectionInfo } =
+  storeToRefs(sessionStore); // +++ 获取 RDP 和 VNC 状态 +++
 const { isMobile } = useDeviceDetection();
 
 const route = useRoute();
@@ -72,8 +73,8 @@ onMounted(() => {
 
   // +++ 全局 Alt 键监听器 +++
   window.addEventListener('keydown', handleAltKeyDown); // +++ 监听 keydown 设置状态 +++
-  window.addEventListener('keyup', handleGlobalKeyUp);   // +++ 监听 keyup 执行切换 +++
-  
+  window.addEventListener('keyup', handleGlobalKeyUp); // +++ 监听 keyup 执行切换 +++
+
   // PWA Install Prompt
   window.addEventListener('beforeinstallprompt', (e) => {
     console.log('[App.vue] beforeinstallprompt event fired. Browser will handle install prompt.');
@@ -82,33 +83,38 @@ onMounted(() => {
   window.addEventListener('appinstalled', () => {
     console.log('[App.vue] PWA was installed');
   });
-  
+
   // +++ 加载 Header 可见性状态 +++
   layoutStore.loadHeaderVisibility();
-
 });
 
 // +++ 监听用户认证状态，登录后初始化收藏路径 +++
-watch(isAuthenticated, (loggedIn) => {
-  if (loggedIn) {
-    favoritePathsStore.initializeFavoritePaths(t);
-  }
-}, { immediate: true });
+watch(
+  isAuthenticated,
+  (loggedIn) => {
+    if (loggedIn) {
+      favoritePathsStore.initializeFavoritePaths(t);
+    }
+  },
+  { immediate: true }
+);
 
 // +++ 卸载钩子以移除监听器 +++
 onUnmounted(() => {
   window.removeEventListener('keydown', handleAltKeyDown); // +++ 移除 keydown 监听 +++
-  window.removeEventListener('keyup', handleGlobalKeyUp);   // +++ 移除 keyup 监听 +++
+  window.removeEventListener('keyup', handleGlobalKeyUp); // +++ 移除 keyup 监听 +++
 });
-
 
 // *** 计算属性，判断是否在 workspace 路由 ***
 const isWorkspaceRoute = computed(() => route.path === '/workspace');
 
-watch(route, () => {
-  updateUnderline();
-}, { immediate: true }); // *** 确保 immediate: true 存在 ***
-
+watch(
+  route,
+  () => {
+    updateUnderline();
+  },
+  { immediate: true }
+); // *** 确保 immediate: true 存在 ***
 
 const handleLogout = () => {
   authStore.logout();
@@ -125,7 +131,8 @@ const closeStyleCustomizer = () => {
 };
 
 // +++ 处理 Alt 键按下的事件处理函数，并记录快捷键 +++
-const handleAltKeyDown = async (event: KeyboardEvent) => { // +++ 改为 async +++
+const handleAltKeyDown = async (event: KeyboardEvent) => {
+  // +++ 改为 async +++
   if (!isWorkspaceRoute.value) return; // 只在 workspace 路由下执行
   // 只在 Alt 键首次按下时设置状态
   if (event.key === 'Alt' && !event.repeat) {
@@ -138,42 +145,42 @@ const handleAltKeyDown = async (event: KeyboardEvent) => { // +++ 改为 async +
     if (key.length === 1) key = key.toUpperCase();
 
     if (/^[a-zA-Z0-9]$/.test(key)) {
-        altShortcutKey.value = key; // 记录按键
-        const shortcutString = `Alt+${key}`;
-        console.log(`[App] KeyDown: Alt+${key} detected. Checking shortcut: ${shortcutString}`);
-        const targetId = focusSwitcherStore.getFocusTargetIdByShortcut(shortcutString);
+      altShortcutKey.value = key; // 记录按键
+      const shortcutString = `Alt+${key}`;
+      console.log(`[App] KeyDown: Alt+${key} detected. Checking shortcut: ${shortcutString}`);
+      const targetId = focusSwitcherStore.getFocusTargetIdByShortcut(shortcutString);
 
-        if (targetId) {
-            console.log(`[App] KeyDown: Shortcut match found. Targeting ID: ${targetId}`);
-            event.preventDefault(); // 阻止默认行为 (如菜单)
-            const success = await focusSwitcherStore.focusTarget(targetId); // +++ 立即尝试聚焦 +++
-            if (success) {
-                console.log(`[App] KeyDown: Successfully focused ${targetId} via shortcut.`);
-                lastFocusedIdBySwitcher.value = targetId;
-                // --- 移除设置标志位 ---
-            } else {
-                console.log(`[App] KeyDown: Failed to focus ${targetId} via shortcut action.`);
-                // 聚焦失败，可以选择是否取消 Alt 状态，暂时不处理，让 keyup 重置
-            }
+      if (targetId) {
+        console.log(`[App] KeyDown: Shortcut match found. Targeting ID: ${targetId}`);
+        event.preventDefault(); // 阻止默认行为 (如菜单)
+        const success = await focusSwitcherStore.focusTarget(targetId); // +++ 立即尝试聚焦 +++
+        if (success) {
+          console.log(`[App] KeyDown: Successfully focused ${targetId} via shortcut.`);
+          lastFocusedIdBySwitcher.value = targetId;
+          // --- 移除设置标志位 ---
         } else {
-            console.log(`[App] KeyDown: No configured shortcut found for ${shortcutString}.`);
-            // 没有匹配的快捷键，可以选择取消 Alt 状态以允许默认行为，或保持状态等待 keyup
-            // isAltPressed.value = false;
-            // altShortcutKey.value = null;
+          console.log(`[App] KeyDown: Failed to focus ${targetId} via shortcut action.`);
+          // 聚焦失败，可以选择是否取消 Alt 状态，暂时不处理，让 keyup 重置
         }
+      } else {
+        console.log(`[App] KeyDown: No configured shortcut found for ${shortcutString}.`);
+        // 没有匹配的快捷键，可以选择取消 Alt 状态以允许默认行为，或保持状态等待 keyup
+        // isAltPressed.value = false;
+        // altShortcutKey.value = null;
+      }
     } else {
-        // 按下无效键 (非字母数字)，取消 Alt 状态
-        isAltPressed.value = false;
-        altShortcutKey.value = null;
-        // --- 移除重置标志位 ---
-        console.log('[App] KeyDown: Alt sequence cancelled by non-alphanumeric key press.');
-    }
-  } else if (isAltPressed.value && ['Control', 'Shift', 'Meta'].includes(event.key)) {
-      // 按下其他修饰键，取消 Alt 状态
+      // 按下无效键 (非字母数字)，取消 Alt 状态
       isAltPressed.value = false;
       altShortcutKey.value = null;
       // --- 移除重置标志位 ---
-      console.log('[App] KeyDown: Alt sequence cancelled by other modifier key press.');
+      console.log('[App] KeyDown: Alt sequence cancelled by non-alphanumeric key press.');
+    }
+  } else if (isAltPressed.value && ['Control', 'Shift', 'Meta'].includes(event.key)) {
+    // 按下其他修饰键，取消 Alt 状态
+    isAltPressed.value = false;
+    altShortcutKey.value = null;
+    // --- 移除重置标志位 ---
+    console.log('[App] KeyDown: Alt sequence cancelled by other modifier key press.');
   }
 };
 
@@ -191,7 +198,9 @@ const handleGlobalKeyUp = async (event: KeyboardEvent) => {
 
     if (altWasPressed && triggeredShortcutKey === null) {
       // 如果 Alt 之前是按下的，并且没有记录到有效的快捷键，则执行顺序切换
-      console.log('[App] KeyUp: Alt released without a valid shortcut key captured. Attempting sequential focus switch.');
+      console.log(
+        '[App] KeyUp: Alt released without a valid shortcut key captured. Attempting sequential focus switch.'
+      );
       event.preventDefault(); // 仅在执行顺序切换时阻止默认行为
 
       // --- 顺序切换逻辑 (保持不变) ---
@@ -199,23 +208,27 @@ const handleGlobalKeyUp = async (event: KeyboardEvent) => {
       console.log(`[App] Sequential switch. Last focused by switcher: ${currentFocusId}`);
 
       if (!currentFocusId) {
-          const activeElement = document.activeElement as HTMLElement;
-          if (activeElement && activeElement.hasAttribute('data-focus-id')) {
-              currentFocusId = activeElement.getAttribute('data-focus-id');
-              console.log(`[App] Sequential switch. Found focus ID from activeElement: ${currentFocusId}`);
-          } else {
-              console.log(`[App] Sequential switch. Could not determine current focus ID.`);
-          }
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && activeElement.hasAttribute('data-focus-id')) {
+          currentFocusId = activeElement.getAttribute('data-focus-id');
+          console.log(
+            `[App] Sequential switch. Found focus ID from activeElement: ${currentFocusId}`
+          );
+        } else {
+          console.log(`[App] Sequential switch. Could not determine current focus ID.`);
+        }
       }
 
       const order = focusSwitcherStore.sequenceOrder; // ++ 使用新的 sequenceOrder state ++
-      if (order.length === 0) { // ++ 检查新的 state ++
+      if (order.length === 0) {
+        // ++ 检查新的 state ++
         console.log('[App] No focus sequence configured.');
         return;
       }
 
       let focused = false;
-      for (let i = 0; i < order.length; i++) { // ++ Use order.length for loop condition ++
+      for (let i = 0; i < order.length; i++) {
+        // ++ Use order.length for loop condition ++
         const nextFocusId = focusSwitcherStore.getNextFocusTargetId(currentFocusId);
         if (!nextFocusId) {
           console.warn('[App] Could not determine next focus target ID in sequence.');
@@ -241,9 +254,10 @@ const handleGlobalKeyUp = async (event: KeyboardEvent) => {
         lastFocusedIdBySwitcher.value = null;
       }
       // --- 顺序切换逻辑结束 ---
-
     } else if (altWasPressed && triggeredShortcutKey !== null) {
-      console.log(`[App] KeyUp: Alt released after capturing key '${triggeredShortcutKey}'. Shortcut logic handled in keydown. No sequential switch.`);
+      console.log(
+        `[App] KeyUp: Alt released after capturing key '${triggeredShortcutKey}'. Shortcut logic handled in keydown. No sequential switch.`
+      );
       // 快捷键逻辑已在 keydown 处理，keyup 时无需操作，也不阻止默认行为（除非特定需要）
     } else {
       // Alt 松开，但 isAltPressed 已经是 false (例如被其他键取消了)
@@ -269,46 +283,122 @@ const isElementVisibleAndFocusable = (element: HTMLElement): boolean => {
   const rect = element.getBoundingClientRect();
   return rect.width > 0 && rect.height > 0;
 };
-
-
-
 </script>
 
 <template>
-  
   <div id="app-container">
     <!-- *** 修改 v-if 条件以使用 isHeaderVisible *** -->
     <!-- Header with Tailwind classes using theme variables -->
-	    <header v-if="isAuthenticated && (!isWorkspaceRoute || isHeaderVisible)" class="sticky top-0 z-50 flex items-center h-16 pl-4 pr-6 bg-header backdrop-blur-md border-b border-border/50 shadow-sm transition-all duration-300"> <!-- Modernized Header -->
+    <header
+      v-if="isAuthenticated && (!isWorkspaceRoute || isHeaderVisible)"
+      class="sticky top-0 z-50 flex items-center h-16 pl-4 pr-6 bg-header backdrop-blur-md border-b border-border/50 shadow-sm transition-all duration-300"
+    >
+      <!-- Modernized Header -->
       <!-- Nav with Tailwind classes -->
-      <nav ref="navRef" class="flex items-center justify-between w-full relative"> <!-- Added relative positioning for underline -->
+      <nav ref="navRef" class="flex items-center justify-between w-full relative">
+        <!-- Added relative positioning for underline -->
         <!-- Left navigation links with Tailwind classes using theme variables -->
         <div class="flex items-center space-x-2">
           <!-- 项目 Logo -->
-          <img src="./assets/logo.png" alt="Project Logo" class="h-8 w-auto mr-2 opacity-90 hover:opacity-100 transition-opacity">
-            <RouterLink to="/" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.dashboard') }}</RouterLink>
-            <RouterLink to="/workspace" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.terminal') }}</RouterLink>
-            <RouterLink to="/connections" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.connections') }}</RouterLink>
-            <RouterLink to="/proxies" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.proxies') }}</RouterLink>
-            <RouterLink to="/notifications" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.notifications') }}</RouterLink>
-            <RouterLink to="/audit-logs" class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.auditLogs') }}</RouterLink>
-            <RouterLink to="/settings" class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap" active-class="text-primary bg-primary/10">{{ t('nav.settings') }}</RouterLink>
+          <img
+            src="./assets/logo.png"
+            alt="Project Logo"
+            class="h-8 w-auto mr-2 opacity-90 hover:opacity-100 transition-opacity"
+          />
+          <RouterLink
+            to="/"
+            class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap"
+            active-class="text-primary bg-primary/10"
+            >{{ t('nav.dashboard') }}</RouterLink
+          >
+          <RouterLink
+            to="/workspace"
+            class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap"
+            active-class="text-primary bg-primary/10"
+            >{{ t('nav.terminal') }}</RouterLink
+          >
+          <RouterLink
+            to="/connections"
+            class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap"
+            active-class="text-primary bg-primary/10"
+            >{{ t('nav.connections') }}</RouterLink
+          >
+          <RouterLink
+            to="/proxies"
+            class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap"
+            active-class="text-primary bg-primary/10"
+            >{{ t('nav.proxies') }}</RouterLink
+          >
+          <RouterLink
+            to="/notifications"
+            class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap"
+            active-class="text-primary bg-primary/10"
+            >{{ t('nav.notifications') }}</RouterLink
+          >
+          <RouterLink
+            to="/audit-logs"
+            class="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap"
+            active-class="text-primary bg-primary/10"
+            >{{ t('nav.auditLogs') }}</RouterLink
+          >
+          <RouterLink
+            to="/settings"
+            class="inline-flex px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 transition-all duration-200 ease-in-out whitespace-nowrap"
+            active-class="text-primary bg-primary/10"
+            >{{ t('nav.settings') }}</RouterLink
+          >
         </div>
         <!-- Right navigation links with Tailwind classes using theme variables -->
         <div class="flex items-center space-x-1">
           <!-- GitHub Icon (Hide on mobile) -->
-          <a v-if="!isMobile" href="https://github.com/Silentely/nexus-terminal" target="_blank" rel="noopener noreferrer" title="Silentely/nexus-terminal" class="px-2 py-2 rounded-md text-lg text-icon hover:text-icon-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+          <a
+            v-if="!isMobile"
+            href="https://github.com/Silentely/nexus-terminal"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Silentely/nexus-terminal"
+            class="px-2 py-2 rounded-md text-lg text-icon hover:text-icon-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"
+              />
             </svg>
           </a>
           <!-- PWA Install Button - REMOVED FROM HERE -->
-          <a href="#" @click.prevent="openStyleCustomizer" :title="t('nav.customizeStyle')" class="px-2 py-2 rounded-md text-lg text-icon hover:text-icon-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out"><i class="fas fa-paint-brush"></i></a>
-          <RouterLink v-if="!isAuthenticated" to="/login" class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 hover:no-underline transition duration-150 ease-in-out whitespace-nowrap">{{ t('nav.login') }}</RouterLink>
-          <a href="#" v-if="isAuthenticated" @click.prevent="handleLogout" class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 hover:no-underline transition duration-150 ease-in-out whitespace-nowrap">{{ t('nav.logout') }}</a>
+          <a
+            href="#"
+            @click.prevent="openStyleCustomizer"
+            :title="t('nav.customizeStyle')"
+            class="px-2 py-2 rounded-md text-lg text-icon hover:text-icon-hover hover:bg-nav-active-bg hover:no-underline transition duration-150 ease-in-out"
+            ><i class="fas fa-paint-brush"></i
+          ></a>
+          <RouterLink
+            v-if="!isAuthenticated"
+            to="/login"
+            class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 hover:no-underline transition duration-150 ease-in-out whitespace-nowrap"
+            >{{ t('nav.login') }}</RouterLink
+          >
+          <a
+            href="#"
+            v-if="isAuthenticated"
+            @click.prevent="handleLogout"
+            class="px-3 py-2 rounded-md text-sm font-medium text-secondary hover:text-foreground hover:bg-black/5 hover:no-underline transition duration-150 ease-in-out whitespace-nowrap"
+            >{{ t('nav.logout') }}</a
+          >
         </div>
         <!-- Sliding underline element with Tailwind classes using theme variables (JS still controls positioning) -->
-        <div ref="underlineRef" class="absolute bottom-0 h-0.5 bg-link-active rounded transition-all duration-300 ease-in-out pointer-events-none opacity-0 transform translate-y-1.5"></div> <!-- Changed translate-y-1 to translate-y-1.5 -->
+        <div
+          ref="underlineRef"
+          class="absolute bottom-0 h-0.5 bg-link-active rounded transition-all duration-300 ease-in-out pointer-events-none opacity-0 transform translate-y-1.5"
+        ></div>
+        <!-- Changed translate-y-1 to translate-y-1.5 -->
       </nav>
     </header>
 
@@ -356,17 +446,16 @@ const isElementVisibleAndFocusable = (element: HTMLElement): boolean => {
 
     <!-- +++ 全局确认对话框 +++ -->
     <ConfirmDialog
-          :visible="dialogState.visible"
-          :title="dialogState.title"
-          :message="dialogState.message"
-          :confirm-text="dialogState.confirmText"
-          :cancel-text="dialogState.cancelText"
-          :is-loading="dialogState.isLoading"
-          @confirm="dialogStore.handleConfirm"
-          @cancel="dialogStore.handleCancel"
-          @update:visible="(val: boolean) => dialogStore.state.visible = val"
-        />
-
+      :visible="dialogState.visible"
+      :title="dialogState.title"
+      :message="dialogState.message"
+      :confirm-text="dialogState.confirmText"
+      :cancel-text="dialogState.cancelText"
+      :is-loading="dialogState.isLoading"
+      @confirm="dialogStore.handleConfirm"
+      @cancel="dialogStore.handleCancel"
+      @update:visible="(val: boolean) => (dialogStore.state.visible = val)"
+    />
   </div>
 </template>
 
@@ -378,10 +467,7 @@ const isElementVisibleAndFocusable = (element: HTMLElement): boolean => {
   font-family: var(--font-family-sans-serif); /* 使用字体变量 */
 }
 
-
 main {
   flex-grow: 1;
-
 }
-
 </style>

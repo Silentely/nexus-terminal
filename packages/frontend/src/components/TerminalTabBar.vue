@@ -10,10 +10,13 @@ import TransferProgressModal from './TransferProgressModal.vue';
 import { useSessionStore } from '../stores/session.store';
 import { useConnectionsStore, type ConnectionInfo } from '../stores/connections.store';
 import { useLayoutStore, type PaneName } from '../stores/layout.store';
-import { useWorkspaceEventEmitter, useWorkspaceEventSubscriber, useWorkspaceEventOff } from '../composables/workspaceEvents'; // +++ 导入 useWorkspaceEventOff +++
+import {
+  useWorkspaceEventEmitter,
+  useWorkspaceEventSubscriber,
+  useWorkspaceEventOff,
+} from '../composables/workspaceEvents'; // +++ 导入 useWorkspaceEventOff +++
 
 import type { SessionTabInfoWithStatus } from '../stores/session/types'; // 路径修正
-
 
 const { t } = useI18n();
 const emitWorkspaceEvent = useWorkspaceEventEmitter(); // +++ 获取事件发射器 +++
@@ -46,7 +49,6 @@ const emit = defineEmits<{
   (e: 'update:sessions', newSessions: SessionTabInfoWithStatus[]): void;
 }>();
 
-
 const activateSession = (sessionId: string) => {
   if (sessionId !== props.activeSessionId) {
     emitWorkspaceEvent('session:activate', { sessionId });
@@ -65,10 +67,14 @@ const draggableSessions = ref<SessionTabInfoWithStatus[]>([]); // + Local state 
 const showTransferProgressModal = ref(false); // 控制传输进度模态框的显示状态
 
 // + Watch prop changes to update local state
-watch(() => props.sessions, (newSessions) => {
-  // Create a shallow copy to avoid modifying the prop directly
-  draggableSessions.value = [...newSessions];
-}, { immediate: true, deep: true });
+watch(
+  () => props.sessions,
+  (newSessions) => {
+    // Create a shallow copy to avoid modifying the prop directly
+    draggableSessions.value = [...newSessions];
+  },
+  { immediate: true, deep: true }
+);
 
 // +++ 右键菜单状态 +++
 const contextMenuVisible = ref(false);
@@ -83,7 +89,7 @@ const togglePopup = () => {
 // 处理从弹出列表中选择连接的事件
 const handlePopupConnect = (connectionId: number) => {
   console.log(`[TabBar] Popup connect request for ID: ${connectionId}`);
-  const connectionInfo = connectionsStore.connections.find(c => c.id === connectionId);
+  const connectionInfo = connectionsStore.connections.find((c) => c.id === connectionId);
   if (!connectionInfo) {
     console.error(`[TabBar] handlePopupConnect: 未找到 ID 为 ${connectionId} 的连接信息。`);
     showConnectionListPopup.value = false; // 关闭弹出窗口
@@ -92,10 +98,14 @@ const handlePopupConnect = (connectionId: number) => {
 
   // --- 修改：根据类型决定调用哪个 Action ---
   if (connectionInfo.type === 'RDP') {
-    console.log(`[TabBar] Popup RDP connect request for ID: ${connectionId}. Calling sessionStore.openRdpModal.`);
+    console.log(
+      `[TabBar] Popup RDP connect request for ID: ${connectionId}. Calling sessionStore.openRdpModal.`
+    );
     sessionStore.openRdpModal(connectionInfo);
   } else {
-    console.log(`[TabBar] Popup non-RDP connect request for ID: ${connectionId}. Calling sessionStore.handleConnectRequest.`);
+    console.log(
+      `[TabBar] Popup non-RDP connect request for ID: ${connectionId}. Calling sessionStore.handleConnectRequest.`
+    );
     sessionStore.handleConnectRequest(connectionInfo); // 非 RDP 保持原逻辑
   }
   showConnectionListPopup.value = false; // 关闭弹出窗口
@@ -109,8 +119,12 @@ const handleRequestAddFromPopup = () => {
 };
 
 // 处理从弹窗内部发出的编辑连接请求
-const handleRequestEditFromPopup = (connection: ConnectionInfo) => { // 假设 WorkspaceConnectionList 传递了连接对象
-  console.log('[TabBar] Received request-edit-connection from popup component for connection:', connection);
+const handleRequestEditFromPopup = (connection: ConnectionInfo) => {
+  // 假设 WorkspaceConnectionList 传递了连接对象
+  console.log(
+    '[TabBar] Received request-edit-connection from popup component for connection:',
+    connection
+  );
   showConnectionListPopup.value = false; // 关闭弹窗
   // 向上发出事件，并携带连接信息
   emitWorkspaceEvent('connection:requestEdit', { connectionInfo: connection });
@@ -141,21 +155,21 @@ const closeContextMenu = () => {
 
 // 用于全局点击监听器的函数
 const closeContextMenuOnClickOutside = (event: MouseEvent) => {
-    // 检查点击是否发生在菜单内部，如果是，则不关闭
-    // 这个检查在 TabBarContextMenu 组件内部通过 @click.stop 完成了
-    // 所以这里可以直接关闭
-    closeContextMenu();
+  // 检查点击是否发生在菜单内部，如果是，则不关闭
+  // 这个检查在 TabBarContextMenu 组件内部通过 @click.stop 完成了
+  // 所以这里可以直接关闭
+  closeContextMenu();
 };
-
 
 // + Update function signature to receive payload
 const handleContextMenuAction = (payload: { action: string; targetId: string | number | null }) => {
   const { action, targetId } = payload;
   console.log(`[TabBar] handleContextMenuAction received payload:`, JSON.stringify(payload)); // + Log received payload
   // const targetId = contextTargetSessionId.value; // No longer needed
-  if (!targetId || typeof targetId !== 'string') { // Ensure targetId is a string (session ID)
-      console.warn('[TabBar] handleContextMenuAction called but targetId is null or not a string.');
-      return;
+  if (!targetId || typeof targetId !== 'string') {
+    // Ensure targetId is a string (session ID)
+    console.warn('[TabBar] handleContextMenuAction called but targetId is null or not a string.');
+    return;
   }
 
   console.log(`[TabBar] Context menu action '${action}' requested for session ID: ${targetId}`); // Keep original log
@@ -176,18 +190,25 @@ const handleContextMenuAction = (payload: { action: string; targetId: string | n
       break;
     case 'mark-for-suspend': // +++ 修改 action 名称 +++
       if (typeof targetId === 'string') {
-        console.log(`[TabBar] Context menu action 'mark-for-suspend' requested for session ID: ${targetId}`);
+        console.log(
+          `[TabBar] Context menu action 'mark-for-suspend' requested for session ID: ${targetId}`
+        );
         sessionStore.requestStartSshSuspend(targetId); // 这个 action 现在是标记
       } else {
         console.warn(`[TabBar] 'mark-for-suspend' action called with invalid targetId:`, targetId);
       }
       break;
-    case 'unmark-for-suspend': 
+    case 'unmark-for-suspend':
       if (typeof targetId === 'string') {
-        console.log(`[TabBar] Context menu action 'unmark-for-suspend' requested for session ID: ${targetId}`);
+        console.log(
+          `[TabBar] Context menu action 'unmark-for-suspend' requested for session ID: ${targetId}`
+        );
         sessionStore.requestUnmarkSshSuspend(targetId);
       } else {
-        console.warn(`[TabBar] 'unmark-for-suspend' action called with invalid targetId:`, targetId);
+        console.warn(
+          `[TabBar] 'unmark-for-suspend' action called with invalid targetId:`,
+          targetId
+        );
       }
       break;
     default:
@@ -206,15 +227,16 @@ const contextMenuItems = computed(() => {
   if (!targetSessionState) return []; // 如果找不到会话状态，则不显示菜单
 
   const connectionIdNum = parseInt(targetSessionState.connectionId, 10);
-  const connectionInfo = connectionsStore.connections.find(c => c.id === connectionIdNum);
+  const connectionInfo = connectionsStore.connections.find((c) => c.id === connectionIdNum);
 
-  const currentIndex = props.sessions.findIndex(s => s.sessionId === targetSessionIdValue);
+  const currentIndex = props.sessions.findIndex((s) => s.sessionId === targetSessionIdValue);
   const totalTabs = props.sessions.length;
 
   // 添加标记/取消标记挂起会话菜单项（如果适用）
   if (connectionInfo && connectionInfo.type === 'SSH') {
     const isActiveSession = targetSessionState.wsManager.isConnected.value;
-    if (isActiveSession) { // 只对活动的SSH会话显示相关操作
+    if (isActiveSession) {
+      // 只对活动的SSH会话显示相关操作
       if (targetSessionState.isMarkedForSuspend) {
         items.push({ label: 'tabs.contextMenu.unmarkForSuspend', action: 'unmark-for-suspend' });
       } else {
@@ -231,26 +253,27 @@ const contextMenuItems = computed(() => {
     items.push({ label: 'tabs.contextMenu.closeOthers', action: 'close-others' });
   }
 
-  if (currentIndex < totalTabs - 1 && totalTabs > 1) { // 仅当有右侧标签时显示
+  if (currentIndex < totalTabs - 1 && totalTabs > 1) {
+    // 仅当有右侧标签时显示
     items.push({ label: 'tabs.contextMenu.closeRight', action: 'close-right' });
   }
 
-  if (currentIndex > 0 && totalTabs > 1) { // 仅当有左侧标签时显示
+  if (currentIndex > 0 && totalTabs > 1) {
+    // 仅当有左侧标签时显示
     items.push({ label: 'tabs.contextMenu.closeLeft', action: 'close-left' });
   }
-  
+
   // 移除末尾可能存在的分隔符（如果它是最后一项）
   // 确保在 pop 之前检查 items[items.length - 1] 是否真的存在并且是分隔符
   if (items.length > 0) {
     const lastItem = items[items.length - 1];
     if (lastItem && lastItem.isSeparator) {
-        items.pop();
+      items.pop();
     }
   }
 
   return items;
 });
-
 
 // 处理打开布局配置器的事件
 const openLayoutConfigurator = () => {
@@ -262,13 +285,16 @@ const openLayoutConfigurator = () => {
 const isWorkspaceRoute = ref(route.path === '/workspace'); // 检查是否在 /workspace 路由
 
 // 监视路由变化
-watch(() => route.path, (newPath) => {
-  isWorkspaceRoute.value = newPath === '/workspace';
-  if (isWorkspaceRoute.value) {
-    // 进入 /workspace 时，不需要在这里加载 Header 状态，App.vue 会处理
-    console.log('[TabBar] Entered /workspace route. Header toggle button is now active.');
+watch(
+  () => route.path,
+  (newPath) => {
+    isWorkspaceRoute.value = newPath === '/workspace';
+    if (isWorkspaceRoute.value) {
+      // 进入 /workspace 时，不需要在这里加载 Header 状态，App.vue 会处理
+      console.log('[TabBar] Entered /workspace route. Header toggle button is now active.');
+    }
   }
-});
+);
 
 // 组件挂载时检查一次
 onMounted(() => {
@@ -299,9 +325,8 @@ onMounted(() => {
 // +++ 组件卸载前移除全局监听器 +++
 // onBeforeUnmount is imported now
 onBeforeUnmount(() => {
-    document.removeEventListener('click', closeContextMenuOnClickOutside, { capture: true });
+  document.removeEventListener('click', closeContextMenuOnClickOutside, { capture: true });
 });
-
 
 // 切换主导航栏可见性 (只在 workspace 路由下生效)
 // + Handler for when draggable updates the model
@@ -309,7 +334,7 @@ const handleSessionsUpdate = (newSessions: SessionTabInfoWithStatus[]) => {
   // v-model handles updating draggableSessions.value automatically
   emit('update:sessions', newSessions);
   // 保存用户自定义顺序到本地存储
-  const sessionOrder = newSessions.map(session => session.sessionId);
+  const sessionOrder = newSessions.map((session) => session.sessionId);
   localStorage.setItem('sessionOrder', JSON.stringify(sessionOrder));
   console.log('[TabBar] 已保存用户自定义标签顺序到本地存储');
 };
@@ -333,7 +358,9 @@ const eyeIconClass = computed(() => {
 // 计算属性，用于按钮的 title
 const toggleButtonTitle = computed(() => {
   // 调整 i18n key 和默认文本
-  return isHeaderVisible.value ? t('header.hide', '隐藏顶部导航') : t('header.show', '显示顶部导航');
+  return isHeaderVisible.value
+    ? t('header.hide', '隐藏顶部导航')
+    : t('header.show', '显示顶部导航');
 });
 
 // + Handler to hide the default drag image
@@ -380,7 +407,7 @@ const handleTouchEnd = (event: TouchEvent) => {
   }
   touchedSessionId = null;
 };
- // 处理鼠标滚轮事件以支持水平滚动
+// 处理鼠标滚轮事件以支持水平滚动
 const handleWheel: EventListener = (event: Event) => {
   const wheelEvent = event as WheelEvent;
   const container = wheelEvent.currentTarget as HTMLElement;
@@ -406,16 +433,19 @@ onBeforeUnmount(() => {
     tabContainer.removeEventListener('wheel', handleWheel as EventListener);
   }
 });
-
 </script>
 
 <template>
   <!-- +++ 使用 :class 绑定来条件化样式，包括高度 (修正 props 引用) +++ -->
-  <div :class="['flex bg-header border border-border overflow-hidden',
-               { 'rounded-t-md mx-2 mt-2': !props.isMobile }, // Desktop margins/rounding - Use props.isMobile
-               props.isMobile ? 'h-8' : 'h-10' // Mobile height h-8, Desktop h-10 - Use props.isMobile
-              ]">
-    <div class="flex items-center overflow-x-auto flex-shrink min-w-0 h-full"> <!-- Ensure inner div has h-full -->
+  <div
+    :class="[
+      'flex bg-header border border-border overflow-hidden',
+      { 'rounded-t-md mx-2 mt-2': !props.isMobile }, // Desktop margins/rounding - Use props.isMobile
+      props.isMobile ? 'h-8' : 'h-10', // Mobile height h-8, Desktop h-10 - Use props.isMobile
+    ]"
+  >
+    <div class="flex items-center overflow-x-auto flex-shrink min-w-0 h-full">
+      <!-- Ensure inner div has h-full -->
       <draggable
         v-model="draggableSessions"
         item-key="sessionId"
@@ -430,82 +460,131 @@ onBeforeUnmount(() => {
         <template #item="{ element: session }">
           <li
             :key="session.sessionId"
-            :class="['flex items-center px-3 h-full cursor-pointer border-r border-border transition-colors duration-150 relative group',
-                     session.sessionId === activeSessionId ? 'bg-background text-foreground' : 'bg-header text-text-secondary hover:bg-border']"
+            :class="[
+              'flex items-center px-3 h-full cursor-pointer border-r border-border transition-colors duration-150 relative group',
+              session.sessionId === activeSessionId
+                ? 'bg-background text-foreground'
+                : 'bg-header text-text-secondary hover:bg-border',
+            ]"
             @click="activateSession(session.sessionId)"
             @contextmenu.prevent="showContextMenu($event, session.sessionId)"
             @touchstart="handleTouchStart($event, session.sessionId)"
             @touchend="handleTouchEnd($event)"
             @dragstart="handleDragStart"
             :title="session.connectionName"
-        >
-          <!-- Status dot -->
-          <span class="w-2 h-2 rounded-full mr-2 flex-shrink-0 transition-colors duration-300"
-                :style="{
-                    backgroundColor: session.isMarkedForSuspend ? 'var(--color-primary)' :
-                                   session.status === 'connected' ? 'var(--color-success)' :
-                                   session.status === 'connecting' ? 'var(--color-warning)' :
-                                   session.status === 'disconnected' ? 'var(--color-error)' : 'var(--text-color-secondary)',
-                    boxShadow: session.status === 'connected' ? '0 0 6px var(--color-success)' : 'none'
-                }"
-                :class="{'animate-pulse': session.status === 'connecting'}"></span>
-          <span class="truncate text-sm" style="transform: translateY(-1px);">{{ session.connectionName }}</span>
-          <button class="ml-2 p-0.5 rounded-full text-text-secondary hover:bg-border hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                  :class="{'text-foreground hover:bg-header': session.sessionId === activeSessionId}"
-                  @click="closeSession($event, session.sessionId)" :title="$t('tabs.closeTabTooltip')">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          >
+            <!-- Status dot -->
+            <span
+              class="w-2 h-2 rounded-full mr-2 flex-shrink-0 transition-colors duration-300"
+              :style="{
+                backgroundColor: session.isMarkedForSuspend
+                  ? 'var(--color-primary)'
+                  : session.status === 'connected'
+                    ? 'var(--color-success)'
+                    : session.status === 'connecting'
+                      ? 'var(--color-warning)'
+                      : session.status === 'disconnected'
+                        ? 'var(--color-error)'
+                        : 'var(--text-color-secondary)',
+                boxShadow: session.status === 'connected' ? '0 0 6px var(--color-success)' : 'none',
+              }"
+              :class="{ 'animate-pulse': session.status === 'connecting' }"
+            ></span>
+            <span class="truncate text-sm" style="transform: translateY(-1px)">{{
+              session.connectionName
+            }}</span>
+            <button
+              class="ml-2 p-0.5 rounded-full text-text-secondary hover:bg-border hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+              :class="{ 'text-foreground hover:bg-header': session.sessionId === activeSessionId }"
+              @click="closeSession($event, session.sessionId)"
+              :title="$t('tabs.closeTabTooltip')"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </li>
         </template>
       </draggable>
       <!-- Add Tab Button -->
-      <button class="flex items-center justify-center px-3 h-full border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150 flex-shrink-0"
-              @click="togglePopup" :title="$t('tabs.newTabTooltip')">
+      <button
+        class="flex items-center justify-center px-3 h-full border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150 flex-shrink-0"
+        @click="togglePopup"
+        :title="$t('tabs.newTabTooltip')"
+      >
         <i class="fas fa-plus text-sm"></i>
       </button>
     </div>
     <!-- Action Buttons -->
     <div class="flex items-center ml-auto h-full flex-shrink-0">
-        <button
-          v-if="isWorkspaceRoute"
-          class="flex items-center justify-center px-3 h-full border-l border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150"
-          @click="toggleHeader"
-          :title="toggleButtonTitle"
-        >
-          <i :class="[eyeIconClass, 'text-sm']"></i>
-        </button>
-        <!-- 查看传输进度按钮 (移除 v-if="!isMobile" 以在移动端显示) -->
-        <button
-                class="flex items-center justify-center px-3 h-full border-l border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150"
-                @click="showTransferProgressModal = true"
-                :title="t('terminalTabBar.showTransferProgressTooltip', '查看传输进度')">
-          <i class="fas fa-tasks text-sm"></i>
-        </button>
-        <!-- +++ 使用 v-if 隐藏移动端的布局按钮 +++ -->
-        <button v-if="!isMobile" class="flex items-center justify-center px-3 h-full border-l border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150"
-                @click="openLayoutConfigurator" :title="t('layout.configure', '配置布局')">
-          <i class="fas fa-th-large text-sm"></i>
-        </button>
+      <button
+        v-if="isWorkspaceRoute"
+        class="flex items-center justify-center px-3 h-full border-l border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150"
+        @click="toggleHeader"
+        :title="toggleButtonTitle"
+      >
+        <i :class="[eyeIconClass, 'text-sm']"></i>
+      </button>
+      <!-- 查看传输进度按钮 (移除 v-if="!isMobile" 以在移动端显示) -->
+      <button
+        class="flex items-center justify-center px-3 h-full border-l border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150"
+        @click="showTransferProgressModal = true"
+        :title="t('terminalTabBar.showTransferProgressTooltip', '查看传输进度')"
+      >
+        <i class="fas fa-tasks text-sm"></i>
+      </button>
+      <!-- +++ 使用 v-if 隐藏移动端的布局按钮 +++ -->
+      <button
+        v-if="!isMobile"
+        class="flex items-center justify-center px-3 h-full border-l border-border text-text-secondary hover:bg-border hover:text-foreground transition-colors duration-150"
+        @click="openLayoutConfigurator"
+        :title="t('layout.configure', '配置布局')"
+      >
+        <i class="fas fa-th-large text-sm"></i>
+      </button>
     </div>
     <!-- Connection List Popup -->
-    <div v-if="showConnectionListPopup" class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4" @click.self="togglePopup">
-      <div class="bg-background text-foreground p-6 rounded-lg shadow-xl border border-border w-full max-w-md max-h-[80vh] flex flex-col relative">
-        <button class="absolute top-2 right-2 p-1 text-text-secondary hover:text-foreground" @click="togglePopup">
-           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-           </svg>
+    <div
+      v-if="showConnectionListPopup"
+      class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4"
+      @click.self="togglePopup"
+    >
+      <div
+        class="bg-background text-foreground p-6 rounded-lg shadow-xl border border-border w-full max-w-md max-h-[80vh] flex flex-col relative"
+      >
+        <button
+          class="absolute top-2 right-2 p-1 text-text-secondary hover:text-foreground"
+          @click="togglePopup"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
-        <h3 class="text-lg font-semibold text-center mb-4">{{ t('terminalTabBar.selectServerTitle') }}</h3>
+        <h3 class="text-lg font-semibold text-center mb-4">
+          {{ t('terminalTabBar.selectServerTitle') }}
+        </h3>
         <div class="flex-grow overflow-y-auto border border-border rounded">
-            <WorkspaceConnectionListComponent
-              @connect-request="handlePopupConnect"
-              @open-new-session="handlePopupConnect"
-              @request-add-connection="handleRequestAddFromPopup"
-              @request-edit-connection="handleRequestEditFromPopup"
-              class="popup-connection-list"
-            />
+          <WorkspaceConnectionListComponent
+            @connect-request="handlePopupConnect"
+            @open-new-session="handlePopupConnect"
+            @request-add-connection="handleRequestAddFromPopup"
+            @request-edit-connection="handleRequestEditFromPopup"
+            class="popup-connection-list"
+          />
         </div>
       </div>
     </div>

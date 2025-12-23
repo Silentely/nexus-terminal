@@ -46,8 +46,10 @@ const childrenList = computed({
     // 移除下面的 emit 调用，因为它导致了事件风暴
     // emit('update:node', { ...props.node, children: newChildren });
     // 添加日志以确认 setter 被调用，并依赖 vuedraggable 的直接修改
-    console.log('[LayoutNodeEditor] childrenList setter called, relying on v-model/vuedraggable mutation.');
-  }
+    console.log(
+      '[LayoutNodeEditor] childrenList setter called, relying on v-model/vuedraggable mutation.'
+    );
+  },
 });
 
 // --- Methods ---
@@ -66,15 +68,15 @@ const addHorizontalContainer = () => {
 
 // 添加垂直分割容器
 const addVerticalContainer = () => {
-   const newNode: LayoutNode = {
-     id: layoutStore.generateId(),
-     type: 'container',
-     direction: 'vertical',
-     children: [],
-     size: 50,
-   };
-   const updatedChildren = [...(props.node.children || []), newNode];
-   emit('update:node', { ...props.node, children: updatedChildren });
+  const newNode: LayoutNode = {
+    id: layoutStore.generateId(),
+    type: 'container',
+    direction: 'vertical',
+    children: [],
+    size: 50,
+  };
+  const updatedChildren = [...(props.node.children || []), newNode];
+  emit('update:node', { ...props.node, children: updatedChildren });
 };
 
 // 移除当前节点
@@ -101,11 +103,10 @@ const handleChildUpdate = (updatedChildNode: LayoutNode, index: number) => {
 
 // 处理子节点移除事件
 const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeIndex: number }) => {
-   // 总是将移除事件向上传递，让顶层 LayoutConfigurator 处理
-   console.log(`[LayoutNodeEditor ${props.node.id}] Relaying removeNode event upwards:`, payload);
-   emit('removeNode', payload);
+  // 总是将移除事件向上传递，让顶层 LayoutConfigurator 处理
+  console.log(`[LayoutNodeEditor ${props.node.id}] Relaying removeNode event upwards:`, payload);
+  emit('removeNode', payload);
 };
-
 </script>
 
 <template>
@@ -117,57 +118,88 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
     <!-- 节点控制栏 -->
     <div class="node-controls">
       <span class="node-info">
-        {{ node.type === 'pane' ? (props.paneLabels[node.component!] || node.component) : t('layoutNodeEditor.containerLabel', { direction: node.direction === 'horizontal' ? t('layoutNodeEditor.horizontal') : t('layoutNodeEditor.vertical') }) }}
+        {{
+          node.type === 'pane'
+            ? props.paneLabels[node.component!] || node.component
+            : t('layoutNodeEditor.containerLabel', {
+                direction:
+                  node.direction === 'horizontal'
+                    ? t('layoutNodeEditor.horizontal')
+                    : t('layoutNodeEditor.vertical'),
+              })
+        }}
       </span>
       <div class="node-actions">
-         <button v-if="node.type === 'container'" @click="toggleDirection" :title="t('layoutNodeEditor.toggleDirection')" class="action-button">
-           <i class="fas fa-sync-alt"></i>
-         </button>
-         <button v-if="node.type === 'container'" @click="addHorizontalContainer" :title="t('layoutNodeEditor.addHorizontalContainer')" class="action-button">
-           <i class="fas fa-columns"></i> H
-         </button>
-          <button v-if="node.type === 'container'" @click="addVerticalContainer" :title="t('layoutNodeEditor.addVerticalContainer')" class="action-button">
-           <i class="fas fa-bars"></i> V
-         </button>
-         <button @click="removeSelf" :title="t('layoutNodeEditor.removeNode')" class="action-button remove-button" :disabled="!parentNode">
-           <i class="fas fa-trash-alt"></i>
-         </button>
+        <button
+          v-if="node.type === 'container'"
+          @click="toggleDirection"
+          :title="t('layoutNodeEditor.toggleDirection')"
+          class="action-button"
+        >
+          <i class="fas fa-sync-alt"></i>
+        </button>
+        <button
+          v-if="node.type === 'container'"
+          @click="addHorizontalContainer"
+          :title="t('layoutNodeEditor.addHorizontalContainer')"
+          class="action-button"
+        >
+          <i class="fas fa-columns"></i> H
+        </button>
+        <button
+          v-if="node.type === 'container'"
+          @click="addVerticalContainer"
+          :title="t('layoutNodeEditor.addVerticalContainer')"
+          class="action-button"
+        >
+          <i class="fas fa-bars"></i> V
+        </button>
+        <button
+          @click="removeSelf"
+          :title="t('layoutNodeEditor.removeNode')"
+          class="action-button remove-button"
+          :disabled="!parentNode"
+        >
+          <i class="fas fa-trash-alt"></i>
+        </button>
       </div>
     </div>
 
     <!-- 如果是容器节点，使用 draggable 渲染子节点 -->
     <draggable
       v-if="node.type === 'container'"
-      :list="childrenList" 
-      @update:list="childrenList = $event" 
+      :list="childrenList"
+      @update:list="childrenList = $event"
       tag="div"
       class="node-children-container"
       :class="[`children-direction-${node.direction}`]"
-      item-key="id" 
+      item-key="id"
       group="layout-items"
       handle=".drag-handle-node"
-       
     >
       <template #item="{ element: childNode, index }">
-        <div class="child-node-wrapper" :key="childNode.id"> 
-           <i class="fas fa-grip-vertical drag-handle-node" :title="t('layoutNodeEditor.dragHandle')"></i>
+        <div class="child-node-wrapper" :key="childNode.id">
+          <i
+            class="fas fa-grip-vertical drag-handle-node"
+            :title="t('layoutNodeEditor.dragHandle')"
+          ></i>
 
-           <LayoutNodeEditor
-             :node="childNode"
-             :parent-node="node"
-             :node-index="index"
-             :pane-labels="props.paneLabels"
-             @update:node="handleChildUpdate($event, index)"
-             @removeNode="handleChildRemove"
-           />
+          <LayoutNodeEditor
+            :node="childNode"
+            :parent-node="node"
+            :node-index="index"
+            :pane-labels="props.paneLabels"
+            @update:node="handleChildUpdate($event, index)"
+            @removeNode="handleChildRemove"
+          />
         </div>
       </template>
-       <!-- 容器为空时的占位符 -->
-       <template #footer>
-         <div v-if="!childrenList || childrenList.length === 0" class="empty-container-placeholder">
-           {{ t('layoutNodeEditor.dropHere') }}
-         </div>
-       </template>
+      <!-- 容器为空时的占位符 -->
+      <template #footer>
+        <div v-if="!childrenList || childrenList.length === 0" class="empty-container-placeholder">
+          {{ t('layoutNodeEditor.dropHere') }}
+        </div>
+      </template>
     </draggable>
 
     <!-- 如果是面板节点，只显示信息（因为内容在主视图渲染） -->
@@ -179,10 +211,7 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
 
 <style scoped>
 .layout-node-editor {
-
 }
-
-
 
 .node-controls {
   display: flex;
@@ -218,7 +247,9 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
   line-height: 1;
 }
 .action-button:hover {
-  background-color: var(--border-color); /* Consider a dedicated var(--button-hover-light-bg-color) */
+  background-color: var(
+    --border-color
+  ); /* Consider a dedicated var(--button-hover-light-bg-color) */
 }
 .remove-button {
   color: #dc3545; /* Consider var(--danger-color) */
@@ -255,11 +286,10 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
   flex-direction: column; /* 内部还是列方向 */
 }
 .children-direction-vertical > .child-node-wrapper {
-   width: 100%; /* 垂直方向占满宽度 */
-   flex-direction: row; /* 内部行方向 */
-   align-items: center;
+  width: 100%; /* 垂直方向占满宽度 */
+  flex-direction: row; /* 内部行方向 */
+  align-items: center;
 }
-
 
 .drag-handle-node {
   cursor: grab;
@@ -269,18 +299,17 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
   border-right: 1px solid var(--border-color); /* 垂直句柄 */
 }
 .children-direction-vertical > .child-node-wrapper > .drag-handle-node {
-   border-right: none;
-   border-bottom: 1px solid var(--border-color); /* 水平句柄 */
-   writing-mode: vertical-rl; /* 可选：旋转图标 */
+  border-right: none;
+  border-bottom: 1px solid var(--border-color); /* 水平句柄 */
+  writing-mode: vertical-rl; /* 可选：旋转图标 */
 }
 
 .child-node-wrapper > .layout-node-editor {
-   flex-grow: 1; /* 让递归组件填充剩余空间 */
-   margin: 0; /* 移除递归组件的外边距 */
-   border: none; /* 移除递归组件的边框 */
-   padding: 0; /* 移除递归组件的内边距 */
+  flex-grow: 1; /* 让递归组件填充剩余空间 */
+  margin: 0; /* 移除递归组件的外边距 */
+  border: none; /* 移除递归组件的边框 */
+  padding: 0; /* 移除递归组件的内边距 */
 }
-
 
 .pane-node-content {
   /* 面板节点在配置器中通常是空的 */
@@ -318,4 +347,3 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
   /* 正在拖拽的元素样式 */
 }
 </style>
-

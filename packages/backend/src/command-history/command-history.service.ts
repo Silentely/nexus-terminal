@@ -1,5 +1,5 @@
-import * as CommandHistoryRepository from '../command-history/command-history.repository';
-import { CommandHistoryEntry } from '../command-history/command-history.repository';
+import * as CommandHistoryRepository from './command-history.repository';
+import { CommandHistoryEntry } from './command-history.repository';
 
 /**
  * 添加一条命令历史记录
@@ -7,13 +7,13 @@ import { CommandHistoryEntry } from '../command-history/command-history.reposito
  * @returns 返回添加记录的 ID
  */
 export const addCommandHistory = async (command: string): Promise<number> => {
-    // 可以在这里添加额外的业务逻辑，例如校验命令格式、长度限制等
-    if (!command || command.trim().length === 0) {
-        throw new Error('命令不能为空');
-    }
+  // 可以在这里添加额外的业务逻辑，例如校验命令格式、长度限制等
+  if (!command || command.trim().length === 0) {
+    throw new Error('命令不能为空');
+  }
 
-    // 调用 upsertCommand 来处理插入或更新时间戳
-    return CommandHistoryRepository.upsertCommand(command.trim());
+  // 调用 upsertCommand 来处理插入或更新时间戳
+  return CommandHistoryRepository.upsertCommand(command.trim());
 };
 
 /**
@@ -21,7 +21,7 @@ export const addCommandHistory = async (command: string): Promise<number> => {
  * @returns 返回所有历史记录条目数组，按时间戳升序
  */
 export const getAllCommandHistory = async (): Promise<CommandHistoryEntry[]> => {
-    return CommandHistoryRepository.getAllCommands();
+  return CommandHistoryRepository.getAllCommands();
 };
 
 /**
@@ -30,9 +30,9 @@ export const getAllCommandHistory = async (): Promise<CommandHistoryEntry[]> => 
  * @returns 返回是否成功删除 (删除行数 > 0)
  */
 export const deleteCommandHistoryById = async (id: number): Promise<boolean> => {
-    // deleteCommandById now directly returns boolean indicating success
-    const success = await CommandHistoryRepository.deleteCommandById(id);
-    return success;
+  // deleteCommandById now directly returns boolean indicating success
+  const success = await CommandHistoryRepository.deleteCommandById(id);
+  return success;
 };
 
 /**
@@ -40,5 +40,5 @@ export const deleteCommandHistoryById = async (id: number): Promise<boolean> => 
  * @returns 返回删除的记录条数
  */
 export const clearAllCommandHistory = async (): Promise<number> => {
-    return CommandHistoryRepository.clearAllCommands();
+  return CommandHistoryRepository.clearAllCommands();
 };

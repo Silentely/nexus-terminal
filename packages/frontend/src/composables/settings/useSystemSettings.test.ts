@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { defineComponent, nextTick, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
+import apiClient from '../../utils/apiClient';
+import { useSystemSettings } from './useSystemSettings';
+
 vi.mock('vue-i18n', () => ({
   createI18n: () => ({}),
   useI18n: () => ({
@@ -46,9 +49,6 @@ const settingsStoreMock = {
 vi.mock('../../stores/settings.store', () => ({
   useSettingsStore: () => settingsStoreMock,
 }));
-
-import apiClient from '../../utils/apiClient';
-import { useSystemSettings } from './useSystemSettings';
 
 const flush = async () => {
   await Promise.resolve();

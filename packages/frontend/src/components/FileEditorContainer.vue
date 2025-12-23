@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { computed, type PropType, ref, watch, defineExpose, onMounted, onBeforeUnmount, nextTick, defineAsyncComponent } from 'vue'; // 添加 nextTick
+import {
+  computed,
+  type PropType,
+  ref,
+  watch,
+  defineExpose,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+  defineAsyncComponent,
+} from 'vue'; // 添加 nextTick
 import { useI18n } from 'vue-i18n';
-const MonacoEditor = defineAsyncComponent(() => import('./MonacoEditor.vue')); 
+const MonacoEditor = defineAsyncComponent(() => import('./MonacoEditor.vue'));
 import FileEditorTabs from './FileEditorTabs.vue';
-import type { FileTab } from '../stores/fileEditor.store'; 
+import type { FileTab } from '../stores/fileEditor.store';
 import { useFocusSwitcherStore } from '../stores/focusSwitcher.store';
 import { useSessionStore } from '../stores/session.store';
 import { useSettingsStore } from '../stores/settings.store';
@@ -19,7 +29,7 @@ const settingsStore = useSettingsStore(); // +++ 实例化设置 Store +++
 const appearanceStore = useAppearanceStore(); // +++ 实例化外观 Store +++
 const { shareFileEditorTabsBoolean } = storeToRefs(settingsStore); // +++ 获取共享设置 +++
 const { currentEditorFontFamily, currentEditorFontSize } = storeToRefs(appearanceStore);
- 
+
 // --- Props ---
 const props = defineProps({
   tabs: {
@@ -30,19 +40,17 @@ const props = defineProps({
     type: String as PropType<string | null>,
     default: null,
   },
-  sessionId: { // 需要 sessionId 来区分保存请求等 (虽然 tabs 里也有)
+  sessionId: {
+    // 需要 sessionId 来区分保存请求等 (虽然 tabs 里也有)
     type: String as PropType<string | null>,
     default: null,
   },
 });
 
-
-
-
 // --- 计算属性，用于模板绑定 ---
 const activeTab = computed((): FileTab | null => {
   if (!props.activeTabId) return null;
-  return props.tabs.find(tab => tab.id === props.activeTabId) ?? null;
+  return props.tabs.find((tab) => tab.id === props.activeTabId) ?? null;
 });
 
 // Monaco Editor 的 v-model 处理
@@ -51,7 +59,8 @@ const encodingSelectRef = ref<HTMLSelectElement | null>(null); // Ref for the se
 
 // Function to calculate and set the select width
 const updateSelectWidth = () => {
-  nextTick(() => { // Ensure DOM is updated before measuring
+  nextTick(() => {
+    // Ensure DOM is updated before measuring
     if (!encodingSelectRef.value) return;
 
     const selectElement = encodingSelectRef.value;
@@ -89,29 +98,31 @@ const updateSelectWidth = () => {
   });
 };
 
-
 // 监听 activeTab 的变化，重置 localEditorContent 并更新 select 宽度
-watch(activeTab, (newTab) => {
+watch(
+  activeTab,
+  (newTab) => {
     // console.log('[EditorContainer] Active tab changed, updating local content.');
     localEditorContent.value = newTab?.content ?? '';
     updateSelectWidth(); // Update select width when tab changes
-}, { immediate: true }); // immediate: true ensures it runs on initial load too
+  },
+  { immediate: true }
+); // immediate: true ensures it runs on initial load too
 
 // 移除用于调试的 watch 函数
 // 当本地编辑器内容变化时，通知父组件 (WorkspaceView)
 watch(localEditorContent, (newContent) => {
-    // console.log('[EditorContainer] Local content changed, checking if emit needed.');
-    if (activeTab.value && newContent !== activeTab.value.content) {
-        // console.log(`[EditorContainer] Emitting update:content for tab ${activeTab.value.id}`);
-        // 只有当内容实际改变时才发出事件
-        emitWorkspaceEvent('editor:updateContent', { tabId: activeTab.value.id, content: newContent });
-        // 注意：isModified 状态应该由 Store 根据 content 和 originalContent 计算
-    }
+  // console.log('[EditorContainer] Local content changed, checking if emit needed.');
+  if (activeTab.value && newContent !== activeTab.value.content) {
+    // console.log(`[EditorContainer] Emitting update:content for tab ${activeTab.value.id}`);
+    // 只有当内容实际改变时才发出事件
+    emitWorkspaceEvent('editor:updateContent', { tabId: activeTab.value.id, content: newContent });
+    // 注意：isModified 状态应该由 Store 根据 content 和 originalContent 计算
+  }
 });
 
 // orderedTabs 直接使用 props
 const orderedTabs = computed(() => props.tabs);
-
 
 const currentTabIsLoading = computed(() => activeTab.value?.isLoading ?? false);
 const currentTabLoadingError = computed(() => activeTab.value?.loadingError ?? null);
@@ -185,7 +196,6 @@ const encodingOptions = ref([
   { value: 'cp874', text: 'Windows-874 (Thai)' },
 ]);
 
-
 // --- 事件处理 ---
 const handleSaveRequest = () => {
   if (activeTab.value) {
@@ -198,13 +208,24 @@ const handleEncodingChange = (event: Event) => {
   const target = event.target as HTMLSelectElement;
   const newEncoding = target.value;
   if (activeTab.value && newEncoding && newEncoding !== currentSelectedEncoding.value) {
-    console.log(`[EditorContainer] Encoding changed to ${newEncoding} for tab ${activeTab.value.id}`);
-    emitWorkspaceEvent('editor:changeEncoding', { tabId: activeTab.value.id, encoding: newEncoding });
+    console.log(
+      `[EditorContainer] Encoding changed to ${newEncoding} for tab ${activeTab.value.id}`
+    );
+    emitWorkspaceEvent('editor:changeEncoding', {
+      tabId: activeTab.value.id,
+      encoding: newEncoding,
+    });
   }
 };
 
 // +++ 处理编辑器滚动事件 +++
-const handleEditorScroll = ({ scrollTop, scrollLeft }: { scrollTop: number; scrollLeft: number }) => {
+const handleEditorScroll = ({
+  scrollTop,
+  scrollLeft,
+}: {
+  scrollTop: number;
+  scrollLeft: number;
+}) => {
   if (activeTab.value) {
     emitWorkspaceEvent('editor:updateScrollPosition', {
       tabId: activeTab.value.id,
@@ -216,9 +237,8 @@ const handleEditorScroll = ({ scrollTop, scrollLeft }: { scrollTop: number; scro
 
 // +++ 处理编辑器字体大小更新事件 +++
 const handleEditorFontSizeUpdate = (newSize: number) => {
-    appearanceStore.setEditorFontSize(newSize);
+  appearanceStore.setEditorFontSize(newSize);
 };
-
 
 // 注意：关闭/最小化按钮现在应该在 WorkspaceView 控制 Pane，而不是这里
 // const handleCloseContainer = () => { ... };
@@ -270,7 +290,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
       return; // 没有活动标签或只有一个标签，无需切换
     }
 
-    const currentIndex = props.tabs.findIndex(tab => tab.id === props.activeTabId);
+    const currentIndex = props.tabs.findIndex((tab) => tab.id === props.activeTabId);
     if (currentIndex === -1) {
       return; // 未找到当前标签索引
     }
@@ -278,7 +298,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
     let nextIndex: number;
     if (event.key === 'ArrowLeft') {
       nextIndex = (currentIndex - 1 + props.tabs.length) % props.tabs.length;
-    } else { // ArrowRight
+    } else {
+      // ArrowRight
       nextIndex = (currentIndex + 1) % props.tabs.length;
     }
 
@@ -293,80 +314,106 @@ const handleKeyDown = (event: KeyboardEvent) => {
 <template>
   <!-- 这个容器不再控制自己的显示/隐藏，由 WorkspaceView 的 Pane 控制 -->
   <div class="file-editor-container">
+    <!-- 1. 标签栏 -->
+    <FileEditorTabs
+      :tabs="orderedTabs"
+      :active-tab-id="props.activeTabId"
+      @activate-tab="(tabId: string) => emitWorkspaceEvent('editor:activateTab', { tabId })"
+      @close-tab="(tabId: string) => emitWorkspaceEvent('editor:closeTab', { tabId })"
+      @close-other-tabs="(tabId: string) => emitWorkspaceEvent('editor:closeOtherTabs', { tabId })"
+      @close-tabs-to-right="
+        (tabId: string) => emitWorkspaceEvent('editor:closeTabsToRight', { tabId })
+      "
+      @close-tabs-to-left="
+        (tabId: string) => emitWorkspaceEvent('editor:closeTabsToLeft', { tabId })
+      "
+    />
 
-      <!-- 1. 标签栏 -->
-      <FileEditorTabs
-        :tabs="orderedTabs"
-        :active-tab-id="props.activeTabId"
-        @activate-tab="(tabId: string) => emitWorkspaceEvent('editor:activateTab', { tabId })"
-        @close-tab="(tabId: string) => emitWorkspaceEvent('editor:closeTab', { tabId })"
-        @close-other-tabs="(tabId: string) => emitWorkspaceEvent('editor:closeOtherTabs', { tabId })"
-        @close-tabs-to-right="(tabId: string) => emitWorkspaceEvent('editor:closeTabsToRight', { tabId })"
-        @close-tabs-to-left="(tabId: string) => emitWorkspaceEvent('editor:closeTabsToLeft', { tabId })"
-      />
-
-      <!-- 2. 编辑器头部 (显示当前激活标签信息) -->
-      <!-- 移除关闭/最小化按钮，这些由 WorkspaceView 控制 -->
-      <div v-if="activeTab" class="editor-header">
-        <span>
-          {{ t('fileManager.editingFile') }}<template v-if="shareFileEditorTabsBoolean && currentTabSessionName">({{ currentTabSessionName }})</template>: {{ currentTabFilePath }}
-          <span v-if="currentTabIsModified" class="modified-indicator">*</span>
-        </span>
-        <div class="editor-actions">
-          <!-- +++ 编码选择下拉菜单 +++ -->
-          <div class="encoding-select-wrapper" v-if="activeTab && !currentTabIsLoading">
-            <select
-              ref="encodingSelectRef"
-              :value="currentSelectedEncoding"
-              @change="handleEncodingChange"
-              class="encoding-select"
-              :title="t('fileManager.changeEncodingTooltip', '更改文件编码')"
-            >
-              <option v-for="option in encodingOptions" :key="option.value" :value="option.value">
-                {{ option.text }}
-              </option>
-            </select>
-          </div>
-          <span v-else-if="activeTab" class="encoding-select-placeholder">{{ t('fileManager.loadingEncoding', '加载中...') }}</span>
-      
-
-          <span v-if="currentTabSaveStatus === 'saving'" class="save-status saving">{{ t('fileManager.saving') }}...</span>
-          <span v-if="currentTabSaveStatus === 'success'" class="save-status success">✅ {{ t('fileManager.saveSuccess') }}</span>
-          <span v-if="currentTabSaveStatus === 'error'" class="save-status error">❌ {{ t('fileManager.saveError') }}: {{ currentTabSaveError }}</span>
-          <button @click="handleSaveRequest" :disabled="currentTabIsSaving || currentTabIsLoading || !!currentTabLoadingError || !activeTab || !currentTabIsModified" class="save-btn">
-            {{ t('fileManager.actions.save') }}
-          </button>
+    <!-- 2. 编辑器头部 (显示当前激活标签信息) -->
+    <!-- 移除关闭/最小化按钮，这些由 WorkspaceView 控制 -->
+    <div v-if="activeTab" class="editor-header">
+      <span>
+        {{ t('fileManager.editingFile')
+        }}<template v-if="shareFileEditorTabsBoolean && currentTabSessionName"
+          >({{ currentTabSessionName }})</template
+        >: {{ currentTabFilePath }}
+        <span v-if="currentTabIsModified" class="modified-indicator">*</span>
+      </span>
+      <div class="editor-actions">
+        <!-- +++ 编码选择下拉菜单 +++ -->
+        <div class="encoding-select-wrapper" v-if="activeTab && !currentTabIsLoading">
+          <select
+            ref="encodingSelectRef"
+            :value="currentSelectedEncoding"
+            @change="handleEncodingChange"
+            class="encoding-select"
+            :title="t('fileManager.changeEncodingTooltip', '更改文件编码')"
+          >
+            <option v-for="option in encodingOptions" :key="option.value" :value="option.value">
+              {{ option.text }}
+            </option>
+          </select>
         </div>
-      </div>
-      <!-- 如果没有活动标签页，显示简化头部 -->
-      <div v-else class="editor-header editor-header-placeholder">
-        <span>{{ t('fileManager.noOpenFile') }}</span>
-        <!-- 动作区域留空或只显示通用按钮 -->
-      </div>
+        <span v-else-if="activeTab" class="encoding-select-placeholder">{{
+          t('fileManager.loadingEncoding', '加载中...')
+        }}</span>
 
-      <!-- 3. 编辑器内容区域 -->
-      <div class="editor-content-area">
-        <div v-if="currentTabIsLoading" class="editor-loading">{{ t('fileManager.loadingFile') }}</div>
-        <div v-else-if="currentTabLoadingError" class="editor-error">{{ currentTabLoadingError }}</div>
-        <MonacoEditor
-          v-else-if="activeTab"
-          ref="monacoEditorRef"
-          :key="activeTab.id"
-          v-model="localEditorContent"
-          :language="currentTabLanguage"
-          :font-family="currentEditorFontFamily"
-          :font-size="currentEditorFontSize"
-          theme="vs-dark"
-          class="editor-instance"
-          @request-save="handleSaveRequest"
-          @update:fontSize="handleEditorFontSizeUpdate"
-         :initialScrollTop="activeTab?.scrollTop ?? 0"
-         :initialScrollLeft="activeTab?.scrollLeft ?? 0"
-         @update:scrollPosition="handleEditorScroll"
-       />
-       <div v-else class="editor-placeholder">{{ t('fileManager.selectFileToEdit') }}</div>
+        <span v-if="currentTabSaveStatus === 'saving'" class="save-status saving"
+          >{{ t('fileManager.saving') }}...</span
+        >
+        <span v-if="currentTabSaveStatus === 'success'" class="save-status success"
+          >✅ {{ t('fileManager.saveSuccess') }}</span
+        >
+        <span v-if="currentTabSaveStatus === 'error'" class="save-status error"
+          >❌ {{ t('fileManager.saveError') }}: {{ currentTabSaveError }}</span
+        >
+        <button
+          @click="handleSaveRequest"
+          :disabled="
+            currentTabIsSaving ||
+            currentTabIsLoading ||
+            !!currentTabLoadingError ||
+            !activeTab ||
+            !currentTabIsModified
+          "
+          class="save-btn"
+        >
+          {{ t('fileManager.actions.save') }}
+        </button>
       </div>
+    </div>
+    <!-- 如果没有活动标签页，显示简化头部 -->
+    <div v-else class="editor-header editor-header-placeholder">
+      <span>{{ t('fileManager.noOpenFile') }}</span>
+      <!-- 动作区域留空或只显示通用按钮 -->
+    </div>
 
+    <!-- 3. 编辑器内容区域 -->
+    <div class="editor-content-area">
+      <div v-if="currentTabIsLoading" class="editor-loading">
+        {{ t('fileManager.loadingFile') }}
+      </div>
+      <div v-else-if="currentTabLoadingError" class="editor-error">
+        {{ currentTabLoadingError }}
+      </div>
+      <MonacoEditor
+        v-else-if="activeTab"
+        ref="monacoEditorRef"
+        :key="activeTab.id"
+        v-model="localEditorContent"
+        :language="currentTabLanguage"
+        :font-family="currentEditorFontFamily"
+        :font-size="currentEditorFontSize"
+        theme="vs-dark"
+        class="editor-instance"
+        @request-save="handleSaveRequest"
+        @update:fontSize="handleEditorFontSizeUpdate"
+        :initialScrollTop="activeTab?.scrollTop ?? 0"
+        :initialScrollLeft="activeTab?.scrollLeft ?? 0"
+        @update:scrollPosition="handleEditorScroll"
+      />
+      <div v-else class="editor-placeholder">{{ t('fileManager.selectFileToEdit') }}</div>
+    </div>
   </div>
 </template>
 
@@ -396,26 +443,28 @@ const handleKeyDown = (event: KeyboardEvent) => {
   flex-shrink: 0;
 }
 .editor-header-placeholder {
-    justify-content: flex-start; /* 左对齐提示文本 */
-    color: #888;
+  justify-content: flex-start; /* 左对齐提示文本 */
+  color: #888;
 }
 
 .modified-indicator {
-    color: #ffeb3b;
-    margin-left: 4px;
-    font-weight: bold;
+  color: #ffeb3b;
+  margin-left: 4px;
+  font-weight: bold;
 }
 
 /* 编辑器内容区域 */
 .editor-content-area {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
 
-.editor-loading, .editor-error, .editor-placeholder {
+.editor-loading,
+.editor-error,
+.editor-placeholder {
   padding: 2rem;
   text-align: center;
   font-size: 1.1em;
@@ -425,53 +474,69 @@ const handleKeyDown = (event: KeyboardEvent) => {
   justify-content: center;
   color: #888;
 }
-.editor-error { color: #ff8a8a; }
-.editor-placeholder { color: #666; }
+.editor-error {
+  color: #ff8a8a;
+}
+.editor-placeholder {
+  color: #666;
+}
 
 .editor-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 /* 移动端响应式调整 */
 @media (max-width: 768px) {
   .editor-header {
-    flex-direction: column; 
+    flex-direction: column;
     align-items: flex-start;
   }
 
   .editor-header > span:first-of-type {
-    margin-bottom: 0.5rem; 
+    margin-bottom: 0.5rem;
   }
 
   .editor-actions {
-    width: 100%; 
-    justify-content: flex-start; 
+    width: 100%;
+    justify-content: flex-start;
   }
-
 }
 
 .save-btn {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    cursor: pointer;
-    border-radius: 3px;
-    font-size: 0.9em;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 0.9em;
 }
-.save-btn:disabled { background-color: #aaa; cursor: not-allowed; }
-.save-btn:hover:not(:disabled) { background-color: #45a049; }
+.save-btn:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+.save-btn:hover:not(:disabled) {
+  background-color: #45a049;
+}
 
 .save-status {
-    font-size: 0.9em;
-    padding: 0.2rem 0.5rem;
-    border-radius: 3px;
-    white-space: nowrap;
+  font-size: 0.9em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  white-space: nowrap;
 }
-.save-status.saving { color: #888; }
-.save-status.success { color: #4CAF50; background-color: #e8f5e9; }
-.save-status.error { color: #f44336; background-color: #ffebee; }
+.save-status.saving {
+  color: #888;
+}
+.save-status.success {
+  color: #4caf50;
+  background-color: #e8f5e9;
+}
+.save-status.error {
+  color: #f44336;
+  background-color: #ffebee;
+}
 
 .editor-instance {
   flex-grow: 1;
@@ -479,7 +544,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 </style>
 
-<style scoped> /* Add new styles below existing scoped styles */
+<style scoped>
+/* Add new styles below existing scoped styles */
 .encoding-select-wrapper {
   display: inline-block; /* 让 wrapper 包裹内容 */
   vertical-align: middle; /* 垂直居中对齐 */
@@ -508,12 +574,11 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 
 .encoding-select-placeholder {
-    font-size: 0.85em;
-    color: #888;
-    padding: 0.3rem 0.5rem;
-    display: inline-block;
-    min-width: 80px; /* 与 select 大致对齐 */
-    text-align: center;
+  font-size: 0.85em;
+  color: #888;
+  padding: 0.3rem 0.5rem;
+  display: inline-block;
+  min-width: 80px; /* 与 select 大致对齐 */
+  text-align: center;
 }
 </style>
-

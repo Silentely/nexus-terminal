@@ -1,17 +1,25 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onBeforeUnmount, defineExpose, computed, defineOptions } from 'vue'; // Import defineOptions
+import {
+  ref,
+  watch,
+  nextTick,
+  onMounted,
+  onBeforeUnmount,
+  defineExpose,
+  computed,
+  defineOptions,
+} from 'vue'; // Import defineOptions
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useSessionStore } from '../stores/session.store'; 
+import { useSessionStore } from '../stores/session.store';
 import { useFocusSwitcherStore } from '../stores/focusSwitcher.store';
 import { useSettingsStore } from '../stores/settings.store';
 import { useQuickCommandsStore } from '../stores/quickCommands.store';
 import { useCommandHistoryStore } from '../stores/commandHistory.store';
-import QuickCommandsModal from './QuickCommandsModal.vue'; 
-import SuspendedSshSessionsModal from './SuspendedSshSessionsModal.vue'; 
-import { useFileEditorStore } from '../stores/fileEditor.store'; 
+import QuickCommandsModal from './QuickCommandsModal.vue';
+import SuspendedSshSessionsModal from './SuspendedSshSessionsModal.vue';
+import { useFileEditorStore } from '../stores/fileEditor.store';
 import { useWorkspaceEventEmitter } from '../composables/workspaceEvents';
-
 
 defineOptions({ inheritAttrs: false });
 
@@ -27,12 +35,15 @@ const sessionStore = useSessionStore(); // +++ 初始化 Session Store +++
 const fileEditorStore = useFileEditorStore(); // +++ Initialize File Editor Store +++
 
 // Get reactive setting from store
-const { commandInputSyncTarget, showPopupFileManagerBoolean, showPopupFileEditorBoolean } = storeToRefs(settingsStore); // +++ Import showPopupFileEditorBoolean +++
+const { commandInputSyncTarget, showPopupFileManagerBoolean, showPopupFileEditorBoolean } =
+  storeToRefs(settingsStore); // +++ Import showPopupFileEditorBoolean +++
 // Get reactive state and actions from quick commands store
-const { selectedIndex: quickCommandsSelectedIndex, flatVisibleCommands: quickCommandsFiltered } = storeToRefs(quickCommandsStore);
+const { selectedIndex: quickCommandsSelectedIndex, flatVisibleCommands: quickCommandsFiltered } =
+  storeToRefs(quickCommandsStore);
 const { resetSelection: resetQuickCommandsSelection } = quickCommandsStore;
 // Get reactive state and actions from command history store
-const { selectedIndex: historySelectedIndex, filteredHistory: historyFiltered } = storeToRefs(commandHistoryStore);
+const { selectedIndex: historySelectedIndex, filteredHistory: historyFiltered } =
+  storeToRefs(commandHistoryStore);
 const { resetSelection: resetHistorySelection } = commandHistoryStore;
 // +++ Get active session ID from session store +++
 const { activeSessionId } = storeToRefs(sessionStore);
@@ -65,7 +76,7 @@ const currentSessionCommandInput = computed({
     if (activeSessionId.value) {
       updateSessionCommandInput(activeSessionId.value, newValue);
     }
-  }
+  },
 });
 
 const sendCommand = () => {
@@ -75,7 +86,9 @@ const sendCommand = () => {
 
   // 如果是空回车，并且有活动会话，则请求滚动到底部
   if (command.trim() === '' && activeSessionId.value) {
-    console.log(`[CommandInputBar] Empty Enter detected. Requesting scroll to bottom for session: ${activeSessionId.value}`);
+    console.log(
+      `[CommandInputBar] Empty Enter detected. Requesting scroll to bottom for session: ${activeSessionId.value}`
+    );
     emitWorkspaceEvent('terminal:scrollToBottomRequest', { sessionId: activeSessionId.value });
   }
 
@@ -117,7 +130,8 @@ watch(searchTerm, (newValue) => {
 });
 
 //  Watch currentSessionCommandInput and sync searchTerm based on settings
-watch(currentSessionCommandInput, (newValue) => { // 监听计算属性
+watch(currentSessionCommandInput, (newValue) => {
+  // 监听计算属性
   const target = commandInputSyncTarget.value;
   if (target === 'quickCommands') {
     quickCommandsStore.setSearchTerm(newValue);
@@ -156,7 +170,9 @@ const handleCommandInputKeydown = (event: KeyboardEvent) => {
 
     if (selectedCommand !== undefined) {
       event.preventDefault();
-      console.log(`[CommandInputBar] Enter detected with selection. Sending selected command: ${selectedCommand}`);
+      console.log(
+        `[CommandInputBar] Enter detected with selection. Sending selected command: ${selectedCommand}`
+      );
       emitWorkspaceEvent('terminal:sendCommand', { command: selectedCommand }); // 发送选中命令
       if (activeSessionId.value) {
         updateSessionCommandInput(activeSessionId.value, ''); // 清空输入框
@@ -192,47 +208,63 @@ const handleCommandInputKeydown = (event: KeyboardEvent) => {
       event.preventDefault();
       commandHistoryStore.selectNextCommand();
     }
-  } else if (event.ctrlKey && event.key === 'c' && currentSessionCommandInput.value === '') { // 检查计算属性的值
+  } else if (event.ctrlKey && event.key === 'c' && currentSessionCommandInput.value === '') {
+    // 检查计算属性的值
     // Handle Ctrl+C when input is empty
     event.preventDefault();
     console.log('[CommandInputBar] Ctrl+C detected with empty input. Sending SIGINT.');
     emitWorkspaceEvent('terminal:sendCommand', { command: '\x03' }); // Send ETX character (Ctrl+C)
   } else if (!event.altKey && event.key === 'Enter') {
-     // Handle regular Enter key press - send current input (empty or not)
-     event.preventDefault(); // Prevent default if needed, e.g., form submission
-     sendCommand(); // Call the existing sendCommand function
- } else {
-   // --- 处理其他按键，取消列表选中状态 ---
-   // 检查按下的键是否是普通输入键或删除键等，而不是导航键或修饰键
-   if (!['ArrowUp', 'ArrowDown', 'Enter', 'Shift', 'Control', 'Alt', 'Meta', 'Tab', 'Escape'].includes(event.key)) {
-       const target = commandInputSyncTarget.value;
-       if (target === 'quickCommands' && quickCommandsSelectedIndex.value >= 0) {
-           resetQuickCommandsSelection();
-       } else if (target === 'commandHistory' && historySelectedIndex.value >= 0) {
-           resetHistorySelection();
-       }
-   }
- }
+    // Handle regular Enter key press - send current input (empty or not)
+    event.preventDefault(); // Prevent default if needed, e.g., form submission
+    sendCommand(); // Call the existing sendCommand function
+  } else {
+    // --- 处理其他按键，取消列表选中状态 ---
+    // 检查按下的键是否是普通输入键或删除键等，而不是导航键或修饰键
+    if (
+      ![
+        'ArrowUp',
+        'ArrowDown',
+        'Enter',
+        'Shift',
+        'Control',
+        'Alt',
+        'Meta',
+        'Tab',
+        'Escape',
+      ].includes(event.key)
+    ) {
+      const target = commandInputSyncTarget.value;
+      if (target === 'quickCommands' && quickCommandsSelectedIndex.value >= 0) {
+        resetQuickCommandsSelection();
+      } else if (target === 'commandHistory' && historySelectedIndex.value >= 0) {
+        resetHistorySelection();
+      }
+    }
+  }
 };
 
 //  Handle blur event on command input
 const handleCommandInputBlur = () => {
-    // Reset selection in the target store when input loses focus
-    const target = commandInputSyncTarget.value;
-    if (target === 'quickCommands') {
-        resetQuickCommandsSelection();
-    } else if (target === 'commandHistory') {
-        resetHistorySelection();
-    }
+  // Reset selection in the target store when input loses focus
+  const target = commandInputSyncTarget.value;
+  if (target === 'quickCommands') {
+    resetQuickCommandsSelection();
+  } else if (target === 'commandHistory') {
+    resetHistorySelection();
+  }
 };
 
 // +++ 监听 Store 中的触发器以激活终端搜索 +++
-watch(() => focusSwitcherStore.activateTerminalSearchTrigger, () => {
+watch(
+  () => focusSwitcherStore.activateTerminalSearchTrigger,
+  () => {
     if (focusSwitcherStore.activateTerminalSearchTrigger > 0 && !isSearching.value) {
-        console.log('[CommandInputBar] Received terminal search activation trigger from store.');
-        toggleSearch(); // 调用组件内部的切换搜索方法来激活
+      console.log('[CommandInputBar] Received terminal search activation trigger from store.');
+      toggleSearch(); // 调用组件内部的切换搜索方法来激活
     }
-});
+  }
+);
 
 // --- Focus Actions ---
 const focusCommandInput = (): boolean => {
@@ -247,10 +279,11 @@ const focusSearchInput = (): boolean => {
   if (!isSearching.value) {
     // If search is not active, activate it first
     toggleSearch(); // This might need nextTick if toggleSearch is async
-    nextTick(() => { // Ensure DOM is updated after toggleSearch
-        if (searchInputRef.value) {
-            searchInputRef.value.focus();
-        }
+    nextTick(() => {
+      // Ensure DOM is updated after toggleSearch
+      if (searchInputRef.value) {
+        searchInputRef.value.focus();
+      }
     });
     // Since focusing might be async after toggle, we optimistically return true
     // or adjust based on toggleSearch's behavior. For simplicity, assume it works.
@@ -269,8 +302,14 @@ let unregisterCommandInputFocus: (() => void) | null = null;
 let unregisterTerminalSearchFocus: (() => void) | null = null;
 
 onMounted(() => {
-  unregisterCommandInputFocus = focusSwitcherStore.registerFocusAction('commandInput', focusCommandInput);
-  unregisterTerminalSearchFocus = focusSwitcherStore.registerFocusAction('terminalSearch', focusSearchInput);
+  unregisterCommandInputFocus = focusSwitcherStore.registerFocusAction(
+    'commandInput',
+    focusCommandInput
+  );
+  unregisterTerminalSearchFocus = focusSwitcherStore.registerFocusAction(
+    'terminalSearch',
+    focusSearchInput
+  );
 });
 
 onBeforeUnmount(() => {
@@ -303,7 +342,9 @@ const closeSuspendedSshSessionsModal = () => {
 // +++ Function to request opening the file manager modal via event bus +++
 const openFileManagerModal = () => {
   if (activeSessionId.value) {
-    console.log(`[CommandInputBar] Emitting fileManager:openModalRequest for session: ${activeSessionId.value}`);
+    console.log(
+      `[CommandInputBar] Emitting fileManager:openModalRequest for session: ${activeSessionId.value}`
+    );
     emitWorkspaceEvent('fileManager:openModalRequest', { sessionId: activeSessionId.value });
   } else {
     console.warn('[CommandInputBar] Cannot open file manager modal: No active session ID.');
@@ -313,13 +354,13 @@ const openFileManagerModal = () => {
 
 // +++ Function to request opening the file editor modal +++
 const openFileEditorModal = () => {
- if (activeSessionId.value) {
-   console.log(`[CommandInputBar] Triggering popup editor for session: ${activeSessionId.value}`);
-   fileEditorStore.triggerPopup('', activeSessionId.value); // Call store action directly
- } else {
-   console.warn('[CommandInputBar] Cannot open file editor modal: No active session ID.');
-   // Optionally, show a notification to the user
- }
+  if (activeSessionId.value) {
+    console.log(`[CommandInputBar] Triggering popup editor for session: ${activeSessionId.value}`);
+    fileEditorStore.triggerPopup('', activeSessionId.value); // Call store action directly
+  } else {
+    console.warn('[CommandInputBar] Cannot open file editor modal: No active session ID.');
+    // Optionally, show a notification to the user
+  }
 };
 
 // +++ Handler for command execution from the modal +++
@@ -331,8 +372,10 @@ const handleQuickCommandExecute = (command: string) => {
 </script>
 
 <template>
-  <div :class="$attrs.class" class="flex items-center py-1.5 bg-background"> <!-- Bind $attrs.class, removed px-2 and gap-1 -->
-    <div class="flex-grow flex items-center bg-transparent relative gap-1 px-2 w-full"> <!-- Added px-2 here, ensure full width -->
+  <div :class="$attrs.class" class="flex items-center py-1.5 bg-background">
+    <!-- Bind $attrs.class, removed px-2 and gap-1 -->
+    <div class="flex-grow flex items-center bg-transparent relative gap-1 px-2 w-full">
+      <!-- Added px-2 here, ensure full width -->
       <!-- Clear Terminal Button -->
       <button
         @click="emitWorkspaceEvent('terminal:clear')"
@@ -341,8 +384,8 @@ const handleQuickCommandExecute = (command: string) => {
       >
         <i class="fas fa-eraser text-base"></i>
       </button>
-       <!-- +++ Quick Commands Button (Mobile only) +++ -->
-       <button
+      <!-- +++ Quick Commands Button (Mobile only) +++ -->
+      <button
         v-if="props.isMobile"
         @click="openQuickCommandsModal"
         class="flex-shrink-0 flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
@@ -357,7 +400,8 @@ const handleQuickCommandExecute = (command: string) => {
         class="flex-shrink-0 flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
         :title="t('commandInputBar.configureFocusSwitch', '配置焦点切换')"
       >
-        <i class="fas fa-keyboard text-base"></i> <!-- Removed text-primary -->
+        <i class="fas fa-keyboard text-base"></i>
+        <!-- Removed text-primary -->
       </button>
       <!-- Command Input (Hide on mobile when searching) -->
       <input
@@ -367,9 +411,9 @@ const handleQuickCommandExecute = (command: string) => {
         :placeholder="t('commandInputBar.placeholder')"
         class="flex-grow min-w-0 px-4 py-1.5 border border-border/50 rounded-lg bg-input text-foreground text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 ease-in-out"
         :class="{
-          'basis-3/4': !props.isMobile && isSearching,      // Desktop searching: 3/4 width
-          'basis-full': !props.isMobile && !isSearching,   // Desktop non-searching: full width
-          'w-0': props.isMobile  // Mobile non-searching: adjust width to fit
+          'basis-3/4': !props.isMobile && isSearching, // Desktop searching: 3/4 width
+          'basis-full': !props.isMobile && !isSearching, // Desktop non-searching: full width
+          'w-0': props.isMobile, // Mobile non-searching: adjust width to fit
         }"
         ref="commandInputRef"
         data-focus-id="commandInput"
@@ -410,9 +454,16 @@ const handleQuickCommandExecute = (command: string) => {
           v-if="props.isMobile"
           @click="emit('toggle-virtual-keyboard')"
           class="flex-shrink-0 flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
-          :title="props.isVirtualKeyboardVisible ? t('commandInputBar.hideKeyboard', '隐藏虚拟键盘') : t('commandInputBar.showKeyboard', '显示虚拟键盘')"
+          :title="
+            props.isVirtualKeyboardVisible
+              ? t('commandInputBar.hideKeyboard', '隐藏虚拟键盘')
+              : t('commandInputBar.showKeyboard', '显示虚拟键盘')
+          "
         >
-          <i class="fas fa-keyboard text-base" :class="{ 'opacity-50': !props.isVirtualKeyboardVisible }"></i>
+          <i
+            class="fas fa-keyboard text-base"
+            :class="{ 'opacity-50': !props.isVirtualKeyboardVisible }"
+          ></i>
         </button>
         <!-- Search Toggle Button -->
         <button
@@ -426,7 +477,8 @@ const handleQuickCommandExecute = (command: string) => {
         </button>
 
         <!-- Search navigation buttons (Hide on mobile when searching) -->
-        <template v-if="isSearching && !props.isMobile"> <!-- +++ Add !props.isMobile condition +++ -->
+        <template v-if="isSearching && !props.isMobile">
+          <!-- +++ Add !props.isMobile condition +++ -->
           <button
             @click="findPrevious"
             class="flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
@@ -461,7 +513,6 @@ const handleQuickCommandExecute = (command: string) => {
         <!-- Note: On mobile, when searching, only the close button (inside toggleSearch button logic) will be effectively visible in this control group -->
       </div>
     </div>
-
   </div>
   <!-- +++ Quick Commands Modal Instance +++ -->
   <QuickCommandsModal

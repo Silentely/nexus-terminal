@@ -8,20 +8,26 @@ import { formatInTimeZone } from 'date-fns-tz';
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 
 const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
-    debug: 0,
-    info: 1,
-    warn: 2,
-    error: 3,
-    silent: 4,
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+  silent: 4,
 };
 
 const normalizeLogLevel = (value: unknown): LogLevel | null => {
-    if (typeof value !== 'string') return null;
-    const lower = value.toLowerCase();
-    if (lower === 'debug' || lower === 'info' || lower === 'warn' || lower === 'error' || lower === 'silent') {
-        return lower;
-    }
-    return null;
+  if (typeof value !== 'string') return null;
+  const lower = value.toLowerCase();
+  if (
+    lower === 'debug' ||
+    lower === 'info' ||
+    lower === 'warn' ||
+    lower === 'error' ||
+    lower === 'silent'
+  ) {
+    return lower;
+  }
+  return null;
 };
 
 // 全局日志等级状态（可动态修改）
@@ -30,10 +36,10 @@ let currentLogLevel: LogLevel = normalizeLogLevel(process.env.LOG_LEVEL) ?? 'inf
 export const getLogLevel = (): LogLevel => currentLogLevel;
 
 export const setLogLevel = (level: LogLevel): void => {
-    if (LOG_LEVEL_PRIORITY[level] === undefined) return;
-    currentLogLevel = level;
-    // 使用 console.info（若已安装过滤且设置为 silent，则这条提示也会被过滤掉）
-    console.info(`[日志等级] 已设置为: ${level}`);
+  if (LOG_LEVEL_PRIORITY[level] === undefined) return;
+  currentLogLevel = level;
+  // 使用 console.info（若已安装过滤且设置为 silent，则这条提示也会被过滤掉）
+  console.info(`[日志等级] 已设置为: ${level}`);
 };
 
 let installed = false;
@@ -43,48 +49,47 @@ let installed = false;
  * 该方法应只调用一次（通常在 index.ts 最顶部）。
  */
 export const installConsoleLogging = (): void => {
-    if (installed) return;
-    installed = true;
+  if (installed) return;
+  installed = true;
 
-    const originalConsole = {
-        log: console.log.bind(console),
-        info: console.info.bind(console),
-        warn: console.warn.bind(console),
-        error: console.error.bind(console),
-        debug: (console.debug ? console.debug.bind(console) : console.log.bind(console)),
-    };
+  const originalConsole = {
+    log: console.log.bind(console),
+    info: console.info.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
+    debug: console.debug ? console.debug.bind(console) : console.log.bind(console),
+  };
 
-    const formatTimestamp = () => {
-        const tz = process.env.LOG_TZ || process.env.TZ || 'UTC';
-        try {
-            return `[${formatInTimeZone(new Date(), tz, 'yyyy-MM-dd HH:mm:ss XXX')}]`;
-        } catch {
-            // 回退到 ISO 时间，避免时区配置错误导致崩溃
-            return `[${new Date().toISOString()}]`;
-        }
-    };
+  const formatTimestamp = () => {
+    const tz = process.env.LOG_TZ || process.env.TZ || 'UTC';
+    try {
+      return `[${formatInTimeZone(new Date(), tz, 'yyyy-MM-dd HH:mm:ss XXX')}]`;
+    } catch {
+      // 回退到 ISO 时间，避免时区配置错误导致崩溃
+      return `[${new Date().toISOString()}]`;
+    }
+  };
 
-    const shouldLog = (method: 'debug' | 'info' | 'warn' | 'error'): boolean => {
-        const methodLevel = LOG_LEVEL_PRIORITY[method];
-        const currentLevel = LOG_LEVEL_PRIORITY[currentLogLevel];
-        return methodLevel >= currentLevel;
-    };
+  const shouldLog = (method: 'debug' | 'info' | 'warn' | 'error'): boolean => {
+    const methodLevel = LOG_LEVEL_PRIORITY[method];
+    const currentLevel = LOG_LEVEL_PRIORITY[currentLogLevel];
+    return methodLevel >= currentLevel;
+  };
 
-    // 重写 console 方法，添加日志等级过滤
-    console.debug = (...args: any[]) => {
-        if (shouldLog('debug')) originalConsole.debug(formatTimestamp(), '[DEBUG]', ...args);
-    };
-    console.log = (...args: any[]) => {
-        if (shouldLog('info')) originalConsole.log(formatTimestamp(), ...args);
-    };
-    console.info = (...args: any[]) => {
-        if (shouldLog('info')) originalConsole.info(formatTimestamp(), '[INFO]', ...args);
-    };
-    console.warn = (...args: any[]) => {
-        if (shouldLog('warn')) originalConsole.warn(formatTimestamp(), '[WARN]', ...args);
-    };
-    console.error = (...args: any[]) => {
-        if (shouldLog('error')) originalConsole.error(formatTimestamp(), '[ERROR]', ...args);
-    };
+  // 重写 console 方法，添加日志等级过滤
+  console.debug = (...args: any[]) => {
+    if (shouldLog('debug')) originalConsole.debug(formatTimestamp(), '[DEBUG]', ...args);
+  };
+  console.log = (...args: any[]) => {
+    if (shouldLog('info')) originalConsole.log(formatTimestamp(), ...args);
+  };
+  console.info = (...args: any[]) => {
+    if (shouldLog('info')) originalConsole.info(formatTimestamp(), '[INFO]', ...args);
+  };
+  console.warn = (...args: any[]) => {
+    if (shouldLog('warn')) originalConsole.warn(formatTimestamp(), '[WARN]', ...args);
+  };
+  console.error = (...args: any[]) => {
+    if (shouldLog('error')) originalConsole.error(formatTimestamp(), '[ERROR]', ...args);
+  };
 };
-

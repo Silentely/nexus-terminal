@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { defineComponent, nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 
+import apiClient from '../../utils/apiClient';
+import { useAuditSettings } from './useAuditSettings';
+
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (_key: string, arg1?: any) => {
@@ -9,7 +12,7 @@ vi.mock('vue-i18n', () => ({
       // 1) t(key) -> 返回 key
       // 2) t(key, { count }) -> 返回一个包含 count 的字符串（用于断言）
       if (!arg1) return _key;
-      const count = (arg1 as any).count;
+      const { count } = arg1 as any;
       if (count === undefined) return _key;
       return `已删除 ${String(count)} 条审计日志`;
     },
@@ -24,9 +27,6 @@ vi.mock('../../utils/apiClient', () => ({
   },
 }));
 
-import apiClient from '../../utils/apiClient';
-import { useAuditSettings } from './useAuditSettings';
-
 const flush = async () => {
   await Promise.resolve();
   await nextTick();
@@ -40,7 +40,8 @@ describe('useAuditSettings', () => {
 
   it('onMounted 时应拉取最大保留条数与日志数量', async () => {
     (apiClient.get as any).mockImplementation((url: string) => {
-      if (url === '/settings/audit-log-max-entries') return Promise.resolve({ data: { maxEntries: 200 } });
+      if (url === '/settings/audit-log-max-entries')
+        return Promise.resolve({ data: { maxEntries: 200 } });
       if (url === '/audit-logs/count') return Promise.resolve({ data: { count: 12 } });
       return Promise.resolve({ data: {} });
     });
@@ -79,7 +80,9 @@ describe('useAuditSettings', () => {
     (wrapper.vm as any).auditLogMaxEntries = 300;
     await (wrapper.vm as any).handleUpdateAuditLogMaxEntries();
 
-    expect(apiClient.put).toHaveBeenCalledWith('/settings/audit-log-max-entries', { maxEntries: 300 });
+    expect(apiClient.put).toHaveBeenCalledWith('/settings/audit-log-max-entries', {
+      maxEntries: 300,
+    });
     expect((wrapper.vm as any).auditLogMaxEntriesSuccess).toBe(true);
     expect((wrapper.vm as any).auditLogMaxEntries).toBe(300);
   });
@@ -87,7 +90,8 @@ describe('useAuditSettings', () => {
   it('handleDeleteAllAuditLogs 成功后应刷新日志数量', async () => {
     let countCalls = 0;
     (apiClient.get as any).mockImplementation((url: string) => {
-      if (url === '/settings/audit-log-max-entries') return Promise.resolve({ data: { maxEntries: 50000 } });
+      if (url === '/settings/audit-log-max-entries')
+        return Promise.resolve({ data: { maxEntries: 50000 } });
       if (url === '/audit-logs/count') {
         countCalls += 1;
         return Promise.resolve({ data: { count: countCalls === 1 ? 7 : 0 } });

@@ -17,7 +17,8 @@ export const useUiNotificationsStore = defineStore('uiNotifications', () => {
    * 添加一个新通知
    * @param notification - 通知对象 (至少包含 type 和 message)
    */
-  const addNotification = (notification: Omit<UINotification, 'id'> & { timeout?: number }) => { // Ensure timeout is part of the input type for clarity
+  const addNotification = (notification: Omit<UINotification, 'id'> & { timeout?: number }) => {
+    // Ensure timeout is part of the input type for clarity
     const id = nextId++;
     // Force a 3-second timeout for all notifications
     const newNotification: UINotification = { ...notification, id, timeout: 3000 };
@@ -34,26 +35,29 @@ export const useUiNotificationsStore = defineStore('uiNotifications', () => {
    * @param id - 要移除的通知的 ID
    */
   const removeNotification = (id: number) => {
-    notifications.value = notifications.value.filter(n => n.id !== id);
+    notifications.value = notifications.value.filter((n) => n.id !== id);
   };
 
   // 便捷方法
-  const showError = (message: string) => { // Removed options
+  const showError = (message: string) => {
+    // Removed options
     addNotification({ type: 'error', message }); // Timeout is handled by addNotification
   };
 
-  const showSuccess = (message: string) => { // Removed options
+  const showSuccess = (message: string) => {
+    // Removed options
     addNotification({ type: 'success', message }); // Timeout is handled by addNotification
   };
 
-  const showInfo = (message: string) => { // Removed options
+  const showInfo = (message: string) => {
+    // Removed options
     addNotification({ type: 'info', message }); // Timeout is handled by addNotification
   };
 
-  const showWarning = (message: string) => { // Removed options
+  const showWarning = (message: string) => {
+    // Removed options
     addNotification({ type: 'warning', message }); // Timeout is handled by addNotification
   };
-
 
   return {
     notifications,

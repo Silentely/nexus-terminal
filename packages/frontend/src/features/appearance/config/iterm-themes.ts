@@ -29,7 +29,7 @@ export const Theme_0x96fPreset: TerminalTheme = {
     brightMagenta: '#aea3e6',
     brightCyan: '#baebf6',
     brightWhite: '#fcfcfa',
-  }
+  },
 };
 
 export const Theme_3024DayPreset: TerminalTheme = {
@@ -59,7 +59,7 @@ export const Theme_3024DayPreset: TerminalTheme = {
     brightMagenta: '#d6d5d4',
     brightCyan: '#cdab53',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const Theme_3024NightPreset: TerminalTheme = {
@@ -89,7 +89,7 @@ export const Theme_3024NightPreset: TerminalTheme = {
     brightMagenta: '#d6d5d4',
     brightCyan: '#cdab53',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const AardvarkBluePreset: TerminalTheme = {
@@ -119,7 +119,7 @@ export const AardvarkBluePreset: TerminalTheme = {
     brightMagenta: '#e26be2',
     brightCyan: '#60b6cb',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const AbernathyPreset: TerminalTheme = {
@@ -149,7 +149,7 @@ export const AbernathyPreset: TerminalTheme = {
     brightMagenta: '#ff00ff',
     brightCyan: '#00ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const AdventurePreset: TerminalTheme = {
@@ -179,7 +179,7 @@ export const AdventurePreset: TerminalTheme = {
     brightMagenta: '#aa7900',
     brightCyan: '#bdcfe5',
     brightWhite: '#e4d5c7',
-  }
+  },
 };
 
 export const AdventureTimePreset: TerminalTheme = {
@@ -209,7 +209,7 @@ export const AdventureTimePreset: TerminalTheme = {
     brightMagenta: '#9b5953',
     brightCyan: '#c8faf4',
     brightWhite: '#f6f5fb',
-  }
+  },
 };
 
 export const AdwaitaPreset: TerminalTheme = {
@@ -239,7 +239,7 @@ export const AdwaitaPreset: TerminalTheme = {
     brightMagenta: '#c061cb',
     brightCyan: '#4fd2fd',
     brightWhite: '#f6f5f4',
-  }
+  },
 };
 
 export const AdwaitaDarkPreset: TerminalTheme = {
@@ -269,7 +269,7 @@ export const AdwaitaDarkPreset: TerminalTheme = {
     brightMagenta: '#c061cb',
     brightCyan: '#4fd2fd',
     brightWhite: '#f6f5f4',
-  }
+  },
 };
 
 export const AfterglowPreset: TerminalTheme = {
@@ -299,7 +299,7 @@ export const AfterglowPreset: TerminalTheme = {
     brightMagenta: '#9f4e85',
     brightCyan: '#7dd6cf',
     brightWhite: '#f5f5f5',
-  }
+  },
 };
 
 export const AlabasterPreset: TerminalTheme = {
@@ -329,7 +329,7 @@ export const AlabasterPreset: TerminalTheme = {
     brightMagenta: '#e64ce6',
     brightCyan: '#00aacb',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const AlienBloodPreset: TerminalTheme = {
@@ -359,7 +359,7 @@ export const AlienBloodPreset: TerminalTheme = {
     brightMagenta: '#0058e0',
     brightCyan: '#00e0c4',
     brightWhite: '#73fa91',
-  }
+  },
 };
 
 export const AndromedaPreset: TerminalTheme = {
@@ -389,7 +389,7 @@ export const AndromedaPreset: TerminalTheme = {
     brightMagenta: '#bc3fbc',
     brightCyan: '#0fa8cd',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const AppleClassicPreset: TerminalTheme = {
@@ -419,7 +419,7 @@ export const AppleClassicPreset: TerminalTheme = {
     brightMagenta: '#ff77ff',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const AppleSystemColorsPreset: TerminalTheme = {
@@ -449,7 +449,7 @@ export const AppleSystemColorsPreset: TerminalTheme = {
     brightMagenta: '#bf5af2',
     brightCyan: '#76d6ff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const AppleSystemColorsLightPreset: TerminalTheme = {
@@ -479,7 +479,7 @@ export const AppleSystemColorsLightPreset: TerminalTheme = {
     brightMagenta: '#b260ea',
     brightCyan: '#8dd3fb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const arcoirisPreset: TerminalTheme = {
@@ -509,7 +509,7 @@ export const arcoirisPreset: TerminalTheme = {
     brightMagenta: '#cbbaf9',
     brightCyan: '#bcffc7',
     brightWhite: '#efefef',
-  }
+  },
 };
 
 export const ArdoisePreset: TerminalTheme = {
@@ -539,7 +539,7 @@ export const ArdoisePreset: TerminalTheme = {
     brightMagenta: '#be68ca',
     brightCyan: '#89ffdb',
     brightWhite: '#fefefe',
-  }
+  },
 };
 
 export const ArgonautPreset: TerminalTheme = {
@@ -569,7 +569,7 @@ export const ArgonautPreset: TerminalTheme = {
     brightMagenta: '#9a5feb',
     brightCyan: '#67fff0',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ArthurPreset: TerminalTheme = {
@@ -599,7 +599,7 @@ export const ArthurPreset: TerminalTheme = {
     brightMagenta: '#996600',
     brightCyan: '#b0c4de',
     brightWhite: '#ddccbb',
-  }
+  },
 };
 
 export const AtelierSulphurpoolPreset: TerminalTheme = {
@@ -629,7 +629,7 @@ export const AtelierSulphurpoolPreset: TerminalTheme = {
     brightMagenta: '#dfe2f1',
     brightCyan: '#9c637a',
     brightWhite: '#f5f7ff',
-  }
+  },
 };
 
 export const AtomPreset: TerminalTheme = {
@@ -659,7 +659,7 @@ export const AtomPreset: TerminalTheme = {
     brightMagenta: '#b9b6fc',
     brightCyan: '#85befd',
     brightWhite: '#e0e0e0',
-  }
+  },
 };
 
 export const AtomOneDarkPreset: TerminalTheme = {
@@ -689,7 +689,7 @@ export const AtomOneDarkPreset: TerminalTheme = {
     brightMagenta: '#c678dd',
     brightCyan: '#56b6c2',
     brightWhite: '#abb2bf',
-  }
+  },
 };
 
 export const AtomOneLightPreset: TerminalTheme = {
@@ -719,7 +719,7 @@ export const AtomOneLightPreset: TerminalTheme = {
     brightMagenta: '#a00095',
     brightCyan: '#3f953a',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const AuraPreset: TerminalTheme = {
@@ -749,7 +749,7 @@ export const AuraPreset: TerminalTheme = {
     brightMagenta: '#a277ff',
     brightCyan: '#61ffca',
     brightWhite: '#edecee',
-  }
+  },
 };
 
 export const AuroraPreset: TerminalTheme = {
@@ -779,7 +779,7 @@ export const AuroraPreset: TerminalTheme = {
     brightMagenta: '#ee5d43',
     brightCyan: '#03d6b8',
     brightWhite: '#c74ded',
-  }
+  },
 };
 
 export const ayuPreset: TerminalTheme = {
@@ -809,7 +809,7 @@ export const ayuPreset: TerminalTheme = {
     brightMagenta: '#ffa3aa',
     brightCyan: '#c7fffd',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const AyuMiragePreset: TerminalTheme = {
@@ -839,7 +839,7 @@ export const AyuMiragePreset: TerminalTheme = {
     brightMagenta: '#d4bfff',
     brightCyan: '#95e6cb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ayuLightPreset: TerminalTheme = {
@@ -869,7 +869,7 @@ export const ayuLightPreset: TerminalTheme = {
     brightMagenta: '#ffa3aa',
     brightCyan: '#7ff1cb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BananaBlueberryPreset: TerminalTheme = {
@@ -899,7 +899,7 @@ export const BananaBlueberryPreset: TerminalTheme = {
     brightMagenta: '#da70d6',
     brightCyan: '#bcf3ff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BatmanPreset: TerminalTheme = {
@@ -929,7 +929,7 @@ export const BatmanPreset: TerminalTheme = {
     brightMagenta: '#9a9a9d',
     brightCyan: '#a3a3a6',
     brightWhite: '#dadbd6',
-  }
+  },
 };
 
 export const BelafonteDayPreset: TerminalTheme = {
@@ -959,7 +959,7 @@ export const BelafonteDayPreset: TerminalTheme = {
     brightMagenta: '#97522c',
     brightCyan: '#989a9c',
     brightWhite: '#d5ccba',
-  }
+  },
 };
 
 export const BelafonteNightPreset: TerminalTheme = {
@@ -989,7 +989,7 @@ export const BelafonteNightPreset: TerminalTheme = {
     brightMagenta: '#97522c',
     brightCyan: '#989a9c',
     brightWhite: '#d5ccba',
-  }
+  },
 };
 
 export const BirdsOfParadisePreset: TerminalTheme = {
@@ -1019,7 +1019,7 @@ export const BirdsOfParadisePreset: TerminalTheme = {
     brightMagenta: '#d19ecb',
     brightCyan: '#93cfd7',
     brightWhite: '#fff9d5',
-  }
+  },
 };
 
 export const BlazerPreset: TerminalTheme = {
@@ -1049,7 +1049,7 @@ export const BlazerPreset: TerminalTheme = {
     brightMagenta: '#dbbddb',
     brightCyan: '#bddbdb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BlueMatrixPreset: TerminalTheme = {
@@ -1079,7 +1079,7 @@ export const BlueMatrixPreset: TerminalTheme = {
     brightMagenta: '#d682ec',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BlueBerryPiePreset: TerminalTheme = {
@@ -1109,7 +1109,7 @@ export const BlueBerryPiePreset: TerminalTheme = {
     brightMagenta: '#bc94b7',
     brightCyan: '#5e6071',
     brightWhite: '#0a6c7e',
-  }
+  },
 };
 
 export const BlueDolphinPreset: TerminalTheme = {
@@ -1139,7 +1139,7 @@ export const BlueDolphinPreset: TerminalTheme = {
     brightMagenta: '#ddb0f6',
     brightCyan: '#a3f7ff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BlulocoDarkPreset: TerminalTheme = {
@@ -1169,7 +1169,7 @@ export const BlulocoDarkPreset: TerminalTheme = {
     brightMagenta: '#ff78f8',
     brightCyan: '#5fb9bc',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BlulocoLightPreset: TerminalTheme = {
@@ -1199,7 +1199,7 @@ export const BlulocoLightPreset: TerminalTheme = {
     brightMagenta: '#ce33c0',
     brightCyan: '#6d93bb',
     brightWhite: '#d3d3d3',
-  }
+  },
 };
 
 export const BorlandPreset: TerminalTheme = {
@@ -1229,7 +1229,7 @@ export const BorlandPreset: TerminalTheme = {
     brightMagenta: '#ff9cfe',
     brightCyan: '#dfdffe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BoxPreset: TerminalTheme = {
@@ -1259,7 +1259,7 @@ export const BoxPreset: TerminalTheme = {
     brightMagenta: '#fd28ff',
     brightCyan: '#14ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BreezePreset: TerminalTheme = {
@@ -1289,7 +1289,7 @@ export const BreezePreset: TerminalTheme = {
     brightMagenta: '#8e44ad',
     brightCyan: '#16a085',
     brightWhite: '#fcfcfc',
-  }
+  },
 };
 
 export const BrightLightsPreset: TerminalTheme = {
@@ -1319,7 +1319,7 @@ export const BrightLightsPreset: TerminalTheme = {
     brightMagenta: '#ba76e7',
     brightCyan: '#6cbfb5',
     brightWhite: '#c2c8d7',
-  }
+  },
 };
 
 export const BroadcastPreset: TerminalTheme = {
@@ -1349,7 +1349,7 @@ export const BroadcastPreset: TerminalTheme = {
     brightMagenta: '#ffffff',
     brightCyan: '#a0cef0',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BrogrammerPreset: TerminalTheme = {
@@ -1379,7 +1379,7 @@ export const BrogrammerPreset: TerminalTheme = {
     brightMagenta: '#5350b9',
     brightCyan: '#0f7ddb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BuiltinDarkPreset: TerminalTheme = {
@@ -1409,7 +1409,7 @@ export const BuiltinDarkPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BuiltinLightPreset: TerminalTheme = {
@@ -1439,7 +1439,7 @@ export const BuiltinLightPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BuiltinPastelDarkPreset: TerminalTheme = {
@@ -1469,7 +1469,7 @@ export const BuiltinPastelDarkPreset: TerminalTheme = {
     brightMagenta: '#ff9cfe',
     brightCyan: '#dfdffe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const BuiltinSolarizedDarkPreset: TerminalTheme = {
@@ -1499,7 +1499,7 @@ export const BuiltinSolarizedDarkPreset: TerminalTheme = {
     brightMagenta: '#6c71c4',
     brightCyan: '#93a1a1',
     brightWhite: '#fdf6e3',
-  }
+  },
 };
 
 export const BuiltinSolarizedLightPreset: TerminalTheme = {
@@ -1529,7 +1529,7 @@ export const BuiltinSolarizedLightPreset: TerminalTheme = {
     brightMagenta: '#6c71c4',
     brightCyan: '#93a1a1',
     brightWhite: '#fdf6e3',
-  }
+  },
 };
 
 export const BuiltinTangoDarkPreset: TerminalTheme = {
@@ -1559,7 +1559,7 @@ export const BuiltinTangoDarkPreset: TerminalTheme = {
     brightMagenta: '#ad7fa8',
     brightCyan: '#34e2e2',
     brightWhite: '#eeeeec',
-  }
+  },
 };
 
 export const BuiltinTangoLightPreset: TerminalTheme = {
@@ -1589,7 +1589,7 @@ export const BuiltinTangoLightPreset: TerminalTheme = {
     brightMagenta: '#ad7fa8',
     brightCyan: '#34e2e2',
     brightWhite: '#eeeeec',
-  }
+  },
 };
 
 export const C64Preset: TerminalTheme = {
@@ -1619,7 +1619,7 @@ export const C64Preset: TerminalTheme = {
     brightMagenta: '#8b3f96',
     brightCyan: '#67b6bd',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const CalamityPreset: TerminalTheme = {
@@ -1649,7 +1649,7 @@ export const CalamityPreset: TerminalTheme = {
     brightMagenta: '#f92672',
     brightCyan: '#74d3de',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const catppuccinFrappePreset: TerminalTheme = {
@@ -1679,7 +1679,7 @@ export const catppuccinFrappePreset: TerminalTheme = {
     brightMagenta: '#f2a4db',
     brightCyan: '#5abfb5',
     brightWhite: '#b5bfe2',
-  }
+  },
 };
 
 export const catppuccinLattePreset: TerminalTheme = {
@@ -1709,7 +1709,7 @@ export const catppuccinLattePreset: TerminalTheme = {
     brightMagenta: '#fe85d8',
     brightCyan: '#2d9fa8',
     brightWhite: '#bcc0cc',
-  }
+  },
 };
 
 export const catppuccinMacchiatoPreset: TerminalTheme = {
@@ -1739,7 +1739,7 @@ export const catppuccinMacchiatoPreset: TerminalTheme = {
     brightMagenta: '#f2a9dd',
     brightCyan: '#63cbc0',
     brightWhite: '#b8c0e0',
-  }
+  },
 };
 
 export const catppuccinMochaPreset: TerminalTheme = {
@@ -1769,7 +1769,7 @@ export const catppuccinMochaPreset: TerminalTheme = {
     brightMagenta: '#f2aede',
     brightCyan: '#6bd7ca',
     brightWhite: '#bac2de',
-  }
+  },
 };
 
 export const CGAPreset: TerminalTheme = {
@@ -1799,7 +1799,7 @@ export const CGAPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ChalkPreset: TerminalTheme = {
@@ -1829,7 +1829,7 @@ export const ChalkPreset: TerminalTheme = {
     brightMagenta: '#fc5275',
     brightCyan: '#53cdbd',
     brightWhite: '#d2d8d9',
-  }
+  },
 };
 
 export const ChalkboardPreset: TerminalTheme = {
@@ -1859,7 +1859,7 @@ export const ChalkboardPreset: TerminalTheme = {
     brightMagenta: '#dbaada',
     brightCyan: '#aadadb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ChallengerDeepPreset: TerminalTheme = {
@@ -1889,7 +1889,7 @@ export const ChallengerDeepPreset: TerminalTheme = {
     brightMagenta: '#c991e1',
     brightCyan: '#aaffe4',
     brightWhite: '#cbe3e7',
-  }
+  },
 };
 
 export const ChesterPreset: TerminalTheme = {
@@ -1919,7 +1919,7 @@ export const ChesterPreset: TerminalTheme = {
     brightMagenta: '#d34590',
     brightCyan: '#27dede',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const CiaprePreset: TerminalTheme = {
@@ -1949,7 +1949,7 @@ export const CiaprePreset: TerminalTheme = {
     brightMagenta: '#d33061',
     brightCyan: '#f3dbb2',
     brightWhite: '#f4f4f4',
-  }
+  },
 };
 
 export const citruszestPreset: TerminalTheme = {
@@ -1979,7 +1979,7 @@ export const citruszestPreset: TerminalTheme = {
     brightMagenta: '#ffb2fe',
     brightCyan: '#00fff2',
     brightWhite: '#f9f9f9',
-  }
+  },
 };
 
 export const CLRSPreset: TerminalTheme = {
@@ -2009,7 +2009,7 @@ export const CLRSPreset: TerminalTheme = {
     brightMagenta: '#e900b0',
     brightCyan: '#3ad5ce',
     brightWhite: '#eeeeec',
-  }
+  },
 };
 
 export const CobaltNeonPreset: TerminalTheme = {
@@ -2039,7 +2039,7 @@ export const CobaltNeonPreset: TerminalTheme = {
     brightMagenta: '#8230a7',
     brightCyan: '#6cbc67',
     brightWhite: '#8ff586',
-  }
+  },
 };
 
 export const Cobalt2Preset: TerminalTheme = {
@@ -2069,7 +2069,7 @@ export const Cobalt2Preset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#6ae3fa',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const CobaltNextPreset: TerminalTheme = {
@@ -2099,7 +2099,7 @@ export const CobaltNextPreset: TerminalTheme = {
     brightMagenta: '#edcded',
     brightCyan: '#9be2e2',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const CobaltNextDarkPreset: TerminalTheme = {
@@ -2129,7 +2129,7 @@ export const CobaltNextDarkPreset: TerminalTheme = {
     brightMagenta: '#edcded',
     brightCyan: '#9be2e2',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const CobaltNextMinimalPreset: TerminalTheme = {
@@ -2159,7 +2159,7 @@ export const CobaltNextMinimalPreset: TerminalTheme = {
     brightMagenta: '#edcded',
     brightCyan: '#9be2e2',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const coffeeThemePreset: TerminalTheme = {
@@ -2189,7 +2189,7 @@ export const coffeeThemePreset: TerminalTheme = {
     brightMagenta: '#ff77ff',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const CrayonPonyFishPreset: TerminalTheme = {
@@ -2219,7 +2219,7 @@ export const CrayonPonyFishPreset: TerminalTheme = {
     brightMagenta: '#fc6cba',
     brightCyan: '#ffceaf',
     brightWhite: '#b0949d',
-  }
+  },
 };
 
 export const CutieProPreset: TerminalTheme = {
@@ -2249,7 +2249,7 @@ export const CutieProPreset: TerminalTheme = {
     brightMagenta: '#b294bb',
     brightCyan: '#9dccbb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const CyberdynePreset: TerminalTheme = {
@@ -2279,7 +2279,7 @@ export const CyberdynePreset: TerminalTheme = {
     brightMagenta: '#ffb2fe',
     brightCyan: '#e6e7fe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const cyberpunkPreset: TerminalTheme = {
@@ -2309,7 +2309,7 @@ export const cyberpunkPreset: TerminalTheme = {
     brightMagenta: '#e6aefe',
     brightCyan: '#99d6fc',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const CyberpunkScarletProtocolPreset: TerminalTheme = {
@@ -2339,7 +2339,7 @@ export const CyberpunkScarletProtocolPreset: TerminalTheme = {
     brightMagenta: '#ae40e4',
     brightCyan: '#8efafd',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const DarkModernPreset: TerminalTheme = {
@@ -2369,7 +2369,7 @@ export const DarkModernPreset: TerminalTheme = {
     brightMagenta: '#d670d6',
     brightCyan: '#29b8db',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const DarkPastelPreset: TerminalTheme = {
@@ -2399,7 +2399,7 @@ export const DarkPastelPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const Dark_Preset: TerminalTheme = {
@@ -2429,7 +2429,7 @@ export const Dark_Preset: TerminalTheme = {
     brightMagenta: '#d670d6',
     brightCyan: '#29b8db',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const darkermatrixPreset: TerminalTheme = {
@@ -2459,7 +2459,7 @@ export const darkermatrixPreset: TerminalTheme = {
     brightMagenta: '#412a4d',
     brightCyan: '#176c73',
     brightWhite: '#00381e',
-  }
+  },
 };
 
 export const darkmatrixPreset: TerminalTheme = {
@@ -2489,7 +2489,7 @@ export const darkmatrixPreset: TerminalTheme = {
     brightMagenta: '#4a3059',
     brightCyan: '#12545a',
     brightWhite: '#006536',
-  }
+  },
 };
 
 export const DarksidePreset: TerminalTheme = {
@@ -2519,7 +2519,7 @@ export const DarksidePreset: TerminalTheme = {
     brightMagenta: '#957bbe',
     brightCyan: '#3d97e2',
     brightWhite: '#bababa',
-  }
+  },
 };
 
 export const dayfoxPreset: TerminalTheme = {
@@ -2549,7 +2549,7 @@ export const dayfoxPreset: TerminalTheme = {
     brightMagenta: '#8452d5',
     brightCyan: '#488d93',
     brightWhite: '#f4ece6',
-  }
+  },
 };
 
 export const deepPreset: TerminalTheme = {
@@ -2579,7 +2579,7 @@ export const deepPreset: TerminalTheme = {
     brightMagenta: '#e09aff',
     brightCyan: '#8df9ff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const DesertPreset: TerminalTheme = {
@@ -2609,7 +2609,7 @@ export const DesertPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#ffd700',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const detunedPreset: TerminalTheme = {
@@ -2639,7 +2639,7 @@ export const detunedPreset: TerminalTheme = {
     brightMagenta: '#b9a0f9',
     brightCyan: '#7fd4fb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const DimidiumPreset: TerminalTheme = {
@@ -2669,7 +2669,7 @@ export const DimidiumPreset: TerminalTheme = {
     brightMagenta: '#ed6fe9',
     brightCyan: '#32e0fb',
     brightWhite: '#d3d8d9',
-  }
+  },
 };
 
 export const DimmedMonokaiPreset: TerminalTheme = {
@@ -2699,7 +2699,7 @@ export const DimmedMonokaiPreset: TerminalTheme = {
     brightMagenta: '#fb0067',
     brightCyan: '#2e706d',
     brightWhite: '#fdffb9',
-  }
+  },
 };
 
 export const DjangoPreset: TerminalTheme = {
@@ -2729,7 +2729,7 @@ export const DjangoPreset: TerminalTheme = {
     brightMagenta: '#ffffff',
     brightCyan: '#cfffd1',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const DjangoRebornAgainPreset: TerminalTheme = {
@@ -2759,7 +2759,7 @@ export const DjangoRebornAgainPreset: TerminalTheme = {
     brightMagenta: '#ffffff',
     brightCyan: '#cfffd1',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const DjangoSmoothPreset: TerminalTheme = {
@@ -2789,7 +2789,7 @@ export const DjangoSmoothPreset: TerminalTheme = {
     brightMagenta: '#ffffff',
     brightCyan: '#cfffd1',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const DoomPeacockPreset: TerminalTheme = {
@@ -2819,7 +2819,7 @@ export const DoomPeacockPreset: TerminalTheme = {
     brightMagenta: '#c678dd',
     brightCyan: '#46d9ff',
     brightWhite: '#dfdfdf',
-  }
+  },
 };
 
 export const DoomOnePreset: TerminalTheme = {
@@ -2849,7 +2849,7 @@ export const DoomOnePreset: TerminalTheme = {
     brightMagenta: '#c678dd',
     brightCyan: '#51afef',
     brightWhite: '#bfbfbf',
-  }
+  },
 };
 
 export const DotGovPreset: TerminalTheme = {
@@ -2879,7 +2879,7 @@ export const DotGovPreset: TerminalTheme = {
     brightMagenta: '#7830b0',
     brightCyan: '#8bd2ed',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const DraculaPreset: TerminalTheme = {
@@ -2909,7 +2909,7 @@ export const DraculaPreset: TerminalTheme = {
     brightMagenta: '#ff92df',
     brightCyan: '#a4ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const Dracula_Preset: TerminalTheme = {
@@ -2939,7 +2939,7 @@ export const Dracula_Preset: TerminalTheme = {
     brightMagenta: '#ff92df',
     brightCyan: '#a4ffff',
     brightWhite: '#f8f8f2',
-  }
+  },
 };
 
 export const duckbonesPreset: TerminalTheme = {
@@ -2969,7 +2969,7 @@ export const duckbonesPreset: TerminalTheme = {
     brightMagenta: '#b3a1e6',
     brightCyan: '#00b4e0',
     brightWhite: '#b3b692',
-  }
+  },
 };
 
 export const DuotoneDarkPreset: TerminalTheme = {
@@ -2999,7 +2999,7 @@ export const DuotoneDarkPreset: TerminalTheme = {
     brightMagenta: '#de8d40',
     brightCyan: '#2488ff',
     brightWhite: '#eae5ff',
-  }
+  },
 };
 
 export const EarthsongPreset: TerminalTheme = {
@@ -3029,7 +3029,7 @@ export const EarthsongPreset: TerminalTheme = {
     brightMagenta: '#ff9269',
     brightCyan: '#84f088',
     brightWhite: '#f6f7ec',
-  }
+  },
 };
 
 export const electronHighlighterPreset: TerminalTheme = {
@@ -3059,7 +3059,7 @@ export const electronHighlighterPreset: TerminalTheme = {
     brightMagenta: '#d2a6ef',
     brightCyan: '#57f9ff',
     brightWhite: '#c5cee0',
-  }
+  },
 };
 
 export const ElegantPreset: TerminalTheme = {
@@ -3089,7 +3089,7 @@ export const ElegantPreset: TerminalTheme = {
     brightMagenta: '#bf94e5',
     brightCyan: '#5faae9',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ElementalPreset: TerminalTheme = {
@@ -3119,7 +3119,7 @@ export const ElementalPreset: TerminalTheme = {
     brightMagenta: '#cd7c54',
     brightCyan: '#59d599',
     brightWhite: '#fff1e9',
-  }
+  },
 };
 
 export const ElementaryPreset: TerminalTheme = {
@@ -3149,7 +3149,7 @@ export const ElementaryPreset: TerminalTheme = {
     brightMagenta: '#fb0050',
     brightCyan: '#3ea8fc',
     brightWhite: '#8c00ec',
-  }
+  },
 };
 
 export const EmbarkPreset: TerminalTheme = {
@@ -3179,7 +3179,7 @@ export const EmbarkPreset: TerminalTheme = {
     brightMagenta: '#a742ea',
     brightCyan: '#63f2f1',
     brightWhite: '#a6b3cc',
-  }
+  },
 };
 
 export const embersDarkPreset: TerminalTheme = {
@@ -3209,7 +3209,7 @@ export const embersDarkPreset: TerminalTheme = {
     brightMagenta: '#beb6ae',
     brightCyan: '#825757',
     brightWhite: '#dbd6d1',
-  }
+  },
 };
 
 export const ENCOMPreset: TerminalTheme = {
@@ -3239,7 +3239,7 @@ export const ENCOMPreset: TerminalTheme = {
     brightMagenta: '#ff00ff',
     brightCyan: '#00cdcd',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const EspressoPreset: TerminalTheme = {
@@ -3269,7 +3269,7 @@ export const EspressoPreset: TerminalTheme = {
     brightMagenta: '#efb5f7',
     brightCyan: '#dcf4ff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const EspressoLibrePreset: TerminalTheme = {
@@ -3299,7 +3299,7 @@ export const EspressoLibrePreset: TerminalTheme = {
     brightMagenta: '#ff818a',
     brightCyan: '#34e2e2',
     brightWhite: '#eeeeec',
-  }
+  },
 };
 
 export const EverblushPreset: TerminalTheme = {
@@ -3329,7 +3329,7 @@ export const EverblushPreset: TerminalTheme = {
     brightMagenta: '#ce89df',
     brightCyan: '#67cbe7',
     brightWhite: '#bdc3c2',
-  }
+  },
 };
 
 export const EverforestDarkHardPreset: TerminalTheme = {
@@ -3359,7 +3359,7 @@ export const EverforestDarkHardPreset: TerminalTheme = {
     brightMagenta: '#df69ba',
     brightCyan: '#35a77c',
     brightWhite: '#fffbef',
-  }
+  },
 };
 
 export const FahrenheitPreset: TerminalTheme = {
@@ -3389,7 +3389,7 @@ export const FahrenheitPreset: TerminalTheme = {
     brightMagenta: '#4e739f',
     brightCyan: '#fed04d',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const FairyflossPreset: TerminalTheme = {
@@ -3419,7 +3419,7 @@ export const FairyflossPreset: TerminalTheme = {
     brightMagenta: '#ffb8d1',
     brightCyan: '#c5a3ff',
     brightWhite: '#f8f8f0',
-  }
+  },
 };
 
 export const farmhouseDarkPreset: TerminalTheme = {
@@ -3449,7 +3449,7 @@ export const farmhouseDarkPreset: TerminalTheme = {
     brightMagenta: '#bf3b7f',
     brightCyan: '#19e062',
     brightWhite: '#f4eef0',
-  }
+  },
 };
 
 export const farmhouseLightPreset: TerminalTheme = {
@@ -3479,7 +3479,7 @@ export const farmhouseLightPreset: TerminalTheme = {
     brightMagenta: '#bf3b7f',
     brightCyan: '#19e062',
     brightWhite: '#f4eef0',
-  }
+  },
 };
 
 export const FideloperPreset: TerminalTheme = {
@@ -3509,7 +3509,7 @@ export const FideloperPreset: TerminalTheme = {
     brightMagenta: '#5c5db2',
     brightCyan: '#819090',
     brightWhite: '#fcf4df',
-  }
+  },
 };
 
 export const FireflyTraditionalPreset: TerminalTheme = {
@@ -3539,7 +3539,7 @@ export const FireflyTraditionalPreset: TerminalTheme = {
     brightMagenta: '#ff5cfe',
     brightCyan: '#29f0f0',
     brightWhite: '#ebebeb',
-  }
+  },
 };
 
 export const FirefoxDevPreset: TerminalTheme = {
@@ -3569,7 +3569,7 @@ export const FirefoxDevPreset: TerminalTheme = {
     brightMagenta: '#a200da',
     brightCyan: '#005794',
     brightWhite: '#e2e2e2',
-  }
+  },
 };
 
 export const FirewatchPreset: TerminalTheme = {
@@ -3599,7 +3599,7 @@ export const FirewatchPreset: TerminalTheme = {
     brightMagenta: '#d55119',
     brightCyan: '#44a8b6',
     brightWhite: '#e6e5ff',
-  }
+  },
 };
 
 export const FishTankPreset: TerminalTheme = {
@@ -3629,7 +3629,7 @@ export const FishTankPreset: TerminalTheme = {
     brightMagenta: '#fda5cd',
     brightCyan: '#a5bd86',
     brightWhite: '#f6ffec',
-  }
+  },
 };
 
 export const FlatPreset: TerminalTheme = {
@@ -3659,7 +3659,7 @@ export const FlatPreset: TerminalTheme = {
     brightMagenta: '#8230a7',
     brightCyan: '#35b387',
     brightWhite: '#e7eced',
-  }
+  },
 };
 
 export const FlatlandPreset: TerminalTheme = {
@@ -3689,7 +3689,7 @@ export const FlatlandPreset: TerminalTheme = {
     brightMagenta: '#695abc',
     brightCyan: '#d63865',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const flexokiDarkPreset: TerminalTheme = {
@@ -3719,7 +3719,7 @@ export const flexokiDarkPreset: TerminalTheme = {
     brightMagenta: '#a02f6f',
     brightCyan: '#24837b',
     brightWhite: '#cecdc3',
-  }
+  },
 };
 
 export const flexokiLightPreset: TerminalTheme = {
@@ -3749,7 +3749,7 @@ export const flexokiLightPreset: TerminalTheme = {
     brightMagenta: '#ce5d97',
     brightCyan: '#3aa99f',
     brightWhite: '#cecdc3',
-  }
+  },
 };
 
 export const FloraversePreset: TerminalTheme = {
@@ -3779,7 +3779,7 @@ export const FloraversePreset: TerminalTheme = {
     brightMagenta: '#f12aae',
     brightCyan: '#62caa8',
     brightWhite: '#fff5db',
-  }
+  },
 };
 
 export const ForestBluePreset: TerminalTheme = {
@@ -3809,7 +3809,7 @@ export const ForestBluePreset: TerminalTheme = {
     brightMagenta: '#7e62b3',
     brightCyan: '#6096bf',
     brightWhite: '#e2d8cd',
-  }
+  },
 };
 
 export const FramerPreset: TerminalTheme = {
@@ -3839,7 +3839,7 @@ export const FramerPreset: TerminalTheme = {
     brightMagenta: '#cebbff',
     brightCyan: '#bbecff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const FrontEndDelightPreset: TerminalTheme = {
@@ -3869,7 +3869,7 @@ export const FrontEndDelightPreset: TerminalTheme = {
     brightMagenta: '#e75e4f',
     brightCyan: '#4fbce6',
     brightWhite: '#8c735b',
-  }
+  },
 };
 
 export const FunForrestPreset: TerminalTheme = {
@@ -3899,7 +3899,7 @@ export const FunForrestPreset: TerminalTheme = {
     brightMagenta: '#d26349',
     brightCyan: '#e6a96b',
     brightWhite: '#ffeaa3',
-  }
+  },
 };
 
 export const GalaxyPreset: TerminalTheme = {
@@ -3929,7 +3929,7 @@ export const GalaxyPreset: TerminalTheme = {
     brightMagenta: '#e75699',
     brightCyan: '#3979bc',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GalizurPreset: TerminalTheme = {
@@ -3959,7 +3959,7 @@ export const GalizurPreset: TerminalTheme = {
     brightMagenta: '#aa77ff',
     brightCyan: '#33ddff',
     brightWhite: '#bbccdd',
-  }
+  },
 };
 
 export const GhosttyDefaultStyleDarkPreset: TerminalTheme = {
@@ -3989,7 +3989,7 @@ export const GhosttyDefaultStyleDarkPreset: TerminalTheme = {
     brightMagenta: '#bc99d4',
     brightCyan: '#83beb1',
     brightWhite: '#eaeaea',
-  }
+  },
 };
 
 export const GithubPreset: TerminalTheme = {
@@ -4019,7 +4019,7 @@ export const GithubPreset: TerminalTheme = {
     brightMagenta: '#ffa29f',
     brightCyan: '#1cfafe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GitHubDarkPreset: TerminalTheme = {
@@ -4049,7 +4049,7 @@ export const GitHubDarkPreset: TerminalTheme = {
     brightMagenta: '#db61a2',
     brightCyan: '#2b7489',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GitHubDarkColorblindPreset: TerminalTheme = {
@@ -4079,7 +4079,7 @@ export const GitHubDarkColorblindPreset: TerminalTheme = {
     brightMagenta: '#d2a8ff',
     brightCyan: '#56d4dd',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GitHubDarkDefaultPreset: TerminalTheme = {
@@ -4109,7 +4109,7 @@ export const GitHubDarkDefaultPreset: TerminalTheme = {
     brightMagenta: '#d2a8ff',
     brightCyan: '#56d4dd',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GitHubDarkDimmedPreset: TerminalTheme = {
@@ -4139,7 +4139,7 @@ export const GitHubDarkDimmedPreset: TerminalTheme = {
     brightMagenta: '#dcbdfb',
     brightCyan: '#56d4dd',
     brightWhite: '#cdd9e5',
-  }
+  },
 };
 
 export const GitHubDarkHighContrastPreset: TerminalTheme = {
@@ -4169,7 +4169,7 @@ export const GitHubDarkHighContrastPreset: TerminalTheme = {
     brightMagenta: '#dbb7ff',
     brightCyan: '#56d4dd',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GitHubLightColorblindPreset: TerminalTheme = {
@@ -4199,7 +4199,7 @@ export const GitHubLightColorblindPreset: TerminalTheme = {
     brightMagenta: '#a475f9',
     brightCyan: '#3192aa',
     brightWhite: '#8c959f',
-  }
+  },
 };
 
 export const GitHubLightDefaultPreset: TerminalTheme = {
@@ -4229,7 +4229,7 @@ export const GitHubLightDefaultPreset: TerminalTheme = {
     brightMagenta: '#a475f9',
     brightCyan: '#3192aa',
     brightWhite: '#8c959f',
-  }
+  },
 };
 
 export const GitHubLightHighContrastPreset: TerminalTheme = {
@@ -4259,7 +4259,7 @@ export const GitHubLightHighContrastPreset: TerminalTheme = {
     brightMagenta: '#844ae7',
     brightCyan: '#3192aa',
     brightWhite: '#88929d',
-  }
+  },
 };
 
 export const GitLabDarkPreset: TerminalTheme = {
@@ -4289,7 +4289,7 @@ export const GitLabDarkPreset: TerminalTheme = {
     brightMagenta: '#fcacc5',
     brightCyan: '#5edee3',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GitLabDarkGreyPreset: TerminalTheme = {
@@ -4319,7 +4319,7 @@ export const GitLabDarkGreyPreset: TerminalTheme = {
     brightMagenta: '#fcacc5',
     brightCyan: '#5edee3',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GitLabLightPreset: TerminalTheme = {
@@ -4349,7 +4349,7 @@ export const GitLabLightPreset: TerminalTheme = {
     brightMagenta: '#583cac',
     brightCyan: '#00798a',
     brightWhite: '#303030',
-  }
+  },
 };
 
 export const GlacierPreset: TerminalTheme = {
@@ -4379,7 +4379,7 @@ export const GlacierPreset: TerminalTheme = {
     brightMagenta: '#ea4727',
     brightCyan: '#a0b6d3',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GrapePreset: TerminalTheme = {
@@ -4409,7 +4409,7 @@ export const GrapePreset: TerminalTheme = {
     brightMagenta: '#ad81c2',
     brightCyan: '#9de3eb',
     brightWhite: '#a288f7',
-  }
+  },
 };
 
 export const GrassPreset: TerminalTheme = {
@@ -4439,7 +4439,7 @@ export const GrassPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GreyGreenPreset: TerminalTheme = {
@@ -4469,7 +4469,7 @@ export const GreyGreenPreset: TerminalTheme = {
     brightMagenta: '#ff008a',
     brightCyan: '#00ffd3',
     brightWhite: '#f5ecec',
-  }
+  },
 };
 
 export const gruberDarkerPreset: TerminalTheme = {
@@ -4499,7 +4499,7 @@ export const gruberDarkerPreset: TerminalTheme = {
     brightMagenta: '#afafd7',
     brightCyan: '#95a99f',
     brightWhite: '#f5f5f5',
-  }
+  },
 };
 
 export const gruvboxMaterialPreset: TerminalTheme = {
@@ -4529,7 +4529,7 @@ export const gruvboxMaterialPreset: TerminalTheme = {
     brightMagenta: '#fd9bc1',
     brightCyan: '#92a5df',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const GruvboxDarkPreset: TerminalTheme = {
@@ -4559,7 +4559,7 @@ export const GruvboxDarkPreset: TerminalTheme = {
     brightMagenta: '#d3869b',
     brightCyan: '#8ec07c',
     brightWhite: '#ebdbb2',
-  }
+  },
 };
 
 export const GruvboxDarkHardPreset: TerminalTheme = {
@@ -4589,7 +4589,7 @@ export const GruvboxDarkHardPreset: TerminalTheme = {
     brightMagenta: '#d3869b',
     brightCyan: '#8ec07c',
     brightWhite: '#ebdbb2',
-  }
+  },
 };
 
 export const GruvboxLightPreset: TerminalTheme = {
@@ -4619,7 +4619,7 @@ export const GruvboxLightPreset: TerminalTheme = {
     brightMagenta: '#b16186',
     brightCyan: '#689d69',
     brightWhite: '#7c6f64',
-  }
+  },
 };
 
 export const GruvboxLightHardPreset: TerminalTheme = {
@@ -4649,7 +4649,7 @@ export const GruvboxLightHardPreset: TerminalTheme = {
     brightMagenta: '#b16186',
     brightCyan: '#689d69',
     brightWhite: '#7c6f64',
-  }
+  },
 };
 
 export const GuezwhozPreset: TerminalTheme = {
@@ -4679,7 +4679,7 @@ export const GuezwhozPreset: TerminalTheme = {
     brightMagenta: '#afafd7',
     brightCyan: '#87d7d7',
     brightWhite: '#dadada',
-  }
+  },
 };
 
 export const HacktoberPreset: TerminalTheme = {
@@ -4709,7 +4709,7 @@ export const HacktoberPreset: TerminalTheme = {
     brightMagenta: '#e795a5',
     brightCyan: '#ebc587',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const HardcorePreset: TerminalTheme = {
@@ -4739,7 +4739,7 @@ export const HardcorePreset: TerminalTheme = {
     brightMagenta: '#9e6ffe',
     brightCyan: '#a3babf',
     brightWhite: '#f8f8f2',
-  }
+  },
 };
 
 export const HarperPreset: TerminalTheme = {
@@ -4769,7 +4769,7 @@ export const HarperPreset: TerminalTheme = {
     brightMagenta: '#b296c6',
     brightCyan: '#f5bfd7',
     brightWhite: '#fefbea',
-  }
+  },
 };
 
 export const HavnDaggryPreset: TerminalTheme = {
@@ -4799,7 +4799,7 @@ export const HavnDaggryPreset: TerminalTheme = {
     brightMagenta: '#7b7393',
     brightCyan: '#a4879c',
     brightWhite: '#d7dbea',
-  }
+  },
 };
 
 export const HavnSkumringPreset: TerminalTheme = {
@@ -4829,7 +4829,7 @@ export const HavnSkumringPreset: TerminalTheme = {
     brightMagenta: '#967de7',
     brightCyan: '#c57eb3',
     brightWhite: '#fdf6e3',
-  }
+  },
 };
 
 export const HaX0RBLUEPreset: TerminalTheme = {
@@ -4859,7 +4859,7 @@ export const HaX0RBLUEPreset: TerminalTheme = {
     brightMagenta: '#00b3f7',
     brightCyan: '#00b3f7',
     brightWhite: '#fefefe',
-  }
+  },
 };
 
 export const HaX0RGR33NPreset: TerminalTheme = {
@@ -4889,7 +4889,7 @@ export const HaX0RGR33NPreset: TerminalTheme = {
     brightMagenta: '#19e20e',
     brightCyan: '#19e20e',
     brightWhite: '#fefefe',
-  }
+  },
 };
 
 export const HaX0RR3DPreset: TerminalTheme = {
@@ -4919,7 +4919,7 @@ export const HaX0RR3DPreset: TerminalTheme = {
     brightMagenta: '#ff1010',
     brightCyan: '#ff1010',
     brightWhite: '#fefefe',
-  }
+  },
 };
 
 export const heelerPreset: TerminalTheme = {
@@ -4949,7 +4949,7 @@ export const heelerPreset: TerminalTheme = {
     brightMagenta: '#fd9bc1',
     brightCyan: '#92a5df',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const HighwayPreset: TerminalTheme = {
@@ -4979,7 +4979,7 @@ export const HighwayPreset: TerminalTheme = {
     brightMagenta: '#de0071',
     brightCyan: '#5d504a',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const HipsterGreenPreset: TerminalTheme = {
@@ -5009,7 +5009,7 @@ export const HipsterGreenPreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#00e5e5',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const HivacruzPreset: TerminalTheme = {
@@ -5039,7 +5039,7 @@ export const HivacruzPreset: TerminalTheme = {
     brightMagenta: '#dfe2f1',
     brightCyan: '#9c637a',
     brightWhite: '#f5f7ff',
-  }
+  },
 };
 
 export const HomebrewPreset: TerminalTheme = {
@@ -5069,7 +5069,7 @@ export const HomebrewPreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#00e5e5',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const HopscotchPreset: TerminalTheme = {
@@ -5099,7 +5099,7 @@ export const HopscotchPreset: TerminalTheme = {
     brightMagenta: '#d5d3d5',
     brightCyan: '#b33508',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const Hopscotch_256Preset: TerminalTheme = {
@@ -5129,7 +5129,7 @@ export const Hopscotch_256Preset: TerminalTheme = {
     brightMagenta: '#c85e7c',
     brightCyan: '#149b93',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const HorizonPreset: TerminalTheme = {
@@ -5159,7 +5159,7 @@ export const HorizonPreset: TerminalTheme = {
     brightMagenta: '#f075b5',
     brightCyan: '#6be4e6',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const HorizonBrightPreset: TerminalTheme = {
@@ -5189,7 +5189,7 @@ export const HorizonBrightPreset: TerminalTheme = {
     brightMagenta: '#f075b7',
     brightCyan: '#6be6e6',
     brightWhite: '#fff3f0',
-  }
+  },
 };
 
 export const HurtadoPreset: TerminalTheme = {
@@ -5219,7 +5219,7 @@ export const HurtadoPreset: TerminalTheme = {
     brightMagenta: '#c001c1',
     brightCyan: '#86eafe',
     brightWhite: '#dbdbdb',
-  }
+  },
 };
 
 export const HybridPreset: TerminalTheme = {
@@ -5249,7 +5249,7 @@ export const HybridPreset: TerminalTheme = {
     brightMagenta: '#6e5079',
     brightCyan: '#4d7b74',
     brightWhite: '#5a626a',
-  }
+  },
 };
 
 export const ICGreenPPLPreset: TerminalTheme = {
@@ -5279,7 +5279,7 @@ export const ICGreenPPLPreset: TerminalTheme = {
     brightMagenta: '#50fafa',
     brightCyan: '#3cfac8',
     brightWhite: '#e0f1dc',
-  }
+  },
 };
 
 export const ICOrangePPLPreset: TerminalTheme = {
@@ -5309,7 +5309,7 @@ export const ICOrangePPLPreset: TerminalTheme = {
     brightMagenta: '#fc874f',
     brightCyan: '#c69752',
     brightWhite: '#fafaff',
-  }
+  },
 };
 
 export const icebergDarkPreset: TerminalTheme = {
@@ -5339,7 +5339,7 @@ export const icebergDarkPreset: TerminalTheme = {
     brightMagenta: '#ada0d3',
     brightCyan: '#95c4ce',
     brightWhite: '#d2d4de',
-  }
+  },
 };
 
 export const icebergLightPreset: TerminalTheme = {
@@ -5369,7 +5369,7 @@ export const icebergLightPreset: TerminalTheme = {
     brightMagenta: '#6845ad',
     brightCyan: '#327698',
     brightWhite: '#262a3f',
-  }
+  },
 };
 
 export const ideaPreset: TerminalTheme = {
@@ -5399,7 +5399,7 @@ export const ideaPreset: TerminalTheme = {
     brightMagenta: '#fc7eff',
     brightCyan: '#248887',
     brightWhite: '#181818',
-  }
+  },
 };
 
 export const idleToesPreset: TerminalTheme = {
@@ -5429,7 +5429,7 @@ export const idleToesPreset: TerminalTheme = {
     brightMagenta: '#ff9dff',
     brightCyan: '#dcf4ff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const IRBlackPreset: TerminalTheme = {
@@ -5459,7 +5459,7 @@ export const IRBlackPreset: TerminalTheme = {
     brightMagenta: '#fb9cfe',
     brightCyan: '#e0e0fe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const IRIXConsolePreset: TerminalTheme = {
@@ -5489,7 +5489,7 @@ export const IRIXConsolePreset: TerminalTheme = {
     brightMagenta: '#c31ba2',
     brightCyan: '#6ed7d7',
     brightWhite: '#f2f2f2',
-  }
+  },
 };
 
 export const IRIXTerminalPreset: TerminalTheme = {
@@ -5519,7 +5519,7 @@ export const IRIXTerminalPreset: TerminalTheme = {
     brightMagenta: '#ffff44',
     brightCyan: '#ffff44',
     brightWhite: '#ffff44',
-  }
+  },
 };
 
 export const iTerm2DarkBackgroundPreset: TerminalTheme = {
@@ -5549,7 +5549,7 @@ export const iTerm2DarkBackgroundPreset: TerminalTheme = {
     brightMagenta: '#ff77ff',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const iTerm2DefaultPreset: TerminalTheme = {
@@ -5579,7 +5579,7 @@ export const iTerm2DefaultPreset: TerminalTheme = {
     brightMagenta: '#ff77ff',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const iTerm2LightBackgroundPreset: TerminalTheme = {
@@ -5609,7 +5609,7 @@ export const iTerm2LightBackgroundPreset: TerminalTheme = {
     brightMagenta: '#ff77ff',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const iTerm2PastelDarkBackgroundPreset: TerminalTheme = {
@@ -5639,7 +5639,7 @@ export const iTerm2PastelDarkBackgroundPreset: TerminalTheme = {
     brightMagenta: '#ffb2fe',
     brightCyan: '#e6e6fe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const iTerm2SmooooothPreset: TerminalTheme = {
@@ -5669,7 +5669,7 @@ export const iTerm2SmooooothPreset: TerminalTheme = {
     brightMagenta: '#e17ee1',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const iTerm2SolarizedDarkPreset: TerminalTheme = {
@@ -5699,7 +5699,7 @@ export const iTerm2SolarizedDarkPreset: TerminalTheme = {
     brightMagenta: '#6c71c4',
     brightCyan: '#93a1a1',
     brightWhite: '#fdf6e3',
-  }
+  },
 };
 
 export const iTerm2SolarizedLightPreset: TerminalTheme = {
@@ -5729,7 +5729,7 @@ export const iTerm2SolarizedLightPreset: TerminalTheme = {
     brightMagenta: '#6c71c4',
     brightCyan: '#93a1a1',
     brightWhite: '#fdf6e3',
-  }
+  },
 };
 
 export const iTerm2TangoDarkPreset: TerminalTheme = {
@@ -5759,7 +5759,7 @@ export const iTerm2TangoDarkPreset: TerminalTheme = {
     brightMagenta: '#bc94b7',
     brightCyan: '#37e6e8',
     brightWhite: '#f1f1f0',
-  }
+  },
 };
 
 export const iTerm2TangoLightPreset: TerminalTheme = {
@@ -5789,7 +5789,7 @@ export const iTerm2TangoLightPreset: TerminalTheme = {
     brightMagenta: '#bc94b7',
     brightCyan: '#37e6e8',
     brightWhite: '#f1f1f0',
-  }
+  },
 };
 
 export const JackieBrownPreset: TerminalTheme = {
@@ -5819,7 +5819,7 @@ export const JackieBrownPreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#00e5e5',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const JapanesquePreset: TerminalTheme = {
@@ -5849,7 +5849,7 @@ export const JapanesquePreset: TerminalTheme = {
     brightMagenta: '#604291',
     brightCyan: '#76bbca',
     brightWhite: '#b2b5ae',
-  }
+  },
 };
 
 export const JellybeansPreset: TerminalTheme = {
@@ -5879,7 +5879,7 @@ export const JellybeansPreset: TerminalTheme = {
     brightMagenta: '#fbdaff',
     brightCyan: '#1ab2a8',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const JetBrainsDarculaPreset: TerminalTheme = {
@@ -5909,7 +5909,7 @@ export const JetBrainsDarculaPreset: TerminalTheme = {
     brightMagenta: '#fb82ff',
     brightCyan: '#60d3d1',
     brightWhite: '#eeeeee',
-  }
+  },
 };
 
 export const jubiPreset: TerminalTheme = {
@@ -5939,7 +5939,7 @@ export const jubiPreset: TerminalTheme = {
     brightMagenta: '#e16c87',
     brightCyan: '#b7c9ef',
     brightWhite: '#d5e5f1',
-  }
+  },
 };
 
 export const KanagawaDragonPreset: TerminalTheme = {
@@ -5969,7 +5969,7 @@ export const KanagawaDragonPreset: TerminalTheme = {
     brightMagenta: '#938aa9',
     brightCyan: '#7aa89f',
     brightWhite: '#c5c9c5',
-  }
+  },
 };
 
 export const KanagawaWavePreset: TerminalTheme = {
@@ -5999,7 +5999,7 @@ export const KanagawaWavePreset: TerminalTheme = {
     brightMagenta: '#938aa9',
     brightCyan: '#7aa89f',
     brightWhite: '#dcd7ba',
-  }
+  },
 };
 
 export const kanagawabonesPreset: TerminalTheme = {
@@ -6029,7 +6029,7 @@ export const kanagawabonesPreset: TerminalTheme = {
     brightMagenta: '#a98fd2',
     brightCyan: '#7bc2df',
     brightWhite: '#a8a48d',
-  }
+  },
 };
 
 export const KibblePreset: TerminalTheme = {
@@ -6059,7 +6059,7 @@ export const KibblePreset: TerminalTheme = {
     brightMagenta: '#c495f0',
     brightCyan: '#68f2e0',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const KoloritPreset: TerminalTheme = {
@@ -6089,7 +6089,7 @@ export const KoloritPreset: TerminalTheme = {
     brightMagenta: '#da6cda',
     brightCyan: '#57e9eb',
     brightWhite: '#ededed',
-  }
+  },
 };
 
 export const KonsolasPreset: TerminalTheme = {
@@ -6119,7 +6119,7 @@ export const KonsolasPreset: TerminalTheme = {
     brightMagenta: '#ff54ff',
     brightCyan: '#69ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const kurokulaPreset: TerminalTheme = {
@@ -6149,7 +6149,7 @@ export const kurokulaPreset: TerminalTheme = {
     brightMagenta: '#a994ff',
     brightCyan: '#f9cfb9',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const LabFoxPreset: TerminalTheme = {
@@ -6179,7 +6179,7 @@ export const LabFoxPreset: TerminalTheme = {
     brightMagenta: '#441090',
     brightCyan: '#7d53e7',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const LaserPreset: TerminalTheme = {
@@ -6209,7 +6209,7 @@ export const LaserPreset: TerminalTheme = {
     brightMagenta: '#ffb2fe',
     brightCyan: '#e6e7fe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const LaterThisEveningPreset: TerminalTheme = {
@@ -6239,7 +6239,7 @@ export const LaterThisEveningPreset: TerminalTheme = {
     brightMagenta: '#ab53d6',
     brightCyan: '#5fc0ae',
     brightWhite: '#c1c2c2',
-  }
+  },
 };
 
 export const LavandulaPreset: TerminalTheme = {
@@ -6269,7 +6269,7 @@ export const LavandulaPreset: TerminalTheme = {
     brightMagenta: '#a776e0',
     brightCyan: '#9ad4e0',
     brightWhite: '#8c91fa',
-  }
+  },
 };
 
 export const LightOwlPreset: TerminalTheme = {
@@ -6299,7 +6299,7 @@ export const LightOwlPreset: TerminalTheme = {
     brightMagenta: '#d6438a',
     brightCyan: '#2aa298',
     brightWhite: '#f0f0f0',
-  }
+  },
 };
 
 export const LiquidCarbonPreset: TerminalTheme = {
@@ -6329,7 +6329,7 @@ export const LiquidCarbonPreset: TerminalTheme = {
     brightMagenta: '#cc69c8',
     brightCyan: '#7ac4cc',
     brightWhite: '#bccccc',
-  }
+  },
 };
 
 export const LiquidCarbonTransparentPreset: TerminalTheme = {
@@ -6359,7 +6359,7 @@ export const LiquidCarbonTransparentPreset: TerminalTheme = {
     brightMagenta: '#cc69c8',
     brightCyan: '#7ac4cc',
     brightWhite: '#bccccc',
-  }
+  },
 };
 
 export const LiquidCarbonTransparentInversePreset: TerminalTheme = {
@@ -6389,7 +6389,7 @@ export const LiquidCarbonTransparentInversePreset: TerminalTheme = {
     brightMagenta: '#cc69c8',
     brightCyan: '#7ac4cc',
     brightWhite: '#000000',
-  }
+  },
 };
 
 export const lovelacePreset: TerminalTheme = {
@@ -6419,7 +6419,7 @@ export const lovelacePreset: TerminalTheme = {
     brightMagenta: '#b043d1',
     brightCyan: '#3fdcee',
     brightWhite: '#bebec1',
-  }
+  },
 };
 
 export const ManPagePreset: TerminalTheme = {
@@ -6449,7 +6449,7 @@ export const ManPagePreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#00e5e5',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const MarianaPreset: TerminalTheme = {
@@ -6479,7 +6479,7 @@ export const MarianaPreset: TerminalTheme = {
     brightMagenta: '#d8b6d8',
     brightCyan: '#82c4c4',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MaterialPreset: TerminalTheme = {
@@ -6509,7 +6509,7 @@ export const MaterialPreset: TerminalTheme = {
     brightMagenta: '#aa4dbc',
     brightCyan: '#26bbd1',
     brightWhite: '#d9d9d9',
-  }
+  },
 };
 
 export const MaterialDarkPreset: TerminalTheme = {
@@ -6539,7 +6539,7 @@ export const MaterialDarkPreset: TerminalTheme = {
     brightMagenta: '#aa4dbc',
     brightCyan: '#26bbd1',
     brightWhite: '#d9d9d9',
-  }
+  },
 };
 
 export const MaterialDarkerPreset: TerminalTheme = {
@@ -6569,7 +6569,7 @@ export const MaterialDarkerPreset: TerminalTheme = {
     brightMagenta: '#c792ea',
     brightCyan: '#89ddff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MaterialDesignColorsPreset: TerminalTheme = {
@@ -6599,7 +6599,7 @@ export const MaterialDesignColorsPreset: TerminalTheme = {
     brightMagenta: '#fc669b',
     brightCyan: '#9affe6',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MaterialOceanPreset: TerminalTheme = {
@@ -6629,7 +6629,7 @@ export const MaterialOceanPreset: TerminalTheme = {
     brightMagenta: '#c792ea',
     brightCyan: '#89ddff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MathiasPreset: TerminalTheme = {
@@ -6659,7 +6659,7 @@ export const MathiasPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const matrixPreset: TerminalTheme = {
@@ -6689,7 +6689,7 @@ export const matrixPreset: TerminalTheme = {
     brightMagenta: '#11ff25',
     brightCyan: '#c1ff8a',
     brightWhite: '#678c61',
-  }
+  },
 };
 
 export const MedallionPreset: TerminalTheme = {
@@ -6719,7 +6719,7 @@ export const MedallionPreset: TerminalTheme = {
     brightMagenta: '#ffa0ff',
     brightCyan: '#ffbc51',
     brightWhite: '#fed698',
-  }
+  },
 };
 
 export const MelangeDarkPreset: TerminalTheme = {
@@ -6749,7 +6749,7 @@ export const MelangeDarkPreset: TerminalTheme = {
     brightMagenta: '#cf9bc2',
     brightCyan: '#89b3b6',
     brightWhite: '#ece1d7',
-  }
+  },
 };
 
 export const MelangeLightPreset: TerminalTheme = {
@@ -6779,7 +6779,7 @@ export const MelangeLightPreset: TerminalTheme = {
     brightMagenta: '#904180',
     brightCyan: '#3d6568',
     brightWhite: '#54433a',
-  }
+  },
 };
 
 export const MellifluousPreset: TerminalTheme = {
@@ -6809,7 +6809,7 @@ export const MellifluousPreset: TerminalTheme = {
     brightMagenta: '#9c6995',
     brightCyan: '#74a39e',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const mellowPreset: TerminalTheme = {
@@ -6839,7 +6839,7 @@ export const mellowPreset: TerminalTheme = {
     brightMagenta: '#ecaad6',
     brightCyan: '#f591b2',
     brightWhite: '#cac9dd',
-  }
+  },
 };
 
 export const miasmaPreset: TerminalTheme = {
@@ -6869,7 +6869,7 @@ export const miasmaPreset: TerminalTheme = {
     brightMagenta: '#bb7744',
     brightCyan: '#c9a554',
     brightWhite: '#d7c483',
-  }
+  },
 };
 
 export const midnightInMojavePreset: TerminalTheme = {
@@ -6899,7 +6899,7 @@ export const midnightInMojavePreset: TerminalTheme = {
     brightMagenta: '#bf5af2',
     brightCyan: '#5ac8fa',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MiragePreset: TerminalTheme = {
@@ -6929,7 +6929,7 @@ export const MiragePreset: TerminalTheme = {
     brightMagenta: '#ddb3ff',
     brightCyan: '#85cc95',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MisteriosoPreset: TerminalTheme = {
@@ -6959,7 +6959,7 @@ export const MisteriosoPreset: TerminalTheme = {
     brightMagenta: '#ff37ff',
     brightCyan: '#00ede1',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MolokaiPreset: TerminalTheme = {
@@ -6989,7 +6989,7 @@ export const MolokaiPreset: TerminalTheme = {
     brightMagenta: '#af87ff',
     brightCyan: '#51ceff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const MonaLisaPreset: TerminalTheme = {
@@ -7019,7 +7019,7 @@ export const MonaLisaPreset: TerminalTheme = {
     brightMagenta: '#ff5b6a',
     brightCyan: '#8acd8f',
     brightWhite: '#ffe598',
-  }
+  },
 };
 
 export const MonokaiClassicPreset: TerminalTheme = {
@@ -7049,7 +7049,7 @@ export const MonokaiClassicPreset: TerminalTheme = {
     brightMagenta: '#ae81ff',
     brightCyan: '#66d9ef',
     brightWhite: '#fdfff1',
-  }
+  },
 };
 
 export const MonokaiProPreset: TerminalTheme = {
@@ -7079,7 +7079,7 @@ export const MonokaiProPreset: TerminalTheme = {
     brightMagenta: '#ab9df2',
     brightCyan: '#78dce8',
     brightWhite: '#fcfcfa',
-  }
+  },
 };
 
 export const MonokaiProLightPreset: TerminalTheme = {
@@ -7109,7 +7109,7 @@ export const MonokaiProLightPreset: TerminalTheme = {
     brightMagenta: '#7058be',
     brightCyan: '#1c8ca8',
     brightWhite: '#29242a',
-  }
+  },
 };
 
 export const MonokaiProLightSunPreset: TerminalTheme = {
@@ -7139,7 +7139,7 @@ export const MonokaiProLightSunPreset: TerminalTheme = {
     brightMagenta: '#6851a2',
     brightCyan: '#2473b6',
     brightWhite: '#2c232e',
-  }
+  },
 };
 
 export const MonokaiProMachinePreset: TerminalTheme = {
@@ -7169,7 +7169,7 @@ export const MonokaiProMachinePreset: TerminalTheme = {
     brightMagenta: '#baa0f8',
     brightCyan: '#7cd5f1',
     brightWhite: '#f2fffc',
-  }
+  },
 };
 
 export const MonokaiProOctagonPreset: TerminalTheme = {
@@ -7199,7 +7199,7 @@ export const MonokaiProOctagonPreset: TerminalTheme = {
     brightMagenta: '#c39ac9',
     brightCyan: '#9cd1bb',
     brightWhite: '#eaf2f1',
-  }
+  },
 };
 
 export const MonokaiProRistrettoPreset: TerminalTheme = {
@@ -7229,7 +7229,7 @@ export const MonokaiProRistrettoPreset: TerminalTheme = {
     brightMagenta: '#a8a9eb',
     brightCyan: '#85dacc',
     brightWhite: '#fff1f3',
-  }
+  },
 };
 
 export const MonokaiProSpectrumPreset: TerminalTheme = {
@@ -7259,7 +7259,7 @@ export const MonokaiProSpectrumPreset: TerminalTheme = {
     brightMagenta: '#948ae3',
     brightCyan: '#5ad4e6',
     brightWhite: '#f7f1ff',
-  }
+  },
 };
 
 export const MonokaiRemasteredPreset: TerminalTheme = {
@@ -7289,7 +7289,7 @@ export const MonokaiRemasteredPreset: TerminalTheme = {
     brightMagenta: '#f4005f',
     brightCyan: '#58d1eb',
     brightWhite: '#f6f6ef',
-  }
+  },
 };
 
 export const MonokaiSodaPreset: TerminalTheme = {
@@ -7319,7 +7319,7 @@ export const MonokaiSodaPreset: TerminalTheme = {
     brightMagenta: '#f4005f',
     brightCyan: '#58d1eb',
     brightWhite: '#f6f6ef',
-  }
+  },
 };
 
 export const MonokaiVividPreset: TerminalTheme = {
@@ -7349,7 +7349,7 @@ export const MonokaiVividPreset: TerminalTheme = {
     brightMagenta: '#f200f6',
     brightCyan: '#51ceff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const moonflyPreset: TerminalTheme = {
@@ -7379,7 +7379,7 @@ export const moonflyPreset: TerminalTheme = {
     brightMagenta: '#ae81ff',
     brightCyan: '#85dc85',
     brightWhite: '#e4e4e4',
-  }
+  },
 };
 
 export const N0tch2kPreset: TerminalTheme = {
@@ -7409,7 +7409,7 @@ export const N0tch2kPreset: TerminalTheme = {
     brightMagenta: '#a3a3a3',
     brightCyan: '#dcdcdc',
     brightWhite: '#d8c8bb',
-  }
+  },
 };
 
 export const neobonesDarkPreset: TerminalTheme = {
@@ -7439,7 +7439,7 @@ export const neobonesDarkPreset: TerminalTheme = {
     brightMagenta: '#cf86c1',
     brightCyan: '#65b8c1',
     brightWhite: '#98a39e',
-  }
+  },
 };
 
 export const neobonesLightPreset: TerminalTheme = {
@@ -7469,7 +7469,7 @@ export const neobonesLightPreset: TerminalTheme = {
     brightMagenta: '#7b3b70',
     brightCyan: '#2b747c',
     brightWhite: '#415934',
-  }
+  },
 };
 
 export const NeonPreset: TerminalTheme = {
@@ -7499,7 +7499,7 @@ export const NeonPreset: TerminalTheme = {
     brightMagenta: '#f15be5',
     brightCyan: '#88fffe',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const NeopolitanPreset: TerminalTheme = {
@@ -7529,7 +7529,7 @@ export const NeopolitanPreset: TerminalTheme = {
     brightMagenta: '#ff0080',
     brightCyan: '#8da6ce',
     brightWhite: '#f8f8f8',
-  }
+  },
 };
 
 export const NeutronPreset: TerminalTheme = {
@@ -7559,7 +7559,7 @@ export const NeutronPreset: TerminalTheme = {
     brightMagenta: '#a4799d',
     brightCyan: '#3f94a8',
     brightWhite: '#ebedf2',
-  }
+  },
 };
 
 export const NightOwlishLightPreset: TerminalTheme = {
@@ -7589,7 +7589,7 @@ export const NightOwlishLightPreset: TerminalTheme = {
     brightMagenta: '#697098',
     brightCyan: '#00c990',
     brightWhite: '#989fb1',
-  }
+  },
 };
 
 export const nightfoxPreset: TerminalTheme = {
@@ -7619,7 +7619,7 @@ export const nightfoxPreset: TerminalTheme = {
     brightMagenta: '#baa1e2',
     brightCyan: '#7ad5d6',
     brightWhite: '#e4e4e5',
-  }
+  },
 };
 
 export const NightLionV1Preset: TerminalTheme = {
@@ -7649,7 +7649,7 @@ export const NightLionV1Preset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const NightLionV2Preset: TerminalTheme = {
@@ -7679,7 +7679,7 @@ export const NightLionV2Preset: TerminalTheme = {
     brightMagenta: '#ff9bf5',
     brightCyan: '#00ccd8',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const NightOwlPreset: TerminalTheme = {
@@ -7709,7 +7709,7 @@ export const NightOwlPreset: TerminalTheme = {
     brightMagenta: '#c792ea',
     brightCyan: '#7fdbca',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const nijiPreset: TerminalTheme = {
@@ -7739,7 +7739,7 @@ export const nijiPreset: TerminalTheme = {
     brightMagenta: '#ffa2ed',
     brightCyan: '#bcffc7',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const NocturnalWinterPreset: TerminalTheme = {
@@ -7769,7 +7769,7 @@ export const NocturnalWinterPreset: TerminalTheme = {
     brightMagenta: '#ff78a2',
     brightCyan: '#0ae78d',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const nordPreset: TerminalTheme = {
@@ -7799,7 +7799,7 @@ export const nordPreset: TerminalTheme = {
     brightMagenta: '#b48ead',
     brightCyan: '#8fbcbb',
     brightWhite: '#eceff4',
-  }
+  },
 };
 
 export const nordLightPreset: TerminalTheme = {
@@ -7829,7 +7829,7 @@ export const nordLightPreset: TerminalTheme = {
     brightMagenta: '#b48ead',
     brightCyan: '#8fbcbb',
     brightWhite: '#eceff4',
-  }
+  },
 };
 
 export const nordWavePreset: TerminalTheme = {
@@ -7859,7 +7859,7 @@ export const nordWavePreset: TerminalTheme = {
     brightMagenta: '#b48ead',
     brightCyan: '#8fbcbb',
     brightWhite: '#eceff4',
-  }
+  },
 };
 
 export const NovelPreset: TerminalTheme = {
@@ -7889,7 +7889,7 @@ export const NovelPreset: TerminalTheme = {
     brightMagenta: '#cc00cc',
     brightCyan: '#0087cc',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const NvimDarkPreset: TerminalTheme = {
@@ -7919,7 +7919,7 @@ export const NvimDarkPreset: TerminalTheme = {
     brightMagenta: '#ffcaff',
     brightCyan: '#8cf8f7',
     brightWhite: '#eef1f8',
-  }
+  },
 };
 
 export const NvimLightPreset: TerminalTheme = {
@@ -7949,7 +7949,7 @@ export const NvimLightPreset: TerminalTheme = {
     brightMagenta: '#470045',
     brightCyan: '#007373',
     brightWhite: '#eef1f8',
-  }
+  },
 };
 
 export const ObsidianPreset: TerminalTheme = {
@@ -7979,7 +7979,7 @@ export const ObsidianPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const OceanPreset: TerminalTheme = {
@@ -8009,7 +8009,7 @@ export const OceanPreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#00e5e5',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const OceanicNextPreset: TerminalTheme = {
@@ -8039,7 +8039,7 @@ export const OceanicNextPreset: TerminalTheme = {
     brightMagenta: '#bd96c2',
     brightCyan: '#74b1b2',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const OceanicMaterialPreset: TerminalTheme = {
@@ -8069,7 +8069,7 @@ export const OceanicMaterialPreset: TerminalTheme = {
     brightMagenta: '#aa4dbc',
     brightCyan: '#42c7da',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const OlliePreset: TerminalTheme = {
@@ -8099,7 +8099,7 @@ export const OlliePreset: TerminalTheme = {
     brightMagenta: '#ffc21d',
     brightCyan: '#1ffaff',
     brightWhite: '#5b6ea7',
-  }
+  },
 };
 
 export const OneDoubleDarkPreset: TerminalTheme = {
@@ -8129,7 +8129,7 @@ export const OneDoubleDarkPreset: TerminalTheme = {
     brightMagenta: '#ee82ee',
     brightCyan: '#3ae1f7',
     brightWhite: '#f7f9fc',
-  }
+  },
 };
 
 export const OneDoubleLightPreset: TerminalTheme = {
@@ -8159,7 +8159,7 @@ export const OneDoubleLightPreset: TerminalTheme = {
     brightMagenta: '#d21fd1',
     brightCyan: '#06b1d8',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const OneHalfDarkPreset: TerminalTheme = {
@@ -8189,7 +8189,7 @@ export const OneHalfDarkPreset: TerminalTheme = {
     brightMagenta: '#c678dd',
     brightCyan: '#56b6c2',
     brightWhite: '#dcdfe4',
-  }
+  },
 };
 
 export const OneHalfLightPreset: TerminalTheme = {
@@ -8219,7 +8219,7 @@ export const OneHalfLightPreset: TerminalTheme = {
     brightMagenta: '#c678dd',
     brightCyan: '#56b6c2',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const OperatorMonoDarkPreset: TerminalTheme = {
@@ -8249,7 +8249,7 @@ export const OperatorMonoDarkPreset: TerminalTheme = {
     brightMagenta: '#ff2c7a',
     brightCyan: '#82eada',
     brightWhite: '#fdfdf6',
-  }
+  },
 };
 
 export const OvernightSlumberPreset: TerminalTheme = {
@@ -8279,7 +8279,7 @@ export const OvernightSlumberPreset: TerminalTheme = {
     brightMagenta: '#c792eb',
     brightCyan: '#ffa7c4',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const OxocarbonPreset: TerminalTheme = {
@@ -8309,7 +8309,7 @@ export const OxocarbonPreset: TerminalTheme = {
     brightMagenta: '#be95ff',
     brightCyan: '#ff7eb6',
     brightWhite: '#f2f4f8',
-  }
+  },
 };
 
 export const PaleNightHCPreset: TerminalTheme = {
@@ -8339,7 +8339,7 @@ export const PaleNightHCPreset: TerminalTheme = {
     brightMagenta: '#ddbdf2',
     brightCyan: '#b8eaff',
     brightWhite: '#999999',
-  }
+  },
 };
 
 export const PandoraPreset: TerminalTheme = {
@@ -8369,7 +8369,7 @@ export const PandoraPreset: TerminalTheme = {
     brightMagenta: '#ff37ff',
     brightCyan: '#00ede1',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ParaisoDarkPreset: TerminalTheme = {
@@ -8399,7 +8399,7 @@ export const ParaisoDarkPreset: TerminalTheme = {
     brightMagenta: '#815ba4',
     brightCyan: '#5bc4bf',
     brightWhite: '#e7e9db',
-  }
+  },
 };
 
 export const PaulMillrPreset: TerminalTheme = {
@@ -8429,7 +8429,7 @@ export const PaulMillrPreset: TerminalTheme = {
     brightMagenta: '#db67e6',
     brightCyan: '#7adff2',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const PencilDarkPreset: TerminalTheme = {
@@ -8459,7 +8459,7 @@ export const PencilDarkPreset: TerminalTheme = {
     brightMagenta: '#6855de',
     brightCyan: '#4fb8cc',
     brightWhite: '#f1f1f1',
-  }
+  },
 };
 
 export const PencilLightPreset: TerminalTheme = {
@@ -8489,7 +8489,7 @@ export const PencilLightPreset: TerminalTheme = {
     brightMagenta: '#6855de',
     brightCyan: '#4fb8cc',
     brightWhite: '#f1f1f1',
-  }
+  },
 };
 
 export const PeppermintPreset: TerminalTheme = {
@@ -8519,7 +8519,7 @@ export const PeppermintPreset: TerminalTheme = {
     brightMagenta: '#e586e7',
     brightCyan: '#96dcdb',
     brightWhite: '#dfdfdf',
-  }
+  },
 };
 
 export const PiattoLightPreset: TerminalTheme = {
@@ -8549,7 +8549,7 @@ export const PiattoLightPreset: TerminalTheme = {
     brightMagenta: '#a454b2',
     brightCyan: '#829429',
     brightWhite: '#f2f2f2',
-  }
+  },
 };
 
 export const PnevmaPreset: TerminalTheme = {
@@ -8579,7 +8579,7 @@ export const PnevmaPreset: TerminalTheme = {
     brightMagenta: '#d7beda',
     brightCyan: '#b1e7dd',
     brightWhite: '#efefef',
-  }
+  },
 };
 
 export const PoppingAndLockingPreset: TerminalTheme = {
@@ -8609,7 +8609,7 @@ export const PoppingAndLockingPreset: TerminalTheme = {
     brightMagenta: '#d3869b',
     brightCyan: '#7ec16e',
     brightWhite: '#ebdbb2',
-  }
+  },
 };
 
 export const primaryPreset: TerminalTheme = {
@@ -8639,7 +8639,7 @@ export const primaryPreset: TerminalTheme = {
     brightMagenta: '#4285f4',
     brightCyan: '#0f9d58',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ProPreset: TerminalTheme = {
@@ -8669,7 +8669,7 @@ export const ProPreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#00e5e5',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const ProLightPreset: TerminalTheme = {
@@ -8699,7 +8699,7 @@ export const ProLightPreset: TerminalTheme = {
     brightMagenta: '#ff7eff',
     brightCyan: '#61f7f8',
     brightWhite: '#f2f2f2',
-  }
+  },
 };
 
 export const PurpleRainPreset: TerminalTheme = {
@@ -8729,7 +8729,7 @@ export const PurpleRainPreset: TerminalTheme = {
     brightMagenta: '#ac7bf0',
     brightCyan: '#74fdf3',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const purplepeterPreset: TerminalTheme = {
@@ -8759,7 +8759,7 @@ export const purplepeterPreset: TerminalTheme = {
     brightMagenta: '#ba91d4',
     brightCyan: '#a0a0d6',
     brightWhite: '#b9aed3',
-  }
+  },
 };
 
 export const RapturePreset: TerminalTheme = {
@@ -8789,7 +8789,7 @@ export const RapturePreset: TerminalTheme = {
     brightMagenta: '#ff4fa1',
     brightCyan: '#64e0ff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const RaycastDarkPreset: TerminalTheme = {
@@ -8819,7 +8819,7 @@ export const RaycastDarkPreset: TerminalTheme = {
     brightMagenta: '#cf2f98',
     brightCyan: '#52eee5',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const RaycastLightPreset: TerminalTheme = {
@@ -8849,7 +8849,7 @@ export const RaycastLightPreset: TerminalTheme = {
     brightMagenta: '#9a1b6e',
     brightCyan: '#3eb8bf',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const rebeccaPreset: TerminalTheme = {
@@ -8879,7 +8879,7 @@ export const rebeccaPreset: TerminalTheme = {
     brightMagenta: '#c17ff8',
     brightCyan: '#8bfde1',
     brightWhite: '#f4f2f9',
-  }
+  },
 };
 
 export const RedAlertPreset: TerminalTheme = {
@@ -8909,7 +8909,7 @@ export const RedAlertPreset: TerminalTheme = {
     brightMagenta: '#ddb7df',
     brightCyan: '#b7dfdd',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const RedPlanetPreset: TerminalTheme = {
@@ -8939,7 +8939,7 @@ export const RedPlanetPreset: TerminalTheme = {
     brightMagenta: '#de4974',
     brightCyan: '#38add8',
     brightWhite: '#d6bfb8',
-  }
+  },
 };
 
 export const RedSandsPreset: TerminalTheme = {
@@ -8969,7 +8969,7 @@ export const RedSandsPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const RelaxedPreset: TerminalTheme = {
@@ -8999,7 +8999,7 @@ export const RelaxedPreset: TerminalTheme = {
     brightMagenta: '#b06698',
     brightCyan: '#acbbd0',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const RetroPreset: TerminalTheme = {
@@ -9029,7 +9029,7 @@ export const RetroPreset: TerminalTheme = {
     brightMagenta: '#16ba10',
     brightCyan: '#16ba10',
     brightWhite: '#16ba10',
-  }
+  },
 };
 
 export const RetroLegendsPreset: TerminalTheme = {
@@ -9059,7 +9059,7 @@ export const RetroLegendsPreset: TerminalTheme = {
     brightMagenta: '#e666ff',
     brightCyan: '#59e6ff',
     brightWhite: '#f2fff2',
-  }
+  },
 };
 
 export const RippedcastsPreset: TerminalTheme = {
@@ -9089,7 +9089,7 @@ export const RippedcastsPreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#8c9bc4',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const rosePinePreset: TerminalTheme = {
@@ -9119,7 +9119,7 @@ export const rosePinePreset: TerminalTheme = {
     brightMagenta: '#c4a7e7',
     brightCyan: '#ebbcba',
     brightWhite: '#e0def4',
-  }
+  },
 };
 
 export const rosePineDawnPreset: TerminalTheme = {
@@ -9149,7 +9149,7 @@ export const rosePineDawnPreset: TerminalTheme = {
     brightMagenta: '#907aa9',
     brightCyan: '#d7827e',
     brightWhite: '#575279',
-  }
+  },
 };
 
 export const rosePineMoonPreset: TerminalTheme = {
@@ -9179,7 +9179,7 @@ export const rosePineMoonPreset: TerminalTheme = {
     brightMagenta: '#c4a7e7',
     brightCyan: '#ea9a97',
     brightWhite: '#e0def4',
-  }
+  },
 };
 
 export const Rouge_2Preset: TerminalTheme = {
@@ -9209,7 +9209,7 @@ export const Rouge_2Preset: TerminalTheme = {
     brightMagenta: '#8283a1',
     brightCyan: '#abcbd3',
     brightWhite: '#e8e8ea',
-  }
+  },
 };
 
 export const RoyalPreset: TerminalTheme = {
@@ -9239,7 +9239,7 @@ export const RoyalPreset: TerminalTheme = {
     brightMagenta: '#a479e3',
     brightCyan: '#acd4eb',
     brightWhite: '#9e8cbd',
-  }
+  },
 };
 
 export const RyuukoPreset: TerminalTheme = {
@@ -9269,7 +9269,7 @@ export const RyuukoPreset: TerminalTheme = {
     brightMagenta: '#b18a73',
     brightCyan: '#88b2ac',
     brightWhite: '#ececec',
-  }
+  },
 };
 
 export const SakuraPreset: TerminalTheme = {
@@ -9299,7 +9299,7 @@ export const SakuraPreset: TerminalTheme = {
     brightMagenta: '#e90cdd',
     brightCyan: '#eeeeee',
     brightWhite: '#cbb6ff',
-  }
+  },
 };
 
 export const ScarletProtocolPreset: TerminalTheme = {
@@ -9329,7 +9329,7 @@ export const ScarletProtocolPreset: TerminalTheme = {
     brightMagenta: '#bd35ec',
     brightCyan: '#60fdff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const SeafoamPastelPreset: TerminalTheme = {
@@ -9359,7 +9359,7 @@ export const SeafoamPastelPreset: TerminalTheme = {
     brightMagenta: '#d6b2a1',
     brightCyan: '#ade0e0',
     brightWhite: '#e0e0e0',
-  }
+  },
 };
 
 export const SeaShellsPreset: TerminalTheme = {
@@ -9389,7 +9389,7 @@ export const SeaShellsPreset: TerminalTheme = {
     brightMagenta: '#bbe3ee',
     brightCyan: '#87acb4',
     brightWhite: '#fee4ce',
-  }
+  },
 };
 
 export const seoulbonesDarkPreset: TerminalTheme = {
@@ -9419,7 +9419,7 @@ export const seoulbonesDarkPreset: TerminalTheme = {
     brightMagenta: '#b2b3da',
     brightCyan: '#6bcacb',
     brightWhite: '#a8a8a8',
-  }
+  },
 };
 
 export const seoulbonesLightPreset: TerminalTheme = {
@@ -9449,7 +9449,7 @@ export const seoulbonesLightPreset: TerminalTheme = {
     brightMagenta: '#7f4c7e',
     brightCyan: '#006f70',
     brightWhite: '#777777',
-  }
+  },
 };
 
 export const SetiPreset: TerminalTheme = {
@@ -9479,7 +9479,7 @@ export const SetiPreset: TerminalTheme = {
     brightMagenta: '#8b57b5',
     brightCyan: '#8ec43d',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const shadesOfPurplePreset: TerminalTheme = {
@@ -9509,7 +9509,7 @@ export const shadesOfPurplePreset: TerminalTheme = {
     brightMagenta: '#ff77ff',
     brightCyan: '#79e8fb',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ShamanPreset: TerminalTheme = {
@@ -9539,7 +9539,7 @@ export const ShamanPreset: TerminalTheme = {
     brightMagenta: '#1298ff',
     brightCyan: '#98d028',
     brightWhite: '#58fbd6',
-  }
+  },
 };
 
 export const SlatePreset: TerminalTheme = {
@@ -9569,7 +9569,7 @@ export const SlatePreset: TerminalTheme = {
     brightMagenta: '#c5a7d9',
     brightCyan: '#8cdfe0',
     brightWhite: '#e0e0e0',
-  }
+  },
 };
 
 export const SleepyHollowPreset: TerminalTheme = {
@@ -9599,7 +9599,7 @@ export const SleepyHollowPreset: TerminalTheme = {
     brightMagenta: '#e2c2bb',
     brightCyan: '#a4dce7',
     brightWhite: '#d2c7a9',
-  }
+  },
 };
 
 export const SmyckPreset: TerminalTheme = {
@@ -9629,7 +9629,7 @@ export const SmyckPreset: TerminalTheme = {
     brightMagenta: '#f79aff',
     brightCyan: '#6ad9cf',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const SnazzyPreset: TerminalTheme = {
@@ -9659,7 +9659,7 @@ export const SnazzyPreset: TerminalTheme = {
     brightMagenta: '#fc4cb4',
     brightCyan: '#8be9fe',
     brightWhite: '#ededec',
-  }
+  },
 };
 
 export const SnazzySoftPreset: TerminalTheme = {
@@ -9689,7 +9689,7 @@ export const SnazzySoftPreset: TerminalTheme = {
     brightMagenta: '#ff6ac1',
     brightCyan: '#9aedfe',
     brightWhite: '#f1f1f0',
-  }
+  },
 };
 
 export const SoftServerPreset: TerminalTheme = {
@@ -9719,7 +9719,7 @@ export const SoftServerPreset: TerminalTheme = {
     brightMagenta: '#606edf',
     brightCyan: '#64e39c',
     brightWhite: '#d2e0de',
-  }
+  },
 };
 
 export const SolarizedDarculaPreset: TerminalTheme = {
@@ -9749,7 +9749,7 @@ export const SolarizedDarculaPreset: TerminalTheme = {
     brightMagenta: '#797fd4',
     brightCyan: '#15968d',
     brightWhite: '#d2d8d9',
-  }
+  },
 };
 
 export const SolarizedDarkPatchedPreset: TerminalTheme = {
@@ -9779,7 +9779,7 @@ export const SolarizedDarkPatchedPreset: TerminalTheme = {
     brightMagenta: '#5956ba',
     brightCyan: '#819090',
     brightWhite: '#fcf4dc',
-  }
+  },
 };
 
 export const SolarizedDarkHigherContrastPreset: TerminalTheme = {
@@ -9809,7 +9809,7 @@ export const SolarizedDarkHigherContrastPreset: TerminalTheme = {
     brightMagenta: '#e24d8e',
     brightCyan: '#00b39e',
     brightWhite: '#fcf4dc',
-  }
+  },
 };
 
 export const solarizedOsakaNightPreset: TerminalTheme = {
@@ -9839,7 +9839,7 @@ export const solarizedOsakaNightPreset: TerminalTheme = {
     brightMagenta: '#b69bf1',
     brightCyan: '#90cdfa',
     brightWhite: '#c2caf1',
-  }
+  },
 };
 
 export const sonokaiPreset: TerminalTheme = {
@@ -9869,7 +9869,7 @@ export const sonokaiPreset: TerminalTheme = {
     brightMagenta: '#b39df3',
     brightCyan: '#f39660',
     brightWhite: '#e2e2e3',
-  }
+  },
 };
 
 export const SpacedustPreset: TerminalTheme = {
@@ -9899,7 +9899,7 @@ export const SpacedustPreset: TerminalTheme = {
     brightMagenta: '#ff8a3a',
     brightCyan: '#83a7b4',
     brightWhite: '#fefff1',
-  }
+  },
 };
 
 export const SpaceGrayPreset: TerminalTheme = {
@@ -9929,7 +9929,7 @@ export const SpaceGrayPreset: TerminalTheme = {
     brightMagenta: '#a47996',
     brightCyan: '#85a7a5',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const SpaceGrayBrightPreset: TerminalTheme = {
@@ -9959,7 +9959,7 @@ export const SpaceGrayBrightPreset: TerminalTheme = {
     brightMagenta: '#b98aae',
     brightCyan: '#85c9b8',
     brightWhite: '#f7f7f7',
-  }
+  },
 };
 
 export const SpaceGrayEightiesPreset: TerminalTheme = {
@@ -9989,7 +9989,7 @@ export const SpaceGrayEightiesPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#83e9e4',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const SpaceGrayEightiesDullPreset: TerminalTheme = {
@@ -10019,7 +10019,7 @@ export const SpaceGrayEightiesDullPreset: TerminalTheme = {
     brightMagenta: '#bf83c1',
     brightCyan: '#58c2c1',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const SpidermanPreset: TerminalTheme = {
@@ -10049,7 +10049,7 @@ export const SpidermanPreset: TerminalTheme = {
     brightMagenta: '#747cff',
     brightCyan: '#6184ff',
     brightWhite: '#fffff9',
-  }
+  },
 };
 
 export const SpringPreset: TerminalTheme = {
@@ -10079,7 +10079,7 @@ export const SpringPreset: TerminalTheme = {
     brightMagenta: '#8959a8',
     brightCyan: '#3e999f',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const SquarePreset: TerminalTheme = {
@@ -10109,7 +10109,7 @@ export const SquarePreset: TerminalTheme = {
     brightMagenta: '#ad7fa8',
     brightCyan: '#d7d9fc',
     brightWhite: '#e2e2e2',
-  }
+  },
 };
 
 export const SquirrelsongDarkPreset: TerminalTheme = {
@@ -10139,7 +10139,7 @@ export const SquirrelsongDarkPreset: TerminalTheme = {
     brightMagenta: '#9672d4',
     brightCyan: '#72aaa8',
     brightWhite: '#edd5be',
-  }
+  },
 };
 
 export const srceryPreset: TerminalTheme = {
@@ -10169,7 +10169,7 @@ export const srceryPreset: TerminalTheme = {
     brightMagenta: '#ff5c8f',
     brightCyan: '#2be4d0',
     brightWhite: '#fce8c3',
-  }
+  },
 };
 
 export const starlightPreset: TerminalTheme = {
@@ -10199,7 +10199,7 @@ export const starlightPreset: TerminalTheme = {
     brightMagenta: '#f2afee',
     brightCyan: '#6adcc5',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const SublettePreset: TerminalTheme = {
@@ -10229,7 +10229,7 @@ export const SublettePreset: TerminalTheme = {
     brightMagenta: '#aa88ff',
     brightCyan: '#55ffbb',
     brightWhite: '#ffffee',
-  }
+  },
 };
 
 export const SubliminalPreset: TerminalTheme = {
@@ -10259,7 +10259,7 @@ export const SubliminalPreset: TerminalTheme = {
     brightMagenta: '#f1a5ab',
     brightCyan: '#5fb3b3',
     brightWhite: '#d4d4d4',
-  }
+  },
 };
 
 export const SugarplumPreset: TerminalTheme = {
@@ -10289,7 +10289,7 @@ export const SugarplumPreset: TerminalTheme = {
     brightMagenta: '#c6a5fd',
     brightCyan: '#ffffff',
     brightWhite: '#b577fd',
-  }
+  },
 };
 
 export const SundriedPreset: TerminalTheme = {
@@ -10319,7 +10319,7 @@ export const SundriedPreset: TerminalTheme = {
     brightMagenta: '#fd8aa1',
     brightCyan: '#fad484',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const SymfonicPreset: TerminalTheme = {
@@ -10349,7 +10349,7 @@ export const SymfonicPreset: TerminalTheme = {
     brightMagenta: '#b729d9',
     brightCyan: '#ccccff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const synthwavePreset: TerminalTheme = {
@@ -10379,7 +10379,7 @@ export const synthwavePreset: TerminalTheme = {
     brightMagenta: '#f97137',
     brightCyan: '#19cde6',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const synthwaveEverythingPreset: TerminalTheme = {
@@ -10409,7 +10409,7 @@ export const synthwaveEverythingPreset: TerminalTheme = {
     brightMagenta: '#e1acff',
     brightCyan: '#f92aad',
     brightWhite: '#fefefe',
-  }
+  },
 };
 
 export const SynthwaveAlphaPreset: TerminalTheme = {
@@ -10439,7 +10439,7 @@ export const SynthwaveAlphaPreset: TerminalTheme = {
     brightMagenta: '#ff00f6',
     brightCyan: '#00fbfd',
     brightWhite: '#f2f2e3',
-  }
+  },
 };
 
 export const TangoAdaptedPreset: TerminalTheme = {
@@ -10469,7 +10469,7 @@ export const TangoAdaptedPreset: TerminalTheme = {
     brightMagenta: '#e9a7e1',
     brightCyan: '#00feff',
     brightWhite: '#f6f6f4',
-  }
+  },
 };
 
 export const TangoHalfAdaptedPreset: TerminalTheme = {
@@ -10499,7 +10499,7 @@ export const TangoHalfAdaptedPreset: TerminalTheme = {
     brightMagenta: '#d898d1',
     brightCyan: '#00f6fa',
     brightWhite: '#f4f4f2',
-  }
+  },
 };
 
 export const TeerbPreset: TerminalTheme = {
@@ -10529,7 +10529,7 @@ export const TeerbPreset: TerminalTheme = {
     brightMagenta: '#d6aed6',
     brightCyan: '#b1e7dd',
     brightWhite: '#efefef',
-  }
+  },
 };
 
 export const terafoxPreset: TerminalTheme = {
@@ -10559,7 +10559,7 @@ export const terafoxPreset: TerminalTheme = {
     brightMagenta: '#b97490',
     brightCyan: '#afd4de',
     brightWhite: '#eeeeee',
-  }
+  },
 };
 
 export const TerminalBasicPreset: TerminalTheme = {
@@ -10589,7 +10589,7 @@ export const TerminalBasicPreset: TerminalTheme = {
     brightMagenta: '#e500e5',
     brightCyan: '#00e5e5',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const TerminalBasicDarkPreset: TerminalTheme = {
@@ -10619,7 +10619,7 @@ export const TerminalBasicDarkPreset: TerminalTheme = {
     brightMagenta: '#eb5af7',
     brightCyan: '#78f1f2',
     brightWhite: '#ededed',
-  }
+  },
 };
 
 export const ThayerBrightPreset: TerminalTheme = {
@@ -10649,7 +10649,7 @@ export const ThayerBrightPreset: TerminalTheme = {
     brightMagenta: '#9e6ffe',
     brightCyan: '#23cfd5',
     brightWhite: '#f8f8f2',
-  }
+  },
 };
 
 export const TheHulkPreset: TerminalTheme = {
@@ -10679,7 +10679,7 @@ export const TheHulkPreset: TerminalTheme = {
     brightMagenta: '#72589d',
     brightCyan: '#4085a6',
     brightWhite: '#e5e6e1',
-  }
+  },
 };
 
 export const TinaciousDesignDark_Preset: TerminalTheme = {
@@ -10709,7 +10709,7 @@ export const TinaciousDesignDark_Preset: TerminalTheme = {
     brightMagenta: '#d783ff',
     brightCyan: '#00d5d4',
     brightWhite: '#d5d6f3',
-  }
+  },
 };
 
 export const TinaciousDesignLight_Preset: TerminalTheme = {
@@ -10739,7 +10739,7 @@ export const TinaciousDesignLight_Preset: TerminalTheme = {
     brightMagenta: '#d783ff',
     brightCyan: '#00d5d4',
     brightWhite: '#d5d6f3',
-  }
+  },
 };
 
 export const tokyonightPreset: TerminalTheme = {
@@ -10769,7 +10769,7 @@ export const tokyonightPreset: TerminalTheme = {
     brightMagenta: '#bb9af7',
     brightCyan: '#7dcfff',
     brightWhite: '#c0caf5',
-  }
+  },
 };
 
 export const tokyonightMoonPreset: TerminalTheme = {
@@ -10799,7 +10799,7 @@ export const tokyonightMoonPreset: TerminalTheme = {
     brightMagenta: '#c099ff',
     brightCyan: '#86e1fc',
     brightWhite: '#c8d3f5',
-  }
+  },
 };
 
 export const tokyonightNightPreset: TerminalTheme = {
@@ -10829,7 +10829,7 @@ export const tokyonightNightPreset: TerminalTheme = {
     brightMagenta: '#bb9af7',
     brightCyan: '#7dcfff',
     brightWhite: '#c0caf5',
-  }
+  },
 };
 
 export const tokyonightDayPreset: TerminalTheme = {
@@ -10859,7 +10859,7 @@ export const tokyonightDayPreset: TerminalTheme = {
     brightMagenta: '#9854f1',
     brightCyan: '#007197',
     brightWhite: '#3760bf',
-  }
+  },
 };
 
 export const tokyonightStormPreset: TerminalTheme = {
@@ -10889,7 +10889,7 @@ export const tokyonightStormPreset: TerminalTheme = {
     brightMagenta: '#bb9af7',
     brightCyan: '#7dcfff',
     brightWhite: '#c0caf5',
-  }
+  },
 };
 
 export const TomorrowPreset: TerminalTheme = {
@@ -10919,7 +10919,7 @@ export const TomorrowPreset: TerminalTheme = {
     brightMagenta: '#8959a8',
     brightCyan: '#3e999f',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const TomorrowNightPreset: TerminalTheme = {
@@ -10949,7 +10949,7 @@ export const TomorrowNightPreset: TerminalTheme = {
     brightMagenta: '#b294bb',
     brightCyan: '#8abeb7',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const TomorrowNightBluePreset: TerminalTheme = {
@@ -10979,7 +10979,7 @@ export const TomorrowNightBluePreset: TerminalTheme = {
     brightMagenta: '#ebbbff',
     brightCyan: '#99ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const TomorrowNightBrightPreset: TerminalTheme = {
@@ -11009,7 +11009,7 @@ export const TomorrowNightBrightPreset: TerminalTheme = {
     brightMagenta: '#c397d8',
     brightCyan: '#70c0b1',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const TomorrowNightBurnsPreset: TerminalTheme = {
@@ -11039,7 +11039,7 @@ export const TomorrowNightBurnsPreset: TerminalTheme = {
     brightMagenta: '#df9395',
     brightCyan: '#ba8586',
     brightWhite: '#f5f5f5',
-  }
+  },
 };
 
 export const TomorrowNightEightiesPreset: TerminalTheme = {
@@ -11069,7 +11069,7 @@ export const TomorrowNightEightiesPreset: TerminalTheme = {
     brightMagenta: '#cc99cc',
     brightCyan: '#66cccc',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const ToyChestPreset: TerminalTheme = {
@@ -11099,7 +11099,7 @@ export const ToyChestPreset: TerminalTheme = {
     brightMagenta: '#ae6bdc',
     brightCyan: '#42c3ae',
     brightWhite: '#d5d5d5',
-  }
+  },
 };
 
 export const TreehousePreset: TerminalTheme = {
@@ -11129,7 +11129,7 @@ export const TreehousePreset: TerminalTheme = {
     brightMagenta: '#e14c5a',
     brightCyan: '#f07d14',
     brightWhite: '#ffc800',
-  }
+  },
 };
 
 export const TwilightPreset: TerminalTheme = {
@@ -11159,7 +11159,7 @@ export const TwilightPreset: TerminalTheme = {
     brightMagenta: '#d0dc8e',
     brightCyan: '#8a989b',
     brightWhite: '#ffffd4',
-  }
+  },
 };
 
 export const UbuntuPreset: TerminalTheme = {
@@ -11189,7 +11189,7 @@ export const UbuntuPreset: TerminalTheme = {
     brightMagenta: '#ad7fa8',
     brightCyan: '#34e2e2',
     brightWhite: '#eeeeec',
-  }
+  },
 };
 
 export const UltraDarkPreset: TerminalTheme = {
@@ -11219,7 +11219,7 @@ export const UltraDarkPreset: TerminalTheme = {
     brightMagenta: '#ddbdf2',
     brightCyan: '#b8eaff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const UltraViolentPreset: TerminalTheme = {
@@ -11249,7 +11249,7 @@ export const UltraViolentPreset: TerminalTheme = {
     brightMagenta: '#e681ff',
     brightCyan: '#69fcd3',
     brightWhite: '#f9f9f5',
-  }
+  },
 };
 
 export const UnderTheSeaPreset: TerminalTheme = {
@@ -11279,7 +11279,7 @@ export const UnderTheSeaPreset: TerminalTheme = {
     brightMagenta: '#1298ff',
     brightCyan: '#98d028',
     brightWhite: '#58fbd6',
-  }
+  },
 };
 
 export const UnikittyPreset: TerminalTheme = {
@@ -11309,7 +11309,7 @@ export const UnikittyPreset: TerminalTheme = {
     brightMagenta: '#fdd5e5',
     brightCyan: '#79ecd5',
     brightWhite: '#fff3fe',
-  }
+  },
 };
 
 export const UrplePreset: TerminalTheme = {
@@ -11339,7 +11339,7 @@ export const UrplePreset: TerminalTheme = {
     brightMagenta: '#a05eee',
     brightCyan: '#eaeaea',
     brightWhite: '#bfa3ff',
-  }
+  },
 };
 
 export const VaughnPreset: TerminalTheme = {
@@ -11369,7 +11369,7 @@ export const VaughnPreset: TerminalTheme = {
     brightMagenta: '#ec93d3',
     brightCyan: '#93e0e3',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const VesperPreset: TerminalTheme = {
@@ -11399,7 +11399,7 @@ export const VesperPreset: TerminalTheme = {
     brightMagenta: '#ecaad6',
     brightCyan: '#f591b2',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const VibrantInkPreset: TerminalTheme = {
@@ -11429,7 +11429,7 @@ export const VibrantInkPreset: TerminalTheme = {
     brightMagenta: '#ff00ff',
     brightCyan: '#00ffff',
     brightWhite: '#e5e5e5',
-  }
+  },
 };
 
 export const vimbonesPreset: TerminalTheme = {
@@ -11459,7 +11459,7 @@ export const vimbonesPreset: TerminalTheme = {
     brightMagenta: '#7b3b70',
     brightCyan: '#2b747c',
     brightWhite: '#5c5c5c',
-  }
+  },
 };
 
 export const VioletDarkPreset: TerminalTheme = {
@@ -11489,7 +11489,7 @@ export const VioletDarkPreset: TerminalTheme = {
     brightMagenta: '#c61c6f',
     brightCyan: '#259286',
     brightWhite: '#c9c6bd',
-  }
+  },
 };
 
 export const VioletLightPreset: TerminalTheme = {
@@ -11519,7 +11519,7 @@ export const VioletLightPreset: TerminalTheme = {
     brightMagenta: '#c61c6f',
     brightCyan: '#259286',
     brightWhite: '#c9c6bd',
-  }
+  },
 };
 
 export const WarmNeonPreset: TerminalTheme = {
@@ -11549,7 +11549,7 @@ export const WarmNeonPreset: TerminalTheme = {
     brightMagenta: '#f674ba',
     brightCyan: '#5ed1e5',
     brightWhite: '#d8c8bb',
-  }
+  },
 };
 
 export const WezPreset: TerminalTheme = {
@@ -11579,7 +11579,7 @@ export const WezPreset: TerminalTheme = {
     brightMagenta: '#ff55ff',
     brightCyan: '#55ffff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const WhimsyPreset: TerminalTheme = {
@@ -11609,7 +11609,7 @@ export const WhimsyPreset: TerminalTheme = {
     brightMagenta: '#aa7ff0',
     brightCyan: '#43c1be',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const WildCherryPreset: TerminalTheme = {
@@ -11639,7 +11639,7 @@ export const WildCherryPreset: TerminalTheme = {
     brightMagenta: '#ae636b',
     brightCyan: '#ff919d',
     brightWhite: '#e4838d',
-  }
+  },
 };
 
 export const wilmersdorfPreset: TerminalTheme = {
@@ -11669,7 +11669,7 @@ export const wilmersdorfPreset: TerminalTheme = {
     brightMagenta: '#efccfd',
     brightCyan: '#69abc5',
     brightWhite: '#d3d3d3',
-  }
+  },
 };
 
 export const WombatPreset: TerminalTheme = {
@@ -11699,7 +11699,7 @@ export const WombatPreset: TerminalTheme = {
     brightMagenta: '#ddaaff',
     brightCyan: '#b7fff9',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const WryanPreset: TerminalTheme = {
@@ -11729,7 +11729,7 @@ export const WryanPreset: TerminalTheme = {
     brightMagenta: '#7e62b3',
     brightCyan: '#6096bf',
     brightWhite: '#c0c0c0',
-  }
+  },
 };
 
 export const xcodedarkPreset: TerminalTheme = {
@@ -11759,7 +11759,7 @@ export const xcodedarkPreset: TerminalTheme = {
     brightMagenta: '#ff7ab2',
     brightCyan: '#dabaff',
     brightWhite: '#dfdfe0',
-  }
+  },
 };
 
 export const xcodedarkhcPreset: TerminalTheme = {
@@ -11789,7 +11789,7 @@ export const xcodedarkhcPreset: TerminalTheme = {
     brightMagenta: '#ff85b8',
     brightCyan: '#e5cfff',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const xcodelightPreset: TerminalTheme = {
@@ -11819,7 +11819,7 @@ export const xcodelightPreset: TerminalTheme = {
     brightMagenta: '#ad3da4',
     brightCyan: '#4b21b0',
     brightWhite: '#262626',
-  }
+  },
 };
 
 export const xcodelighthcPreset: TerminalTheme = {
@@ -11849,7 +11849,7 @@ export const xcodelighthcPreset: TerminalTheme = {
     brightMagenta: '#9c2191',
     brightCyan: '#441ea1',
     brightWhite: '#000000',
-  }
+  },
 };
 
 export const xcodewwdcPreset: TerminalTheme = {
@@ -11879,7 +11879,7 @@ export const xcodewwdcPreset: TerminalTheme = {
     brightMagenta: '#b73999',
     brightCyan: '#00aba4',
     brightWhite: '#e7e8eb',
-  }
+  },
 };
 
 export const zenbonesPreset: TerminalTheme = {
@@ -11909,7 +11909,7 @@ export const zenbonesPreset: TerminalTheme = {
     brightMagenta: '#7b3b70',
     brightCyan: '#2b747c',
     brightWhite: '#4f5e68',
-  }
+  },
 };
 
 export const zenbonesDarkPreset: TerminalTheme = {
@@ -11939,7 +11939,7 @@ export const zenbonesDarkPreset: TerminalTheme = {
     brightMagenta: '#cf86c1',
     brightCyan: '#65b8c1',
     brightWhite: '#888f94',
-  }
+  },
 };
 
 export const zenbonesLightPreset: TerminalTheme = {
@@ -11969,7 +11969,7 @@ export const zenbonesLightPreset: TerminalTheme = {
     brightMagenta: '#7b3b70',
     brightCyan: '#2b747c',
     brightWhite: '#4f5e68',
-  }
+  },
 };
 
 export const ZenburnPreset: TerminalTheme = {
@@ -11999,7 +11999,7 @@ export const ZenburnPreset: TerminalTheme = {
     brightMagenta: '#ec93d3',
     brightCyan: '#93e0e3',
     brightWhite: '#ffffff',
-  }
+  },
 };
 
 export const zenburnedPreset: TerminalTheme = {
@@ -12029,7 +12029,7 @@ export const zenburnedPreset: TerminalTheme = {
     brightMagenta: '#cf86c1',
     brightCyan: '#65b8c1',
     brightWhite: '#c0ab86',
-  }
+  },
 };
 
 export const zenwrittenDarkPreset: TerminalTheme = {
@@ -12059,7 +12059,7 @@ export const zenwrittenDarkPreset: TerminalTheme = {
     brightMagenta: '#cf86c1',
     brightCyan: '#65b8c1',
     brightWhite: '#8e8e8e',
-  }
+  },
 };
 
 export const zenwrittenLightPreset: TerminalTheme = {
@@ -12089,7 +12089,7 @@ export const zenwrittenLightPreset: TerminalTheme = {
     brightMagenta: '#7b3b70',
     brightCyan: '#2b747c',
     brightWhite: '#5c5c5c',
-  }
+  },
 };
 
 export const presetTerminalThemes: TerminalTheme[] = [

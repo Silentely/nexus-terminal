@@ -1,7 +1,16 @@
 import type { ITheme } from 'xterm';
 
 // 定义所有可用面板的名称 (后端独立定义)
-export type PaneName = 'connections' | 'terminal' | 'commandBar' | 'fileManager' | 'editor' | 'statusMonitor' | 'commandHistory' | 'quickCommands' | 'dockerManager';
+export type PaneName =
+  | 'connections'
+  | 'terminal'
+  | 'commandBar'
+  | 'fileManager'
+  | 'editor'
+  | 'statusMonitor'
+  | 'commandHistory'
+  | 'quickCommands'
+  | 'dockerManager';
 
 /**
  * 外观设置数据结构
@@ -33,7 +42,7 @@ export interface AppearanceSettings {
   terminalTextShadowColor?: string;
   updatedAt?: number;
 }
- 
+
 /**
  * 用于更新外观设置的数据结构 (所有字段可选)
  */

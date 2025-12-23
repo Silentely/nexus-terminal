@@ -22,7 +22,8 @@ const tagsStore = useTagsStore(); // 如果需要更新标签信息或调用标�
 const uiNotificationsStore = useUiNotificationsStore();
 const { showConfirmDialog } = useConfirmDialog();
 
-const { connections: allConnections, isLoading: connectionsLoading } = storeToRefs(connectionsStore);
+const { connections: allConnections, isLoading: connectionsLoading } =
+  storeToRefs(connectionsStore);
 
 const modalSearchTerm = ref('');
 // 使用 Set 来存储选中的连接 ID，方便添加和删除
@@ -30,44 +31,60 @@ const selectedConnectionIds = ref<Set<number>>(new Set());
 const internalVisible = ref(props.visible);
 
 // 监听 props.visible 变化来更新 internalVisible
-watch(() => props.visible, (newVisibleValue) => {
-  internalVisible.value = newVisibleValue;
-  if (!newVisibleValue) {
-    // 关闭时重置搜索词
-    modalSearchTerm.value = '';
+watch(
+  () => props.visible,
+  (newVisibleValue) => {
+    internalVisible.value = newVisibleValue;
+    if (!newVisibleValue) {
+      // 关闭时重置搜索词
+      modalSearchTerm.value = '';
+    }
   }
-});
+);
 
 // 监听 internalVisible 变化来 emit update:visible
 watch(internalVisible, (newVal) => {
-  if (newVal !== props.visible) { // 避免无限循环
+  if (newVal !== props.visible) {
+    // 避免无限循环
     emit('update:visible', newVal);
   }
 });
 
 // 当模态框变为可见或 tagInfo 变化时，初始化选中的连接
-watch(() => [internalVisible.value, props.tagInfo], ([isVisible, currentTagInfoUntyped]) => {
-  const currentTagInfo = currentTagInfoUntyped as TagInfo | null; // 明确类型
-  if (isVisible && currentTagInfo && typeof currentTagInfo === 'object' && currentTagInfo !== null && 'id' in currentTagInfo) {
-    selectedConnectionIds.value.clear();
-    allConnections.value.forEach(conn => {
-      if (conn.tag_ids?.includes(currentTagInfo.id)) {
-        selectedConnectionIds.value.add(conn.id);
-      }
-    });
-  }
-}, { immediate: true, deep: true });
-
+watch(
+  () => [internalVisible.value, props.tagInfo],
+  ([isVisible, currentTagInfoUntyped]) => {
+    const currentTagInfo = currentTagInfoUntyped as TagInfo | null; // 明确类型
+    if (
+      isVisible &&
+      currentTagInfo &&
+      typeof currentTagInfo === 'object' &&
+      currentTagInfo !== null &&
+      'id' in currentTagInfo
+    ) {
+      selectedConnectionIds.value.clear();
+      allConnections.value.forEach((conn) => {
+        if (conn.tag_ids?.includes(currentTagInfo.id)) {
+          selectedConnectionIds.value.add(conn.id);
+        }
+      });
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 const filteredConnectionsInModal = computed(() => {
   if (!modalSearchTerm.value) {
-    return allConnections.value.slice().sort((a, b) => (a.name || a.host).localeCompare(b.name || b.host));
+    return allConnections.value
+      .slice()
+      .sort((a, b) => (a.name || a.host).localeCompare(b.name || b.host));
   }
   const lowerSearchTerm = modalSearchTerm.value.toLowerCase();
   return allConnections.value
-    .filter(conn =>
-      (conn.name && conn.name.toLowerCase().includes(lowerSearchTerm)) ||
-      conn.host.toLowerCase().includes(lowerSearchTerm)
+    .filter(
+      (conn) =>
+        (conn.name && conn.name.toLowerCase().includes(lowerSearchTerm)) ||
+        conn.host.toLowerCase().includes(lowerSearchTerm)
     )
     .sort((a, b) => (a.name || a.host).localeCompare(b.name || b.host));
 });
@@ -85,15 +102,15 @@ const toggleConnectionSelection = (connectionId: number) => {
 };
 
 const handleSelectAll = () => {
-  filteredConnectionsInModal.value.forEach(conn => selectedConnectionIds.value.add(conn.id));
+  filteredConnectionsInModal.value.forEach((conn) => selectedConnectionIds.value.add(conn.id));
 };
 
 const handleDeselectAll = () => {
- filteredConnectionsInModal.value.forEach(conn => selectedConnectionIds.value.delete(conn.id));
+  filteredConnectionsInModal.value.forEach((conn) => selectedConnectionIds.value.delete(conn.id));
 };
 
 const handleInvertSelection = () => {
-  filteredConnectionsInModal.value.forEach(conn => {
+  filteredConnectionsInModal.value.forEach((conn) => {
     if (selectedConnectionIds.value.has(conn.id)) {
       selectedConnectionIds.value.delete(conn.id);
     } else {
@@ -113,11 +130,17 @@ const handleSave = async () => {
   const success = await tagsStore.updateTagConnections(currentTagId, newConnectionIdArray);
 
   if (success) {
-    uiNotificationsStore.addNotification({ message: t('workspaceConnectionList.manageTags.saveSuccess'), type: 'success' });
+    uiNotificationsStore.addNotification({
+      message: t('workspaceConnectionList.manageTags.saveSuccess'),
+      type: 'success',
+    });
     emit('saved'); // 通知父组件保存成功，可能需要刷新列表
     emit('update:visible', false);
   } else {
-    uiNotificationsStore.addNotification({ message: t('workspaceConnectionList.manageTags.saveFailed'), type: 'error' });
+    uiNotificationsStore.addNotification({
+      message: t('workspaceConnectionList.manageTags.saveFailed'),
+      type: 'error',
+    });
   }
 };
 
@@ -130,16 +153,25 @@ const handleDeleteTag = async () => {
 
   const tagName = props.tagInfo.name;
   const confirmed = await showConfirmDialog({
-    message: t('tags.prompts.confirmDelete', { name: tagName })
+    message: t('tags.prompts.confirmDelete', { name: tagName }),
   });
   if (confirmed) {
     const success = await tagsStore.deleteTag(props.tagInfo.id);
     if (success) {
-      uiNotificationsStore.addNotification({ message: t('tags.deleteSuccess', { name: tagName }), type: 'success' }); // 需要新的翻译键
+      uiNotificationsStore.addNotification({
+        message: t('tags.deleteSuccess', { name: tagName }),
+        type: 'success',
+      }); // 需要新的翻译键
       emit('tag-deleted'); // 通知父组件标签已删除
       emit('update:visible', false); // 关闭模态框
     } else {
-      uiNotificationsStore.addNotification({ message: t('tags.deleteFailed', { name: tagName, error: tagsStore.error || 'Unknown error' }), type: 'error' }); // 需要新的翻译键
+      uiNotificationsStore.addNotification({
+        message: t('tags.deleteFailed', {
+          name: tagName,
+          error: tagsStore.error || 'Unknown error',
+        }),
+        type: 'error',
+      }); // 需要新的翻译键
     }
   }
 };
@@ -149,7 +181,6 @@ onMounted(() => {
     connectionsStore.fetchConnections();
   }
 });
-
 </script>
 
 <template>
@@ -158,7 +189,9 @@ onMounted(() => {
     class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4"
     @click.self="handleCancel"
   >
-    <div class="bg-background text-foreground p-6 rounded-lg shadow-xl border border-border w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div
+      class="bg-background text-foreground p-6 rounded-lg shadow-xl border border-border w-full max-w-2xl max-h-[90vh] flex flex-col"
+    >
       <!-- Header -->
       <h3 class="text-xl font-semibold text-center mb-6 flex-shrink-0">
         {{ t('workspaceConnectionList.manageTags.title') }} - {{ props.tagInfo?.name }}
@@ -195,38 +228,57 @@ onMounted(() => {
         </div>
 
         <!-- Connection List -->
-        <div class="flex-grow overflow-y-auto p-4 pr-2"> <!-- Removed space-y-2 from here -->
-          <div class="space-y-4 p-4 border border-border rounded-md bg-header/30"> <!-- New wrapper div -->
-            <div v-if="connectionsLoading" class="flex items-center justify-center h-full text-text-secondary">
-              <i class="fas fa-spinner fa-spin mr-2"></i> {{ t('common.loading') }}
-          </div>
-          <ul v-else-if="filteredConnectionsInModal.length > 0" class="space-y-1">
-            <li
-              v-for="conn in filteredConnectionsInModal"
-              :key="conn.id"
-              class="flex items-center p-2.5 rounded-md hover:bg-primary/10 cursor-pointer transition-colors duration-150"
-              :class="{'bg-primary/20': isConnectionSelected(conn.id)}"
-              @click="toggleConnectionSelection(conn.id)"
+        <div class="flex-grow overflow-y-auto p-4 pr-2">
+          <!-- Removed space-y-2 from here -->
+          <div class="space-y-4 p-4 border border-border rounded-md bg-header/30">
+            <!-- New wrapper div -->
+            <div
+              v-if="connectionsLoading"
+              class="flex items-center justify-center h-full text-text-secondary"
             >
-              <input
-                type="checkbox"
-                :checked="isConnectionSelected(conn.id)"
-                class="mr-3 h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
-                @change.stop="toggleConnectionSelection(conn.id)"
-                @click.stop
-              />
-              <i :class="['fas', conn.type === 'RDP' ? 'fa-desktop' : (conn.type === 'VNC' ? 'fa-plug' : 'fa-server'), 'mr-2.5 w-4 text-center text-text-secondary']"></i>
-              <span class="text-sm truncate flex-grow" :title="conn.name || conn.host">
-                {{ conn.name || conn.host }}
-              </span>
-              <span class="text-xs text-text-tertiary ml-2">({{ conn.type }})</span>
-            </li>
-          </ul>
-          <div v-else class="flex flex-col items-center justify-center h-full text-text-secondary p-6">
-            <i class="fas fa-search text-2xl mb-3"></i>
-            <p>{{ t('workspaceConnectionList.manageTags.noConnectionsFound') }}</p>
+              <i class="fas fa-spinner fa-spin mr-2"></i> {{ t('common.loading') }}
+            </div>
+            <ul v-else-if="filteredConnectionsInModal.length > 0" class="space-y-1">
+              <li
+                v-for="conn in filteredConnectionsInModal"
+                :key="conn.id"
+                class="flex items-center p-2.5 rounded-md hover:bg-primary/10 cursor-pointer transition-colors duration-150"
+                :class="{ 'bg-primary/20': isConnectionSelected(conn.id) }"
+                @click="toggleConnectionSelection(conn.id)"
+              >
+                <input
+                  type="checkbox"
+                  :checked="isConnectionSelected(conn.id)"
+                  class="mr-3 h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
+                  @change.stop="toggleConnectionSelection(conn.id)"
+                  @click.stop
+                />
+                <i
+                  :class="[
+                    'fas',
+                    conn.type === 'RDP'
+                      ? 'fa-desktop'
+                      : conn.type === 'VNC'
+                        ? 'fa-plug'
+                        : 'fa-server',
+                    'mr-2.5 w-4 text-center text-text-secondary',
+                  ]"
+                ></i>
+                <span class="text-sm truncate flex-grow" :title="conn.name || conn.host">
+                  {{ conn.name || conn.host }}
+                </span>
+                <span class="text-xs text-text-tertiary ml-2">({{ conn.type }})</span>
+              </li>
+            </ul>
+            <div
+              v-else
+              class="flex flex-col items-center justify-center h-full text-text-secondary p-6"
+            >
+              <i class="fas fa-search text-2xl mb-3"></i>
+              <p>{{ t('workspaceConnectionList.manageTags.noConnectionsFound') }}</p>
+            </div>
           </div>
-        </div> <!-- End of new wrapper div -->
+          <!-- End of new wrapper div -->
         </div>
       </div>
 

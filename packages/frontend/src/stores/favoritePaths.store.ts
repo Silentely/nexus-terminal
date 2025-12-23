@@ -20,7 +20,7 @@ export interface FavoritePathsState {
   isLoading: boolean;
   error: string | null;
   searchTerm: string;
-  currentSortBy: FavoritePathSortType; 
+  currentSortBy: FavoritePathSortType;
   isInitialized: boolean;
 }
 
@@ -44,14 +44,15 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
       }
       const lowerCaseSearchTerm = state.searchTerm.toLowerCase();
       // Note: state.favoritePaths is now always sorted by this.currentSortBy
-      return state.favoritePaths.filter(fav =>
-        fav.path.toLowerCase().includes(lowerCaseSearchTerm) ||
-        (fav.name && fav.name.toLowerCase().includes(lowerCaseSearchTerm))
+      return state.favoritePaths.filter(
+        (fav) =>
+          fav.path.toLowerCase().includes(lowerCaseSearchTerm) ||
+          (fav.name && fav.name.toLowerCase().includes(lowerCaseSearchTerm))
       );
     },
     getFavoritePathById(state): (id: string) => FavoritePathItem | undefined {
-      return (id) => state.favoritePaths.find(fav => fav.id === id);
-    }
+      return (id) => state.favoritePaths.find((fav) => fav.id === id);
+    },
   },
   actions: {
     _sortFavoritePaths() {
@@ -62,7 +63,8 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
           if (nameA < nameB) return -1;
           if (nameA > nameB) return 1;
           return 0;
-        } else if (this.currentSortBy === 'last_used_at') {
+        }
+        if (this.currentSortBy === 'last_used_at') {
           // Sort by last_used_at descending, nulls/undefined last
           const timeA = a.last_used_at ?? 0;
           const timeB = b.last_used_at ?? 0;
@@ -76,7 +78,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
     },
     async initializeFavoritePaths(t: (key: string, defaultMessage: string) => string) {
       if (this.isInitialized) {
-        return; 
+        return;
       }
       this.isInitialized = true;
       await this.fetchFavoritePaths(t);
@@ -106,21 +108,23 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
     async markPathAsUsed(pathId: string, t: (key: string, defaultMessage: string) => string) {
       const notificationsStore = useUiNotificationsStore();
       try {
-        const response = await apiClient.put<{ message: string, favoritePath: FavoritePathItem }>(`/favorite-paths/${pathId}/update-last-used`);
+        const response = await apiClient.put<{ message: string; favoritePath: FavoritePathItem }>(
+          `/favorite-paths/${pathId}/update-last-used`
+        );
         const updatedPath = response.data.favoritePath;
         if (updatedPath) {
-            const index = this.favoritePaths.findIndex(p => p.id === pathId);
-            if (index !== -1) {
-                this.favoritePaths[index] = updatedPath;
-            } else {
-                // Path not found locally, might happen if list is stale. Add it.
-                this.favoritePaths.push(updatedPath);
-            }
-            this._sortFavoritePaths(); // Re-sort after updating
+          const index = this.favoritePaths.findIndex((p) => p.id === pathId);
+          if (index !== -1) {
+            this.favoritePaths[index] = updatedPath;
+          } else {
+            // Path not found locally, might happen if list is stale. Add it.
+            this.favoritePaths.push(updatedPath);
+          }
+          this._sortFavoritePaths(); // Re-sort after updating
         } else {
-            // Fallback to re-fetch if updated item isn't returned as expected
-            console.warn('markPathAsUsed did not receive updated path, re-fetching list.');
-            await this.fetchFavoritePaths(t);
+          // Fallback to re-fetch if updated item isn't returned as expected
+          console.warn('markPathAsUsed did not receive updated path, re-fetching list.');
+          await this.fetchFavoritePaths(t);
         }
       } catch (err: any) {
         console.error(`Error marking path ${pathId} as used:`, err);
@@ -130,12 +134,18 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
         });
       }
     },
-    async addFavoritePath(newPathData: Omit<FavoritePathItem, 'id' | 'createdAt' | 'updatedAt' | 'last_used_at'>, t: (key: string, defaultMessage: string) => string) {
+    async addFavoritePath(
+      newPathData: Omit<FavoritePathItem, 'id' | 'createdAt' | 'updatedAt' | 'last_used_at'>,
+      t: (key: string, defaultMessage: string) => string
+    ) {
       this.isLoading = true;
       this.error = null;
       const notificationsStore = useUiNotificationsStore();
       try {
-        const response = await apiClient.post<{ message: string, favoritePath: FavoritePathItem }>('/favorite-paths', newPathData);
+        const response = await apiClient.post<{ message: string; favoritePath: FavoritePathItem }>(
+          '/favorite-paths',
+          newPathData
+        );
         this.favoritePaths.push(response.data.favoritePath);
         this._sortFavoritePaths(); // Sort after adding
         notificationsStore.addNotification({
@@ -154,19 +164,31 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
         this.isLoading = false;
       }
     },
-    async updateFavoritePath(id: string, updatedPathData: Partial<Omit<FavoritePathItem, 'id' | 'createdAt' | 'updatedAt' | 'last_used_at'>>, t: (key: string, defaultMessage: string) => string) {
+    async updateFavoritePath(
+      id: string,
+      updatedPathData: Partial<
+        Omit<FavoritePathItem, 'id' | 'createdAt' | 'updatedAt' | 'last_used_at'>
+      >,
+      t: (key: string, defaultMessage: string) => string
+    ) {
       this.isLoading = true;
       this.error = null;
       const notificationsStore = useUiNotificationsStore();
       try {
-        const response = await apiClient.put<{ message: string, favoritePath: FavoritePathItem }>(`/favorite-paths/${id}`, updatedPathData);
-        const index = this.favoritePaths.findIndex(fav => fav.id === id);
+        const response = await apiClient.put<{ message: string; favoritePath: FavoritePathItem }>(
+          `/favorite-paths/${id}`,
+          updatedPathData
+        );
+        const index = this.favoritePaths.findIndex((fav) => fav.id === id);
         if (index !== -1) {
           this.favoritePaths[index] = response.data.favoritePath;
           this._sortFavoritePaths(); // Sort after updating
         }
         notificationsStore.addNotification({
-          message: t('favoritePaths.notifications.updateSuccess', 'Favorite path updated successfully.'),
+          message: t(
+            'favoritePaths.notifications.updateSuccess',
+            'Favorite path updated successfully.'
+          ),
           type: 'success',
         });
       } catch (err: any) {
@@ -187,9 +209,12 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
       const notificationsStore = useUiNotificationsStore();
       try {
         await apiClient.delete(`/favorite-paths/${id}`);
-        this.favoritePaths = this.favoritePaths.filter(fav => fav.id !== id);
+        this.favoritePaths = this.favoritePaths.filter((fav) => fav.id !== id);
         notificationsStore.addNotification({
-          message: t('favoritePaths.notifications.deleteSuccess', 'Favorite path deleted successfully.'),
+          message: t(
+            'favoritePaths.notifications.deleteSuccess',
+            'Favorite path deleted successfully.'
+          ),
           type: 'success',
         });
       } catch (err: any) {

@@ -14,7 +14,7 @@ export function useAuditSettings() {
   const fetchAuditLogMaxEntries = async () => {
     try {
       const response = await apiClient.get('/settings/audit-log-max-entries');
-      const maxEntries = response.data.maxEntries;
+      const { maxEntries } = response.data;
       if (Number.isInteger(maxEntries) && maxEntries > 0) {
         auditLogMaxEntries.value = maxEntries;
       }
@@ -28,20 +28,27 @@ export function useAuditSettings() {
     auditLogMaxEntriesMessage.value = '';
     auditLogMaxEntriesSuccess.value = false;
     try {
-      const value = auditLogMaxEntries.value;
+      const { value } = auditLogMaxEntries;
       if (isNaN(value) || value < 100 || !Number.isInteger(value)) {
         throw new Error(t('settings.auditLog.error.invalidMaxEntries', '请输入大于等于100的整数'));
       }
-      const response = await apiClient.put('/settings/audit-log-max-entries', { maxEntries: value });
+      const response = await apiClient.put('/settings/audit-log-max-entries', {
+        maxEntries: value,
+      });
       if (Number.isInteger(response.data?.maxEntries) && response.data.maxEntries > 0) {
         auditLogMaxEntries.value = response.data.maxEntries;
       }
-      auditLogMaxEntriesMessage.value = t('settings.auditLog.success.maxEntriesSaved', '最大保留条数已保存');
+      auditLogMaxEntriesMessage.value = t(
+        'settings.auditLog.success.maxEntriesSaved',
+        '最大保留条数已保存'
+      );
       auditLogMaxEntriesSuccess.value = true;
     } catch (error: any) {
       console.error('更新审计日志最大保留条数失败:', error);
       auditLogMaxEntriesMessage.value =
-        error.response?.data?.message || error.message || t('settings.auditLog.error.maxEntriesSaveFailed', '保存失败');
+        error.response?.data?.message ||
+        error.message ||
+        t('settings.auditLog.error.maxEntriesSaveFailed', '保存失败');
       auditLogMaxEntriesSuccess.value = false;
     } finally {
       auditLogMaxEntriesLoading.value = false;
@@ -71,13 +78,16 @@ export function useAuditSettings() {
     try {
       const response = await apiClient.delete('/audit-logs');
       const deletedCount = response.data?.deletedCount ?? 0;
-      deleteAuditLogsMessage.value = t('settings.auditLog.success.deleted', { count: deletedCount });
+      deleteAuditLogsMessage.value = t('settings.auditLog.success.deleted', {
+        count: deletedCount,
+      });
       deleteAuditLogsSuccess.value = true;
       showDeleteConfirm.value = false;
       await fetchAuditLogCount();
     } catch (error: any) {
       console.error('删除审计日志失败:', error);
-      deleteAuditLogsMessage.value = error.response?.data?.message || t('settings.auditLog.error.deleteFailed', '删除失败');
+      deleteAuditLogsMessage.value =
+        error.response?.data?.message || t('settings.auditLog.error.deleteFailed', '删除失败');
       deleteAuditLogsSuccess.value = false;
     } finally {
       deleteAuditLogsLoading.value = false;

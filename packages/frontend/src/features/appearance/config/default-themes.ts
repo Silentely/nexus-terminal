@@ -22,7 +22,7 @@ export const defaultXtermTheme: ITheme = {
   brightBlue: '#3b8eea',
   brightMagenta: '#d670d6',
   brightCyan: '#29b8db',
-  brightWhite: '#e5e5e5'
+  brightWhite: '#e5e5e5',
 };
 
 // 默认 UI 主题 (CSS 变量)
@@ -35,8 +35,8 @@ export const defaultUiTheme: Record<string, string> = {
   '--link-color': '#8E44AD', // 现代紫色 (Amethyst 变种)
   '--link-hover-color': '#B180E0', // 现代紫色 - 悬停 (更亮)
   '--link-active-color': '#A06CD5', // 现代紫色 - 激活 (基础)
-  '--link-active-bg-color': '#F3EBFB', /* 现代紫色 - 激活背景 (非常浅) */
-  '--nav-item-active-bg-color': 'var(--link-active-bg-color)', /* Added */
+  '--link-active-bg-color': '#F3EBFB' /* 现代紫色 - 激活背景 (非常浅) */,
+  '--nav-item-active-bg-color': 'var(--link-active-bg-color)' /* Added */,
   '--header-bg-color': '#f0f0f0',
   '--footer-bg-color': '#f0f0f0',
   '--button-bg-color': '#A06CD5', // 现代紫色 - 激活 (基础)
@@ -44,31 +44,32 @@ export const defaultUiTheme: Record<string, string> = {
   '--button-hover-bg-color': '#8E44AD', // 现代紫色 - 悬停 (稍暗)
   '--icon-color': 'var(--text-color-secondary)', // 图标颜色
   '--icon-hover-color': 'var(--link-hover-color)', // 图标悬停颜色 (自动更新)
-  '--split-line-color': 'var(--border-color)', /* 分割线颜色 */
-  '--split-line-hover-color': 'var(--border-color)', /* 分割线悬停颜色 */
-  '--input-focus-border-color': 'var(--link-active-color)', /* 输入框聚焦边框颜色 (自动更新) */
-  '--input-focus-glow': 'var(--link-active-color)', /* 输入框聚焦光晕值 (自动更新) */
-  '--overlay-bg-color': 'rgba(0, 0, 0, 0.6)', /* Added Overlay Background - 恢复 rgba 以支持透明度 */
+  '--split-line-color': 'var(--border-color)' /* 分割线颜色 */,
+  '--split-line-hover-color': 'var(--border-color)' /* 分割线悬停颜色 */,
+  '--input-focus-border-color': 'var(--link-active-color)' /* 输入框聚焦边框颜色 (自动更新) */,
+  '--input-focus-glow': 'var(--link-active-color)' /* 输入框聚焦光晕值 (自动更新) */,
+  '--overlay-bg-color':
+    'rgba(0, 0, 0, 0.6)' /* Added Overlay Background - 恢复 rgba 以支持透明度 */,
   '--font-family-sans-serif': 'sans-serif',
   '--base-padding': '1rem',
   '--base-margin': '0.5rem',
 };
 
 export const darkUiTheme: Record<string, string> = {
-  '--app-bg-color': '#0f172a', /* Slate 900 */
-  '--text-color': '#f8fafc',    /* Slate 50 */
-  '--text-color-secondary': '#94a3b8', /* Slate 400 */
-  '--border-color': '#1e293b',  /* Slate 800 */
-  '--link-color': '#38bdf8',    /* Sky 400 */
-  '--link-hover-color': '#7dd3fc', /* Sky 300 */
-  '--link-active-color': '#0ea5e9', /* Sky 500 */
+  '--app-bg-color': '#0f172a' /* Slate 900 */,
+  '--text-color': '#f8fafc' /* Slate 50 */,
+  '--text-color-secondary': '#94a3b8' /* Slate 400 */,
+  '--border-color': '#1e293b' /* Slate 800 */,
+  '--link-color': '#38bdf8' /* Sky 400 */,
+  '--link-hover-color': '#7dd3fc' /* Sky 300 */,
+  '--link-active-color': '#0ea5e9' /* Sky 500 */,
   '--link-active-bg-color': 'rgba(14, 165, 233, 0.15)',
   '--nav-item-active-bg-color': 'var(--link-active-bg-color)',
-  '--header-bg-color': 'rgba(15, 23, 42, 0.9)', /* Slate 900 semi-transparent */
+  '--header-bg-color': 'rgba(15, 23, 42, 0.9)' /* Slate 900 semi-transparent */,
   '--footer-bg-color': '#0f172a',
-  '--button-bg-color': '#0ea5e9', /* Sky 500 */
+  '--button-bg-color': '#0ea5e9' /* Sky 500 */,
   '--button-text-color': '#ffffff',
-  '--button-hover-bg-color': '#0284c7', /* Sky 600 */
+  '--button-hover-bg-color': '#0284c7' /* Sky 600 */,
   '--icon-color': 'var(--text-color-secondary)',
   '--icon-hover-color': 'var(--link-hover-color)',
   '--split-line-color': 'var(--border-color)',

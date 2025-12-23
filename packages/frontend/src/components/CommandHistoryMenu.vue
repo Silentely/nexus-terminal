@@ -8,11 +8,16 @@
         @input="updateSearchTerm($event)"
         class="flex-grow px-2 py-1 border border-border rounded-sm bg-background text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
       />
-      <button @click="confirmClearAll" class="ml-2 p-1 text-text-secondary hover:text-error transition-colors duration-150" :title="$t('commandHistory.clear', '清空')">
+      <button
+        @click="confirmClearAll"
+        class="ml-2 p-1 text-text-secondary hover:text-error transition-colors duration-150"
+        :title="$t('commandHistory.clear', '清空')"
+      >
         <i class="fas fa-trash-alt text-base"></i>
       </button>
     </div>
-    <div class="max-h-80 overflow-y-auto" ref="listContainer"> <!-- Adjusted max-height -->
+    <div class="max-h-80 overflow-y-auto" ref="listContainer">
+      <!-- Adjusted max-height -->
       <ul v-if="filteredHistory.length > 0" class="list-none p-0 m-0">
         <li
           v-for="entry in filteredHistory"
@@ -22,12 +27,24 @@
           @mouseleave="hoveredItemId = null"
           @click="selectCommand(entry.command)"
         >
-          <span class="truncate mr-2 flex-grow font-mono text-sm text-foreground">{{ entry.command }}</span>
-          <div class="flex items-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-            <button @click.stop="copyCommand(entry.command)" class="p-1 text-text-secondary hover:text-primary transition-colors duration-150" :title="$t('commandHistory.copy', '复制')">
+          <span class="truncate mr-2 flex-grow font-mono text-sm text-foreground">{{
+            entry.command
+          }}</span>
+          <div
+            class="flex items-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+          >
+            <button
+              @click.stop="copyCommand(entry.command)"
+              class="p-1 text-text-secondary hover:text-primary transition-colors duration-150"
+              :title="$t('commandHistory.copy', '复制')"
+            >
               <i class="fas fa-copy text-xs"></i>
             </button>
-            <button @click.stop="deleteSingleCommand(entry.id)" class="ml-1 p-1 text-text-secondary hover:text-error transition-colors duration-150" :title="$t('commandHistory.delete', '删除')">
+            <button
+              @click.stop="deleteSingleCommand(entry.id)"
+              class="ml-1 p-1 text-text-secondary hover:text-error transition-colors duration-150"
+              :title="$t('commandHistory.delete', '删除')"
+            >
               <i class="fas fa-times text-xs"></i>
             </button>
           </div>
@@ -82,9 +99,10 @@ const updateSearchTerm = (event: Event) => {
 };
 
 // 确认清空所有历史记录
-const confirmClearAll = async () => { // 注意 async，并替换为实际函数名
+const confirmClearAll = async () => {
+  // 注意 async，并替换为实际函数名
   const confirmed = await showConfirmDialog({
-    message: t('commandHistory.confirmClear', '确定要清空所有历史记录吗？')
+    message: t('commandHistory.confirmClear', '确定要清空所有历史记录吗？'),
   });
   if (confirmed) {
     commandHistoryStore.clearAllHistory();
@@ -113,6 +131,4 @@ const deleteSingleCommand = (id: number) => {
 const selectCommand = (command: string) => {
   emit('select-command', command);
 };
-
 </script>
-

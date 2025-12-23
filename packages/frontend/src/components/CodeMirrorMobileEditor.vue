@@ -1,13 +1,32 @@
 <template>
-  <div ref="editorRef" class="codemirror-mobile-editor-container" :style="{ fontSize: currentFontSize + 'px', fontFamily: editorFontFamily }"></div>
+  <div
+    ref="editorRef"
+    class="codemirror-mobile-editor-container"
+    :style="{ fontSize: currentFontSize + 'px', fontFamily: editorFontFamily }"
+  ></div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, shallowRef, computed } from 'vue';
 import { EditorState, Compartment } from '@codemirror/state';
 import { useAppearanceStore } from '../stores/appearance.store';
-import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, highlightActiveLine, drawSelection, dropCursor } from '@codemirror/view';
-import { syntaxHighlighting, defaultHighlightStyle, indentOnInput, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language';
+import {
+  EditorView,
+  keymap,
+  lineNumbers,
+  highlightActiveLineGutter,
+  highlightActiveLine,
+  drawSelection,
+  dropCursor,
+} from '@codemirror/view';
+import {
+  syntaxHighlighting,
+  defaultHighlightStyle,
+  indentOnInput,
+  bracketMatching,
+  foldGutter,
+  foldKeymap,
+} from '@codemirror/language';
 import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { history, historyKeymap, defaultKeymap } from '@codemirror/commands';
 import { autocompletion, closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
@@ -20,7 +39,7 @@ const props = defineProps({
   },
   language: {
     type: String,
-    default: 'plaintext', 
+    default: 'plaintext',
   },
 });
 
@@ -44,8 +63,7 @@ const getDistance = (touches: TouchList): number => {
   const touch1 = touches[0];
   const touch2 = touches[1];
   return Math.sqrt(
-    Math.pow(touch2.pageX - touch1.pageX, 2) +
-    Math.pow(touch2.pageY - touch1.pageY, 2)
+    Math.pow(touch2.pageX - touch1.pageX, 2) + Math.pow(touch2.pageY - touch1.pageY, 2)
   );
 };
 
@@ -76,15 +94,15 @@ const onTouchMove = (event: TouchEvent) => {
         const scale = newPinchDistance / lastPinchDistance;
         let newFontSize = currentFontSize.value * scale;
         newFontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, newFontSize));
-        
-        if (Math.abs(currentFontSize.value - newFontSize) > 0.1) { 
-            currentFontSize.value = newFontSize;
-            debouncedSetMobileEditorFontSize(newFontSize);
+
+        if (Math.abs(currentFontSize.value - newFontSize) > 0.1) {
+          currentFontSize.value = newFontSize;
+          debouncedSetMobileEditorFontSize(newFontSize);
         }
       }
       if (newPinchDistance > 0) {
         lastPinchDistance = newPinchDistance;
-      } else if (event.touches.length === 2) { 
+      } else if (event.touches.length === 2) {
         lastPinchDistance = getDistance(event.touches);
       }
     }
@@ -100,21 +118,21 @@ const createEditorState = (doc: string, languageExtension: any) => {
   return EditorState.create({
     doc,
     extensions: [
-      languageCompartment.of(languageExtension), 
+      languageCompartment.of(languageExtension),
       vscodeDark,
-      lineNumbers(), 
+      lineNumbers(),
       history(),
       highlightActiveLineGutter(),
-      foldGutter(), 
-      drawSelection(), 
+      foldGutter(),
+      drawSelection(),
       dropCursor(),
       EditorState.allowMultipleSelections.of(true),
-      indentOnInput(), 
-      bracketMatching(), 
+      indentOnInput(),
+      bracketMatching(),
       highlightActiveLine(),
-      closeBrackets(), 
+      closeBrackets(),
       autocompletion(),
-      highlightSelectionMatches(), 
+      highlightSelectionMatches(),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           emit('update:modelValue', update.state.doc.toString());
@@ -126,7 +144,13 @@ const createEditorState = (doc: string, languageExtension: any) => {
         ...historyKeymap,
         ...foldKeymap,
         ...searchKeymap, // + Add search keymap
-        { key: "Mod-s", run: () => { emit('request-save'); return true; } }
+        {
+          key: 'Mod-s',
+          run: () => {
+            emit('request-save');
+            return true;
+          },
+        },
       ]),
     ],
   });
@@ -203,8 +227,8 @@ const getLanguageExtension = async (lang: string) => {
     const { markdown, commonmarkLanguage } = await import('@codemirror/lang-markdown');
     const { GFM } = await import('@lezer/markdown');
     return markdown({
-        base: commonmarkLanguage, 
-        extensions: GFM 
+      base: commonmarkLanguage,
+      extensions: GFM,
     });
   }
   if (lang === 'typescript' || lang === 'ts' || lang === 'tsx') {
@@ -214,16 +238,20 @@ const getLanguageExtension = async (lang: string) => {
   return [];
 };
 
-
 onMounted(async () => {
   // Initialize font size from store
   currentFontSize.value = appearanceStore.currentMobileEditorFontSize;
 
   if (editorRef.value) {
     const langExt = await getLanguageExtension(props.language);
-    console.log('[CodeMirrorMobileEditor DEBUG] onMounted - Initial language:', props.language, 'Fetched langExt:', langExt);
+    console.log(
+      '[CodeMirrorMobileEditor DEBUG] onMounted - Initial language:',
+      props.language,
+      'Fetched langExt:',
+      langExt
+    );
     const startState = createEditorState(props.modelValue, langExt);
-    
+
     view.value = new EditorView({
       state: startState,
       parent: editorRef.value,
@@ -249,28 +277,37 @@ onBeforeUnmount(() => {
   }
 });
 
-watch(() => props.modelValue, (newValue) => {
-  if (view.value && newValue !== view.value.state.doc.toString()) {
-    view.value.dispatch({
-      changes: { from: 0, to: view.value.state.doc.length, insert: newValue },
-    });
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (view.value && newValue !== view.value.state.doc.toString()) {
+      view.value.dispatch({
+        changes: { from: 0, to: view.value.state.doc.length, insert: newValue },
+      });
+    }
   }
-});
+);
 
-watch(() => props.language, async (newLanguage, oldLanguage) => {
-  if (view.value && newLanguage !== oldLanguage) {
-    const langExt = await getLanguageExtension(newLanguage);
-    view.value.dispatch({
-      effects: languageCompartment.reconfigure(langExt)
-    });
+watch(
+  () => props.language,
+  async (newLanguage, oldLanguage) => {
+    if (view.value && newLanguage !== oldLanguage) {
+      const langExt = await getLanguageExtension(newLanguage);
+      view.value.dispatch({
+        effects: languageCompartment.reconfigure(langExt),
+      });
+    }
   }
-});
+);
 
-watch(() => appearanceStore.currentMobileEditorFontSize, (newSize) => {
-  if (newSize !== currentFontSize.value) {
-    currentFontSize.value = newSize;
+watch(
+  () => appearanceStore.currentMobileEditorFontSize,
+  (newSize) => {
+    if (newSize !== currentFontSize.value) {
+      currentFontSize.value = newSize;
+    }
   }
-});
+);
 
 const openSearch = () => {
   if (view.value) {
@@ -282,7 +319,6 @@ defineExpose({
   focus: () => view.value?.focus(),
   openSearch, // + Expose openSearch method
 });
-
 </script>
 
 <style scoped>
@@ -295,7 +331,7 @@ defineExpose({
 }
 
 .codemirror-mobile-editor-container :deep(.cm-gutters) {
-  background-color: #1E1E1E !important;
+  background-color: #1e1e1e !important;
   color: #858585 !important;
   border-right: 1px solid var(--border-color, #cccccc) !important;
 }

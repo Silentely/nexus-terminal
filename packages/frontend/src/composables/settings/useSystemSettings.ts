@@ -1,7 +1,7 @@
 import { ref, watch, onMounted } from 'vue';
-import { useSettingsStore } from '../../stores/settings.store';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { useSettingsStore } from '../../stores/settings.store';
 import { availableLocales } from '../../i18n';
 import apiClient from '../../utils/apiClient';
 
@@ -52,13 +52,31 @@ export function useSystemSettings() {
   const timezoneSuccess = ref(false);
   const commonTimezones = ref([
     'UTC',
-    'Etc/GMT+12', 'Pacific/Midway', 'Pacific/Honolulu', 'America/Anchorage',
-    'America/Los_Angeles', 'America/Denver', 'America/Chicago', 'America/New_York',
-    'America/Caracas', 'America/Halifax', 'America/Sao_Paulo', 'Atlantic/Azores',
-    'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Moscow',
-    'Asia/Dubai', 'Asia/Karachi', 'Asia/Dhaka', 'Asia/Bangkok',
-    'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland',
-    'Etc/GMT-14'
+    'Etc/GMT+12',
+    'Pacific/Midway',
+    'Pacific/Honolulu',
+    'America/Anchorage',
+    'America/Los_Angeles',
+    'America/Denver',
+    'America/Chicago',
+    'America/New_York',
+    'America/Caracas',
+    'America/Halifax',
+    'America/Sao_Paulo',
+    'Atlantic/Azores',
+    'Europe/London',
+    'Europe/Paris',
+    'Europe/Berlin',
+    'Europe/Moscow',
+    'Asia/Dubai',
+    'Asia/Karachi',
+    'Asia/Dhaka',
+    'Asia/Bangkok',
+    'Asia/Shanghai',
+    'Asia/Tokyo',
+    'Australia/Sydney',
+    'Pacific/Auckland',
+    'Etc/GMT-14',
   ]);
 
   const handleUpdateTimezone = async () => {
@@ -123,7 +141,7 @@ export function useSystemSettings() {
       }
       await settingsStore.updateMultipleSettings({
         dockerStatusIntervalSeconds: String(intervalValue),
-        dockerDefaultExpand: dockerExpandDefault.value ? 'true' : 'false'
+        dockerDefaultExpand: dockerExpandDefault.value ? 'true' : 'false',
       });
       dockerSettingsMessage.value = t('settings.docker.success.saved');
       dockerSettingsSuccess.value = true;
@@ -137,32 +155,51 @@ export function useSystemSettings() {
   };
 
   // Watch for changes in settings from the store and update local refs
-  watch(settings, (newSettings) => {
-    if (newSettings) {
-      selectedLanguage.value = newSettings.language || 'en-US'; // Default to en-US
-      selectedTimezone.value = newSettings.timezone || 'UTC';
-      statusMonitorIntervalLocal.value = parseInt(newSettings.statusMonitorIntervalSeconds || '3', 10);
-      dockerInterval.value = parseInt(newSettings.dockerStatusIntervalSeconds || '2', 10);
-      // dockerExpandDefault.value is already reactive from storeToRefs (dockerDefaultExpandBoolean)
-      // but we keep a local ref for the form v-model and sync it.
-      dockerExpandDefault.value = newSettings.dockerDefaultExpand === 'true';
-    }
-  }, { deep: true, immediate: true });
+  watch(
+    settings,
+    (newSettings) => {
+      if (newSettings) {
+        selectedLanguage.value = newSettings.language || 'en-US'; // Default to en-US
+        selectedTimezone.value = newSettings.timezone || 'UTC';
+        statusMonitorIntervalLocal.value = parseInt(
+          newSettings.statusMonitorIntervalSeconds || '3',
+          10
+        );
+        dockerInterval.value = parseInt(newSettings.dockerStatusIntervalSeconds || '2', 10);
+        // dockerExpandDefault.value is already reactive from storeToRefs (dockerDefaultExpandBoolean)
+        // but we keep a local ref for the form v-model and sync it.
+        dockerExpandDefault.value = newSettings.dockerDefaultExpand === 'true';
+      }
+    },
+    { deep: true, immediate: true }
+  );
 
   // Sync local dockerExpandDefault with the store's boolean getter
-  watch(dockerDefaultExpandBoolean, (newValue) => {
-    dockerExpandDefault.value = newValue;
-  }, { immediate: true });
+  watch(
+    dockerDefaultExpandBoolean,
+    (newValue) => {
+      dockerExpandDefault.value = newValue;
+    },
+    { immediate: true }
+  );
 
   // Sync local statusMonitorIntervalLocal with the store's number getter
-  watch(statusMonitorIntervalSecondsNumber, (newValue) => {
-    statusMonitorIntervalLocal.value = newValue;
-  }, { immediate: true });
-  
+  watch(
+    statusMonitorIntervalSecondsNumber,
+    (newValue) => {
+      statusMonitorIntervalLocal.value = newValue;
+    },
+    { immediate: true }
+  );
+
   // Sync local selectedLanguage with the store's language getter
-  watch(storeLanguage, (newVal) => {
-    selectedLanguage.value = newVal;
-  }, { immediate: true });
+  watch(
+    storeLanguage,
+    (newVal) => {
+      selectedLanguage.value = newVal;
+    },
+    { immediate: true }
+  );
 
   // --- Log Level ---
   type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
@@ -197,7 +234,9 @@ export function useSystemSettings() {
       logLevelSuccess.value = true;
     } catch (error: any) {
       console.error('更新日志等级失败:', error);
-      logLevelMessage.value = error.response?.data?.message || t('settings.logLevel.error.saveFailed', '保存日志等级失败');
+      logLevelMessage.value =
+        error.response?.data?.message ||
+        t('settings.logLevel.error.saveFailed', '保存日志等级失败');
       logLevelSuccess.value = false;
     } finally {
       logLevelLoading.value = false;

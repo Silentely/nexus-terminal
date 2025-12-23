@@ -31,7 +31,7 @@ export interface AppearanceSettings {
   terminalTextShadowBlur?: number;
   terminalTextShadowColor?: string;
 }
- 
+
 // 前端用于更新外观设置的数据结构 (对应 API 请求体)
 // 使用 Partial<AppearanceSettings> 也可以，但明确定义更清晰
 export type UpdateAppearanceDto = Partial<AppearanceSettings>;

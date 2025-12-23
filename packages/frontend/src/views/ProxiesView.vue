@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useProxiesStore, ProxyInfo } from '../stores/proxies.store';
 import ProxyList from '../components/ProxyList.vue';
-import AddProxyForm from '../components/AddProxyForm.vue'; 
+import AddProxyForm from '../components/AddProxyForm.vue';
 
 const { t } = useI18n();
 const proxiesStore = useProxiesStore();
@@ -42,9 +42,12 @@ const closeForm = () => {
 </script>
 
 <template>
-  <div class="p-4 bg-background text-foreground"> <!-- Outer container with padding -->
-    <div class="max-w-6xl mx-auto"> <!-- Inner container for max-width and centering -->
-      <h2 class="text-xl font-semibold text-foreground mb-4 pb-2 border-b border-border"> <!-- Title styling consistent with Notifications -->
+  <div class="p-4 bg-background text-foreground">
+    <!-- Outer container with padding -->
+    <div class="max-w-6xl mx-auto">
+      <!-- Inner container for max-width and centering -->
+      <h2 class="text-xl font-semibold text-foreground mb-4 pb-2 border-b border-border">
+        <!-- Title styling consistent with Notifications -->
         {{ t('proxies.title') }}
       </h2>
 
@@ -52,7 +55,8 @@ const closeForm = () => {
         @click="openAddForm"
         v-if="!showForm"
         class="px-4 py-2 bg-button text-button-text rounded hover:bg-button-hover mb-4 inline-flex items-center text-sm font-medium"
-      > <!-- Button styling consistent with Notifications -->
+      >
+        <!-- Button styling consistent with Notifications -->
         {{ t('proxies.addProxy') }}
       </button>
 

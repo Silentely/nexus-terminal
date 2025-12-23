@@ -13,5 +13,4 @@ router.get('/download', downloadFile);
 // +++ GET /api/v1/sftp/download-directory?connectionId=...&remotePath=... +++
 router.get('/download-directory', downloadDirectory);
 
-
 export default router;

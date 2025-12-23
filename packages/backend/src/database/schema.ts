@@ -20,13 +20,11 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 // 审计日志索引 - 优化查询性能
 export const createAuditLogsIndexesSQL = [
-    // 时间戳索引（降序）- 用于按时间倒序查询最新日志
-    `CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);`,
-    // 操作类型索引 - 用于按操作类型筛选
-    `CREATE INDEX IF NOT EXISTS idx_audit_logs_action_type ON audit_logs(action_type);`
+  // 时间戳索引（降序）- 用于按时间倒序查询最新日志
+  `CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);`,
+  // 操作类型索引 - 用于按操作类型筛选
+  `CREATE INDEX IF NOT EXISTS idx_audit_logs_action_type ON audit_logs(action_type);`,
 ];
-
-
 
 // Passkeys table definition
 export const createPasskeysTableSQL = `
@@ -201,8 +199,6 @@ CREATE TABLE IF NOT EXISTS quick_command_tag_associations (
 );
 `;
 
-
-
 // 从 database.ts 移动过来的，保持一致性
 export const createTerminalThemesTableSQL = `
 CREATE TABLE IF NOT EXISTS terminal_themes (
@@ -280,8 +276,8 @@ CREATE TABLE IF NOT EXISTS batch_tasks (
 
 // 批量任务索引
 export const createBatchTasksIndexesSQL = [
-    `CREATE INDEX IF NOT EXISTS idx_batch_tasks_user_status ON batch_tasks(user_id, status);`,
-    `CREATE INDEX IF NOT EXISTS idx_batch_tasks_updated_at ON batch_tasks(updated_at DESC);`
+  `CREATE INDEX IF NOT EXISTS idx_batch_tasks_user_status ON batch_tasks(user_id, status);`,
+  `CREATE INDEX IF NOT EXISTS idx_batch_tasks_updated_at ON batch_tasks(updated_at DESC);`,
 ];
 
 // 批量子任务表
@@ -306,8 +302,8 @@ CREATE TABLE IF NOT EXISTS batch_subtasks (
 
 // 批量子任务索引
 export const createBatchSubTasksIndexesSQL = [
-    `CREATE INDEX IF NOT EXISTS idx_batch_subtasks_task ON batch_subtasks(task_id);`,
-    `CREATE INDEX IF NOT EXISTS idx_batch_subtasks_task_status ON batch_subtasks(task_id, status);`
+  `CREATE INDEX IF NOT EXISTS idx_batch_subtasks_task ON batch_subtasks(task_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_batch_subtasks_task_status ON batch_subtasks(task_id, status);`,
 ];
 
 // ========== AI 智能运维模块 ==========
@@ -326,8 +322,8 @@ CREATE TABLE IF NOT EXISTS ai_sessions (
 
 // AI 会话索引
 export const createAISessionsIndexesSQL = [
-    `CREATE INDEX IF NOT EXISTS idx_ai_sessions_user ON ai_sessions(user_id);`,
-    `CREATE INDEX IF NOT EXISTS idx_ai_sessions_updated ON ai_sessions(updated_at DESC);`
+  `CREATE INDEX IF NOT EXISTS idx_ai_sessions_user ON ai_sessions(user_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_ai_sessions_updated ON ai_sessions(updated_at DESC);`,
 ];
 
 // AI 消息表
@@ -345,6 +341,6 @@ CREATE TABLE IF NOT EXISTS ai_messages (
 
 // AI 消息索引
 export const createAIMessagesIndexesSQL = [
-    `CREATE INDEX IF NOT EXISTS idx_ai_messages_session ON ai_messages(session_id);`,
-    `CREATE INDEX IF NOT EXISTS idx_ai_messages_session_time ON ai_messages(session_id, timestamp ASC);`
+  `CREATE INDEX IF NOT EXISTS idx_ai_messages_session ON ai_messages(session_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_ai_messages_session_time ON ai_messages(session_id, timestamp ASC);`,
 ];

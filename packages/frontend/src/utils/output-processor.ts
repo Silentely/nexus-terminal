@@ -55,9 +55,9 @@ export class OutputProcessor {
   private enableHighlight = true;
   private enableTableFormat = true;
   private enableLinkDetection = true;
-  private lastLargeFileWarning = 0;  // 跟踪大文件警告时间
-  private lastSlowProcessWarning = 0;  // 跟踪慢处理警告时间
-  private readonly warningThrottleMs = 5000;  // 警告节流：5秒
+  private lastLargeFileWarning = 0; // 跟踪大文件警告时间
+  private lastSlowProcessWarning = 0; // 跟踪慢处理警告时间
+  private readonly warningThrottleMs = 5000; // 警告节流：5秒
 
   constructor(options?: {
     foldThreshold?: number;
@@ -67,12 +67,15 @@ export class OutputProcessor {
   }) {
     if (options?.foldThreshold !== undefined) this.foldThreshold = options.foldThreshold;
     if (options?.enableHighlight !== undefined) this.enableHighlight = options.enableHighlight;
-    if (options?.enableTableFormat !== undefined) this.enableTableFormat = options.enableTableFormat;
-    if (options?.enableLinkDetection !== undefined) this.enableLinkDetection = options.enableLinkDetection;
+    if (options?.enableTableFormat !== undefined)
+      this.enableTableFormat = options.enableTableFormat;
+    if (options?.enableLinkDetection !== undefined)
+      this.enableLinkDetection = options.enableLinkDetection;
   }
 
   process(output: string): ProcessedOutput {
-    const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const startTime =
+      typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
 
     const normalized = this.normalizeNewlines(output);
     const sanitized = this.stripAnsiCodes(normalized);
@@ -123,11 +126,15 @@ export class OutputProcessor {
     }
 
     // 性能监控：处理时间超过 100ms 时发出警告
-    const duration = ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - startTime;
+    const duration =
+      (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now()) -
+      startTime;
     if (duration > 100) {
       const now = Date.now();
       if (now - this.lastSlowProcessWarning > this.warningThrottleMs) {
-        console.warn(`[OutputProcessor] 处理耗时过长：${duration.toFixed(2)}ms（${lineCount} 行，类型：${detectedType}）`);
+        console.warn(
+          `[OutputProcessor] 处理耗时过长：${duration.toFixed(2)}ms（${lineCount} 行，类型：${detectedType}）`
+        );
         this.lastSlowProcessWarning = now;
       }
     }
@@ -158,7 +165,7 @@ export class OutputProcessor {
     }
 
     const yamlLines = trimmed.split('\n');
-    const yamlMatches = yamlLines.filter(line => /^(\s*)([\w.-]+):\s+.+$/.test(line));
+    const yamlMatches = yamlLines.filter((line) => /^(\s*)([\w.-]+):\s+.+$/.test(line));
     if (yamlLines.length > 2 && yamlMatches.length >= 2) {
       return OutputType.YAML;
     }
@@ -167,16 +174,20 @@ export class OutputProcessor {
       return OutputType.TABLE;
     }
 
-    const candidateLines = yamlLines.filter(line => line.trim().length);
+    const candidateLines = yamlLines.filter((line) => line.trim().length);
     if (candidateLines.length > 2) {
-      const counts = candidateLines.map(line => line.split(/\s{2,}/).filter(Boolean).length);
+      const counts = candidateLines.map((line) => line.split(/\s{2,}/).filter(Boolean).length);
       const first = counts[0];
-      if (first >= 3 && counts.every(count => count === first)) {
+      if (first >= 3 && counts.every((count) => count === first)) {
         return OutputType.TABLE;
       }
     }
 
-    if (/\d{4}[-/]\d{2}[-/]\d{2}|\d{2}:\d{2}:\d{2}|\b(ERROR|WARN|INFO|DEBUG|TRACE|SUCCESS|FAIL)\b/i.test(trimmed)) {
+    if (
+      /\d{4}[-/]\d{2}[-/]\d{2}|\d{2}:\d{2}:\d{2}|\b(ERROR|WARN|INFO|DEBUG|TRACE|SUCCESS|FAIL)\b/i.test(
+        trimmed
+      )
+    ) {
       return OutputType.LOG;
     }
 
@@ -202,7 +213,7 @@ export class OutputProcessor {
   private highlightYAML(yamlText: string): string {
     return yamlText
       .split('\n')
-      .map(line => {
+      .map((line) => {
         if (/^(\s*)([\w.-]+):\s*(.*)$/.test(line)) {
           return line.replace(/^(\s*)([\w.-]+):\s*(.*)$/, (_, indent, key, value) => {
             let highlightedValue = value;
@@ -236,14 +247,21 @@ export class OutputProcessor {
   private highlightLog(logText: string): string {
     return logText
       .split('\n')
-      .map(line => {
-        let transformed = line.replace(/(\d{4}[-/]\d{2}[-/]\d{2}[\sT]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/g, `${ANSI.BRIGHT_BLACK}$1${ANSI.RESET}`);
-        transformed = transformed.replace(/\b(ERROR|ERR)\b/gi, `${ANSI.BRIGHT_RED}${ANSI.BOLD}$1${ANSI.RESET}`)
+      .map((line) => {
+        let transformed = line.replace(
+          /(\d{4}[-/]\d{2}[-/]\d{2}[\sT]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/g,
+          `${ANSI.BRIGHT_BLACK}$1${ANSI.RESET}`
+        );
+        transformed = transformed
+          .replace(/\b(ERROR|ERR)\b/gi, `${ANSI.BRIGHT_RED}${ANSI.BOLD}$1${ANSI.RESET}`)
           .replace(/\b(WARN|WARNING)\b/gi, `${ANSI.BRIGHT_YELLOW}${ANSI.BOLD}$1${ANSI.RESET}`)
           .replace(/\b(INFO)\b/gi, `${ANSI.BRIGHT_CYAN}${ANSI.BOLD}$1${ANSI.RESET}`)
           .replace(/\b(DEBUG)\b/gi, `${ANSI.BRIGHT_BLACK}${ANSI.BOLD}$1${ANSI.RESET}`)
           .replace(/\b(SUCCESS|OK)\b/gi, `${ANSI.BRIGHT_GREEN}${ANSI.BOLD}$1${ANSI.RESET}`);
-        transformed = transformed.replace(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/g, `${ANSI.YELLOW}$1${ANSI.RESET}`);
+        transformed = transformed.replace(
+          /\b(\d{1,3}(?:\.\d{1,3}){3})\b/g,
+          `${ANSI.YELLOW}$1${ANSI.RESET}`
+        );
         transformed = transformed.replace(/\b([2-5]\d{2})\b/g, (match) => {
           const code = Number(match);
           if (code >= 200 && code < 300) return `${ANSI.GREEN}${match}${ANSI.RESET}`;
@@ -258,12 +276,10 @@ export class OutputProcessor {
   }
 
   private formatTable(tableText: string): string {
-    const lines = tableText.split('\n').filter(line => line.trim().length);
+    const lines = tableText.split('\n').filter((line) => line.trim().length);
     if (!lines.length) return tableText;
 
-    type TableLine =
-      | { kind: 'separator'; raw: string }
-      | { kind: 'row'; cells: string[] };
+    type TableLine = { kind: 'separator'; raw: string } | { kind: 'row'; cells: string[] };
 
     const parsedLines: TableLine[] = lines.map((line) => {
       if (this.isTableSeparator(line)) {
@@ -272,16 +288,19 @@ export class OutputProcessor {
       return { kind: 'row', cells: this.parseTableCells(line) };
     });
 
-    const rows = parsedLines.filter((line): line is { kind: 'row'; cells: string[] } => line.kind === 'row' && line.cells.length > 0);
+    const rows = parsedLines.filter(
+      (line): line is { kind: 'row'; cells: string[] } =>
+        line.kind === 'row' && line.cells.length > 0
+    );
     if (!rows.length) return tableText;
 
-    const columnCount = Math.max(...rows.map(row => row.cells.length));
+    const columnCount = Math.max(...rows.map((row) => row.cells.length));
     if (columnCount === 0) return tableText;
 
     const columnWidths = Array(columnCount).fill(0);
-    rows.forEach(row => {
+    rows.forEach((row) => {
       row.cells.forEach((cell, index) => {
-        const length = cell.length;
+        const { length } = cell;
         if (length > columnWidths[index]) {
           columnWidths[index] = length;
         }
@@ -318,12 +337,15 @@ export class OutputProcessor {
 
     // 路径高亮（优化正则防止 ReDoS 攻击）
     // 限制路径深度最多 20 层，避免嵌套量词导致的回溯爆炸
-    result = result.replace(/(^|[\s"'\(\[])(\/([\w.+-]+\/){0,20}[\w.+-]*)/g, (_match, prefix: string, path: string) => {
-      if (prefix.endsWith(':') || path.startsWith('//')) {
-        return `${prefix}${path}`;
+    result = result.replace(
+      /(^|[\s"'\(\[])(\/([\w.+-]+\/){0,20}[\w.+-]*)/g,
+      (_match, prefix: string, path: string) => {
+        if (prefix.endsWith(':') || path.startsWith('//')) {
+          return `${prefix}${path}`;
+        }
+        return `${prefix}${ANSI.CYAN}${path}${ANSI.RESET}`;
       }
-      return `${prefix}${ANSI.CYAN}${path}${ANSI.RESET}`;
-    });
+    );
     return result;
   }
 
@@ -333,12 +355,16 @@ export class OutputProcessor {
 
   private parseTableCells(line: string): string[] {
     if (line.includes('|')) {
-      const raw = line.split('|').map(cell => cell.trim());
+      const raw = line.split('|').map((cell) => cell.trim());
       if (raw.length > 1 && raw[0] === '') raw.shift();
       if (raw.length > 1 && raw[raw.length - 1] === '') raw.pop();
-      return raw.map(cell => cell.trim());
+      return raw.map((cell) => cell.trim());
     }
-    return line.trim().split(/\s{2,}/).map(cell => cell.trim()).filter(cell => cell.length || line.includes('  '));
+    return line
+      .trim()
+      .split(/\s{2,}/)
+      .map((cell) => cell.trim())
+      .filter((cell) => cell.length || line.includes('  '));
   }
 
   private normalizeNewlines(value: string): string {

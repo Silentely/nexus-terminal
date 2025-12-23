@@ -38,8 +38,8 @@ export type AuditLogActionType =
 
 // 前端使用的审计日志条目结构 (对应 API 响应)
 export interface AuditLogEntry {
-    id: number;
-    timestamp: number; // Unix timestamp (seconds)
-    action_type: AuditLogActionType;
-    details: string | null; // JSON string or null (前端可能需要解析)
+  id: number;
+  timestamp: number; // Unix timestamp (seconds)
+  action_type: AuditLogActionType;
+  details: string | null; // JSON string or null (前端可能需要解析)
 }

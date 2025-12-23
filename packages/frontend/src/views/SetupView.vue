@@ -1,32 +1,44 @@
 <template>
   <!-- Page Container with Subtle Dot Background -->
-  <div class="flex items-center justify-center min-h-screen bg-background p-4 bg-[radial-gradient(theme(colors.border)_1px,transparent_1px)] bg-[size:16px_16px]">
+  <div
+    class="flex items-center justify-center min-h-screen bg-background p-4 bg-[radial-gradient(theme(colors.border)_1px,transparent_1px)] bg-[size:16px_16px]"
+  >
     <!-- Setup Card -->
-    <div class="flex w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden bg-background border border-border/20">
+    <div
+      class="flex w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden bg-background border border-border/20"
+    >
       <!-- Left Panel (Brand) - Hidden on small screens -->
-      <div class="hidden md:flex w-2/5 bg-gradient-to-br from-primary to-primary-dark flex-col items-center justify-center p-10 text-white relative">
-         <!-- Subtle pattern or overlay could go here -->
-         <div class="z-10 text-center">
-           <img src="../assets/logo.png" alt="Project Logo" class="h-20 w-auto mb-5 mx-auto">
-           <h1 class="text-3xl font-bold mb-2">{{ $t('projectName') }}</h1>
-           <p class="text-base opacity-80">{{ $t('setup.description') }}</p> <!-- Moved description here -->
-         </div>
+      <div
+        class="hidden md:flex w-2/5 bg-gradient-to-br from-primary to-primary-dark flex-col items-center justify-center p-10 text-white relative"
+      >
+        <!-- Subtle pattern or overlay could go here -->
+        <div class="z-10 text-center">
+          <img src="../assets/logo.png" alt="Project Logo" class="h-20 w-auto mb-5 mx-auto" />
+          <h1 class="text-3xl font-bold mb-2">{{ $t('projectName') }}</h1>
+          <p class="text-base opacity-80">{{ $t('setup.description') }}</p>
+          <!-- Moved description here -->
+        </div>
       </div>
 
       <!-- Right Panel (Setup Form) -->
       <div class="w-full md:w-3/5 flex flex-col justify-center p-8 sm:p-12">
         <!-- Mobile Logo & Title (optional) -->
-         <div class="flex flex-col items-center mb-6 md:hidden">
-           <img src="../assets/logo.png" alt="Project Logo" class="h-16 w-auto mb-3">
-           <h2 class="text-xl font-semibold text-foreground">{{ $t('setup.title') }}</h2>
-           <p class="text-sm text-text-secondary mt-1">{{ $t('setup.description') }}</p>
-         </div>
-         <!-- Desktop Title (Subtle) -->
-         <h2 class="text-2xl font-semibold mb-6 text-center text-foreground hidden md:block">{{ $t('setup.title') }}</h2>
+        <div class="flex flex-col items-center mb-6 md:hidden">
+          <img src="../assets/logo.png" alt="Project Logo" class="h-16 w-auto mb-3" />
+          <h2 class="text-xl font-semibold text-foreground">{{ $t('setup.title') }}</h2>
+          <p class="text-sm text-text-secondary mt-1">{{ $t('setup.description') }}</p>
+        </div>
+        <!-- Desktop Title (Subtle) -->
+        <h2 class="text-2xl font-semibold mb-6 text-center text-foreground hidden md:block">
+          {{ $t('setup.title') }}
+        </h2>
 
-        <form @submit.prevent="handleSetup" class="space-y-5"> <!-- Reduced space slightly -->
+        <form @submit.prevent="handleSetup" class="space-y-5">
+          <!-- Reduced space slightly -->
           <div>
-            <label for="username" class="block text-sm font-medium text-text-secondary mb-1">{{ $t('setup.username') }}</label>
+            <label for="username" class="block text-sm font-medium text-text-secondary mb-1">{{
+              $t('setup.username')
+            }}</label>
             <input
               id="username"
               v-model="username"
@@ -39,7 +51,9 @@
             />
           </div>
           <div>
-            <label for="password" class="block text-sm font-medium text-text-secondary mb-1">{{ $t('setup.password') }}</label>
+            <label for="password" class="block text-sm font-medium text-text-secondary mb-1">{{
+              $t('setup.password')
+            }}</label>
             <input
               id="password"
               v-model="password"
@@ -52,7 +66,11 @@
             />
           </div>
           <div>
-            <label for="confirmPassword" class="block text-sm font-medium text-text-secondary mb-1">{{ $t('setup.confirmPassword') }}</label>
+            <label
+              for="confirmPassword"
+              class="block text-sm font-medium text-text-secondary mb-1"
+              >{{ $t('setup.confirmPassword') }}</label
+            >
             <input
               id="confirmPassword"
               v-model="confirmPassword"
@@ -65,15 +83,26 @@
             />
           </div>
 
-          <div v-if="error" class="text-error bg-error/10 border border-error/20 px-4 py-2 rounded text-center text-sm"> <!-- Adjusted padding -->
+          <div
+            v-if="error"
+            class="text-error bg-error/10 border border-error/20 px-4 py-2 rounded text-center text-sm"
+          >
+            <!-- Adjusted padding -->
             {{ error }}
           </div>
-           <div v-if="successMessage" class="text-success bg-success/10 border border-success/20 px-4 py-2 rounded text-center text-sm"> <!-- Adjusted padding -->
+          <div
+            v-if="successMessage"
+            class="text-success bg-success/10 border border-success/20 px-4 py-2 rounded text-center text-sm"
+          >
+            <!-- Adjusted padding -->
             {{ successMessage }}
           </div>
 
-          <button type="submit" :disabled="isLoading"
-                  class="w-full py-3 px-4 bg-primary text-white border-none rounded-lg text-base font-semibold cursor-pointer shadow-md transition-colors duration-200 ease-in-out hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-gray-400 disabled:opacity-70 disabled:cursor-not-allowed">
+          <button
+            type="submit"
+            :disabled="isLoading"
+            class="w-full py-3 px-4 bg-primary text-white border-none rounded-lg text-base font-semibold cursor-pointer shadow-md transition-colors duration-200 ease-in-out hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:bg-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
             <span v-if="isLoading">{{ $t('setup.settingUp') }}</span>
             <span v-else>{{ $t('setup.submitButton') }}</span>
           </button>
@@ -111,18 +140,19 @@ const handleSetup = async () => {
   }
 
   if (!username.value || !password.value) {
-      error.value = t('setup.error.fieldsRequired');
-      return;
+    error.value = t('setup.error.fieldsRequired');
+    return;
   }
 
   isLoading.value = true;
 
   try {
     // 确保调用正确的后端 API 端点
-    await apiClient.post('/auth/setup', { // 使用 apiClient 并移除 base URL
+    await apiClient.post('/auth/setup', {
+      // 使用 apiClient 并移除 base URL
       username: username.value,
       password: password.value,
-      confirmPassword: confirmPassword.value
+      confirmPassword: confirmPassword.value,
     });
     successMessage.value = t('setup.success');
     // *** 手动更新 needsSetup 状态 ***
@@ -141,11 +171,11 @@ const handleSetup = async () => {
       // 尝试从后端响应中获取更具体的错误信息
       error.value = err.response.data.message;
     } else if (err.message) {
-       error.value = err.message;
+      error.value = err.message;
     } else {
-       error.value = t('setup.error.generic');
+      error.value = t('setup.error.generic');
     }
-     isLoading.value = false; // Re-enable button on error
+    isLoading.value = false; // Re-enable button on error
   }
   // Removed finally block setting isLoading to false on success to keep button disabled
 };

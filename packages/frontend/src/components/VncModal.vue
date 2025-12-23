@@ -20,7 +20,7 @@ let saveWidthTimeout: ReturnType<typeof setTimeout> | null = null;
 let saveHeightTimeout: ReturnType<typeof setTimeout> | null = null;
 const DEBOUNCE_DELAY = 500; // ms
 
-const MODAL_CONTAINER_PADDING = 32; 
+const MODAL_CONTAINER_PADDING = 32;
 const maxAllowedWidth = computed(() => window.innerWidth - MODAL_CONTAINER_PADDING);
 const maxAllowedHeight = computed(() => window.innerHeight - MODAL_CONTAINER_PADDING);
 
@@ -48,7 +48,7 @@ const sendInputTextToVnc = async () => {
     return;
   }
 
-  console.log(`[VncModal] Simulating keyboard input for: ${textToSend.substring(0,50)}...`);
+  console.log(`[VncModal] Simulating keyboard input for: ${textToSend.substring(0, 50)}...`);
   try {
     for (const char of textToSend) {
       const keysym = char.charCodeAt(0); //直接使用字符的 Unicode 码点作为 keysym
@@ -56,9 +56,9 @@ const sendInputTextToVnc = async () => {
       // 确保 keysym 是一个有效的数字，尽管 charCodeAt(0) 总是返回数字
       if (typeof keysym === 'number' && !isNaN(keysym)) {
         guacClient.value.sendKeyEvent(1, keysym); // Key press
-        await new Promise(resolve => setTimeout(resolve, 20)); // 短暂延迟
+        await new Promise((resolve) => setTimeout(resolve, 20)); // 短暂延迟
         guacClient.value.sendKeyEvent(0, keysym); // Key release
-        await new Promise(resolve => setTimeout(resolve, 30)); // 短暂延迟
+        await new Promise((resolve) => setTimeout(resolve, 30)); // 短暂延迟
       } else {
         console.warn(`[VncModal] Invalid keysym for character "${char}". Skipping.`);
       }
@@ -74,17 +74,27 @@ const keyboard = ref<any | null>(null);
 const mouse = ref<any | null>(null);
 // Initialize desiredModalWidth and desiredModalHeight from store or defaults
 const initialStoreWidth = settingsStore.settings.vncModalWidth
-   ? parseInt(settingsStore.settings.vncModalWidth, 10)
-   : 1024;
+  ? parseInt(settingsStore.settings.vncModalWidth, 10)
+  : 1024;
 const initialStoreHeight = settingsStore.settings.vncModalHeight
-   ? parseInt(settingsStore.settings.vncModalHeight, 10)
-   : 768;
+  ? parseInt(settingsStore.settings.vncModalHeight, 10)
+  : 768;
 
 const MIN_MODAL_WIDTH = 800;
 const MIN_MODAL_HEIGHT = 600;
 
-const desiredModalWidth = ref(Math.min(Math.max(MIN_MODAL_WIDTH, isNaN(initialStoreWidth) ? MIN_MODAL_WIDTH : initialStoreWidth), maxAllowedWidth.value));
-const desiredModalHeight = ref(Math.min(Math.max(MIN_MODAL_HEIGHT, isNaN(initialStoreHeight) ? MIN_MODAL_HEIGHT : initialStoreHeight), maxAllowedHeight.value));
+const desiredModalWidth = ref(
+  Math.min(
+    Math.max(MIN_MODAL_WIDTH, isNaN(initialStoreWidth) ? MIN_MODAL_WIDTH : initialStoreWidth),
+    maxAllowedWidth.value
+  )
+);
+const desiredModalHeight = ref(
+  Math.min(
+    Math.max(MIN_MODAL_HEIGHT, isNaN(initialStoreHeight) ? MIN_MODAL_HEIGHT : initialStoreHeight),
+    maxAllowedHeight.value
+  )
+);
 
 const tempInputWidth = ref<number | string>(desiredModalWidth.value);
 const tempInputHeight = ref<number | string>(desiredModalHeight.value);
@@ -129,7 +139,11 @@ const handleConnection = async () => {
   try {
     const connectionsStore = useConnectionsStore();
     // Pass width and height to the token generation, backend will forward to gateway
-    const token = await connectionsStore.getVncSessionToken(props.connection.id, desiredModalWidth.value, desiredModalHeight.value);
+    const token = await connectionsStore.getVncSessionToken(
+      props.connection.id,
+      desiredModalWidth.value,
+      desiredModalHeight.value
+    );
     if (!token) {
       throw new Error('VNC Token not found from store action');
     }
@@ -139,7 +153,6 @@ const handleConnection = async () => {
     // The backend's websocket.ts rdp-proxy handler now calculates DPI if not provided or uses a default.
     // We need to ensure width and height are passed for the proxy to correctly forward.
     const tunnelUrl = `${remoteDesktopWsBaseUrl}?token=${encodeURIComponent(token)}&width=${desiredModalWidth.value}&height=${desiredModalHeight.value}`;
-  
 
     // @ts-ignore
     const tunnel = new Guacamole.WebSocketTunnel(tunnelUrl);
@@ -163,9 +176,18 @@ const handleConnection = async () => {
       let i18nKeyPart = 'unknownState';
 
       switch (state) {
-        case 0: i18nKeyPart = 'idle'; currentStatus = 'disconnected'; break;
-        case 1: i18nKeyPart = 'connectingVnc'; currentStatus = 'connecting'; break;
-        case 2: i18nKeyPart = 'waiting'; currentStatus = 'connecting'; break;
+        case 0:
+          i18nKeyPart = 'idle';
+          currentStatus = 'disconnected';
+          break;
+        case 1:
+          i18nKeyPart = 'connectingVnc';
+          currentStatus = 'connecting';
+          break;
+        case 2:
+          i18nKeyPart = 'waiting';
+          currentStatus = 'connecting';
+          break;
         case 3:
           i18nKeyPart = 'connected';
           currentStatus = 'connected';
@@ -180,7 +202,9 @@ const handleConnection = async () => {
               const displayWidth = vncDisplayRef.value.offsetWidth;
               const displayHeight = vncDisplayRef.value.offsetHeight;
               if (displayWidth > 0 && displayHeight > 0) {
-                console.log(`[VncModal] Initial resize on connect: ${displayWidth}x${displayHeight}`);
+                console.log(
+                  `[VncModal] Initial resize on connect: ${displayWidth}x${displayHeight}`
+                );
                 guacClient.value.sendSize(displayWidth, displayHeight);
               }
             }
@@ -189,16 +213,29 @@ const handleConnection = async () => {
             nextTick(() => {
               if (vncDisplayRef.value && guacClient.value) {
                 const canvases = vncDisplayRef.value.querySelectorAll('canvas');
-                canvases.forEach((canvas) => { canvas.style.zIndex = '999'; });
+                canvases.forEach((canvas) => {
+                  canvas.style.zIndex = '999';
+                });
               }
             });
           }, 100);
           break;
-        case 4: i18nKeyPart = 'disconnecting'; currentStatus = 'disconnected'; break;
-        case 5: i18nKeyPart = 'disconnected'; currentStatus = 'disconnected'; break;
+        case 4:
+          i18nKeyPart = 'disconnecting';
+          currentStatus = 'disconnected';
+          break;
+        case 5:
+          i18nKeyPart = 'disconnected';
+          currentStatus = 'disconnected';
+          break;
       }
       statusMessage.value = t(`remoteDesktopModal.status.${i18nKeyPart}`, { state });
-      if (currentStatus) connectionStatus.value = currentStatus as 'disconnected' | 'connecting' | 'connected' | 'error';
+      if (currentStatus)
+        connectionStatus.value = currentStatus as
+          | 'disconnected'
+          | 'connecting'
+          | 'connected'
+          | 'error';
     };
 
     guacClient.value.onerror = (status: any) => {
@@ -209,7 +246,6 @@ const handleConnection = async () => {
     };
 
     guacClient.value.connect('');
-
   } catch (error: any) {
     statusMessage.value = `${t('remoteDesktopModal.errors.connectionFailed')}: ${error.response?.data?.message || error.message || String(error)}`;
     connectionStatus.value = 'error';
@@ -230,7 +266,10 @@ const trySyncClipboardOnDisplayFocus = async () => {
       const writer = new Guacamole.StringWriter(stream);
       writer.sendText(currentClipboardText);
       writer.sendEnd();
-      console.log('[VncModal] Sent clipboard to VNC on display focus:', currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : ''));
+      console.log(
+        '[VncModal] Sent clipboard to VNC on display focus:',
+        currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : '')
+      );
     }
   } catch (err) {
     // This error is expected if the document/tab is not focused when the VNC display element gets focus.
@@ -244,103 +283,112 @@ const trySyncClipboardOnDisplayFocus = async () => {
 };
 
 const setupInputListeners = () => {
-    if (!guacClient.value || !vncDisplayRef.value) return;
-    try {
-        const displayEl = guacClient.value.getDisplay().getElement() as HTMLElement;
-        displayEl.tabIndex = 0;
+  if (!guacClient.value || !vncDisplayRef.value) return;
+  try {
+    const displayEl = guacClient.value.getDisplay().getElement() as HTMLElement;
+    displayEl.tabIndex = 0;
 
-        const handleVncDisplayClick = () => {
-          const activeElement = document.activeElement as HTMLElement;
-          if (activeElement && (activeElement.id === 'modal-width' || activeElement.id === 'modal-height')) {
-            activeElement.blur();
-          }
-          // Ensure the VNC display element gets focus when clicked
-          if (displayEl && typeof displayEl.focus === 'function') {
-            displayEl.focus();
-          }
-        };
-        displayEl.addEventListener('click', handleVncDisplayClick);
+    const handleVncDisplayClick = () => {
+      const activeElement = document.activeElement as HTMLElement;
+      if (
+        activeElement &&
+        (activeElement.id === 'modal-width' || activeElement.id === 'modal-height')
+      ) {
+        activeElement.blur();
+      }
+      // Ensure the VNC display element gets focus when clicked
+      if (displayEl && typeof displayEl.focus === 'function') {
+        displayEl.focus();
+      }
+    };
+    displayEl.addEventListener('click', handleVncDisplayClick);
 
-        const handleMouseEnter = () => { if (displayEl) displayEl.style.cursor = 'none'; };
-        const handleMouseLeave = () => { if (displayEl) displayEl.style.cursor = 'default'; };
-        displayEl.addEventListener('mouseenter', handleMouseEnter);
-        displayEl.addEventListener('mouseleave', handleMouseLeave);
+    const handleMouseEnter = () => {
+      if (displayEl) displayEl.style.cursor = 'none';
+    };
+    const handleMouseLeave = () => {
+      if (displayEl) displayEl.style.cursor = 'default';
+    };
+    displayEl.addEventListener('mouseenter', handleMouseEnter);
+    displayEl.addEventListener('mouseleave', handleMouseLeave);
 
-        // @ts-ignore
-        mouse.value = new Guacamole.Mouse(displayEl);
-        const display = guacClient.value.getDisplay();
-        display.showCursor(true);
+    // @ts-ignore
+    mouse.value = new Guacamole.Mouse(displayEl);
+    const display = guacClient.value.getDisplay();
+    display.showCursor(true);
 
-        const cursorLayer = display.getCursorLayer();
-        if (cursorLayer) {
-          const cursorElement = cursorLayer.getElement();
-          if (cursorElement) {
-             cursorElement.style.zIndex = '1000';
-          }
-        }
-
-        // @ts-ignore
-        mouse.value.onmousedown = mouse.value.onmouseup = mouse.value.onmousemove = (mouseState: any) => {
-            if (guacClient.value) {
-                guacClient.value.sendMouseState(mouseState);
-            }
-        };
-
-        // @ts-ignore
-        keyboard.value = new Guacamole.Keyboard(displayEl);
-
-        keyboard.value.onkeydown = (keysym: number) => {
-            if (guacClient.value && !isKeyboardDisabledForInput.value) {
-                guacClient.value.sendKeyEvent(1, keysym);
-            }
-        };
-        keyboard.value.onkeyup = (keysym: number) => {
-             if (guacClient.value && !isKeyboardDisabledForInput.value) {
-                guacClient.value.sendKeyEvent(0, keysym);
-             }
-        };
-
-        // Listen for host copy events to send to VNC
-        // document.addEventListener('copy', handleHostCopy); // Removed this
-        // displayEl.addEventListener('mouseenter', trySyncClipboardOnMouseEnter); // Changed to focus event
-        displayEl.addEventListener('focus', trySyncClipboardOnDisplayFocus);
-
-    } catch (inputError) {
-        console.error("Error setting up VNC input listeners:", inputError);
-        statusMessage.value = t('remoteDesktopModal.errors.inputError');
+    const cursorLayer = display.getCursorLayer();
+    if (cursorLayer) {
+      const cursorElement = cursorLayer.getElement();
+      if (cursorElement) {
+        cursorElement.style.zIndex = '1000';
+      }
     }
+
+    // @ts-ignore
+    mouse.value.onmousedown =
+      mouse.value.onmouseup =
+      mouse.value.onmousemove =
+        (mouseState: any) => {
+          if (guacClient.value) {
+            guacClient.value.sendMouseState(mouseState);
+          }
+        };
+
+    // @ts-ignore
+    keyboard.value = new Guacamole.Keyboard(displayEl);
+
+    keyboard.value.onkeydown = (keysym: number) => {
+      if (guacClient.value && !isKeyboardDisabledForInput.value) {
+        guacClient.value.sendKeyEvent(1, keysym);
+      }
+    };
+    keyboard.value.onkeyup = (keysym: number) => {
+      if (guacClient.value && !isKeyboardDisabledForInput.value) {
+        guacClient.value.sendKeyEvent(0, keysym);
+      }
+    };
+
+    // Listen for host copy events to send to VNC
+    // document.addEventListener('copy', handleHostCopy); // Removed this
+    // displayEl.addEventListener('mouseenter', trySyncClipboardOnMouseEnter); // Changed to focus event
+    displayEl.addEventListener('focus', trySyncClipboardOnDisplayFocus);
+  } catch (inputError) {
+    console.error('Error setting up VNC input listeners:', inputError);
+    statusMessage.value = t('remoteDesktopModal.errors.inputError');
+  }
 };
 
 const removeInputListeners = () => {
-    // Remove host copy event listener
-    // document.removeEventListener('copy', handleHostCopy); // Removed this
-    if (guacClient.value) {
-        const displayEl = guacClient.value.getDisplay()?.getElement();
+  // Remove host copy event listener
+  // document.removeEventListener('copy', handleHostCopy); // Removed this
+  if (guacClient.value) {
+    const displayEl = guacClient.value.getDisplay()?.getElement();
+    if (displayEl) {
+      // displayEl.removeEventListener('mouseenter', trySyncClipboardOnMouseEnter); // Changed to focus event
+      displayEl.removeEventListener('focus', trySyncClipboardOnDisplayFocus);
+      try {
         if (displayEl) {
-            // displayEl.removeEventListener('mouseenter', trySyncClipboardOnMouseEnter); // Changed to focus event
-            displayEl.removeEventListener('focus', trySyncClipboardOnDisplayFocus);
-            try {
-              if (displayEl) {
-                  displayEl.style.cursor = 'default';
-              }
-            } catch (e) {
-                console.warn("Could not reset cursor on VNC display element:", e);
-            }
+          displayEl.style.cursor = 'default';
         }
+      } catch (e) {
+        console.warn('Could not reset cursor on VNC display element:', e);
+      }
     }
-    // The rest of the cleanup for keyboard and mouse can remain outside the guacClient.value check
-    // as they are independent refs.
-    if (keyboard.value) {
-        keyboard.value.onkeydown = null;
-        keyboard.value.onkeyup = null;
-        keyboard.value = null;
-    }
-     if (mouse.value) {
-        mouse.value.onmousedown = null;
-        mouse.value.onmouseup = null;
-        mouse.value.onmousemove = null;
-        mouse.value = null;
-    }
+  }
+  // The rest of the cleanup for keyboard and mouse can remain outside the guacClient.value check
+  // as they are independent refs.
+  if (keyboard.value) {
+    keyboard.value.onkeydown = null;
+    keyboard.value.onkeyup = null;
+    keyboard.value = null;
+  }
+  if (mouse.value) {
+    mouse.value.onmousedown = null;
+    mouse.value.onmouseup = null;
+    mouse.value.onmousemove = null;
+    mouse.value = null;
+  }
 };
 
 const disableVncKeyboard = () => {
@@ -416,13 +464,13 @@ const disconnectGuacamole = () => {
     guacClient.value = null;
   }
   if (vncDisplayRef.value) {
-      while (vncDisplayRef.value.firstChild) {
-          vncDisplayRef.value.removeChild(vncDisplayRef.value.firstChild);
-      }
+    while (vncDisplayRef.value.firstChild) {
+      vncDisplayRef.value.removeChild(vncDisplayRef.value.firstChild);
+    }
   }
   if (connectionStatus.value !== 'error') {
-      connectionStatus.value = 'disconnected';
-      statusMessage.value = t('remoteDesktopModal.status.disconnected');
+    connectionStatus.value = 'disconnected';
+    statusMessage.value = t('remoteDesktopModal.status.disconnected');
   }
 };
 
@@ -434,8 +482,8 @@ const closeModal = () => {
 const handleWidthInputBlur = () => {
   const currentValue = Number(tempInputWidth.value) || MIN_MODAL_WIDTH;
   const validatedValue = Math.min(Math.max(MIN_MODAL_WIDTH, currentValue), maxAllowedWidth.value);
-  
-  desiredModalWidth.value = validatedValue; 
+
+  desiredModalWidth.value = validatedValue;
   tempInputWidth.value = validatedValue;
 
   if (saveWidthTimeout) clearTimeout(saveWidthTimeout);
@@ -451,7 +499,7 @@ const handleHeightInputBlur = () => {
   const currentValue = Number(tempInputHeight.value) || MIN_MODAL_HEIGHT;
   const validatedValue = Math.min(Math.max(MIN_MODAL_HEIGHT, currentValue), maxAllowedHeight.value);
 
-  desiredModalHeight.value = validatedValue; 
+  desiredModalHeight.value = validatedValue;
   tempInputHeight.value = validatedValue;
 
   if (saveHeightTimeout) clearTimeout(saveHeightTimeout);
@@ -475,19 +523,16 @@ watch(desiredModalHeight, (newVal) => {
   }
 });
 
-
-
-
 onMounted(() => {
   if (props.connection) {
     tempInputWidth.value = desiredModalWidth.value;
     tempInputHeight.value = desiredModalHeight.value;
     nextTick(async () => {
-        await handleConnection();
+      await handleConnection();
     });
   } else {
-      statusMessage.value = t('remoteDesktopModal.errors.noConnection');
-      connectionStatus.value = 'error';
+    statusMessage.value = t('remoteDesktopModal.errors.noConnection');
+    connectionStatus.value = 'error';
   }
 });
 
@@ -502,21 +547,30 @@ onUnmounted(() => {
   }
 });
 
-watch(() => props.connection, (newConnection, oldConnection) => {
-  if (newConnection && newConnection.id !== oldConnection?.id) {
-     nextTick(async () => {
+watch(
+  () => props.connection,
+  (newConnection, oldConnection) => {
+    if (newConnection && newConnection.id !== oldConnection?.id) {
+      nextTick(async () => {
         await handleConnection();
-     });
-  } else if (!newConnection) {
+      });
+    } else if (!newConnection) {
       disconnectGuacamole();
       statusMessage.value = t('remoteDesktopModal.errors.noConnection');
       connectionStatus.value = 'error';
+    }
   }
-});
+);
 
 const computedModalStyle = computed(() => {
-  const actualWidth = Math.min(Math.max(MIN_MODAL_WIDTH, desiredModalWidth.value), maxAllowedWidth.value);
-  const actualHeight = Math.min(Math.max(MIN_MODAL_HEIGHT, desiredModalHeight.value), maxAllowedHeight.value);
+  const actualWidth = Math.min(
+    Math.max(MIN_MODAL_WIDTH, desiredModalWidth.value),
+    maxAllowedWidth.value
+  );
+  const actualHeight = Math.min(
+    Math.max(MIN_MODAL_HEIGHT, desiredModalHeight.value),
+    maxAllowedHeight.value
+  );
   return {
     width: `${actualWidth}px`,
     height: `${actualHeight}px`,
@@ -530,12 +584,15 @@ watchEffect(() => {
   if (guacClient.value && connectionStatus.value === 'connected' && vncDisplayRef.value) {
     // 使用 nextTick 确保 DOM 更新完毕，vncDisplayRef 的尺寸已根据 currentStyle 刷新
     nextTick(() => {
-      if (vncDisplayRef.value && guacClient.value) { // 再次检查，因为 nextTick 是异步的
+      if (vncDisplayRef.value && guacClient.value) {
+        // 再次检查，因为 nextTick 是异步的
         const displayWidth = vncDisplayRef.value.offsetWidth;
         const displayHeight = vncDisplayRef.value.offsetHeight;
 
         if (displayWidth > 0 && displayHeight > 0) {
-          console.log(`[VncModal] Resizing VNC display to: ${displayWidth}x${displayHeight} due to style change.`);
+          console.log(
+            `[VncModal] Resizing VNC display to: ${displayWidth}x${displayHeight} due to style change.`
+          );
           guacClient.value.sendSize(displayWidth, displayHeight);
         }
       }
@@ -583,145 +640,165 @@ const stopResize = () => {
   document.removeEventListener('mouseup', stopResize);
   // The existing watchEffect for computedModalStyle will handle Guacamole resize
 };
-
 </script>
 <template>
   <div
     :class="[
       'fixed inset-0 z-50 flex items-center justify-center p-4',
       isMinimized ? '' : 'bg-overlay',
-      isMinimized ? 'pointer-events-none' : '' // 允许恢复按钮接收事件
+      isMinimized ? 'pointer-events-none' : '', // 允许恢复按钮接收事件
     ]"
   >
-     <button
-        ref="restoreButtonRef"
-        v-if="isMinimized"
-        @mousedown="onRestoreButtonMouseDown"
-        @click="handleClickRestoreButton"
-        :style="{ left: `${restoreButtonPosition.x}px`, top: `${restoreButtonPosition.y}px`, width: '50px', height: '50px' }"
-        class="fixed z-[100] flex items-center justify-center bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 pointer-events-auto cursor-grab active:cursor-grabbing"
-        :title="t('common.restore')"
-      >
-        <i class="fas fa-window-restore fa-lg"></i>
-      </button>
-     <div
-        v-show="!isMinimized"
-        :style="computedModalStyle"
-        class="bg-background text-foreground rounded-lg shadow-xl flex flex-col overflow-hidden border border-border pointer-events-auto relative"
-     >
+    <button
+      ref="restoreButtonRef"
+      v-if="isMinimized"
+      @mousedown="onRestoreButtonMouseDown"
+      @click="handleClickRestoreButton"
+      :style="{
+        left: `${restoreButtonPosition.x}px`,
+        top: `${restoreButtonPosition.y}px`,
+        width: '50px',
+        height: '50px',
+      }"
+      class="fixed z-[100] flex items-center justify-center bg-primary text-white rounded-full shadow-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 pointer-events-auto cursor-grab active:cursor-grabbing"
+      :title="t('common.restore')"
+    >
+      <i class="fas fa-window-restore fa-lg"></i>
+    </button>
+    <div
+      v-show="!isMinimized"
+      :style="computedModalStyle"
+      class="bg-background text-foreground rounded-lg shadow-xl flex flex-col overflow-hidden border border-border pointer-events-auto relative"
+    >
       <div class="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
         <h3 class="text-base font-semibold truncate">
           <i class="fas fa-plug mr-2 text-text-secondary"></i>
-          {{ t('vncModal.title') }} - {{ props.connection?.name || props.connection?.host || t('remoteDesktopModal.titlePlaceholder') }}
+          {{ t('vncModal.title') }} -
+          {{
+            props.connection?.name ||
+            props.connection?.host ||
+            t('remoteDesktopModal.titlePlaceholder')
+          }}
         </h3>
         <div class="flex items-center space-x-1">
-            <span class="text-xs px-2 py-0.5 rounded"
-                  :class="{
-                    'bg-yellow-200 text-yellow-800': connectionStatus === 'connecting',
-                    'bg-green-200 text-green-800': connectionStatus === 'connected',
-                    'bg-red-200 text-red-800': connectionStatus === 'error',
-                    'bg-gray-200 text-gray-800': connectionStatus === 'disconnected'
-                  }">
-              {{ t('remoteDesktopModal.status.' + connectionStatus) }}
-            </span>
-            <button
-                @click="minimizeModal"
-                class="text-text-secondary hover:text-foreground transition-colors duration-150 p-1 rounded hover:bg-hover"
-                :title="t('common.minimize')"
-            >
-                <i class="fas fa-window-minimize fa-sm"></i>
-            </button>
-             <button
-                @click="closeModal"
-                class="text-text-secondary hover:text-foreground transition-colors duration-150 p-1 rounded hover:bg-hover"
-                :title="t('common.close')"
-             >
-                <i class="fas fa-times fa-lg"></i>
-             </button>
+          <span
+            class="text-xs px-2 py-0.5 rounded"
+            :class="{
+              'bg-yellow-200 text-yellow-800': connectionStatus === 'connecting',
+              'bg-green-200 text-green-800': connectionStatus === 'connected',
+              'bg-red-200 text-red-800': connectionStatus === 'error',
+              'bg-gray-200 text-gray-800': connectionStatus === 'disconnected',
+            }"
+          >
+            {{ t('remoteDesktopModal.status.' + connectionStatus) }}
+          </span>
+          <button
+            @click="minimizeModal"
+            class="text-text-secondary hover:text-foreground transition-colors duration-150 p-1 rounded hover:bg-hover"
+            :title="t('common.minimize')"
+          >
+            <i class="fas fa-window-minimize fa-sm"></i>
+          </button>
+          <button
+            @click="closeModal"
+            class="text-text-secondary hover:text-foreground transition-colors duration-150 p-1 rounded hover:bg-hover"
+            :title="t('common.close')"
+          >
+            <i class="fas fa-times fa-lg"></i>
+          </button>
         </div>
       </div>
 
       <div ref="vncContainerRef" class="relative bg-black overflow-hidden flex-1">
-        <div ref="vncDisplayRef" class="vnc-display-container w-full h-full">
+        <div ref="vncDisplayRef" class="vnc-display-container w-full h-full"></div>
+        <div
+          v-if="connectionStatus === 'connecting' || connectionStatus === 'error'"
+          class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 z-10"
+        >
+          <div class="text-center">
+            <i
+              v-if="connectionStatus === 'connecting'"
+              class="fas fa-spinner fa-spin fa-2x mb-3"
+            ></i>
+            <i v-else class="fas fa-exclamation-triangle fa-2x mb-3 text-red-400"></i>
+            <p class="text-sm">{{ statusMessage }}</p>
+            <button
+              v-if="connectionStatus === 'error'"
+              @click="() => handleConnection()"
+              class="mt-4 px-3 py-1 bg-primary text-white rounded text-xs hover:bg-primary-dark"
+            >
+              {{ t('common.retry') }}
+            </button>
+          </div>
         </div>
-         <div v-if="connectionStatus === 'connecting' || connectionStatus === 'error'"
-              class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white p-4 z-10">
-            <div class="text-center">
-              <i v-if="connectionStatus === 'connecting'" class="fas fa-spinner fa-spin fa-2x mb-3"></i>
-              <i v-else class="fas fa-exclamation-triangle fa-2x mb-3 text-red-400"></i>
-              <p class="text-sm">{{ statusMessage }}</p>
-               <button v-if="connectionStatus === 'error'"
-                       @click="() => handleConnection()"
-                       class="mt-4 px-3 py-1 bg-primary text-white rounded text-xs hover:bg-primary-dark">
-                 {{ t('common.retry') }}
-               </button>
-            </div>
-         </div>
       </div>
 
-       <div class="p-2 border-t border-border flex-shrink-0 text-xs text-text-secondary bg-header flex items-center justify-between flex-wrap gap-y-2">
-         <!-- 输入框和发送按钮 -->
-         <div class="flex items-center space-x-2 flex-auto mr-0 sm:mr-4"> <!-- flex-auto to grow, responsive margin -->
-           <input
-             type="text"
-             v-model="vncPasteInputText"
-             :placeholder="t('vncModal.textInputPlaceholder')"
-             class="flex-grow px-2 py-1 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-w-0"
-             style="min-width: 120px;"
-             @focus="disableVncKeyboard"
-             @blur="enableVncKeyboard"
-             @keydown.enter.prevent="sendInputTextToVnc"
-           />
-           <button
-             @click="sendInputTextToVnc"
-             :disabled="!vncPasteInputText.trim() || connectionStatus !== 'connected'"
-             class="px-3 py-1 bg-primary text-white rounded text-xs hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-             :title="t('vncModal.sendButtonTitle')"
-           >
-             {{ t('common.send') }}
-           </button>
-         </div>
+      <div
+        class="p-2 border-t border-border flex-shrink-0 text-xs text-text-secondary bg-header flex items-center justify-between flex-wrap gap-y-2"
+      >
+        <!-- 输入框和发送按钮 -->
+        <div class="flex items-center space-x-2 flex-auto mr-0 sm:mr-4">
+          <!-- flex-auto to grow, responsive margin -->
+          <input
+            type="text"
+            v-model="vncPasteInputText"
+            :placeholder="t('vncModal.textInputPlaceholder')"
+            class="flex-grow px-2 py-1 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-w-0"
+            style="min-width: 120px"
+            @focus="disableVncKeyboard"
+            @blur="enableVncKeyboard"
+            @keydown.enter.prevent="sendInputTextToVnc"
+          />
+          <button
+            @click="sendInputTextToVnc"
+            :disabled="!vncPasteInputText.trim() || connectionStatus !== 'connected'"
+            class="px-3 py-1 bg-primary text-white rounded text-xs hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            :title="t('vncModal.sendButtonTitle')"
+          >
+            {{ t('common.send') }}
+          </button>
+        </div>
 
-         <!-- 现有的宽度/高度和重新连接按钮 -->
-         <div class="flex items-center space-x-2 flex-wrap gap-y-1 flex-shrink-0">
-            <label for="modal-width" class="text-xs ml-2">{{ t('common.width') }}:</label>
-            <input
-              id="modal-width"
-              type="number"
-              v-model.number="tempInputWidth"
-              step="10"
-              class="w-16 px-1 py-0.5 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              @focus="disableVncKeyboard"
-              @blur="handleWidthInputBlur"
-            />
-            <label for="modal-height" class="text-xs">{{ t('common.height') }}:</label>
-            <input
-              id="modal-height"
-              type="number"
-              v-model.number="tempInputHeight"
-              step="10"
-              class="w-16 px-1 py-0.5 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              @focus="disableVncKeyboard"
-              @blur="handleHeightInputBlur"
-            />
-             <button
-               @click="handleConnection"
-               :disabled="connectionStatus === 'connecting'"
-               class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
-               :title="t('remoteDesktopModal.reconnectTooltip')"
-             >
-               {{ t('common.reconnect') }}
-             </button>
-         </div>
-       </div>
-       <!-- Resize Handle -->
-       <div
-           class="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-10 bg-transparent hover:bg-primary-dark hover:bg-opacity-30"
-           title="Resize"
-           @mousedown.stop="initResize"
-       ></div>
-   </div>
- </div>
+        <!-- 现有的宽度/高度和重新连接按钮 -->
+        <div class="flex items-center space-x-2 flex-wrap gap-y-1 flex-shrink-0">
+          <label for="modal-width" class="text-xs ml-2">{{ t('common.width') }}:</label>
+          <input
+            id="modal-width"
+            type="number"
+            v-model.number="tempInputWidth"
+            step="10"
+            class="w-16 px-1 py-0.5 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            @focus="disableVncKeyboard"
+            @blur="handleWidthInputBlur"
+          />
+          <label for="modal-height" class="text-xs">{{ t('common.height') }}:</label>
+          <input
+            id="modal-height"
+            type="number"
+            v-model.number="tempInputHeight"
+            step="10"
+            class="w-16 px-1 py-0.5 text-xs border border-border rounded bg-input text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            @focus="disableVncKeyboard"
+            @blur="handleHeightInputBlur"
+          />
+          <button
+            @click="handleConnection"
+            :disabled="connectionStatus === 'connecting'"
+            class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 ease-in-out"
+            :title="t('remoteDesktopModal.reconnectTooltip')"
+          >
+            {{ t('common.reconnect') }}
+          </button>
+        </div>
+      </div>
+      <!-- Resize Handle -->
+      <div
+        class="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-10 bg-transparent hover:bg-primary-dark hover:bg-opacity-30"
+        title="Resize"
+        @mousedown.stop="initResize"
+      ></div>
+    </div>
+  </div>
 </template>
 <style scoped>
 .vnc-display-container {

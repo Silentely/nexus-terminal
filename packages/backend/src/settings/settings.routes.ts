@@ -4,7 +4,6 @@ import { isAuthenticated } from '../auth/auth.middleware';
 
 const router = express.Router();
 
-
 // GET /api/v1/settings/captcha - 获取公共 CAPTCHA 配置 (不含密钥)
 router.get('/captcha', settingsController.getCaptchaConfig);
 
@@ -45,7 +44,6 @@ router.get('/ip-blacklist', settingsController.getIpBlacklist);
 // DELETE /api/v1/settings/ip-blacklist/:ip - 从黑名单中删除指定 IP (需要认证)
 router.delete('/ip-blacklist/:ip', settingsController.deleteIpFromBlacklist);
 
-
 // +++ 终端选中自动复制路由 +++
 // GET /api/v1/settings/auto-copy-on-select - 获取设置
 router.get('/auto-copy-on-select', settingsController.getAutoCopyOnSelect);
@@ -73,7 +71,7 @@ router.put('/show-quick-command-tags', settingsController.setShowQuickCommandTag
 // +++ 导出所有连接路由 +++
 // GET /api/v1/settings/export-connections - 导出所有连接为加密的 ZIP 文件
 router.get('/export-connections', settingsController.exportAllConnections);
- 
+
 // +++ 显示状态监视器IP地址路由 +++
 // GET /api/v1/settings/show-status-monitor-ip-address - 获取设置
 router.get('/show-status-monitor-ip-address', settingsController.getShowStatusMonitorIpAddress);

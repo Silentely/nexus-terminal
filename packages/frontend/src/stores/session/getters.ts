@@ -5,7 +5,7 @@ import { sessions, activeSessionId } from './state';
 import type { SessionState, SessionTabInfoWithStatus } from './types';
 
 export const sessionTabs = computed(() => {
-  return Array.from(sessions.value.values()).map(session => ({
+  return Array.from(sessions.value.values()).map((session) => ({
     sessionId: session.sessionId,
     connectionName: session.connectionName,
   }));
@@ -24,7 +24,7 @@ export const sessionTabsWithStatus = computed((): SessionTabInfoWithStatus[] => 
       sessionOrder = [];
     }
   }
-  
+
   const sessionList = Array.from(sessions.value.values());
   if (sessionOrder.length > 0) {
     // 按照用户自定义顺序排序
@@ -37,23 +37,22 @@ export const sessionTabsWithStatus = computed((): SessionTabInfoWithStatus[] => 
         if (indexB === -1) return -1;
         return indexA - indexB;
       })
-      .map(session => ({
-        sessionId: session.sessionId,
-        connectionName: session.connectionName,
-        status: session.wsManager.connectionStatus.value, // 从 wsManager 获取状态
-        isMarkedForSuspend: session.isMarkedForSuspend,
-      }));
-  } else {
-    // 如果没有自定义顺序，则按照创建时间排序
-    return sessionList
-      .sort((a, b) => a.createdAt - b.createdAt)
-      .map(session => ({
+      .map((session) => ({
         sessionId: session.sessionId,
         connectionName: session.connectionName,
         status: session.wsManager.connectionStatus.value, // 从 wsManager 获取状态
         isMarkedForSuspend: session.isMarkedForSuspend,
       }));
   }
+  // 如果没有自定义顺序，则按照创建时间排序
+  return sessionList
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .map((session) => ({
+      sessionId: session.sessionId,
+      connectionName: session.connectionName,
+      status: session.wsManager.connectionStatus.value, // 从 wsManager 获取状态
+      isMarkedForSuspend: session.isMarkedForSuspend,
+    }));
 });
 
 export const activeSession = computed((): SessionState | null => {

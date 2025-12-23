@@ -27,7 +27,7 @@ const props = defineProps({
   targetId: {
     type: [String, Number, null] as PropType<string | number | null>,
     default: null,
-  }
+  },
 });
 
 const emit = defineEmits<{
@@ -59,7 +59,6 @@ const handleAction = (item: MenuItem) => {
 const handleOverlayClick = () => {
   emit('close');
 };
-
 </script>
 
 <template>
@@ -84,13 +83,14 @@ const handleOverlayClick = () => {
               item.disabled
                 ? 'text-text-secondary opacity-50 cursor-not-allowed'
                 : item.isDanger
-                ? 'text-error hover:bg-error/10 cursor-pointer'
-                : 'text-foreground hover:bg-primary/10 hover:text-primary cursor-pointer',
+                  ? 'text-error hover:bg-error/10 cursor-pointer'
+                  : 'text-foreground hover:bg-primary/10 hover:text-primary cursor-pointer',
             ]"
             @click="handleAction(item)"
           >
             <!-- 移除了图标 -->
-            <span>{{ t(item.label, item.label) }}</span> <!-- 使用 i18n -->
+            <span>{{ t(item.label, item.label) }}</span>
+            <!-- 使用 i18n -->
           </li>
         </template>
       </ul>

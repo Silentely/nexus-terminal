@@ -1,15 +1,15 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Tailwind Theme Variables Mapping */
 @theme inline {
   /* Base Colors */
-  --color-background: var(--app-bg-color); 
+  --color-background: var(--app-bg-color);
   --color-foreground: var(--text-color);
-  --color-app: var(--app-bg-color); 
-  --color-text-default: var(--text-color); 
+  --color-app: var(--app-bg-color);
+  --color-text-default: var(--text-color);
   --color-text-secondary: var(--text-color-secondary);
   --color-border: var(--border-color);
-  --color-border-default: var(--border-color); 
+  --color-border-default: var(--border-color);
   --color-link: var(--link-color);
   --color-link-hover: var(--link-hover-color);
   --color-link-active: var(--link-active-color);
@@ -42,36 +42,36 @@
 /* 全局样式和 CSS 变量定义 */
 :root {
   /* Core Palette - Light Theme */
-  --app-bg-color: #ffffff;        /* White Background */
-  --text-color: #1f2937;          /* Gray 800 - Main Text */
+  --app-bg-color: #ffffff; /* White Background */
+  --text-color: #1f2937; /* Gray 800 - Main Text */
   --text-color-secondary: #6b7280; /* Gray 500 - Secondary Text */
 
   /* Borders & Dividers */
-  --border-color: #e5e7eb;        /* Gray 200 - Subtle Borders */
+  --border-color: #e5e7eb; /* Gray 200 - Subtle Borders */
   --divider-color: #e5e7eb;
 
   /* Brand/Interactive Colors */
-  --link-color: #1f2937;          /* Gray 800 */
-  --link-hover-color: #0ea5e9;    /* Sky 500 - Bright Hover */
-  --link-active-color: #0ea5e9;   /* Sky 500 - Primary Brand Color */
+  --link-color: #1f2937; /* Gray 800 */
+  --link-hover-color: #0ea5e9; /* Sky 500 - Bright Hover */
+  --link-active-color: #0ea5e9; /* Sky 500 - Primary Brand Color */
   --link-active-bg-color: rgba(14, 165, 233, 0.15); /* Low opacity Sky 500 */
   --nav-item-active-bg-color: rgba(14, 165, 233, 0.1);
 
   /* Components */
   --header-bg-color: rgba(255, 255, 255, 0.95); /* Semi-transparent White */
-  --footer-bg-color: #f9fafb;     /* Gray 50 */
+  --footer-bg-color: #f9fafb; /* Gray 50 */
 
   /* Buttons */
-  --button-bg-color: #0ea5e9;     /* Sky 500 */
+  --button-bg-color: #0ea5e9; /* Sky 500 */
   --button-text-color: #ffffff;
   --button-hover-bg-color: #0284c7; /* Sky 600 */
 
   /* Icons */
-  --icon-color: #6b7280;          /* Gray 500 */
-  --icon-hover-color: #1f2937;    /* Gray 800 */
+  --icon-color: #6b7280; /* Gray 500 */
+  --icon-hover-color: #1f2937; /* Gray 800 */
 
   /* UI Elements */
-  --split-line-color: #e5e7eb;    /* Gray 200 */
+  --split-line-color: #e5e7eb; /* Gray 200 */
   --split-line-hover-color: #0ea5e9;
   --input-bg-color: #ffffff;
   --input-focus-border-color: #0ea5e9;
@@ -79,21 +79,23 @@
   --overlay-bg-color: rgba(0, 0, 0, 0.6);
 
   /* Status */
-  --status-success: #10b981;       /* Emerald 500 */
-  --status-warning: #f59e0b;       /* Amber 500 */
-  --status-error: #ef4444;         /* Red 500 */
+  --status-success: #10b981; /* Emerald 500 */
+  --status-warning: #f59e0b; /* Amber 500 */
+  --status-error: #ef4444; /* Red 500 */
   --status-success-text: #ffffff;
   --status-warning-text: #ffffff;
   --status-error-text: #ffffff;
 
   /* Typography */
-  --font-family-sans-serif: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-sans-serif:
+    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
   --font-family-mono: 'JetBrains Mono', 'Fira Code', 'Roboto Mono', monospace;
 
   /* Spacing */
   --base-padding: 1.5rem;
   --base-margin: 0.75rem;
-  
+
   /* Radius */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -102,7 +104,7 @@
 
 /* 应用基础样式 */
 body {
-  margin: 0; 
+  margin: 0;
   font-family: var(--font-family-sans-serif);
   background-color: var(--app-bg-color);
   color: var(--text-color);
@@ -113,17 +115,29 @@ body {
 
 /* 全局链接样式 */
 a {
-  text-decoration: none; 
+  text-decoration: none;
 }
 
 /* 全局图标样式 */
-i, .fas, .far, .fab { 
+i,
+.fas,
+.far,
+.fab {
   color: var(--icon-color);
   transition: color 0.2s ease;
 }
-a:hover i, a:hover .fas, a:hover .far, a:hover .fab, 
-button:hover i, button:hover .fas, button:hover .far, button:hover .fab, 
-.icon-interactive:hover i, .icon-interactive:hover .fas, .icon-interactive:hover .far, .icon-interactive:hover .fab { 
+a:hover i,
+a:hover .fas,
+a:hover .far,
+a:hover .fab,
+button:hover i,
+button:hover .fas,
+button:hover .far,
+button:hover .fab,
+.icon-interactive:hover i,
+.icon-interactive:hover .fas,
+.icon-interactive:hover .far,
+.icon-interactive:hover .fab {
   color: var(--icon-hover-color);
 }
 /* 全局分割线样式 */
@@ -140,7 +154,7 @@ hr {
 
 /* 为历史记录和快捷命令列表设置字体 */
 .command-history-item,
-.quick-command-item { 
+.quick-command-item {
   font-family: var(--font-family-sans-serif);
 }
 
@@ -156,7 +170,7 @@ hr {
 }
 
 .el-table th.el-table__cell {
-    background-color: var(--el-table-header-bg-color) !important;
+  background-color: var(--el-table-header-bg-color) !important;
 }
 
 .el-card {
@@ -167,26 +181,29 @@ hr {
   -webkit-backdrop-filter: blur(10px);
 }
 
-.el-drawer, .el-dialog {
-    --el-bg-color: #1e293b !important;
-    --el-text-color-primary: var(--text-color) !important;
+.el-drawer,
+.el-dialog {
+  --el-bg-color: #1e293b !important;
+  --el-text-color-primary: var(--text-color) !important;
 }
 
 /* Override splitpanes default theme pane background */
 .splitpanes.default-theme .splitpanes__pane {
-    background-color: var(--app-bg-color) !important;
+  background-color: var(--app-bg-color) !important;
 }
 
 /* Style the splitpane splitter */
 .splitpanes.default-theme .splitpanes__splitter {
-  background-color: transparent !important; 
-  border-left: 1px solid var(--border-color); 
+  background-color: transparent !important;
+  border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
   box-sizing: border-box;
-  transition: background-color 0.2s ease, border-color 0.2s ease; 
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 .splitpanes.default-theme .splitpanes__splitter:hover {
-  background-color: var(--link-active-color) !important; 
+  background-color: var(--link-active-color) !important;
   border-color: var(--link-active-color) !important;
 }
 .splitpanes--vertical > .splitpanes__splitter {
@@ -196,7 +213,7 @@ hr {
   border-right: none; /* Single border */
 }
 .splitpanes--horizontal > .splitpanes__splitter {
-  height: 1px; 
+  height: 1px;
   border-left: none;
   border-right: none;
   border-top: 1px solid var(--border-color);
@@ -205,47 +222,49 @@ hr {
 
 /* Style scrollbars */
 ::-webkit-scrollbar {
-  width: 6px; 
-  height: 6px; 
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; 
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #334155; 
+  background-color: #334155;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #475569; 
+  background-color: #475569;
 }
 
 /* Input focus styles */
-input:focus, textarea:focus, select:focus {
-    border-color: var(--input-focus-border-color) !important; 
-    outline: 0;
-    box-shadow: 0 0 0 2px rgba(var(--input-focus-glow-rgb), 0.2) !important; 
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--input-focus-border-color) !important;
+  outline: 0;
+  box-shadow: 0 0 0 2px rgba(var(--input-focus-glow-rgb), 0.2) !important;
 }
 
 button.bg-primary i,
 button.bg-primary .fas,
 button.bg-primary .far,
 button.bg-primary .fab {
-  color: white !important; 
+  color: white !important;
 }
 
 button.bg-primary:hover i,
 button.bg-primary:hover .fas,
 button.bg-primary:hover .far,
 button.bg-primary:hover .fab {
-  color: white !important; 
+  color: white !important;
 }
 
 button:focus {
   outline: none !important;
-  box-shadow: none !important; 
+  box-shadow: none !important;
 }
 
 button:focus-visible {

@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import apiClient from '../../utils/apiClient';
 import { isAxiosError } from 'axios';
+import apiClient from '../../utils/apiClient';
 
 export function useDataManagement() {
   const { t } = useI18n();
@@ -30,7 +30,9 @@ export function useDataManagement() {
         }
       }
 
-      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/zip' });
+      const blob = new Blob([response.data], {
+        type: response.headers['content-type'] || 'application/zip',
+      });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -40,18 +42,27 @@ export function useDataManagement() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      exportConnectionsMessage.value = t('settings.exportConnections.success', '导出成功。文件已开始下载。');
+      exportConnectionsMessage.value = t(
+        'settings.exportConnections.success',
+        '导出成功。文件已开始下载。'
+      );
       exportConnectionsSuccess.value = true;
     } catch (error: any) {
       console.error('导出连接失败:', error);
       let message = t('settings.exportConnections.error', '导出连接时发生错误。');
       if (isAxiosError(error) && error.response && error.response.data) {
-        if (error.response.data instanceof Blob && error.response.data.type === 'application/json') {
+        if (
+          error.response.data instanceof Blob &&
+          error.response.data.type === 'application/json'
+        ) {
           try {
             const errorJson = JSON.parse(await error.response.data.text());
             message = errorJson.message || message;
-          } catch (e) { /* Blob not valid JSON */ }
-        } else if (typeof error.response.data === 'string' && error.response.data.length < 200) { // Avoid overly long string errors
+          } catch (e) {
+            /* Blob not valid JSON */
+          }
+        } else if (typeof error.response.data === 'string' && error.response.data.length < 200) {
+          // Avoid overly long string errors
           message = error.response.data;
         } else if (error.response.data && typeof error.response.data.message === 'string') {
           message = error.response.data.message;

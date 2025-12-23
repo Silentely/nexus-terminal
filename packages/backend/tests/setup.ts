@@ -10,22 +10,22 @@ process.env.SESSION_SECRET = 'test-session-secret';
 
 // 全局 mock 常用模块
 vi.mock('../src/database/connection', () => ({
-    getDbInstance: vi.fn().mockResolvedValue({
-        run: vi.fn().mockResolvedValue({ changes: 1 }),
-        get: vi.fn().mockResolvedValue(null),
-        all: vi.fn().mockResolvedValue([]),
-    }),
+  getDbInstance: vi.fn().mockResolvedValue({
+    run: vi.fn().mockResolvedValue({ changes: 1 }),
+    get: vi.fn().mockResolvedValue(null),
+    all: vi.fn().mockResolvedValue([]),
+  }),
 }));
 
 // 清理所有 mock
 afterEach(() => {
-    vi.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 beforeAll(() => {
-    console.log('🧪 Backend test environment initialized');
+  console.log('🧪 Backend test environment initialized');
 });
 
 afterAll(() => {
-    console.log('🧪 Backend test cleanup complete');
+  console.log('🧪 Backend test cleanup complete');
 });

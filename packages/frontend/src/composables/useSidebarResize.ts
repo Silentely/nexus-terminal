@@ -22,10 +22,13 @@ export function useSidebarResize({
   const startWidth = ref(0);
 
   const handleMouseDown = (event: MouseEvent) => {
-    console.log(`[useSidebarResize] handleMouseDown triggered for side: ${side}`, { sidebar: sidebarRef.value, handle: handleRef.value }); // +++ Add Log +++
+    console.log(`[useSidebarResize] handleMouseDown triggered for side: ${side}`, {
+      sidebar: sidebarRef.value,
+      handle: handleRef.value,
+    }); // +++ Add Log +++
     if (!sidebarRef.value || !handleRef.value) {
-       console.log('[useSidebarResize] MouseDown ignored: sidebarRef or handleRef is null.'); 
-       return;
+      console.log('[useSidebarResize] MouseDown ignored: sidebarRef or handleRef is null.');
+      return;
     }
 
     isDragging.value = true;
@@ -47,7 +50,8 @@ export function useSidebarResize({
 
     if (side === 'left') {
       newWidth = startWidth.value + deltaX;
-    } else { // side === 'right'
+    } else {
+      // side === 'right'
       newWidth = startWidth.value - deltaX;
     }
 
@@ -73,16 +77,20 @@ export function useSidebarResize({
   };
 
   // 使用 watch 监视 handleRef 的变化
-  watch(handleRef, (newHandle, oldHandle) => {
-    // 移除旧句柄上的监听器（如果存在）
-    if (oldHandle) {
-      oldHandle.removeEventListener('mousedown', handleMouseDown);
-    }
-    // 在新句柄上添加监听器（如果存在）
-    if (newHandle) {
-      newHandle.addEventListener('mousedown', handleMouseDown);
-    }
-  }, { immediate: true }); // immediate: true 确保初始时也能尝试附加
+  watch(
+    handleRef,
+    (newHandle, oldHandle) => {
+      // 移除旧句柄上的监听器（如果存在）
+      if (oldHandle) {
+        oldHandle.removeEventListener('mousedown', handleMouseDown);
+      }
+      // 在新句柄上添加监听器（如果存在）
+      if (newHandle) {
+        newHandle.addEventListener('mousedown', handleMouseDown);
+      }
+    },
+    { immediate: true }
+  ); // immediate: true 确保初始时也能尝试附加
 
   onUnmounted(() => {
     // 组件卸载时确保移除监听器

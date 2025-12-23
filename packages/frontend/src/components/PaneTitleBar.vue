@@ -26,9 +26,7 @@ const closePane = () => {
 <template>
   <div class="pane-title-bar">
     <span class="title">{{ title }}</span>
-    <button class="close-button" @click="closePane" :title="`关闭 ${title}`">
-      &times;
-    </button>
+    <button class="close-button" @click="closePane" :title="`关闭 ${title}`">&times;</button>
   </div>
 </template>
 

@@ -4,13 +4,17 @@ import { Terminal, IDisposable } from 'xterm';
 import { useDeviceDetection } from '../../composables/useDeviceDetection';
 import { useAppearanceStore } from '../../stores/appearance.store';
 import { useSettingsStore } from '../../stores/settings.store';
-import { useSessionStore } from '../../stores/session.store'; 
+import { useSessionStore } from '../../stores/session.store';
 import { storeToRefs } from 'pinia';
 import { WebLinksAddon } from 'xterm-addon-web-links';
 import { SearchAddon, type ISearchOptions } from '@xterm/addon-search';
 import { WebglAddon } from '@xterm/addon-webgl';
 import 'xterm/css/xterm.css';
-import { useWorkspaceEventEmitter, useWorkspaceEventSubscriber, useWorkspaceEventOff } from '../../composables/workspaceEvents';
+import {
+  useWorkspaceEventEmitter,
+  useWorkspaceEventSubscriber,
+  useWorkspaceEventOff,
+} from '../../composables/workspaceEvents';
 
 // Import extracted composables
 import { useTerminalFit } from '../../composables/terminal/useTerminalFit';
@@ -37,33 +41,38 @@ let outputEnhancerAddon: OutputEnhancerAddon | null = null;
 let selectionListenerDisposable: IDisposable | null = null;
 
 const isActiveRef = ref(props.isActive);
-watch(() => props.isActive, (val) => { isActiveRef.value = val; });
+watch(
+  () => props.isActive,
+  (val) => {
+    isActiveRef.value = val;
+  }
+);
 const streamRef = ref(props.stream);
-watch(() => props.stream, (val) => { streamRef.value = val; });
+watch(
+  () => props.stream,
+  (val) => {
+    streamRef.value = val;
+  }
+);
 
 const { isMobile } = useDeviceDetection();
 
 // --- Composables ---
 const { fitAddon, fitAndEmitResizeNow, setupResizeObserver } = useTerminalFit(
-    terminalInstance, 
-    terminalRef, 
-    props.sessionId,
-    isActiveRef
+  terminalInstance,
+  terminalRef,
+  props.sessionId,
+  isActiveRef
 );
 
-const { setupInputHandler } = useTerminalSocket(
-    terminalInstance,
-    props.sessionId,
-    streamRef
-);
-
+const { setupInputHandler } = useTerminalSocket(terminalInstance, props.sessionId, streamRef);
 
 let initialPinchDistance = 0;
 let currentFontSizeOnPinchStart = 0;
 
 // --- Appearance Store ---
 const appearanceStore = useAppearanceStore();
-const { 
+const {
   effectiveTerminalTheme,
   currentTerminalFontFamily,
   currentTerminalFontSize,
@@ -75,20 +84,20 @@ const {
   terminalTextShadowOffsetY,
   terminalTextShadowBlur,
   terminalTextShadowColor,
-  initialAppearanceDataLoaded, 
+  initialAppearanceDataLoaded,
 } = storeToRefs(appearanceStore);
- 
-const isTerminalDomReady = ref(false); 
- 
+
+const isTerminalDomReady = ref(false);
+
 // --- Settings Store ---
 const settingsStore = useSettingsStore();
 const sessionStore = useSessionStore();
-const { 
+const {
   autoCopyOnSelectBoolean,
-  terminalScrollbackLimitNumber, 
-  terminalEnableRightClickPasteBoolean, 
+  terminalScrollbackLimitNumber,
+  terminalEnableRightClickPasteBoolean,
 } = storeToRefs(settingsStore);
- 
+
 const debounce = (func: Function, delay: number) => {
   let timeoutId: number | null = null;
   return (...args: any[]) => {
@@ -102,17 +111,17 @@ const debounce = (func: Function, delay: number) => {
 
 // 创建防抖版的字体大小保存函数 (区分设备)
 const debouncedSaveFontSize = debounce(async (size: number) => {
-    try {
-        if (isMobile.value) {
-            await appearanceStore.setTerminalFontSizeMobile(size);
-            console.log(`[Terminal ${props.sessionId}] Debounced MOBILE font size saved: ${size}`);
-        } else {
-            await appearanceStore.setTerminalFontSize(size);
-            console.log(`[Terminal ${props.sessionId}] Debounced DESKTOP font size saved: ${size}`);
-        }
-    } catch (error) {
-        console.error(`[Terminal ${props.sessionId}] Debounced font size save failed:`, error);
+  try {
+    if (isMobile.value) {
+      await appearanceStore.setTerminalFontSizeMobile(size);
+      console.log(`[Terminal ${props.sessionId}] Debounced MOBILE font size saved: ${size}`);
+    } else {
+      await appearanceStore.setTerminalFontSize(size);
+      console.log(`[Terminal ${props.sessionId}] Debounced DESKTOP font size saved: ${size}`);
     }
+  } catch (error) {
+    console.error(`[Terminal ${props.sessionId}] Debounced font size save failed:`, error);
+  }
 }, 500);
 
 const getScrollbackValue = (limit: number): number => {
@@ -146,22 +155,21 @@ const removeContextMenuListener = () => {
   }
 };
 
-
 // --- 移动端模式下通过双指放大缩小终端字号 ---
 const getDistanceBetweenTouches = (touches: TouchList): number => {
   const touch1 = touches[0];
   const touch2 = touches[1];
   return Math.sqrt(
-    Math.pow(touch2.clientX - touch1.clientX, 2) +
-    Math.pow(touch2.clientY - touch1.clientY, 2)
+    Math.pow(touch2.clientX - touch1.clientX, 2) + Math.pow(touch2.clientY - touch1.clientY, 2)
   );
 };
 
 const handleTouchStart = (event: TouchEvent) => {
   if (event.touches.length === 2 && terminalInstance.value) {
-    event.preventDefault(); 
+    event.preventDefault();
     initialPinchDistance = getDistanceBetweenTouches(event.touches);
-    currentFontSizeOnPinchStart = terminalInstance.value.options.fontSize || currentTerminalFontSize.value;
+    currentFontSizeOnPinchStart =
+      terminalInstance.value.options.fontSize || currentTerminalFontSize.value;
   }
 };
 
@@ -172,9 +180,10 @@ const handleTouchMove = (event: TouchEvent) => {
     if (currentDistance > 0) {
       const scale = currentDistance / initialPinchDistance;
       let newSize = Math.round(currentFontSizeOnPinchStart * scale);
-      newSize = Math.max(8, Math.min(newSize, 72)); 
+      newSize = Math.max(8, Math.min(newSize, 72));
 
-      const currentTerminalOptFontSize = terminalInstance.value.options.fontSize ?? currentTerminalFontSize.value;
+      const currentTerminalOptFontSize =
+        terminalInstance.value.options.fontSize ?? currentTerminalFontSize.value;
       if (newSize !== currentTerminalOptFontSize) {
         terminalInstance.value.options.fontSize = newSize;
         fitAndEmitResizeNow();
@@ -195,7 +204,7 @@ onMounted(() => {
   if (terminalRef.value) {
     const term = new Terminal({
       cursorBlink: true,
-      fontSize: currentTerminalFontSize.value, 
+      fontSize: currentTerminalFontSize.value,
       fontFamily: currentTerminalFontFamily.value,
       theme: effectiveTerminalTheme.value,
       rows: 24,
@@ -207,13 +216,13 @@ onMounted(() => {
       scrollOnUserInput: true,
       ...props.options,
     });
-    
+
     terminalInstance.value = term;
 
     // Load Addons
     term.loadAddon(fitAddon);
     term.loadAddon(new WebLinksAddon());
-    
+
     searchAddon = new SearchAddon();
     term.loadAddon(searchAddon);
 
@@ -229,26 +238,34 @@ onMounted(() => {
       term.loadAddon(outputEnhancerAddon);
       console.log(`[Terminal ${props.sessionId}] OutputEnhancerAddon 加载成功`);
     } catch (error) {
-      console.error(`[Terminal ${props.sessionId}] OutputEnhancerAddon 加载失败，降级使用原始终端：`, error);
+      console.error(
+        `[Terminal ${props.sessionId}] OutputEnhancerAddon 加载失败，降级使用原始终端：`,
+        error
+      );
       outputEnhancerAddon = null; // 降级：不使用输出增强功能
     }
 
     try {
-        const webglAddon = new WebglAddon();
-        webglAddon.onContextLoss(() => {
-            console.warn(`[Terminal ${props.sessionId}] WebGL context lost. Falling back to DOM renderer.`);
-            webglAddon.dispose();
-        });
-        term.loadAddon(webglAddon);
-        console.log(`[Terminal ${props.sessionId}] WebGL renderer enabled.`);
+      const webglAddon = new WebglAddon();
+      webglAddon.onContextLoss(() => {
+        console.warn(
+          `[Terminal ${props.sessionId}] WebGL context lost. Falling back to DOM renderer.`
+        );
+        webglAddon.dispose();
+      });
+      term.loadAddon(webglAddon);
+      console.log(`[Terminal ${props.sessionId}] WebGL renderer enabled.`);
     } catch (e) {
-        console.warn(`[Terminal ${props.sessionId}] WebGL addon failed to load, falling back to canvas/dom renderer:`, e);
+      console.warn(
+        `[Terminal ${props.sessionId}] WebGL addon failed to load, falling back to canvas/dom renderer:`,
+        e
+      );
     }
 
     term.open(terminalRef.value);
     isTerminalDomReady.value = true;
     console.log(`[Terminal ${props.sessionId}] Xterm open() called.`);
- 
+
     fitAndEmitResizeNow(); // Use composable method
 
     // Set up Input Handler (from composable)
@@ -258,99 +275,110 @@ onMounted(() => {
     setupResizeObserver();
 
     // Trigger ready event
-    emitWorkspaceEvent('terminal:ready', { sessionId: props.sessionId, terminal: term, searchAddon: searchAddon });
+    emitWorkspaceEvent('terminal:ready', {
+      sessionId: props.sessionId,
+      terminal: term,
+      searchAddon: searchAddon,
+    });
 
     // --- Selection & Copy ---
     let currentSelection = '';
     const handleSelectionChange = () => {
-        if (term && autoCopyOnSelectBoolean.value) {
-            const newSelection = term.getSelection();
-            if (newSelection && newSelection !== currentSelection) {
-                currentSelection = newSelection;
-                navigator.clipboard.writeText(newSelection).catch(err => {
-                    console.error('[Terminal] Auto-copy failed:', err);
-                });
-            } else if (!newSelection) {
-                currentSelection = '';
-            }
-        } else {
-            currentSelection = '';
+      if (term && autoCopyOnSelectBoolean.value) {
+        const newSelection = term.getSelection();
+        if (newSelection && newSelection !== currentSelection) {
+          currentSelection = newSelection;
+          navigator.clipboard.writeText(newSelection).catch((err) => {
+            console.error('[Terminal] Auto-copy failed:', err);
+          });
+        } else if (!newSelection) {
+          currentSelection = '';
         }
+      } else {
+        currentSelection = '';
+      }
     };
 
     const debouncedSelectionChange = debounce(handleSelectionChange, 50);
     selectionListenerDisposable = term.onSelectionChange(debouncedSelectionChange);
 
     watch(autoCopyOnSelectBoolean, (newValue) => {
-        if (!newValue) currentSelection = '';
+      if (!newValue) currentSelection = '';
     });
 
     // --- Appearance Watchers ---
-    watch(effectiveTerminalTheme, (newTheme) => {
-      if (term) {
-        term.options.theme = newTheme;
-        try {
+    watch(
+      effectiveTerminalTheme,
+      (newTheme) => {
+        if (term) {
+          term.options.theme = newTheme;
+          try {
             term.refresh(0, term.rows - 1);
-        } catch (e) {
+          } catch (e) {
             console.warn(`[Terminal ${props.sessionId}] Refresh failed:`, e);
+          }
         }
-      }
-    }, { deep: true });
+      },
+      { deep: true }
+    );
 
     watch(currentTerminalFontFamily, (newFontFamily) => {
-        if (term) {
-            term.options.fontFamily = newFontFamily;
-            fitAndEmitResizeNow();
-        }
+      if (term) {
+        term.options.fontFamily = newFontFamily;
+        fitAndEmitResizeNow();
+      }
     });
 
     watch(currentTerminalFontSize, (newSize) => {
-        if (term) {
-            term.options.fontSize = newSize;
-            fitAndEmitResizeNow();
-        }
+      if (term) {
+        term.options.fontSize = newSize;
+        fitAndEmitResizeNow();
+      }
     });
 
     term.focus();
 
     // --- Ctrl+Shift+C/V/O ---
     if (term.textarea) {
-        term.textarea.addEventListener('keydown', async (event: KeyboardEvent) => {
-            if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
-                event.preventDefault();
-                event.stopPropagation();
-                const selection = term?.getSelection();
-                if (selection) {
-                    try {
-                        await navigator.clipboard.writeText(selection);
-                    } catch (err) {
-                        console.error('[Terminal] Copy failed:', err);
-                    }
-                }
-            } else if (event.ctrlKey && event.shiftKey && event.code === 'KeyV') {
-                event.preventDefault();
-                event.stopPropagation();
-                try {
-                    const text = await navigator.clipboard.readText();
-                    if (text) {
-                        const processedText = text.replace(/\r\n?/g, '\n');
-                        emitWorkspaceEvent('terminal:input', { sessionId: props.sessionId, data: processedText });
-                    }
-                } catch (err) {
-                    console.error('[Terminal] Paste failed:', err);
-                }
-            } else if (event.ctrlKey && event.shiftKey && event.code === 'KeyO') {
-                // Ctrl+Shift+O: 展开最近折叠的输出
-                event.preventDefault();
-                event.stopPropagation();
-                if (outputEnhancerAddon && outputEnhancerAddon.isEnabled()) {
-                    const expanded = outputEnhancerAddon.expandLastFold();
-                    if (!expanded) {
-                        console.log('[Terminal] No folded content to expand');
-                    }
-                }
+      term.textarea.addEventListener('keydown', async (event: KeyboardEvent) => {
+        if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
+          event.preventDefault();
+          event.stopPropagation();
+          const selection = term?.getSelection();
+          if (selection) {
+            try {
+              await navigator.clipboard.writeText(selection);
+            } catch (err) {
+              console.error('[Terminal] Copy failed:', err);
             }
-        });
+          }
+        } else if (event.ctrlKey && event.shiftKey && event.code === 'KeyV') {
+          event.preventDefault();
+          event.stopPropagation();
+          try {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+              const processedText = text.replace(/\r\n?/g, '\n');
+              emitWorkspaceEvent('terminal:input', {
+                sessionId: props.sessionId,
+                data: processedText,
+              });
+            }
+          } catch (err) {
+            console.error('[Terminal] Paste failed:', err);
+          }
+        } else if (event.ctrlKey && event.shiftKey && event.code === 'KeyO') {
+          // Ctrl+Shift+O: 展开最近折叠的输出
+          event.preventDefault();
+          event.stopPropagation();
+          if (outputEnhancerAddon && outputEnhancerAddon.isEnabled()) {
+            const expanded = outputEnhancerAddon.expandLastFold();
+            if (!expanded) {
+              console.log('[Terminal] No folded content to expand');
+            }
+          }
+        }
+      });
     }
 
     if (terminalEnableRightClickPasteBoolean.value) {
@@ -374,9 +402,9 @@ onMounted(() => {
             else newSize = Math.max(currentSize - 1, 8);
 
             if (newSize !== currentSize) {
-                term.options.fontSize = newSize;
-                fitAndEmitResizeNow();
-                debouncedSaveFontSize(newSize);
+              term.options.fontSize = newSize;
+              fitAndEmitResizeNow();
+              debouncedSaveFontSize(newSize);
             }
           }
         }
@@ -406,21 +434,21 @@ onBeforeUnmount(() => {
   }
 
   if (selectionListenerDisposable) {
-      selectionListenerDisposable.dispose();
+    selectionListenerDisposable.dispose();
   }
 
   removeContextMenuListener();
 
   if (isMobile.value && terminalRef.value) {
-      terminalRef.value.removeEventListener('touchstart', handleTouchStart);
-      terminalRef.value.removeEventListener('touchmove', handleTouchMove);
-      terminalRef.value.removeEventListener('touchend', handleTouchEnd);
-      terminalRef.value.removeEventListener('touchcancel', handleTouchEnd);
+    terminalRef.value.removeEventListener('touchstart', handleTouchStart);
+    terminalRef.value.removeEventListener('touchmove', handleTouchMove);
+    terminalRef.value.removeEventListener('touchend', handleTouchEnd);
+    terminalRef.value.removeEventListener('touchcancel', handleTouchEnd);
   }
 });
 
 const write = (data: string | Uint8Array) => {
-    terminalInstance.value?.write(data);
+  terminalInstance.value?.write(data);
 };
 
 const findNext = (term: string, options?: ISearchOptions): boolean => {
@@ -443,7 +471,6 @@ const clear = () => {
 
 defineExpose({ write, findNext, findPrevious, clearSearch, clear });
 
-
 // --- Styles ---
 const applyTerminalTextStyles = () => {
   if (terminalRef.value && terminalInstance.value?.element) {
@@ -452,7 +479,10 @@ const applyTerminalTextStyles = () => {
 
     if (terminalTextStrokeEnabled.value) {
       hostElement.classList.add('has-text-stroke');
-      hostElement.style.setProperty('--terminal-stroke-width', `${terminalTextStrokeWidth.value}px`);
+      hostElement.style.setProperty(
+        '--terminal-stroke-width',
+        `${terminalTextStrokeWidth.value}px`
+      );
       hostElement.style.setProperty('--terminal-stroke-color', terminalTextStrokeColor.value);
     } else {
       hostElement.style.removeProperty('--terminal-stroke-width');
@@ -482,18 +512,26 @@ watch(
   ],
   () => {
     if (isTerminalDomReady.value && initialAppearanceDataLoaded.value) {
-      nextTick(() => { applyTerminalTextStyles(); });
+      nextTick(() => {
+        applyTerminalTextStyles();
+      });
     }
   },
   { deep: true }
 );
- 
+
 watchEffect(() => {
-  if (isTerminalDomReady.value && initialAppearanceDataLoaded.value && terminalRef.value && terminalInstance.value?.element) {
-    nextTick(() => { applyTerminalTextStyles(); });
+  if (
+    isTerminalDomReady.value &&
+    initialAppearanceDataLoaded.value &&
+    terminalRef.value &&
+    terminalInstance.value?.element
+  ) {
+    nextTick(() => {
+      applyTerminalTextStyles();
+    });
   }
 });
- 
 </script>
 
 <template>

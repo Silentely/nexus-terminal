@@ -1,7 +1,7 @@
 import { onBeforeUnmount, nextTick, watch, type Ref } from 'vue';
 import type { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
-import { useWorkspaceEventEmitter } from '../../composables/workspaceEvents';
+import { useWorkspaceEventEmitter } from '../workspaceEvents';
 
 export function useTerminalFit(
   terminal: Ref<Terminal | null>,
@@ -48,20 +48,20 @@ export function useTerminalFit(
         fitAddon.fit();
         const dimensions = { cols: terminal.value.cols, rows: terminal.value.rows };
         emitWorkspaceEvent('terminal:resize', { sessionId, dims: dimensions });
-        emitWorkspaceEvent('terminal:stabilizedResize', { 
-            sessionId, 
-            width: terminalRef.value.offsetWidth, 
-            height: terminalRef.value.offsetHeight 
+        emitWorkspaceEvent('terminal:stabilizedResize', {
+          sessionId,
+          width: terminalRef.value.offsetWidth,
+          height: terminalRef.value.offsetHeight,
         });
 
         nextTick(() => {
           if (terminal.value && terminalRef.value) {
-             window.dispatchEvent(new Event('resize'));
+            window.dispatchEvent(new Event('resize'));
           }
         });
       }
     } catch (e) {
-      console.warn("Immediate fit/resize failed:", e);
+      console.warn('Immediate fit/resize failed:', e);
     }
   };
 
@@ -73,7 +73,7 @@ export function useTerminalFit(
 
         const entry = entries[0];
         const { height: rectHeight, width: rectWidth } = entry.contentRect;
-        
+
         const widthChanged = Math.abs(rectWidth - lastResizeObserverWidth) >= RESIZE_THRESHOLD;
         const heightChanged = Math.abs(rectHeight - lastResizeObserverHeight) >= RESIZE_THRESHOLD;
 
@@ -85,12 +85,16 @@ export function useTerminalFit(
         lastResizeObserverHeight = roundedHeight;
 
         if (rectHeight > 0 && rectWidth > 0) {
-           fitAddon.fit();
-           debouncedEmitResize(terminal.value);
-           emitWorkspaceEvent('terminal:stabilizedResize', { sessionId, width: roundedWidth, height: roundedHeight });
+          fitAddon.fit();
+          debouncedEmitResize(terminal.value);
+          emitWorkspaceEvent('terminal:stabilizedResize', {
+            sessionId,
+            width: roundedWidth,
+            height: roundedHeight,
+          });
         }
       });
-      
+
       if (isActive.value) {
         resizeObserver.observe(observedElement);
       }
@@ -99,32 +103,37 @@ export function useTerminalFit(
 
   watch(isActive, (newValue) => {
     if (resizeObserver && observedElement) {
-        if (newValue) {
-            resizeObserver.observe(observedElement);
-            nextTick(() => {
-                setTimeout(() => {
-                    if (isActive.value && terminal.value && terminalRef.value && terminalRef.value.offsetHeight > 0) {
-                        fitAndEmitResizeNow();
-                        terminal.value.focus();
-                    }
-                }, 50);
-            });
-        } else {
-            resizeObserver.unobserve(observedElement);
-        }
+      if (newValue) {
+        resizeObserver.observe(observedElement);
+        nextTick(() => {
+          setTimeout(() => {
+            if (
+              isActive.value &&
+              terminal.value &&
+              terminalRef.value &&
+              terminalRef.value.offsetHeight > 0
+            ) {
+              fitAndEmitResizeNow();
+              terminal.value.focus();
+            }
+          }, 50);
+        });
+      } else {
+        resizeObserver.unobserve(observedElement);
+      }
     }
   });
 
   onBeforeUnmount(() => {
     if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
+      resizeObserver.disconnect();
+      resizeObserver = null;
     }
   });
 
   return {
     fitAddon,
     fitAndEmitResizeNow,
-    setupResizeObserver
+    setupResizeObserver,
   };
 }

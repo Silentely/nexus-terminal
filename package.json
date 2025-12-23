@@ -18,7 +18,12 @@
     "test:coverage": "npm run test:coverage:backend && npm run test:coverage:frontend",
     "test:coverage:backend": "npm run -w @nexus-terminal/backend test:coverage",
     "test:coverage:frontend": "npm run -w @nexus-terminal/frontend test:coverage",
-    "postinstall": "patch-package"
+    "lint": "eslint . --ext .js,.ts,.vue",
+    "lint:fix": "eslint . --ext .js,.ts,.vue --fix",
+    "format": "prettier --write \"**/*.{js,ts,vue,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{js,ts,vue,json,css,md}\"",
+    "postinstall": "patch-package",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -46,10 +51,23 @@
     "@tailwindcss/postcss": "^4.1.4",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
+    "@typescript-eslint/parser": "^8.50.1",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-vue": "^10.6.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "patch-package": "^8.0.0",
+    "prettier": "^3.7.4",
     "qrcode": "^1.5.4",
     "speakeasy": "^2.0.0",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "vue-eslint-parser": "^10.2.0"
   },
   "overrides": {
     "esbuild": "^0.25.0"

@@ -1,7 +1,6 @@
-import { ref } from 'vue';
+import { ref, createApp, h } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AlertDialog from '../components/common/AlertDialog.vue';
-import { createApp, h } from 'vue';
 
 interface AlertDialogOptions {
   title: string;
@@ -17,8 +16,7 @@ export function useAlertDialog() {
     return new Promise((resolve) => {
       const { title, message, okText, onOk } = options;
 
-      const
-        container = document.createElement('div');
+      const container = document.createElement('div');
       document.body.appendChild(container);
 
       const app = createApp({

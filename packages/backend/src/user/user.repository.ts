@@ -12,14 +12,16 @@ export interface User {
 export class UserRepository {
   async findUserById(id: number): Promise<User | null> {
     const db = await getDbInstance();
-    const sql = 'SELECT id, username, hashed_password, two_factor_secret, created_at, updated_at FROM users WHERE id = ?';
+    const sql =
+      'SELECT id, username, hashed_password, two_factor_secret, created_at, updated_at FROM users WHERE id = ?';
     const user = await getDb<User>(db, sql, [id]);
     return user ?? null;
   }
 
   async findUserByUsername(username: string): Promise<User | null> {
     const db = await getDbInstance();
-    const sql = 'SELECT id, username, hashed_password, two_factor_secret, created_at, updated_at FROM users WHERE username = ?';
+    const sql =
+      'SELECT id, username, hashed_password, two_factor_secret, created_at, updated_at FROM users WHERE username = ?';
     const user = await getDb<User>(db, sql, [username]);
     return user ?? null;
   }

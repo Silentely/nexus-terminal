@@ -5,7 +5,11 @@
  */
 
 import type { ITerminalAddon, Terminal } from 'xterm';
-import { OutputProcessor, type OutputType, type ProcessedOutput } from '../../../utils/output-processor';
+import {
+  OutputProcessor,
+  type OutputType,
+  type ProcessedOutput,
+} from '../../../utils/output-processor';
 
 const ANSI_DIM = '\x1b[2m';
 const ANSI_RESET = '\x1b[0m';
@@ -35,7 +39,16 @@ export class OutputEnhancerAddon implements ITerminalAddon {
   private originalWrite?: Terminal['write'];
   private enabled: boolean;
   private processor: OutputProcessor;
-  private options: Required<Pick<OutputEnhancerOptions, 'foldThreshold' | 'foldPreviewLines' | 'enableHighlight' | 'enableTableFormat' | 'enableLinkDetection'>>;
+  private options: Required<
+    Pick<
+      OutputEnhancerOptions,
+      | 'foldThreshold'
+      | 'foldPreviewLines'
+      | 'enableHighlight'
+      | 'enableTableFormat'
+      | 'enableLinkDetection'
+    >
+  >;
   private foldedBlocks: FoldedBlock[] = [];
   private foldCounter = 0;
   private readonly maxFoldedBlocks = 24;
@@ -74,7 +87,8 @@ export class OutputEnhancerAddon implements ITerminalAddon {
       }
 
       // 节流机制：高频输出时跳过处理，避免 CPU 飙升
-      const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+      const now =
+        typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
       if (now - this.lastProcessTime < this.throttleMs) {
         this.originalWrite(data, callback);
         return;
@@ -174,17 +188,24 @@ export class OutputEnhancerAddon implements ITerminalAddon {
     if (remainingBytes > this.maxFoldBlockSize) {
       // 按字节安全截断：逐步减少字符数直到字节大小符合要求
       let truncated = remaining;
-      let targetLength = Math.floor(remaining.length * this.maxFoldBlockSize / remainingBytes);
+      let targetLength = Math.floor((remaining.length * this.maxFoldBlockSize) / remainingBytes);
 
-      while (new TextEncoder().encode(truncated).length > this.maxFoldBlockSize && targetLength > 0) {
+      while (
+        new TextEncoder().encode(truncated).length > this.maxFoldBlockSize &&
+        targetLength > 0
+      ) {
         truncated = remaining.slice(0, targetLength);
         targetLength = Math.floor(targetLength * 0.9); // 每次减少10%
       }
 
       const truncatedLines = truncated.split('\n').length;
       const actualBytes = new TextEncoder().encode(truncated).length;
-      remaining = truncated + `\n${ANSI_DIM}[... 内容过长已截断，已隐藏 ${hiddenLines - truncatedLines} 行]${ANSI_RESET}`;
-      console.warn(`[OutputEnhancerAddon] 折叠块内容过大（${(remainingBytes / 1024 / 1024).toFixed(2)}MB），已截断到 ${(actualBytes / 1024 / 1024).toFixed(2)}MB`);
+      remaining = `${
+        truncated
+      }\n${ANSI_DIM}[... 内容过长已截断，已隐藏 ${hiddenLines - truncatedLines} 行]${ANSI_RESET}`;
+      console.warn(
+        `[OutputEnhancerAddon] 折叠块内容过大（${(remainingBytes / 1024 / 1024).toFixed(2)}MB），已截断到 ${(actualBytes / 1024 / 1024).toFixed(2)}MB`
+      );
     }
 
     const foldId = this.generateFoldId();

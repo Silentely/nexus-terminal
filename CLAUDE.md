@@ -7,12 +7,14 @@
 ## 变更记录 (Changelog)
 
 ### 2025-12-22 (Phase 6-11 规划)
+
 - **个人版路线图草案**：新增 `doc/PERSONAL_ROADMAP.md`，聚焦单用户工作流
 - **规划范围**：Phase 6-11 及长期愿景（AI Copilot、插件体系等）
 - **实施策略**：分阶段列出 DB 结构、后端/前端目录规划、估算工期
 - **定位重申**：强调无需多用户/权限体系，聚焦个人运维效率
 
 ### 2025-12-21 (Phase 3-5 功能实现)
+
 - **Phase 3: WebSocket 基础设施升级** (Codex Review: 94/100 APPROVE)
   - 心跳机制：桌面/移动端差异化心跳检测 (`websocket/heartbeat.ts`)
   - 连接管理：客户端类型检测与验证 (`websocket/connection.ts`)
@@ -37,12 +39,14 @@
   - 数据表：`ai_sessions`、`ai_messages`
 
 ### 2025-12-20 22:27:42 (增量更新)
+
 - **模块文档完善**：为 3 个核心模块生成独立 CLAUDE.md 文档
 - **导航面包屑**：为各模块文档添加返回根文档的导航链接
 - **Mermaid 结构图**：更新模块结构图，添加模块间通信流程图
 - **覆盖率更新**：已扫描 283 个源代码文件，模块覆盖率 100%
 
 ### 2025-12-20 22:27:42 (初始创建)
+
 - **初始化架构文档**：完成项目架构分析与模块索引建立
 - **模块识别**：识别 3 个核心模块（backend、frontend、remote-gateway）
 - **技术栈确认**：TypeScript + Vue 3 + Express.js + SQLite3 + Docker
@@ -52,6 +56,7 @@
 ## 项目愿景
 
 星枢终端致力于提供一个现代化、轻量级且功能完备的 Web 远程管理平台，支持：
+
 - **多协议连接**：SSH、SFTP、RDP、VNC
 - **多标签管理**：在单一浏览器窗口管理多个远程会话
 - **会话挂起与恢复**：网络断开后自动保持会话，随时恢复
@@ -65,17 +70,20 @@
 ## 架构总览
 
 ### 技术栈
+
 - **前端**：Vue 3 + TypeScript + Vite + Pinia + Element Plus + Xterm.js + Monaco Editor
 - **后端**：Node.js + Express + TypeScript + SQLite3 + SSH2 + WebSocket
 - **远程桌面网关**：Guacamole Lite + Express + WebSocket
 - **部署**：Docker Compose + Nginx 反向代理
 
 ### 架构模式
+
 - **Monorepo**：npm workspaces 管理三个子包
 - **前后端分离**：RESTful API + WebSocket 实时通信
 - **微服务架构**：后端服务、前端应用、远程网关独立容器化部署
 
 ### 核心能力
+
 1. **会话管理**：支持 SSH 会话挂起/恢复、多标签页管理、自动重连
 2. **文件管理**：基于 SFTP 的文件管理器，支持拖拽上传、多选、权限管理
 3. **终端能力**：Xterm.js 提供全功能终端模拟，支持自定义主题、字体、快捷键
@@ -150,16 +158,16 @@ sequenceDiagram
 
 ## 模块索引
 
-| 模块名称 | 路径 | 语言/框架 | 职责描述 | 文档入口 |
-|---------|------|-----------|---------|---------|
-| **backend** | `packages/backend` | TypeScript / Express.js | 后端 API 服务：SSH/SFTP 连接、用户认证、审计日志、通知、Docker 管理等 | [backend/CLAUDE.md](./packages/backend/CLAUDE.md) |
-| **frontend** | `packages/frontend` | TypeScript / Vue 3 | 前端 Web 应用：终端界面、文件管理器、连接管理、主题定制、路由与状态管理 | [frontend/CLAUDE.md](./packages/frontend/CLAUDE.md) |
-| **remote-gateway** | `packages/remote-gateway` | TypeScript / Express.js | 远程桌面网关：RDP/VNC 连接代理，基于 Guacamole 协议 | [remote-gateway/CLAUDE.md](./packages/remote-gateway/CLAUDE.md) |
+| 模块名称           | 路径                      | 语言/框架               | 职责描述                                                                | 文档入口                                                        |
+| ------------------ | ------------------------- | ----------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **backend**        | `packages/backend`        | TypeScript / Express.js | 后端 API 服务：SSH/SFTP 连接、用户认证、审计日志、通知、Docker 管理等   | [backend/CLAUDE.md](./packages/backend/CLAUDE.md)               |
+| **frontend**       | `packages/frontend`       | TypeScript / Vue 3      | 前端 Web 应用：终端界面、文件管理器、连接管理、主题定制、路由与状态管理 | [frontend/CLAUDE.md](./packages/frontend/CLAUDE.md)             |
+| **remote-gateway** | `packages/remote-gateway` | TypeScript / Express.js | 远程桌面网关：RDP/VNC 连接代理，基于 Guacamole 协议                     | [remote-gateway/CLAUDE.md](./packages/remote-gateway/CLAUDE.md) |
 
 ### 规划文档
 
-| 文档 | 描述 |
-|-----|------|
+| 文档                                             | 描述                                                                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
 | [PERSONAL_ROADMAP.md](./doc/PERSONAL_ROADMAP.md) | **个人版功能规划**：Phase 6-11 详细实施计划，包含命令模板、工作区快照、AI 推荐、知识库等功能的数据库设计、模块架构、工作量评估 |
 
 ---
@@ -228,6 +236,7 @@ npm run build
 ## 测试策略
 
 ### 当前状态
+
 - **无自动化测试**：项目暂无测试文件（未发现 `*.test.ts`、`*.spec.ts` 或 `__tests__` 目录）
 - **测试缺口**：
   - 后端 API 单元测试与集成测试
@@ -236,6 +245,7 @@ npm run build
   - RDP/VNC 代理功能测试
 
 ### 建议测试框架
+
 - **后端**：Jest + Supertest（API 测试）
 - **前端**：Vitest + Vue Test Utils + Cypress（E2E）
 - **协议测试**：模拟 SSH/SFTP 服务器进行集成测试
@@ -245,6 +255,7 @@ npm run build
 ## 编码规范
 
 ### 语言与格式
+
 - **语言**：TypeScript（严格模式）
 - **代码风格**：基于项目内现有约定（建议配置 ESLint + Prettier）
 - **命名约定**：
@@ -254,6 +265,7 @@ npm run build
   - 常量：`UPPER_SNAKE_CASE`
 
 ### 架构约定
+
 - **模块化**：后端按业务领域划分目录（`auth/`、`connections/`、`sftp/` 等）
 - **分层架构**：
   - `routes.ts`：路由定义
@@ -264,6 +276,7 @@ npm run build
 - **类型定义**：所有 API 交互与状态定义需有 TypeScript 类型
 
 ### 依赖管理
+
 - **锁定版本**：生产依赖版本应在 `package.json` 中明确
 - **安全更新**：定期检查依赖漏洞（`npm audit`）
 - **避免重复**：跨模块共享依赖提升至根 `package.json`
@@ -273,6 +286,7 @@ npm run build
 ## AI 使用指引
 
 ### 上下文注入优先级
+
 1. **优先读取**：
    - 根 `CLAUDE.md`（本文件）：获取全局架构与规范
    - 模块 `CLAUDE.md`：获取具体模块的实现细节
@@ -284,6 +298,7 @@ npm run build
    - 类型定义：`packages/*/src/types/*.ts`
 
 ### 任务执行建议
+
 - **新增功能**：
   1. 先读取相关模块的 `CLAUDE.md` 了解现有架构
   2. 在对应模块的目录下创建新文件（遵循现有命名与分层约定）
@@ -301,6 +316,7 @@ npm run build
 ### 提示词模板
 
 #### 新增 API 端点
+
 ```
 请在 backend 模块中新增一个 API 端点，用于[功能描述]。
 - 路由路径：/api/v1/[资源名]
@@ -314,6 +330,7 @@ npm run build
 ```
 
 #### 新增前端组件
+
 ```
 请在 frontend 模块中新增一个 Vue 组件，用于[功能描述]。
 - 组件名称：[PascalCase]
@@ -327,6 +344,7 @@ npm run build
 ```
 
 #### 数据库迁移
+
 ```
 请添加数据库迁移，用于[描述变更内容]。
 - 变更类型：[新增表/修改列/索引优化]
@@ -354,6 +372,7 @@ npm run build
 ## 附录
 
 ### 项目关键文件路径速查
+
 - **Docker 配置**：`docker-compose.yml`、`packages/backend/Dockerfile`
 - **数据库 Schema**：`packages/backend/src/database/schema.ts`
 - **后端入口**：`packages/backend/src/index.ts`
@@ -368,6 +387,7 @@ npm run build
   - 前端：`packages/frontend/src/features/appearance/config/`
 
 ### 部署架构
+
 ```
 Nginx (80/443)
   ↓
@@ -381,6 +401,7 @@ Guacd (4822) → RDP/VNC 协议转换
 ```
 
 ### 数据持久化
+
 - **SQLite 数据库**：挂载至 `./data` 目录
 - **会话文件**：`./data/sessions`
 - **上传文件**：`./packages/backend/uploads`（Docker 容器内）

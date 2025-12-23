@@ -16,9 +16,14 @@ export interface TerminalTheme {
 /**
  * 用于创建新主题的数据结构 (可能不需要 _id, isPreset 等)
  */
-export type CreateTerminalThemeDto = Omit<TerminalTheme, '_id' | 'isPreset' | 'isSystemDefault' | 'createdAt' | 'updatedAt'>;
+export type CreateTerminalThemeDto = Omit<
+  TerminalTheme,
+  '_id' | 'isPreset' | 'isSystemDefault' | 'createdAt' | 'updatedAt'
+>;
 
 /**
  * 用于更新主题的数据结构 (所有字段可选)
  */
-export type UpdateTerminalThemeDto = Partial<Omit<TerminalTheme, '_id' | 'isPreset' | 'isSystemDefault' | 'createdAt' | 'updatedAt'>>;
+export type UpdateTerminalThemeDto = Partial<
+  Omit<TerminalTheme, '_id' | 'isPreset' | 'isSystemDefault' | 'createdAt' | 'updatedAt'>
+>;

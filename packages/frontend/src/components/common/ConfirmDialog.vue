@@ -18,9 +18,12 @@ const { t } = useI18n();
 
 const dialogVisible = ref(props.visible);
 
-watch(() => props.visible, (newValue) => {
-  dialogVisible.value = newValue;
-});
+watch(
+  () => props.visible,
+  (newValue) => {
+    dialogVisible.value = newValue;
+  }
+);
 
 watch(dialogVisible, (newValue) => {
   if (newValue !== props.visible) {
@@ -37,7 +40,7 @@ const handleCancel = () => {
   if (props.isLoading) return;
   emit('cancel');
   // 通常取消也应关闭对话框，如果store管理visible，则由store处理
-  // emit('update:visible', false); 
+  // emit('update:visible', false);
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -57,7 +60,6 @@ watch(dialogVisible, (isVisible) => {
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown);
 });
-
 </script>
 
 <template>

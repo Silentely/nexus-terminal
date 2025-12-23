@@ -21,11 +21,7 @@ router.delete(
 );
 
 // Route to remove an already 'disconnected_by_backend' suspended session entry
-router.delete(
-  '/entry/:suspendSessionId',
-  isAuthenticated,
-  sshSuspendController.removeSessionEntry
-);
+router.delete('/entry/:suspendSessionId', isAuthenticated, sshSuspendController.removeSessionEntry);
 
 // Route to edit a suspended session's custom name
 router.put(
@@ -35,10 +31,6 @@ router.put(
 );
 
 // Route to export the log of a suspended session
-router.get(
-  '/log/:suspendSessionId',
-  isAuthenticated,
-  sshSuspendController.exportSessionLog
-);
+router.get('/log/:suspendSessionId', isAuthenticated, sshSuspendController.exportSessionLog);
 
 export default router;

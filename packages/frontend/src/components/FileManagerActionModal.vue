@@ -12,18 +12,21 @@ const props = defineProps({
     type: String as PropType<'delete' | 'rename' | 'chmod' | 'newFile' | 'newFolder' | null>,
     default: null,
   },
-  item: { // Used for delete, rename, chmod
+  item: {
+    // Used for delete, rename, chmod
     type: Object as PropType<FileListItem | null>,
     default: null,
   },
-  items: { // Used for multi-item delete
+  items: {
+    // Used for multi-item delete
     type: Array as PropType<FileListItem[]>,
     default: () => [],
   },
-  initialValue: { // For pre-filling input, e.g., old name for rename, current perms for chmod
+  initialValue: {
+    // For pre-filling input, e.g., old name for rename, current perms for chmod
     type: String,
     default: '',
-  }
+  },
 });
 
 const emit = defineEmits<{
@@ -35,18 +38,21 @@ const { t } = useI18n();
 const inputValue = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
 
-watch(() => props.isVisible, (newValue) => {
-  if (newValue) {
-    inputValue.value = props.initialValue || '';
-    nextTick(() => {
-      inputRef.value?.focus();
-      inputRef.value?.select();
-    });
-    document.addEventListener('keydown', handleGlobalKeydown);
-  } else {
-    document.removeEventListener('keydown', handleGlobalKeydown);
+watch(
+  () => props.isVisible,
+  (newValue) => {
+    if (newValue) {
+      inputValue.value = props.initialValue || '';
+      nextTick(() => {
+        inputRef.value?.focus();
+        inputRef.value?.select();
+      });
+      document.addEventListener('keydown', handleGlobalKeydown);
+    } else {
+      document.removeEventListener('keydown', handleGlobalKeydown);
+    }
   }
-});
+);
 
 const modalTitle = computed(() => {
   switch (props.actionType) {
@@ -92,15 +98,21 @@ const confirmButtonText = computed(() => {
 const messageText = computed(() => {
   if (props.actionType === 'delete') {
     if (props.items.length > 1) {
-      const names = props.items.map(i => i.filename).join(', ');
-      return t('fileManager.modals.messages.confirmDeleteMultiple', { count: props.items.length, names: names });
+      const names = props.items.map((i) => i.filename).join(', ');
+      return t('fileManager.modals.messages.confirmDeleteMultiple', {
+        count: props.items.length,
+        names: names,
+      });
     } else if (props.items.length === 1 && props.items[0]) {
       // 当删除单个项目时，从 props.items[0] 获取信息
       const singleItem = props.items[0];
       const type = singleItem.attrs.isDirectory
         ? t('fileManager.modals.labels.folder', 'folder')
         : t('fileManager.modals.labels.file', 'file');
-      return t('fileManager.modals.messages.confirmDelete', { type: type, name: singleItem.filename });
+      return t('fileManager.modals.messages.confirmDelete', {
+        type: type,
+        name: singleItem.filename,
+      });
     }
   }
   return '';
@@ -143,11 +155,11 @@ const inputPlaceholder = computed(() => {
 const isConfirmDisabled = computed(() => {
   if (!showInput.value) return false; // For delete, button is never disabled by input
   if (!inputValue.value.trim()) return true; // Disable if input is empty
-  if (props.actionType === 'rename' && inputValue.value.trim() === props.item?.filename) return true; // Disable if name is unchanged
+  if (props.actionType === 'rename' && inputValue.value.trim() === props.item?.filename)
+    return true; // Disable if name is unchanged
   if (props.actionType === 'chmod' && !/^[0-7]{3,4}$/.test(inputValue.value.trim())) return true; // Disable for invalid chmod format
   return false;
 });
-
 
 const closeModal = () => {
   emit('close');
@@ -156,7 +168,11 @@ const closeModal = () => {
 const confirmAction = () => {
   if (isConfirmDisabled.value && showInput.value) return; // Re-check, though button should be disabled
 
-  if (props.actionType === 'chmod' && inputValue.value.trim() && !/^[0-7]{3,4}$/.test(inputValue.value.trim())) {
+  if (
+    props.actionType === 'chmod' &&
+    inputValue.value.trim() &&
+    !/^[0-7]{3,4}$/.test(inputValue.value.trim())
+  ) {
     // This case should ideally be handled by disabling the button, but as a fallback:
     // Consider showing an inline error message instead of alert
     console.warn('Invalid chmod format submitted');
@@ -174,7 +190,8 @@ const handleGlobalKeydown = (event: KeyboardEvent) => {
       if (!isConfirmDisabled.value) {
         confirmAction();
       }
-    } else { // For delete confirmation
+    } else {
+      // For delete confirmation
       confirmAction();
     }
   }
@@ -184,17 +201,33 @@ import { onUnmounted } from 'vue';
 onUnmounted(() => {
   document.removeEventListener('keydown', handleGlobalKeydown);
 });
-
 </script>
 
 <template>
-  <div v-if="isVisible" class="fixed inset-0 bg-overlay flex justify-center items-center z-[100] p-4" @click.self="closeModal">
-    <div class="bg-background text-foreground p-5 rounded-lg shadow-xl border border-border w-full max-w-md flex flex-col relative">
+  <div
+    v-if="isVisible"
+    class="fixed inset-0 bg-overlay flex justify-center items-center z-[100] p-4"
+    @click.self="closeModal"
+  >
+    <div
+      class="bg-background text-foreground p-5 rounded-lg shadow-xl border border-border w-full max-w-md flex flex-col relative"
+    >
       <!-- Close Button -->
-      <button class="absolute top-3 right-3 p-1 text-text-secondary hover:text-foreground z-10" @click="closeModal" :title="t('fileManager.modals.buttons.close', 'Close')">
-         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-         </svg>
+      <button
+        class="absolute top-3 right-3 p-1 text-text-secondary hover:text-foreground z-10"
+        @click="closeModal"
+        :title="t('fileManager.modals.buttons.close', 'Close')"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
 
       <!-- Title -->
@@ -207,7 +240,10 @@ onUnmounted(() => {
         </p>
 
         <div v-if="showInput">
-          <label :for="`fileManagerActionInput-${actionType}`" class="block text-sm font-medium text-text-secondary mb-1">
+          <label
+            :for="`fileManagerActionInput-${actionType}`"
+            class="block text-sm font-medium text-text-secondary mb-1"
+          >
             {{ inputLabel }}
           </label>
           <input
@@ -218,11 +254,26 @@ onUnmounted(() => {
             :placeholder="inputPlaceholder"
             class="w-full px-3 py-2 bg-input border border-border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm text-foreground"
           />
-          <p v-if="actionType === 'chmod' && inputValue.trim() && !/^[0-7]{3,4}$/.test(inputValue.trim())" class="mt-1 text-xs text-red-500">
-            {{ t('fileManager.errors.invalidPermissionsFormat', 'Invalid octal format (e.g., 755 or 0755).') }}
+          <p
+            v-if="
+              actionType === 'chmod' && inputValue.trim() && !/^[0-7]{3,4}$/.test(inputValue.trim())
+            "
+            class="mt-1 text-xs text-red-500"
+          >
+            {{
+              t(
+                'fileManager.errors.invalidPermissionsFormat',
+                'Invalid octal format (e.g., 755 or 0755).'
+              )
+            }}
           </p>
-           <p v-else-if="actionType === 'chmod'" class="mt-1 text-xs text-text-tertiary">
-            {{ t('fileManager.modals.chmodHelp', 'Enter permissions in octal format (e.g., 755 or 0755).') }}
+          <p v-else-if="actionType === 'chmod'" class="mt-1 text-xs text-text-tertiary">
+            {{
+              t(
+                'fileManager.modals.chmodHelp',
+                'Enter permissions in octal format (e.g., 755 or 0755).'
+              )
+            }}
           </p>
         </div>
       </div>
@@ -243,7 +294,7 @@ onUnmounted(() => {
           class="px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-background-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :class="{
             'bg-red-600 hover:bg-red-700 focus:ring-red-500': actionType === 'delete',
-            'bg-primary hover:bg-primary-hover focus:ring-primary': actionType !== 'delete'
+            'bg-primary hover:bg-primary-hover focus:ring-primary': actionType !== 'delete',
           }"
         >
           {{ confirmButtonText }}

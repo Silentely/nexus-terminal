@@ -1,5 +1,5 @@
-import { useDialogStore } from '../stores/dialog.store';
 import { useI18n } from 'vue-i18n';
+import { useDialogStore } from '../stores/dialog.store';
 
 interface ConfirmDialogOptions {
   title?: string; // 将 title 设为可选
@@ -27,15 +27,14 @@ export function useConfirmDialog() {
   const confirmAction = (message: string, title?: string): Promise<boolean> => {
     return showConfirmDialog({
       title: title || t('common.confirmationTitle', '请确认'),
-      message: message,
+      message,
     });
   };
-  
+
   // Expose setLoading if needed directly from composable
   const setLoading = (isLoading: boolean) => {
     dialogStore.setLoading(isLoading);
   };
-
 
   return {
     showConfirmDialog,

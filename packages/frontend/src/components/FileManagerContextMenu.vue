@@ -20,18 +20,21 @@ const props = defineProps({
     type: Array as PropType<ContextMenuItem[]>,
     required: true,
   },
-  activeContextItem: { // Item that was right-clicked
+  activeContextItem: {
+    // Item that was right-clicked
     type: Object as PropType<FileListItem | null>,
     default: null,
   },
-  selectedFileItems: { // Items currently selected in the file manager
+  selectedFileItems: {
+    // Items currently selected in the file manager
     type: Array as PropType<FileListItem[]>,
     default: () => [],
   },
-  currentDirectoryPath: { // Current path of the file manager
+  currentDirectoryPath: {
+    // Current path of the file manager
     type: String,
     required: true,
-  }
+  },
 });
 
 const { isMobile } = useDeviceDetection();
@@ -40,7 +43,8 @@ const sessionStore = useSessionStore(); // +++ 使用 session store +++
 const showSendFilesModal = ref(false);
 // Update the type for itemsToSendData
 const itemsToSendData = ref<{ name: string; path: string; type: 'file' | 'directory' }[]>([]);
-const sourceConnectionId = computed(() => { // +++ 获取并转换源服务器 ID +++
+const sourceConnectionId = computed(() => {
+  // +++ 获取并转换源服务器 ID +++
   const activeConnId = sessionStore.activeSession?.connectionId;
   if (activeConnId) {
     const parsedId = parseInt(activeConnId, 10);
@@ -58,8 +62,11 @@ watch(
     if (newIsVisible) {
       // 仅当菜单从不可见变为可见，或当菜单可见时其初始位置改变时，才进行位置计算
       // oldPosition 可能为 undefined，所以需要检查
-      const positionChangedWhileVisible = oldIsVisible && oldPosition && (newPosition.x !== oldPosition.x || newPosition.y !== oldPosition.y);
-      
+      const positionChangedWhileVisible =
+        oldIsVisible &&
+        oldPosition &&
+        (newPosition.x !== oldPosition.x || newPosition.y !== oldPosition.y);
+
       if (!oldIsVisible || positionChangedWhileVisible) {
         computedRenderPosition.value = { ...newPosition }; // 设置初始位置为当前点击位置
 
@@ -95,7 +102,7 @@ watch(
             // 确保菜单不超出屏幕左上角
             finalX = Math.max(margin, finalX);
             finalY = Math.max(margin, finalY);
-            
+
             // console.debug(`[FileManagerContextMenu] Adjusted pos: (${finalX}, ${finalY})`);
             computedRenderPosition.value = { x: finalX, y: finalY };
           }
@@ -116,13 +123,17 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 };
 
-watch(() => props.isVisible, (newValue) => {
-  if (newValue) {
-    document.addEventListener('click', handleClickOutside, { capture: true });
-  } else {
-    document.removeEventListener('click', handleClickOutside, { capture: true });
-  }
-}, { immediate: true });
+watch(
+  () => props.isVisible,
+  (newValue) => {
+    if (newValue) {
+      document.addEventListener('click', handleClickOutside, { capture: true });
+    } else {
+      document.removeEventListener('click', handleClickOutside, { capture: true });
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside, { capture: true });
@@ -144,7 +155,7 @@ const handleSendToClick = () => {
 
   // 优先使用多选的项目
   if (props.selectedFileItems && props.selectedFileItems.length > 0) {
-    props.selectedFileItems.forEach(item => {
+    props.selectedFileItems.forEach((item) => {
       const type = item.attrs.isDirectory ? 'directory' : 'file';
       let fullPath = props.currentDirectoryPath;
       if (!fullPath.endsWith('/')) {
@@ -159,7 +170,8 @@ const handleSendToClick = () => {
         type: type,
       });
     });
-  } else if (props.activeContextItem) { // 如果没有多选项目，则使用右键点击的单个项目
+  } else if (props.activeContextItem) {
+    // 如果没有多选项目，则使用右键点击的单个项目
     const item = props.activeContextItem;
     const type = item.attrs.isDirectory ? 'directory' : 'file';
     let fullPath = props.currentDirectoryPath;
@@ -176,7 +188,7 @@ const handleSendToClick = () => {
     });
   }
   // else {
-    // 如果两者都为空，itemsToSend 将保持为空数组
+  // 如果两者都为空，itemsToSend 将保持为空数组
   // }
 
   itemsToSendData.value = itemsToSend;
@@ -188,8 +200,6 @@ const handleFilesSent = (payload: any) => {
   console.log('Files to send (from FileManagerContextMenu):', payload);
   // 实际发送逻辑可以后续添加或委派
 };
-
-
 
 // 管理二级菜单的展开状态
 const expandedSubmenu = ref<string | null>(null);
@@ -236,7 +246,7 @@ onUnmounted(() => {
             @click.stop="handleItemClick(subItem)"
             :class="[
               'px-4 py-1.5 cursor-pointer text-foreground text-sm flex items-center transition-colors duration-150 rounded mx-1',
-              'hover:bg-primary/10 hover:text-primary'
+              'hover:bg-primary/10 hover:text-primary',
             ]"
           >
             {{ subItem.label }}
@@ -247,7 +257,7 @@ onUnmounted(() => {
               @click.stop="handleSendToClick"
               :class="[
                 'px-4 py-1.5 cursor-pointer text-foreground text-sm flex items-center transition-colors duration-150 rounded mx-1',
-                'hover:bg-primary/10 hover:text-primary'
+                'hover:bg-primary/10 hover:text-primary',
               ]"
             >
               {{ t('fileManager.contextMenu.sendTo', 'Send to...') }}
@@ -260,18 +270,20 @@ onUnmounted(() => {
           @click.stop="handleItemClick(menuItem)"
           :class="[
             'px-4 py-1.5 cursor-pointer text-foreground text-sm flex items-center transition-colors duration-150 rounded mx-1',
-            'hover:bg-primary/10 hover:text-primary'
+            'hover:bg-primary/10 hover:text-primary',
           ]"
         >
           {{ menuItem.label }}
         </li>
         <!-- 如果普通菜单项是 "压缩", 在其后添加 "发送到" -->
-        <template v-if="!menuItem.submenu && menuItem.label === t('fileManager.contextMenu.compress')">
+        <template
+          v-if="!menuItem.submenu && menuItem.label === t('fileManager.contextMenu.compress')"
+        >
           <li
             @click.stop="handleSendToClick"
             :class="[
               'px-4 py-1.5 cursor-pointer text-foreground text-sm flex items-center transition-colors duration-150 rounded mx-1',
-              'hover:bg-primary/10 hover:text-primary'
+              'hover:bg-primary/10 hover:text-primary',
             ]"
           >
             {{ t('fileManager.contextMenu.sendTo', 'Send to...') }}
@@ -297,7 +309,7 @@ onUnmounted(() => {
               @click.stop="handleItemClick(subItem)"
               :class="[
                 'px-4 py-1.5 cursor-pointer text-foreground text-sm flex items-center transition-colors duration-150 rounded mx-1',
-                'hover:bg-primary/10 hover:text-primary'
+                'hover:bg-primary/10 hover:text-primary',
               ]"
             >
               {{ subItem.label }}
@@ -305,12 +317,18 @@ onUnmounted(() => {
           </ul>
         </li>
         <!-- 如果桌面端带子菜单的项是 "压缩", 在其后添加 "发送到" -->
-        <template v-if="menuItem.submenu && !isMobile && menuItem.label === t('fileManager.contextMenu.compress')">
+        <template
+          v-if="
+            menuItem.submenu &&
+            !isMobile &&
+            menuItem.label === t('fileManager.contextMenu.compress')
+          "
+        >
           <li
             @click.stop="handleSendToClick"
             :class="[
               'px-4 py-1.5 cursor-pointer text-foreground text-sm flex items-center transition-colors duration-150 rounded mx-1',
-              'hover:bg-primary/10 hover:text-primary'
+              'hover:bg-primary/10 hover:text-primary',
             ]"
           >
             {{ t('fileManager.contextMenu.sendTo', 'Send to...') }}

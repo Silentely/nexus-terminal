@@ -26,8 +26,17 @@ export class TransfersController {
 
       const payload = req.body as InitiateTransferPayload;
       // TODO: 添加payload验证逻辑
-      if (!payload || !payload.connectionIds || !payload.sourceItems || !payload.remoteTargetPath || !payload.transferMethod) {
-        res.status(400).json({ message: 'Invalid payload. Required fields: connectionIds, sourceItems, remoteTargetPath, transferMethod.' });
+      if (
+        !payload ||
+        !payload.connectionIds ||
+        !payload.sourceItems ||
+        !payload.remoteTargetPath ||
+        !payload.transferMethod
+      ) {
+        res.status(400).json({
+          message:
+            'Invalid payload. Required fields: connectionIds, sourceItems, remoteTargetPath, transferMethod.',
+        });
         return;
       }
       if (!Array.isArray(payload.connectionIds) || payload.connectionIds.length === 0) {
@@ -44,7 +53,10 @@ export class TransfersController {
       res.status(202).json(task); // 202 Accepted 表示请求已接受处理，但尚未完成
     } catch (error) {
       console.error('[TransfersController] Error initiating transfer:', error);
-      res.status(500).json({ message: 'Failed to initiate transfer.', error: error instanceof Error ? error.message : String(error) });
+      res.status(500).json({
+        message: 'Failed to initiate transfer.',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -60,7 +72,10 @@ export class TransfersController {
       res.status(200).json(tasks);
     } catch (error) {
       console.error('[TransfersController] Error getting all transfer statuses:', error);
-      res.status(500).json({ message: 'Failed to retrieve transfer statuses.', error: error instanceof Error ? error.message : String(error) });
+      res.status(500).json({
+        message: 'Failed to retrieve transfer statuses.',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -83,11 +98,19 @@ export class TransfersController {
         res.status(200).json(task);
       } else {
         // 服务层现在会根据userId过滤，所以404可能是任务不存在，或用户无权访问
-        res.status(404).json({ message: `Transfer task with ID ${taskId} not found or not accessible by this user.` });
+        res.status(404).json({
+          message: `Transfer task with ID ${taskId} not found or not accessible by this user.`,
+        });
       }
     } catch (error) {
-      console.error(`[TransfersController] Error getting status for task ${req.params.taskId}:`, error);
-      res.status(500).json({ message: 'Failed to retrieve task status.', error: error instanceof Error ? error.message : String(error) });
+      console.error(
+        `[TransfersController] Error getting status for task ${req.params.taskId}:`,
+        error
+      );
+      res.status(500).json({
+        message: 'Failed to retrieve task status.',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -111,11 +134,16 @@ export class TransfersController {
         res.status(200).json({ message: `Transfer task ${taskId} cancellation initiated.` });
       } else {
         // 可能任务不存在，或不属于该用户，或无法取消
-        res.status(404).json({ message: `Failed to initiate cancellation for task ${taskId}. It may not exist, not be accessible, or already be in a final state.` });
+        res.status(404).json({
+          message: `Failed to initiate cancellation for task ${taskId}. It may not exist, not be accessible, or already be in a final state.`,
+        });
       }
     } catch (error) {
       console.error(`[TransfersController] Error cancelling task ${req.params.taskId}:`, error);
-      res.status(500).json({ message: 'Failed to cancel task.', error: error instanceof Error ? error.message : String(error) });
+      res.status(500).json({
+        message: 'Failed to cancel task.',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

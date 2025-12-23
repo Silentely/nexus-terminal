@@ -31,23 +31,34 @@ function mapPasskeyResult(dbResult: any): Passkey | null {
     ...dbResult,
     backed_up: !!dbResult.backed_up, // Ensure boolean
     transports: dbResult.transports, // Already string or null
-    created_at: typeof dbResult.created_at === 'string' ? parseInt(dbResult.created_at, 10) : dbResult.created_at,
-    last_used_at: dbResult.last_used_at && typeof dbResult.last_used_at === 'string' ? parseInt(dbResult.last_used_at, 10) : dbResult.last_used_at,
-    updated_at: typeof dbResult.updated_at === 'string' ? parseInt(dbResult.updated_at, 10) : dbResult.updated_at,
+    created_at:
+      typeof dbResult.created_at === 'string'
+        ? parseInt(dbResult.created_at, 10)
+        : dbResult.created_at,
+    last_used_at:
+      dbResult.last_used_at && typeof dbResult.last_used_at === 'string'
+        ? parseInt(dbResult.last_used_at, 10)
+        : dbResult.last_used_at,
+    updated_at:
+      typeof dbResult.updated_at === 'string'
+        ? parseInt(dbResult.updated_at, 10)
+        : dbResult.updated_at,
   };
 }
 
 function mapPasskeyResults(dbResults: any[]): Passkey[] {
-  return dbResults.map(row => ({
+  return dbResults.map((row) => ({
     ...row,
     backed_up: !!row.backed_up,
     transports: row.transports,
     created_at: typeof row.created_at === 'string' ? parseInt(row.created_at, 10) : row.created_at,
-    last_used_at: row.last_used_at && typeof row.last_used_at === 'string' ? parseInt(row.last_used_at, 10) : row.last_used_at,
+    last_used_at:
+      row.last_used_at && typeof row.last_used_at === 'string'
+        ? parseInt(row.last_used_at, 10)
+        : row.last_used_at,
     updated_at: typeof row.updated_at === 'string' ? parseInt(row.updated_at, 10) : row.updated_at,
   }));
 }
-
 
 export class PasskeyRepository {
   async createPasskey(passkeyData: NewPasskey): Promise<Passkey> {
@@ -74,13 +85,13 @@ export class PasskeyRepository {
       passkeyData.name ?? null,
       passkeyData.backed_up ? 1 : 0, // Store boolean as 0 or 1
     ];
-    
+
     const { lastID } = await runDb(db, insertSql, params);
-    
+
     // Fetch the inserted row
     const newPasskey = await this.getPasskeyById(lastID);
     if (!newPasskey) {
-        throw new Error('Failed to create or retrieve passkey after insert.');
+      throw new Error('Failed to create or retrieve passkey after insert.');
     }
     return newPasskey;
   }
@@ -110,14 +121,16 @@ export class PasskeyRepository {
 
   async updatePasskeyCounter(credentialId: string, newCounter: number): Promise<boolean> {
     const db = await getDbInstance();
-    const sql = "UPDATE passkeys SET counter = ?, updated_at = strftime('%s', 'now') WHERE credential_id = ?";
+    const sql =
+      "UPDATE passkeys SET counter = ?, updated_at = strftime('%s', 'now') WHERE credential_id = ?";
     const { changes } = await runDb(db, sql, [newCounter, credentialId]);
     return changes > 0;
   }
 
   async updatePasskeyLastUsedAt(credentialId: string): Promise<boolean> {
     const db = await getDbInstance();
-    const sql = "UPDATE passkeys SET last_used_at = strftime('%s', 'now'), updated_at = strftime('%s', 'now') WHERE credential_id = ?";
+    const sql =
+      "UPDATE passkeys SET last_used_at = strftime('%s', 'now'), updated_at = strftime('%s', 'now') WHERE credential_id = ?";
     const { changes } = await runDb(db, sql, [credentialId]);
     return changes > 0;
   }
@@ -138,7 +151,8 @@ export class PasskeyRepository {
 
   async updatePasskeyName(credentialId: string, name: string): Promise<boolean> {
     const db = await getDbInstance();
-    const sql = "UPDATE passkeys SET name = ?, updated_at = strftime('%s', 'now') WHERE credential_id = ?";
+    const sql =
+      "UPDATE passkeys SET name = ?, updated_at = strftime('%s', 'now') WHERE credential_id = ?";
     const { changes } = await runDb(db, sql, [name, credentialId]);
     return changes > 0;
   }

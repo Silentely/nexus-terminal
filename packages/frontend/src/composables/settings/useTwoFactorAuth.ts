@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../../stores/auth.store';
 import apiClient from '../../utils/apiClient';
-import { useI18n } from 'vue-i18n';
 
 export function useTwoFactorAuth() {
   const authStore = useAuthStore();
@@ -32,11 +32,14 @@ export function useTwoFactorAuth() {
     setupData.value = null;
     verificationCode.value = '';
     try {
-      const response = await apiClient.post<{ secret: string; qrCodeUrl: string }>('/auth/2fa/setup');
+      const response = await apiClient.post<{ secret: string; qrCodeUrl: string }>(
+        '/auth/2fa/setup'
+      );
       setupData.value = response.data;
     } catch (error: any) {
       console.error('开始设置 2FA 失败:', error);
-      twoFactorMessage.value = error.response?.data?.message || t('settings.twoFactor.error.setupFailed');
+      twoFactorMessage.value =
+        error.response?.data?.message || t('settings.twoFactor.error.setupFailed');
     } finally {
       twoFactorLoading.value = false;
     }
@@ -60,7 +63,8 @@ export function useTwoFactorAuth() {
       await authStore.checkAuthStatus(); // Refresh user data
     } catch (error: any) {
       console.error('验证并激活 2FA 失败:', error);
-      twoFactorMessage.value = error.response?.data?.message || t('settings.twoFactor.error.verificationFailed');
+      twoFactorMessage.value =
+        error.response?.data?.message || t('settings.twoFactor.error.verificationFailed');
     } finally {
       twoFactorLoading.value = false;
     }
@@ -83,7 +87,8 @@ export function useTwoFactorAuth() {
       await authStore.checkAuthStatus(); // Refresh user data
     } catch (error: any) {
       console.error('禁用 2FA 失败:', error);
-      twoFactorMessage.value = error.response?.data?.message || t('settings.twoFactor.error.disableFailed');
+      twoFactorMessage.value =
+        error.response?.data?.message || t('settings.twoFactor.error.disableFailed');
     } finally {
       twoFactorLoading.value = false;
     }

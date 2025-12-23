@@ -15,7 +15,7 @@ export type AuditLogActionType =
   | 'PASSKEY_DELETE_UNAUTHORIZED'
   | 'PASSKEY_NAME_UPDATED'
   | 'PASSKEY_NAME_UPDATE_UNAUTHORIZED'
- 
+
   // Connections
   | 'CONNECTION_CREATED'
   | 'CONNECTION_UPDATED'
@@ -34,14 +34,12 @@ export type AuditLogActionType =
   // Settings
   | 'SETTINGS_UPDATED' // General settings update
   | 'IP_WHITELIST_UPDATED' // Specific setting update
-| 'CAPTCHA_SETTINGS_UPDATED'
-
+  | 'CAPTCHA_SETTINGS_UPDATED'
 
   // Notifications
   | 'NOTIFICATION_SETTING_CREATED'
   | 'NOTIFICATION_SETTING_UPDATED'
   | 'NOTIFICATION_SETTING_DELETED'
-
 
   // SSH Actions (via WebSocket)
   //   - SSH_CONNECT_SUCCESS: { userId?: number, username?: string, connectionId: number, connectionName: string, sessionId: string, ip?: string }
@@ -71,14 +69,14 @@ export type AuditLogActionType =
 
 // 审计日志条目的结构 (从数据库读取时)
 export interface AuditLogEntry {
-    id: number;
-    timestamp: number; // Unix timestamp (seconds)
-    action_type: AuditLogActionType;
-    details: string | null; // JSON string or null
+  id: number;
+  timestamp: number; // Unix timestamp (seconds)
+  action_type: AuditLogActionType;
+  details: string | null; // JSON string or null
 }
 
 // 用于创建日志条目的数据结构
 export interface AuditLogData {
-    actionType: AuditLogActionType;
-    details?: Record<string, any> | string | null;
+  actionType: AuditLogActionType;
+  details?: Record<string, any> | string | null;
 }

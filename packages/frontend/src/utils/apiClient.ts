@@ -1,6 +1,6 @@
 import axios from 'axios';
-import router from '../router'; 
-import { useAuthStore } from '../stores/auth.store'; 
+import router from '../router';
+import { useAuthStore } from '../stores/auth.store';
 
 // 创建 axios 实例
 const apiClient = axios.create({
@@ -45,15 +45,15 @@ apiClient.interceptors.response.use(
         case 401: // 未授权
           // 如果用户当前是认证状态，则可能是 session 过期或无效
           if (authStore.isAuthenticated) {
-             console.warn('Unauthorized access detected. Logging out.');
-             // 调用 store 中的 logout 方法，它会处理状态重置和路由跳转
-             authStore.logout();
-             // 可以选择抛出错误或返回一个特定的值，防止后续代码执行
-             return Promise.reject(new Error('Unauthorized, logging out.'));
-          } else {
-             // 如果用户本来就未认证，可能只是访问了需要登录的接口，暂时不强制跳转
-             console.log('Unauthorized access to protected route.');
+            console.warn('Unauthorized access detected. Logging out.');
+            // 调用 store 中的 logout 方法，它会处理状态重置和路由跳转
+            authStore.logout();
+            // 可以选择抛出错误或返回一个特定的值，防止后续代码执行
+            return Promise.reject(new Error('Unauthorized, logging out.'));
           }
+          // 如果用户本来就未认证，可能只是访问了需要登录的接口，暂时不强制跳转
+          console.log('Unauthorized access to protected route.');
+
           break;
         case 403: // 禁止访问
           // 可以显示一个权限不足的提示

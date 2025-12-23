@@ -1,8 +1,8 @@
 import { ref, reactive, computed } from 'vue';
-import { useAuthStore } from '../../stores/auth.store';
 import { useI18n } from 'vue-i18n';
 import { startRegistration } from '@simplewebauthn/browser';
 import { storeToRefs } from 'pinia';
+import { useAuthStore } from '../../stores/auth.store';
 
 export function usePasskeyManagement() {
   const authStore = useAuthStore();
@@ -43,10 +43,17 @@ export function usePasskeyManagement() {
       await authStore.fetchPasskeys();
     } catch (error: any) {
       console.error('Passkey 注册失败:', error);
-      if (error.name === 'InvalidStateError' || error.message.includes('cancelled') || error.message.includes('excludeCredentials')) {
+      if (
+        error.name === 'InvalidStateError' ||
+        error.message.includes('cancelled') ||
+        error.message.includes('excludeCredentials')
+      ) {
         passkeyMessage.value = t('settings.passkey.error.registrationCancelledOrExists'); // 您可能需要添加或修改此翻译
       } else {
-        passkeyMessage.value = error.response?.data?.message || error.message || t('settings.passkey.error.registrationFailed');
+        passkeyMessage.value =
+          error.response?.data?.message ||
+          error.message ||
+          t('settings.passkey.error.registrationFailed');
       }
       passkeySuccess.value = false;
     } finally {
@@ -83,7 +90,10 @@ export function usePasskeyManagement() {
       cancelEditPasskeyName();
     } catch (error: any) {
       console.error(`更新 Passkey ${credentialID} 名称失败:`, error);
-      passkeyMessage.value = error.response?.data?.message || error.message || t('settings.passkey.error.nameUpdateFailed', '更新 Passkey 名称失败。');
+      passkeyMessage.value =
+        error.response?.data?.message ||
+        error.message ||
+        t('settings.passkey.error.nameUpdateFailed', '更新 Passkey 名称失败。');
       passkeySuccess.value = false;
     } finally {
       passkeyEditLoadingStates[credentialID] = false;
@@ -95,8 +105,14 @@ export function usePasskeyManagement() {
       cancelEditPasskeyName();
     }
     if (!credentialID || typeof credentialID !== 'string') {
-      console.error('Attempted to delete a passkey with an invalid or undefined credentialID:', credentialID);
-      passkeyDeleteError.value = t('settings.passkey.error.deleteFailedInvalidId', '删除失败：无效的凭证 ID。');
+      console.error(
+        'Attempted to delete a passkey with an invalid or undefined credentialID:',
+        credentialID
+      );
+      passkeyDeleteError.value = t(
+        'settings.passkey.error.deleteFailedInvalidId',
+        '删除失败：无效的凭证 ID。'
+      );
       return;
     }
     // It's better to handle confirmation in the component itself if needed, or pass a confirm function
@@ -113,7 +129,10 @@ export function usePasskeyManagement() {
       // authStore.fetchPasskeys() is usually called within deletePasskey in the store
     } catch (error: any) {
       console.error(`删除 Passkey ${credentialID} 失败:`, error);
-      passkeyDeleteError.value = error.response?.data?.message || error.message || t('settings.passkey.error.deleteFailedGeneral');
+      passkeyDeleteError.value =
+        error.response?.data?.message ||
+        error.message ||
+        t('settings.passkey.error.deleteFailedGeneral');
       passkeySuccess.value = false;
     } finally {
       passkeyDeleteLoadingStates[credentialID] = false;
@@ -124,9 +143,11 @@ export function usePasskeyManagement() {
     if (!dateInput) return t('statusMonitor.notAvailable', 'N/A');
     try {
       const date = new Date(typeof dateInput === 'number' ? dateInput * 1000 : dateInput);
-      return !isNaN(date.getTime()) ? date.toLocaleString() : t('statusMonitor.notAvailable', 'N/A');
+      return !isNaN(date.getTime())
+        ? date.toLocaleString()
+        : t('statusMonitor.notAvailable', 'N/A');
     } catch (e) {
-      console.error("Error formatting date:", e);
+      console.error('Error formatting date:', e);
       return t('statusMonitor.notAvailable', 'N/A');
     }
   };

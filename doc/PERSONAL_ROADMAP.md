@@ -22,6 +22,7 @@
 ## 🎯 设计原则
 
 ### 核心理念
+
 1. **个人优先**：所有功能围绕单用户体验设计，无需考虑权限分级
 2. **效率至上**：减少重复操作，快捷键优先，自动化流程
 3. **数据本地**：敏感数据本地存储，云端功能可选
@@ -29,6 +30,7 @@
 5. **轻量灵活**：避免过度设计，保持部署简单
 
 ### 技术约束
+
 - SQLite 作为唯一数据库，避免引入复杂存储
 - 后端保持单进程架构，通过 WebSocket 长连接实现实时性
 - 前端组件化开发，按需加载减少初始体积
@@ -41,6 +43,7 @@
 ### 6.1 快速命令模板系统 ⭐⭐⭐
 
 **功能描述**：
+
 - 支持参数化命令模板（如 `docker logs -f {{container}}`）
 - 模板分组管理（系统维护、开发调试、数据备份等）
 - 模板变量提示与历史记录
@@ -49,6 +52,7 @@
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE command_templates (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,6 +82,7 @@ CREATE INDEX idx_variable_history ON template_variable_history(template_id, vari
 ```
 
 #### 后端模块 (`packages/backend/src/command-templates/`)
+
 ```
 command-templates/
 ├── routes.ts           # RESTful API 路由
@@ -88,6 +93,7 @@ command-templates/
 ```
 
 #### 关键接口
+
 - `GET /api/v1/command-templates` - 获取所有模板（支持分类筛选）
 - `POST /api/v1/command-templates` - 创建模板
 - `PUT /api/v1/command-templates/:id` - 更新模板
@@ -96,6 +102,7 @@ command-templates/
 - `GET /api/v1/command-templates/:id/variable-history/:name` - 获取变量历史记录
 
 #### 前端组件 (`packages/frontend/src/features/command-templates/`)
+
 ```
 command-templates/
 ├── components/
@@ -117,6 +124,7 @@ command-templates/
 ### 6.2 工作区快照与场景切换 ⭐⭐⭐
 
 **功能描述**：
+
 - 保存当前工作区状态（所有打开的连接、标签页、布局）
 - 一键恢复工作区快照
 - 场景预设（如"前端开发"、"服务器巡检"、"数据库维护"）
@@ -125,6 +133,7 @@ command-templates/
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE workspace_snapshots (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,6 +148,7 @@ CREATE INDEX idx_snapshot_auto ON workspace_snapshots(is_auto, created_at);
 ```
 
 #### snapshot_data 结构示例
+
 ```json
 {
   "layout": "three-column",
@@ -147,8 +157,8 @@ CREATE INDEX idx_snapshot_auto ON workspace_snapshots(is_auto, created_at);
       "id": 123,
       "protocol": "ssh",
       "tabs": [
-        {"type": "terminal", "title": "web-server", "suspended": false},
-        {"type": "sftp", "path": "/var/www", "filters": ["*.log"]}
+        { "type": "terminal", "title": "web-server", "suspended": false },
+        { "type": "sftp", "path": "/var/www", "filters": ["*.log"] }
       ]
     }
   ],
@@ -164,6 +174,7 @@ CREATE INDEX idx_snapshot_auto ON workspace_snapshots(is_auto, created_at);
 ```
 
 #### 后端模块 (`packages/backend/src/workspace/`)
+
 ```
 workspace/
 ├── routes.ts
@@ -174,6 +185,7 @@ workspace/
 ```
 
 #### 前端组件 (`packages/frontend/src/features/workspace/`)
+
 ```
 workspace/
 ├── components/
@@ -185,6 +197,7 @@ workspace/
 ```
 
 **关键交互**：
+
 1. 用户点击"保存工作区"，触发前端收集当前状态
 2. 前端发送快照数据到后端存储
 3. 恢复时，前端按快照数据依次重建连接和标签页
@@ -196,6 +209,7 @@ workspace/
 ### 6.3 连接分组与标签系统 ⭐⭐
 
 **功能描述**：
+
 - 为 SSH 连接添加多标签（生产、测试、个人等）
 - 按标签筛选连接
 - 颜色标记（为不同标签设置颜色）
@@ -204,6 +218,7 @@ workspace/
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE connection_tags (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -223,12 +238,14 @@ CREATE TABLE connection_tag_mapping (
 ```
 
 #### 后端接口
+
 - `GET /api/v1/tags` - 获取所有标签
 - `POST /api/v1/tags` - 创建标签
 - `POST /api/v1/connections/:id/tags` - 为连接添加标签
 - `GET /api/v1/connections?tags=prod,dev` - 按标签筛选连接
 
 #### 前端实现
+
 - 在连接列表中显示标签徽章
 - 标签管理面板（拖拽排序、颜色选择器）
 - 筛选器组件（支持多选标签）
@@ -240,6 +257,7 @@ CREATE TABLE connection_tag_mapping (
 ### 6.4 命令书签与收藏夹 ⭐⭐
 
 **功能描述**：
+
 - 为常用命令添加书签
 - 支持快捷键直接执行收藏命令
 - 书签分组与搜索
@@ -248,6 +266,7 @@ CREATE TABLE connection_tag_mapping (
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE command_bookmarks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -266,6 +285,7 @@ CREATE INDEX idx_bookmark_execute_count ON command_bookmarks(execute_count DESC)
 ```
 
 #### 前端快捷键集成
+
 - 使用 `@vueuse/core` 的 `useMagicKeys` 绑定快捷键
 - 快捷键冲突检测
 - 全局快捷键面板（显示所有绑定）
@@ -279,6 +299,7 @@ CREATE INDEX idx_bookmark_execute_count ON command_bookmarks(execute_count DESC)
 ### 7.1 智能命令推荐系统 ⭐⭐⭐
 
 **功能描述**：
+
 - 基于历史命令分析，推荐下一步可能的操作
 - 上下文感知推荐（如在 Docker 目录下推荐 docker 命令）
 - 错误命令纠正建议
@@ -287,6 +308,7 @@ CREATE INDEX idx_bookmark_execute_count ON command_bookmarks(execute_count DESC)
 **实施方案**：
 
 #### 数据分析模块 (`packages/backend/src/analytics/`)
+
 ```typescript
 // command-pattern.service.ts
 class CommandPatternService {
@@ -297,10 +319,7 @@ class CommandPatternService {
   }
 
   // 基于当前目录推荐命令
-  async getContextualSuggestions(
-    connectionId: number,
-    currentPath: string
-  ): Promise<Suggestion[]> {
+  async getContextualSuggestions(connectionId: number, currentPath: string): Promise<Suggestion[]> {
     // 检测 package.json -> 推荐 npm 命令
     // 检测 Dockerfile -> 推荐 docker 命令
     // 检测 .git -> 推荐 git 命令
@@ -315,6 +334,7 @@ class CommandPatternService {
 ```
 
 #### 前端智能提示 (`packages/frontend/src/features/smart-suggestions/`)
+
 ```vue
 <!-- SmartSuggestionPanel.vue -->
 <template>
@@ -332,6 +352,7 @@ class CommandPatternService {
 ```
 
 **关键技术**：
+
 - 使用滑动窗口分析命令序列
 - TF-IDF 算法提取命令特征
 - 基于马尔可夫链预测下一个命令
@@ -343,6 +364,7 @@ class CommandPatternService {
 ### 7.2 自动化巡检任务 ⭐⭐⭐
 
 **功能描述**：
+
 - 定时执行健康检查脚本（磁盘空间、内存使用、服务状态）
 - 异常自动告警（邮件/Webhook）
 - 巡检报告生成（支持导出 PDF/Markdown）
@@ -351,6 +373,7 @@ class CommandPatternService {
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE patrol_tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -380,6 +403,7 @@ CREATE INDEX idx_patrol_results_status ON patrol_results(status);
 ```
 
 #### 巡检脚本示例
+
 ```bash
 #!/bin/bash
 # disk_check.sh
@@ -389,6 +413,7 @@ systemctl is-active docker nginx | grep -v active && echo "ERROR: Service down"
 ```
 
 #### 后端调度器 (`packages/backend/src/patrol/scheduler.ts`)
+
 ```typescript
 import cron from 'node-cron';
 
@@ -404,10 +429,7 @@ class PatrolScheduler {
   async executePatrol(task: PatrolTask): Promise<PatrolResult[]> {
     const results: PatrolResult[] = [];
     for (const connId of task.targetConnections) {
-      const output = await this.sshService.executeCommand(
-        connId,
-        task.checkScript
-      );
+      const output = await this.sshService.executeCommand(connId, task.checkScript);
       results.push(this.parseOutput(output, connId));
     }
     return results;
@@ -416,6 +438,7 @@ class PatrolScheduler {
 ```
 
 #### 前端巡检面板 (`packages/frontend/src/features/patrol/`)
+
 ```
 patrol/
 ├── components/
@@ -428,6 +451,7 @@ patrol/
 ```
 
 **关键功能**：
+
 - 支持预设巡检模板（系统资源、服务健康、日志分析）
 - 趋势图表（使用 Chart.js 绘制时间序列）
 - 报告导出（使用 jsPDF 生成 PDF）
@@ -439,6 +463,7 @@ patrol/
 ### 7.3 文件自动备份与同步 ⭐⭐
 
 **功能描述**：
+
 - 定时备份指定远程目录到本地
 - 支持增量备份（rsync 模式）
 - 备份版本管理（保留最近 N 个版本）
@@ -447,6 +472,7 @@ patrol/
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE backup_jobs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -477,6 +503,7 @@ CREATE TABLE backup_history (
 ```
 
 #### 后端备份服务 (`packages/backend/src/backup/service.ts`)
+
 ```typescript
 import { Client } from 'ssh2';
 import fs from 'fs-extra';
@@ -518,6 +545,7 @@ class BackupService {
 ```
 
 **前端界面**：
+
 - 备份任务管理列表
 - 备份历史查看器（可预览备份内容）
 - 一键还原功能
@@ -531,6 +559,7 @@ class BackupService {
 ### 8.1 个人运维仪表盘 ⭐⭐⭐
 
 **功能描述**：
+
 - 实时展示所有服务器关键指标（CPU、内存、磁盘、网络）
 - 连接活动热力图（显示每天最活跃的时间段）
 - 命令执行统计（Top 10 命令、错误率趋势）
@@ -539,6 +568,7 @@ class BackupService {
 **实施方案**：
 
 #### 前端仪表盘 (`packages/frontend/src/features/dashboard/`)
+
 ```
 dashboard/
 ├── components/
@@ -555,6 +585,7 @@ dashboard/
 ```
 
 #### 数据采集
+
 ```typescript
 // packages/backend/src/metrics/collector.ts
 class MetricsCollector {
@@ -563,7 +594,7 @@ class MetricsCollector {
       cpu: "top -bn1 | grep 'Cpu(s)' | awk '{print $2}'",
       memory: "free | grep Mem | awk '{print ($3/$2)*100}'",
       disk: "df -h / | tail -1 | awk '{print $5}'",
-      network: "cat /proc/net/dev | grep eth0 | awk '{print $2, $10}'"
+      network: "cat /proc/net/dev | grep eth0 | awk '{print $2, $10}'",
     };
 
     const metrics: Metrics = {};
@@ -577,6 +608,7 @@ class MetricsCollector {
 ```
 
 #### WebSocket 实时推送
+
 ```typescript
 // 每 10 秒推送一次指标数据
 setInterval(async () => {
@@ -585,13 +617,14 @@ setInterval(async () => {
     const metrics = await metricsCollector.collect(conn.id);
     wsManager.sendToUser(conn.userId, {
       type: 'metrics-update',
-      data: { connectionId: conn.id, metrics }
+      data: { connectionId: conn.id, metrics },
     });
   }
 }, 10000);
 ```
 
 **图表库**：
+
 - Chart.js（时间序列折线图、饼图）
 - Apache ECharts（热力图、仪表盘）
 
@@ -602,6 +635,7 @@ setInterval(async () => {
 ### 8.2 命令执行分析报告 ⭐⭐
 
 **功能描述**：
+
 - 每周/每月自动生成运维报告
 - 统计数据：命令执行次数、连接时长、错误率、活跃服务器
 - 可视化报告（图表 + Markdown）
@@ -610,6 +644,7 @@ setInterval(async () => {
 **实施方案**：
 
 #### 报告生成器 (`packages/backend/src/reports/generator.ts`)
+
 ```typescript
 interface WeeklyReport {
   period: { start: string; end: string };
@@ -638,7 +673,7 @@ class ReportGenerator {
       topCommands: this.aggregateTopCommands(commands, 10),
       connectionStats: this.calculateConnectionStats(sessions),
       errorRate: this.calculateErrorRate(commands),
-      insights: await this.aiOpsService.generateInsights(commands, sessions)
+      insights: await this.aiOpsService.generateInsights(commands, sessions),
     };
   }
 
@@ -649,6 +684,7 @@ class ReportGenerator {
 ```
 
 #### 前端报告查看器
+
 ```vue
 <!-- ReportViewer.vue -->
 <template>
@@ -682,6 +718,7 @@ class ReportGenerator {
 ### 8.3 日志聚合与搜索 ⭐⭐
 
 **功能描述**：
+
 - 自动收集远程服务器日志（syslog、应用日志）
 - 全文搜索与筛选（支持正则表达式）
 - 日志高亮显示（错误、警告、调试）
@@ -690,6 +727,7 @@ class ReportGenerator {
 **实施方案**：
 
 #### 日志收集器 (`packages/backend/src/logs/collector.ts`)
+
 ```typescript
 class LogCollector {
   async collectLogs(connectionId: number, logPath: string): Promise<void> {
@@ -706,7 +744,7 @@ class LogCollector {
     const patterns = {
       syslog: /^(\w+\s+\d+\s+\d+:\d+:\d+)\s+(\S+)\s+(\S+):\s+(.+)$/,
       json: /^{.*}$/,
-      nginx: /^(\S+)\s+-\s+-\s+\[(.*?)\]\s+"(.*?)"\s+(\d+)\s+(\d+)/
+      nginx: /^(\S+)\s+-\s+-\s+\[(.*?)\]\s+"(.*?)"\s+(\d+)\s+(\d+)/,
     };
 
     // 自动检测格式并解析
@@ -715,6 +753,7 @@ class LogCollector {
 ```
 
 #### 数据库设计（使用 FTS5 全文搜索）
+
 ```sql
 CREATE VIRTUAL TABLE logs_fts USING fts5(
   connection_id,
@@ -731,6 +770,7 @@ ORDER BY timestamp DESC LIMIT 100;
 ```
 
 #### 前端日志查看器 (`packages/frontend/src/features/logs/`)
+
 ```
 logs/
 ├── components/
@@ -743,6 +783,7 @@ logs/
 ```
 
 **关键技术**：
+
 - 使用 `virtual-scroller` 渲染大量日志条目
 - 日志高亮使用 `highlight.js` 或自定义正则
 - 实时日志流（WebSocket 推送）
@@ -756,6 +797,7 @@ logs/
 ### 9.1 浏览器扩展版本 ⭐⭐
 
 **功能描述**：
+
 - Chrome/Edge/Firefox 浏览器扩展
 - 快速连接到收藏的服务器（无需打开完整 Web 应用）
 - 全局快捷键唤起终端面板
@@ -764,6 +806,7 @@ logs/
 **实施方案**：
 
 #### 扩展架构
+
 ```
 browser-extension/
 ├── manifest.json              # 扩展配置
@@ -776,6 +819,7 @@ browser-extension/
 ```
 
 #### manifest.json 示例
+
 ```json
 {
   "manifest_version": 3,
@@ -797,6 +841,7 @@ browser-extension/
 ```
 
 #### 数据同步方案
+
 - 使用 `chrome.storage.sync` 存储连接列表（加密）
 - 扩展与 Web 应用通过 API 同步数据
 - 可选：支持导出/导入配置文件
@@ -808,6 +853,7 @@ browser-extension/
 ### 9.2 移动端适配优化 ⭐⭐⭐
 
 **功能描述**：
+
 - PWA 离线支持增强
 - 移动端手势优化（滑动切换标签、双指缩放）
 - 移动端专属布局（简化版界面）
@@ -816,6 +862,7 @@ browser-extension/
 **实施方案**：
 
 #### PWA 增强 (`packages/frontend/public/service-worker.js`)
+
 ```javascript
 // 缓存策略：Network First for API, Cache First for static assets
 self.addEventListener('fetch', (event) => {
@@ -828,6 +875,7 @@ self.addEventListener('fetch', (event) => {
 ```
 
 #### 移动端检测
+
 ```typescript
 // packages/frontend/src/composables/useDeviceDetection.ts
 export function useDeviceDetection() {
@@ -850,6 +898,7 @@ export function useDeviceDetection() {
 ```
 
 #### 移动端终端键盘 (`packages/frontend/src/components/mobile/VirtualKeyboard.vue`)
+
 ```vue
 <template>
   <div class="virtual-keyboard">
@@ -870,6 +919,7 @@ export function useDeviceDetection() {
 ```
 
 **手势支持**：
+
 - 使用 `@vueuse/gesture` 或 `hammer.js`
 - 双指捏合缩放终端字体
 - 左右滑动切换标签页
@@ -882,6 +932,7 @@ export function useDeviceDetection() {
 ### 9.3 配置云同步（可选） ⭐
 
 **功能描述**：
+
 - 支持将配置同步到云端（自建或第三方 S3）
 - 多设备配置同步（连接列表、主题设置、快捷键）
 - 端到端加密（本地加密后上传）
@@ -890,12 +941,13 @@ export function useDeviceDetection() {
 **实施方案**：
 
 #### 后端同步服务 (`packages/backend/src/sync/`)
+
 ```typescript
 interface SyncPayload {
   version: number;
   timestamp: string;
   encrypted_data: string; // AES-256 加密
-  checksum: string;       // SHA-256 校验
+  checksum: string; // SHA-256 校验
 }
 
 class SyncService {
@@ -905,7 +957,7 @@ class SyncService {
       version: Date.now(),
       timestamp: new Date().toISOString(),
       encrypted_data: encrypted,
-      checksum: this.calculateChecksum(encrypted)
+      checksum: this.calculateChecksum(encrypted),
     };
 
     // 上传到 S3 或本地存储
@@ -921,11 +973,13 @@ class SyncService {
 ```
 
 #### 前端同步触发器
+
 - 登录后自动拉取最新配置
 - 配置修改后延迟 5 秒自动上传
 - 手动同步按钮（立即推送/拉取）
 
 **隐私保护**：
+
 - 加密密钥由用户设置的主密码派生（PBKDF2）
 - 服务器无法解密用户数据
 - 可选：完全禁用云同步，仅本地存储
@@ -939,6 +993,7 @@ class SyncService {
 ### 10.1 终端录制与回放 ⭐⭐⭐
 
 **功能描述**：
+
 - 录制完整终端会话（包括颜色、光标移动）
 - 回放录制内容（支持暂停、倍速播放）
 - 导出为 asciinema 格式或 GIF
@@ -947,6 +1002,7 @@ class SyncService {
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE session_recordings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -962,6 +1018,7 @@ CREATE TABLE session_recordings (
 ```
 
 #### recording_data 格式（兼容 asciinema）
+
 ```json
 {
   "version": 2,
@@ -977,6 +1034,7 @@ CREATE TABLE session_recordings (
 ```
 
 #### 后端录制服务 (`packages/backend/src/recordings/service.ts`)
+
 ```typescript
 class RecordingService {
   private recordings = new Map<string, RecordingSession>();
@@ -985,7 +1043,7 @@ class RecordingService {
     const recording: RecordingSession = {
       startTime: Date.now(),
       events: [],
-      metadata: { width: 80, height: 24 }
+      metadata: { width: 80, height: 24 },
     };
     this.recordings.set(sessionId, recording);
   }
@@ -1005,7 +1063,7 @@ class RecordingService {
     await this.saveToDatabase({
       connectionId: sessionId,
       duration: (Date.now() - recording.startTime) / 1000,
-      recordingData: JSON.stringify(recording)
+      recordingData: JSON.stringify(recording),
     });
 
     this.recordings.delete(sessionId);
@@ -1014,6 +1072,7 @@ class RecordingService {
 ```
 
 #### 前端播放器 (`packages/frontend/src/features/recordings/Player.vue`)
+
 ```vue
 <template>
   <div class="recording-player">
@@ -1045,13 +1104,14 @@ const loadRecording = async (recordingId: number) => {
   const data = await api.getRecording(recordingId);
   player.value = AsciinemaPlayer.create(data, terminalContainer.value, {
     speed: playbackSpeed.value,
-    autoPlay: false
+    autoPlay: false,
   });
 };
 </script>
 ```
 
 **导出功能**：
+
 - asciinema 格式（`.cast` 文件）
 - GIF 动图（使用 `asciicast2gif`）
 - HTML 嵌入代码（可分享）
@@ -1063,6 +1123,7 @@ const loadRecording = async (recordingId: number) => {
 ### 10.2 终端分屏与布局增强 ⭐⭐
 
 **功能描述**：
+
 - 单个标签页内支持多终端分屏（类似 tmux）
 - 预设布局模板（两列、三列、田字格）
 - 分屏间快捷键切换
@@ -1071,6 +1132,7 @@ const loadRecording = async (recordingId: number) => {
 **实施方案**：
 
 #### 前端分屏组件 (`packages/frontend/src/components/terminal/SplitTerminal.vue`)
+
 ```vue
 <template>
   <div class="split-terminal" :style="gridStyle">
@@ -1099,7 +1161,12 @@ interface Pane {
 }
 
 const panes = ref<Pane[]>([
-  { id: 'pane-1', sessionId: 'session-1', position: { row: 0, col: 0 }, size: { width: 100, height: 100 } }
+  {
+    id: 'pane-1',
+    sessionId: 'session-1',
+    position: { row: 0, col: 0 },
+    size: { width: 100, height: 100 },
+  },
 ]);
 
 const splitHorizontal = (index: number) => {
@@ -1110,13 +1177,14 @@ const splitHorizontal = (index: number) => {
     id: `pane-${Date.now()}`,
     sessionId: `session-${Date.now()}`,
     position: { row: pane.position.row + 1, col: pane.position.col },
-    size: { width: pane.size.width, height: 50 }
+    size: { width: pane.size.width, height: 50 },
   });
 };
 </script>
 ```
 
 #### 同步输入模式
+
 ```typescript
 // packages/frontend/src/composables/useSyncInput.ts
 export function useSyncInput(panes: Ref<Pane[]>) {
@@ -1126,7 +1194,7 @@ export function useSyncInput(panes: Ref<Pane[]>) {
     if (!isSyncMode.value) return;
 
     // 向所有 pane 的终端发送相同输入
-    panes.value.forEach(pane => {
+    panes.value.forEach((pane) => {
       sendToTerminal(pane.sessionId, data);
     });
   };
@@ -1136,6 +1204,7 @@ export function useSyncInput(panes: Ref<Pane[]>) {
 ```
 
 **快捷键**：
+
 - `Ctrl+Shift+D`：水平分割
 - `Ctrl+Shift+E`：垂直分割
 - `Ctrl+Shift+W`：关闭当前面板
@@ -1148,6 +1217,7 @@ export function useSyncInput(panes: Ref<Pane[]>) {
 ### 10.3 命令输出增强 ⭐⭐
 
 **功能描述**：
+
 - 命令输出语法高亮（JSON、YAML、日志等）
 - 表格自动格式化（检测列对齐）
 - 链接自动检测（URL、文件路径）
@@ -1156,6 +1226,7 @@ export function useSyncInput(panes: Ref<Pane[]>) {
 **实施方案**：
 
 #### 输出处理器 (`packages/frontend/src/utils/output-processor.ts`)
+
 ```typescript
 class OutputProcessor {
   process(output: string): ProcessedOutput {
@@ -1201,6 +1272,7 @@ class OutputProcessor {
 ```
 
 #### Xterm 插件集成
+
 ```typescript
 // packages/frontend/src/features/terminal/addons/output-enhancer.ts
 import { Terminal, ITerminalAddon } from 'xterm';
@@ -1233,6 +1305,7 @@ export class OutputEnhancerAddon implements ITerminalAddon {
 ### 11.1 内置文档与笔记系统 ⭐⭐⭐
 
 **功能描述**：
+
 - Markdown 笔记编辑器（集成到侧边栏）
 - 支持代码块高亮与运行
 - 笔记与连接关联（为每个服务器创建笔记）
@@ -1241,6 +1314,7 @@ export class OutputEnhancerAddon implements ITerminalAddon {
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1258,6 +1332,7 @@ CREATE VIRTUAL TABLE notes_fts USING fts5(title, content, tags);
 ```
 
 #### 前端编辑器 (`packages/frontend/src/features/notes/`)
+
 ```
 notes/
 ├── components/
@@ -1270,15 +1345,17 @@ notes/
 ```
 
 #### 代码块执行功能
-```vue
+
+````vue
 <!-- 在 Markdown 中标记可执行代码块 -->
-```bash {runnable}
-df -h
-```
+```bash {runnable} df -h
+````
 
 <!-- 前端检测到 {runnable} 标记，显示"运行"按钮 -->
+
 <button @click="runCodeBlock(codeBlock)">▶ 运行</button>
-```
+
+````
 
 **快捷键**：
 - `Ctrl+N`：新建笔记
@@ -1313,9 +1390,10 @@ CREATE TABLE troubleshooting_entries (
   last_occurred_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
-```
+````
 
 #### 自动问题检测
+
 ```typescript
 // packages/backend/src/troubleshooting/detector.ts
 class ProblemDetector {
@@ -1325,7 +1403,7 @@ class ProblemDetector {
       permission_denied: /permission denied/i,
       command_not_found: /command not found/i,
       disk_full: /no space left on device/i,
-      connection_refused: /connection refused/i
+      connection_refused: /connection refused/i,
     };
 
     for (const [type, pattern] of Object.entries(patterns)) {
@@ -1334,7 +1412,7 @@ class ProblemDetector {
           type,
           command,
           output,
-          suggestedSolution: await this.getSolution(type)
+          suggestedSolution: await this.getSolution(type),
         };
       }
     }
@@ -1345,12 +1423,13 @@ class ProblemDetector {
   async getSolution(problemType: string): Promise<string> {
     // 从知识库查询或调用 AI
     const entry = await this.repository.findByType(problemType);
-    return entry?.solution || await this.aiOpsService.generateSolution(problemType);
+    return entry?.solution || (await this.aiOpsService.generateSolution(problemType));
   }
 }
 ```
 
 #### 前端问题面板
+
 ```vue
 <!-- ErrorAssistantPanel.vue -->
 <template>
@@ -1375,6 +1454,7 @@ class ProblemDetector {
 ### 11.3 服务器运维手册 ⭐⭐
 
 **功能描述**：
+
 - 为每个服务器创建运维文档
 - 记录服务架构、部署信息、常用操作
 - 自动生成服务器拓扑图
@@ -1383,6 +1463,7 @@ class ProblemDetector {
 **实施方案**：
 
 #### 数据库设计
+
 ```sql
 CREATE TABLE server_documentation (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1407,6 +1488,7 @@ CREATE TABLE documentation_versions (
 ```
 
 #### sections 结构
+
 ```json
 {
   "basic_info": {
@@ -1428,6 +1510,7 @@ CREATE TABLE documentation_versions (
 ```
 
 #### 前端文档编辑器
+
 ```
 documentation/
 ├── components/
@@ -1445,12 +1528,14 @@ documentation/
 ### L1: 终端 AI Copilot ⭐⭐⭐
 
 **功能描述**：
+
 - 实时分析命令意图，提供下一步建议
 - 自然语言转命令（"列出所有大于 100MB 的文件" → `find . -size +100M`）
 - 命令解释器（解释复杂命令的含义）
 - 错误诊断与自动修复
 
 **技术方案**：
+
 - 集成本地 LLM（llama.cpp + Mistral/Llama 3）
 - 或调用 OpenAI/Claude API（用户配置）
 - 使用 RAG（检索增强生成）从历史命令学习
@@ -1462,11 +1547,13 @@ documentation/
 ### L2: 远程协作（屏幕共享） ⭐⭐
 
 **功能描述**：
+
 - 生成临时分享链接，允许他人查看终端会话
 - 只读模式（他人无法输入）
 - 可选：协作模式（多人同时操作）
 
 **技术方案**：
+
 - WebRTC 实现屏幕共享
 - 后端生成一次性 Token
 - 前端使用 Canvas 渲染终端内容并流式传输
@@ -1478,11 +1565,13 @@ documentation/
 ### L3: 插件系统 ⭐⭐
 
 **功能描述**：
+
 - 支持用户编写自定义插件（JavaScript/TypeScript）
 - 插件 Hook 系统（命令执行前后、连接建立等）
 - 插件市场（内置常用插件）
 
 **技术方案**：
+
 - 插件沙箱（使用 VM2 或 Web Worker）
 - 插件 API 设计（暴露受限的系统接口）
 - 插件配置界面
@@ -1494,12 +1583,14 @@ documentation/
 ### L4: 性能监控与告警 ⭐⭐⭐
 
 **功能描述**：
+
 - 实时监控服务器性能指标
 - 自定义告警规则（如 CPU > 80% 持续 5 分钟）
 - 告警通知（邮件、Telegram、钉钉、企业微信）
 - 历史数据可视化
 
 **技术方案**：
+
 - 后端定时采集指标（InfluxDB 或 SQLite 存储时序数据）
 - 告警引擎（基于规则引擎）
 - 前端 WebSocket 实时推送告警
@@ -1511,11 +1602,13 @@ documentation/
 ### L5: 容器与 Kubernetes 集成 ⭐⭐
 
 **功能描述**：
+
 - 可视化管理 Docker 容器（启动、停止、日志查看）
 - Kubernetes 集群管理（Pod 列表、日志、端口转发）
 - 容器终端快速进入（`docker exec`）
 
 **技术方案**：
+
 - 后端集成 Dockerode（Docker API 客户端）
 - 后端集成 @kubernetes/client-node
 - 前端容器管理面板
@@ -1526,34 +1619,35 @@ documentation/
 
 ## 实施优先级矩阵
 
-| 功能 | 优先级 | 实施难度 | 用户价值 | 预计工作量 | 建议开始时间 |
-|------|--------|----------|----------|------------|--------------|
-| **快速命令模板系统** | P0 ⭐⭐⭐ | 中 | 极高 | 5-7 天 | 立即 |
-| **工作区快照与场景切换** | P0 ⭐⭐⭐ | 中 | 极高 | 4-6 天 | 立即 |
-| **智能命令推荐系统** | P0 ⭐⭐⭐ | 高 | 高 | 6-8 天 | Phase 7 |
-| **个人运维仪表盘** | P0 ⭐⭐⭐ | 中 | 极高 | 6-8 天 | Phase 8 |
-| **终端录制与回放** | P0 ⭐⭐⭐ | 中 | 高 | 7-10 天 | Phase 10 |
-| **内置文档与笔记系统** | P0 ⭐⭐⭐ | 中 | 极高 | 6-8 天 | Phase 11 |
-| **自动化巡检任务** | P1 ⭐⭐⭐ | 高 | 高 | 7-10 天 | Phase 7 |
-| **移动端适配优化** | P1 ⭐⭐⭐ | 中 | 高 | 5-7 天 | Phase 9 |
-| **性能监控与告警** | P1 ⭐⭐⭐ | 高 | 极高 | 10-12 天 | 长期 |
-| **连接分组与标签系统** | P1 ⭐⭐ | 低 | 中 | 2-3 天 | Phase 6 |
-| **命令书签与收藏夹** | P1 ⭐⭐ | 低 | 中 | 2-3 天 | Phase 6 |
-| **文件自动备份与同步** | P1 ⭐⭐ | 中 | 高 | 5-7 天 | Phase 7 |
-| **日志聚合与搜索** | P1 ⭐⭐ | 高 | 中 | 6-8 天 | Phase 8 |
-| **命令执行分析报告** | P1 ⭐⭐ | 中 | 中 | 4-5 天 | Phase 8 |
-| **终端分屏与布局增强** | P1 ⭐⭐ | 中 | 中 | 6-8 天 | Phase 10 |
-| **命令输出增强** | P1 ⭐⭐ | 中 | 中 | 4-6 天 | Phase 10 |
-| **常见问题与解决方案库** | P1 ⭐⭐ | 中 | 高 | 5-7 天 | Phase 11 |
-| **服务器运维手册** | P1 ⭐⭐ | 中 | 中 | 6-8 天 | Phase 11 |
-| **浏览器扩展版本** | P2 ⭐⭐ | 中 | 低 | 4-6 天 | Phase 9 |
-| **配置云同步** | P2 ⭐ | 中 | 低 | 6-8 天 | Phase 9 |
-| **终端 AI Copilot** | P2 ⭐⭐⭐ | 极高 | 极高 | 10-15 天 | 长期 |
-| **容器与 K8s 集成** | P2 ⭐⭐ | 高 | 中 | 10-15 天 | 长期 |
-| **远程协作（屏幕共享）** | P2 ⭐⭐ | 高 | 低 | 8-10 天 | 长期 |
-| **插件系统** | P2 ⭐⭐ | 极高 | 中 | 12-15 天 | 长期 |
+| 功能                     | 优先级    | 实施难度 | 用户价值 | 预计工作量 | 建议开始时间 |
+| ------------------------ | --------- | -------- | -------- | ---------- | ------------ |
+| **快速命令模板系统**     | P0 ⭐⭐⭐ | 中       | 极高     | 5-7 天     | 立即         |
+| **工作区快照与场景切换** | P0 ⭐⭐⭐ | 中       | 极高     | 4-6 天     | 立即         |
+| **智能命令推荐系统**     | P0 ⭐⭐⭐ | 高       | 高       | 6-8 天     | Phase 7      |
+| **个人运维仪表盘**       | P0 ⭐⭐⭐ | 中       | 极高     | 6-8 天     | Phase 8      |
+| **终端录制与回放**       | P0 ⭐⭐⭐ | 中       | 高       | 7-10 天    | Phase 10     |
+| **内置文档与笔记系统**   | P0 ⭐⭐⭐ | 中       | 极高     | 6-8 天     | Phase 11     |
+| **自动化巡检任务**       | P1 ⭐⭐⭐ | 高       | 高       | 7-10 天    | Phase 7      |
+| **移动端适配优化**       | P1 ⭐⭐⭐ | 中       | 高       | 5-7 天     | Phase 9      |
+| **性能监控与告警**       | P1 ⭐⭐⭐ | 高       | 极高     | 10-12 天   | 长期         |
+| **连接分组与标签系统**   | P1 ⭐⭐   | 低       | 中       | 2-3 天     | Phase 6      |
+| **命令书签与收藏夹**     | P1 ⭐⭐   | 低       | 中       | 2-3 天     | Phase 6      |
+| **文件自动备份与同步**   | P1 ⭐⭐   | 中       | 高       | 5-7 天     | Phase 7      |
+| **日志聚合与搜索**       | P1 ⭐⭐   | 高       | 中       | 6-8 天     | Phase 8      |
+| **命令执行分析报告**     | P1 ⭐⭐   | 中       | 中       | 4-5 天     | Phase 8      |
+| **终端分屏与布局增强**   | P1 ⭐⭐   | 中       | 中       | 6-8 天     | Phase 10     |
+| **命令输出增强**         | P1 ⭐⭐   | 中       | 中       | 4-6 天     | Phase 10     |
+| **常见问题与解决方案库** | P1 ⭐⭐   | 中       | 高       | 5-7 天     | Phase 11     |
+| **服务器运维手册**       | P1 ⭐⭐   | 中       | 中       | 6-8 天     | Phase 11     |
+| **浏览器扩展版本**       | P2 ⭐⭐   | 中       | 低       | 4-6 天     | Phase 9      |
+| **配置云同步**           | P2 ⭐     | 中       | 低       | 6-8 天     | Phase 9      |
+| **终端 AI Copilot**      | P2 ⭐⭐⭐ | 极高     | 极高     | 10-15 天   | 长期         |
+| **容器与 K8s 集成**      | P2 ⭐⭐   | 高       | 中       | 10-15 天   | 长期         |
+| **远程协作（屏幕共享）** | P2 ⭐⭐   | 高       | 低       | 8-10 天    | 长期         |
+| **插件系统**             | P2 ⭐⭐   | 极高     | 中       | 12-15 天   | 长期         |
 
 **优先级说明**：
+
 - **P0**：核心功能，应优先实施
 - **P1**：重要功能，提升使用体验
 - **P2**：增强功能，可后期实施
@@ -1565,9 +1659,11 @@ documentation/
 ### 1. 数据库优化
 
 **当前问题**：
+
 - SQLite 单文件数据库，数据量增长可能影响性能
 
 **优化方案**：
+
 - 启用 WAL 模式（Write-Ahead Logging）提升并发性能
   ```sql
   PRAGMA journal_mode=WAL;
@@ -1581,10 +1677,12 @@ documentation/
 ### 2. 前端性能优化
 
 **当前问题**：
+
 - 多标签页打开时内存占用较高
 - 大量历史命令渲染可能卡顿
 
 **优化方案**：
+
 - 实施虚拟滚动（`vue-virtual-scroller`）
 - 标签页懒加载（非活动标签页不渲染终端）
 - 使用 Web Worker 处理耗时计算（如命令分析）
@@ -1595,9 +1693,11 @@ documentation/
 ### 3. WebSocket 连接管理
 
 **当前问题**：
+
 - 大量连接时 WebSocket 管理复杂
 
 **优化方案**：
+
 - 实施连接池管理
 - 心跳机制优化（已实施，持续监控）
 - 支持断线重连（指数退避策略）
@@ -1607,10 +1707,12 @@ documentation/
 ### 4. 安全加固
 
 **当前问题**：
+
 - 敏感数据加密（已部分实施）
 - XSS/CSRF 防护需持续关注
 
 **优化方案**：
+
 - 定期审计依赖漏洞（`npm audit`）
 - 实施 CSP（Content Security Policy）
 - 敏感操作添加二次确认（删除连接、清空日志等）
@@ -1621,10 +1723,12 @@ documentation/
 ### 5. 可观测性
 
 **当前问题**：
+
 - 缺乏系统运行时监控
 - 错误日志分散
 
 **优化方案**：
+
 - 集成应用性能监控（APM）：Sentry / Datadog
 - 结构化日志（使用 Winston 或 Pino）
 - 添加健康检查端点（`/health`）
@@ -1635,9 +1739,11 @@ documentation/
 ### 6. 测试覆盖率
 
 **当前问题**：
+
 - 无自动化测试
 
 **优化方案**：
+
 - **Phase 1**：关键模块单元测试（认证、命令执行、文件上传）
 - **Phase 2**：API 集成测试（Supertest）
 - **Phase 3**：前端组件测试（Vitest + Vue Test Utils）
@@ -1648,6 +1754,7 @@ documentation/
 ## 实施建议
 
 ### 短期目标（1-2 个月）
+
 1. 实施 **Phase 6**（个人工作流增强）
    - 快速命令模板系统
    - 工作区快照
@@ -1660,6 +1767,7 @@ documentation/
    - 添加单元测试
 
 ### 中期目标（3-6 个月）
+
 1. 实施 **Phase 7**（智能化与自动化）
    - 智能命令推荐
    - 自动化巡检任务
@@ -1672,6 +1780,7 @@ documentation/
    - 终端录制与回放
 
 ### 长期目标（6-12 个月）
+
 1. 实施 **Phase 11**（个人知识库）
    - 内置文档与笔记系统
    - 常见问题库
@@ -1688,12 +1797,14 @@ documentation/
 本路线图基于当前项目定位（个人使用），避免了多用户权限管理等复杂功能，专注于提升个人运维效率。
 
 **核心理念**：
+
 - 🚀 **效率优先**：减少重复操作，自动化流程
 - 🧠 **智能化**：AI 辅助运维，智能推荐
 - 📊 **可视化**：数据洞察，趋势分析
 - 📚 **知识沉淀**：内置笔记系统，问题解决方案库
 
 **下一步行动**：
+
 1. 与项目维护者讨论优先级
 2. 创建 GitHub Issues 跟踪各 Phase 任务
 3. 按 Phase 6 开始实施

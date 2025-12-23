@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../auth/auth.middleware';
 import {
-    getStats,
-    getAssetHealth,
-    getTimeline,
-    getStorage,
-    getSystemResources
+  getStats,
+  getAssetHealth,
+  getTimeline,
+  getStorage,
+  getSystemResources,
 } from './dashboard.controller';
 
 const router = Router();

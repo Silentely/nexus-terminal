@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
 import vitePluginCompression from 'vite-plugin-compression';
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
@@ -37,13 +37,19 @@ export default defineConfig({
       output: {
         manualChunks: {
           'monaco-editor': ['monaco-editor'],
-          'xterm': ['xterm', '@xterm/addon-fit', '@xterm/addon-search', '@xterm/addon-webgl', 'xterm-addon-web-links'],
-          'guacamole': ['guacamole-common-js'],
-          'chart': ['chart.js', 'vue-chartjs'],
-          'vendor-core': ['vue', 'vue-router', 'pinia', 'axios', 'date-fns']
-        }
-      }
-    }
+          xterm: [
+            'xterm',
+            '@xterm/addon-fit',
+            '@xterm/addon-search',
+            '@xterm/addon-webgl',
+            'xterm-addon-web-links',
+          ],
+          guacamole: ['guacamole-common-js'],
+          chart: ['chart.js', 'vue-chartjs'],
+          'vendor-core': ['vue', 'vue-router', 'pinia', 'axios', 'date-fns'],
+        },
+      },
+    },
   },
   server: {
     proxy: {
@@ -64,7 +70,7 @@ export default defineConfig({
         target: 'ws://localhost:3001', // 后端 WebSocket 服务器地址
         ws: true,
         changeOrigin: true,
-      }
-    }
-  }
-})
+      },
+    },
+  },
+});

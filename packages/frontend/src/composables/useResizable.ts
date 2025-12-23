@@ -10,7 +10,16 @@ interface UseResizableOptions {
   initialHeight?: number | string; // Allow string for % or vh/vw, or number for px
 }
 
-type Edge = 'right' | 'bottom' | 'left' | 'top' | 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | null;
+type Edge =
+  | 'right'
+  | 'bottom'
+  | 'left'
+  | 'top'
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'top-right'
+  | 'top-left'
+  | null;
 
 export function useResizable(
   elementRef: Ref<HTMLElement | null>,
@@ -52,10 +61,10 @@ export function useResizable(
     if (onLeft) return 'left';
     if (onBottom) return 'bottom';
     if (onTop) return 'top';
-    
+
     return null;
   };
-  
+
   const updateCursorStyle = (el: HTMLElement, edge: Edge) => {
     if (edge === 'left' || edge === 'right') el.style.cursor = 'ew-resize';
     else if (edge === 'top' || edge === 'bottom') el.style.cursor = 'ns-resize';
@@ -82,7 +91,7 @@ export function useResizable(
     startHeight = rect.height;
     width.value = startWidth;
     height.value = startHeight;
-    
+
     elementRef.value.style.userSelect = 'none'; // Prevent text selection
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -121,8 +130,8 @@ export function useResizable(
     if (!isResizing.value) return;
     isResizing.value = false;
     if (elementRef.value) {
-        elementRef.value.style.userSelect = '';
-        updateCursorStyle(elementRef.value, null); // Reset to default or hover state
+      elementRef.value.style.userSelect = '';
+      updateCursorStyle(elementRef.value, null); // Reset to default or hover state
     }
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
@@ -140,8 +149,8 @@ export function useResizable(
       // Initialize width and height from element's current computed size
       // This ensures that initial CSS (like %, vw, vh, or fixed values) is respected
       const computedStyle = window.getComputedStyle(el);
-      let parsedWidth = parseFloat(computedStyle.width);
-      let parsedHeight = parseFloat(computedStyle.height);
+      const parsedWidth = parseFloat(computedStyle.width);
+      const parsedHeight = parseFloat(computedStyle.height);
 
       // Fallback to minWidth/minHeight if parsing results in NaN, or ensure value is at least minWidth/minHeight
       width.value = isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
@@ -167,9 +176,9 @@ export function useResizable(
       });
     }
     window.removeEventListener('mousemove', handleMouseMove); // Cleanup just in case
-    window.removeEventListener('mouseup', handleMouseUp);     // Cleanup just in case
+    window.removeEventListener('mouseup', handleMouseUp); // Cleanup just in case
   });
-  
+
   // Watch for external changes to elementRef if it can become null
   watch(elementRef, (newEl, oldEl) => {
     if (oldEl) {
@@ -181,8 +190,8 @@ export function useResizable(
     }
     if (newEl) {
       const computedStyle = window.getComputedStyle(newEl);
-      let parsedWidth = parseFloat(computedStyle.width);
-      let parsedHeight = parseFloat(computedStyle.height);
+      const parsedWidth = parseFloat(computedStyle.width);
+      const parsedHeight = parseFloat(computedStyle.height);
 
       // Fallback to minWidth/minHeight if parsing results in NaN, or ensure value is at least minWidth/minHeight
       width.value = isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
