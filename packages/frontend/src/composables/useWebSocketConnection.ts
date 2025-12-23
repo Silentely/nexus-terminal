@@ -40,6 +40,81 @@ export function createWebSocketConnectionManager(
     let lastUrl = ''; // 保存上次连接的 URL
     let intentionalDisconnect = false; // 标记是否为用户主动断开
 
+    // +++ Message Validation: Allowed Message Types Whitelist +++
+    const ALLOWED_MESSAGE_TYPES = new Set([
+        // SSH/Terminal messages
+        'ssh:connect',
+        'ssh:connected',
+        'ssh:disconnected',
+        'ssh:error',
+        'terminal:data',
+        'terminal:resize',
+        // SFTP messages
+        'sftp_ready',
+        'sftp:ready',
+        'sftp:list',
+        'sftp:upload:progress',
+        'sftp:download:progress',
+        'sftp:error',
+        // Batch operations (Phase 4)
+        'batch:subtask:update',
+        'batch:overall',
+        'batch:log',
+        // AI operations (Phase 5)
+        'ai:message',
+        'ai:error',
+        // SSH Suspend mode messages
+        'SSH_MARKED_FOR_SUSPEND_ACK',
+        'SSH_UNMARKED_FOR_SUSPEND_ACK',
+        'SSH_SUSPEND_STARTED',
+        'SSH_SUSPEND_LIST_RESPONSE',
+        'SSH_SUSPEND_RESUMED',
+        'SSH_OUTPUT_CACHED_CHUNK',
+        'SSH_SUSPEND_TERMINATED',
+        'SSH_SUSPEND_ENTRY_REMOVED',
+        'SSH_SUSPEND_NAME_EDITED',
+        'SSH_SUSPEND_AUTO_TERMINATED',
+        // Generic error
+        'error',
+        // Internal messages (dispatched by this module)
+        'internal:opened',
+        'internal:closed',
+        'internal:error',
+        'internal:raw',
+    ]);
+
+    // +++ Message Validation: Payload Validators +++
+    interface PayloadValidatorSchema {
+        [key: string]: (payload: MessagePayload) => boolean;
+    }
+
+    const payloadValidators: PayloadValidatorSchema = {
+        'terminal:data': (p) => typeof p === 'string',
+        'terminal:resize': (p) => typeof p === 'object' && typeof p.cols === 'number' && typeof p.rows === 'number',
+        'sftp:ready': (p) => typeof p === 'object' && typeof p.ready === 'boolean',
+        'sftp:list': (p) => typeof p === 'object' && Array.isArray(p.files),
+        'sftp:upload:progress': (p) =>
+            typeof p === 'object' &&
+            typeof p.bytesWritten === 'number' &&
+            typeof p.totalSize === 'number' &&
+            typeof p.progress === 'number',
+        'batch:subtask:update': (p) =>
+            typeof p === 'object' && typeof p.subtaskId === 'string' && typeof p.status === 'string',
+        'ai:message': (p) => typeof p === 'object' && typeof p.content === 'string',
+        'SSH_MARKED_FOR_SUSPEND_ACK': (p) =>
+            typeof p === 'object' && typeof p.sessionId === 'string' && typeof p.success === 'boolean',
+        'SSH_SUSPEND_RESUMED': (p) =>
+            typeof p === 'object' &&
+            typeof p.suspendSessionId === 'string' &&
+            typeof p.newFrontendSessionId === 'string' &&
+            typeof p.success === 'boolean',
+        'SSH_OUTPUT_CACHED_CHUNK': (p) =>
+            typeof p === 'object' &&
+            typeof p.frontendSessionId === 'string' &&
+            typeof p.data === 'string' &&
+            typeof p.isLastChunk === 'boolean',
+    };
+
 
     /**
      * 安全地获取状态文本的辅助函数
@@ -196,6 +271,19 @@ export function createWebSocketConnectionManager(
                 try {
                     const rawData = event.data;
                     const message: WebSocketMessage = JSON.parse(rawData.toString());
+
+                    // +++ 验证消息类型 +++
+                    if (!ALLOWED_MESSAGE_TYPES.has(message.type)) {
+                        console.warn(`[WebSocket ${instanceSessionId}] 收到未知消息类型: ${message.type}`);
+                        return;
+                    }
+
+                    // +++ 验证 Payload 结构 +++
+                    const validator = payloadValidators[message.type];
+                    if (validator && !validator(message.payload)) {
+                        console.error(`[WebSocket ${instanceSessionId}] 无效的 Payload 结构 (类型: ${message.type})`, message.payload);
+                        return;
+                    }
 
                     // --- 更新此实例的连接状态 ---
                     if (message.type === 'ssh:connected') {

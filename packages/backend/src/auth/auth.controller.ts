@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
@@ -11,6 +12,7 @@ import { settingsService } from '../settings/settings.service';
 import { passkeyService } from '../passkey/passkey.service'; // +++ Passkey Service
 import { passkeyRepository } from '../passkey/passkey.repository'; // +++ Passkey Repository
 import { userRepository } from '../user/user.repository'; // For passkey auth success
+import { SECURITY_CONFIG } from '../config/security.config';
 
 const notificationService = new NotificationService();
 const auditLogService = new AuditLogService();
@@ -22,15 +24,30 @@ export interface User {
     two_factor_secret?: string | null;
 }
 
+// +++ Challenge Data with Timestamp for Replay Attack Prevention
+interface ChallengeData {
+    challenge: string;
+    timestamp: number;
+}
+
+// +++ Pending Authentication for 2FA Bypass Prevention
+interface PendingAuth {
+    tempToken: string;
+    userId: number;
+    username: string;
+    expiresAt: number;
+}
+
 declare module 'express-session' {
     interface SessionData {
         userId?: number;
         username?: string;
         tempTwoFactorSecret?: string;
         requiresTwoFactor?: boolean;
-        currentChallenge?: string; // +++ For Passkey challenge storage
+        currentChallenge?: ChallengeData; // +++ Modified: Now stores challenge with timestamp
         passkeyUserHandle?: string; // +++ For Passkey user handle (user ID as string)
         rememberMe?: boolean;
+        pendingAuth?: PendingAuth; // +++ For 2FA temporary authentication token
     }
 }
 
@@ -51,12 +68,16 @@ export const generatePasskeyRegistrationOptionsHandler = async (req: Request, re
     try {
         // PasskeyService's generateRegistrationOptions expects userId as number
         const options = await passkeyService.generateRegistrationOptions(username, userId);
-        
-        req.session.currentChallenge = options.challenge;
-        // The user.id from options is a Uint8Array. We need to store the original string userId for userHandle.
-        req.session.passkeyUserHandle = userId.toString(); 
 
-        console.log(`[AuthController] Generated Passkey registration options for user ${username}, challenge: ${options.challenge.substring(0,10)}...`);
+        // +++ Store challenge with timestamp for replay attack prevention
+        req.session.currentChallenge = {
+            challenge: options.challenge,
+            timestamp: Date.now()
+        };
+        // The user.id from options is a Uint8Array. We need to store the original string userId for userHandle.
+        req.session.passkeyUserHandle = userId.toString();
+
+        console.log(`[AuthController] Generated Passkey registration options for user ${username}`);
         res.json(options);
     } catch (error: any) {
         console.error(`[AuthController] 生成 Passkey 注册选项时出错 (用户: ${username}):`, error.message, error.stack);
@@ -69,14 +90,14 @@ export const generatePasskeyRegistrationOptionsHandler = async (req: Request, re
  */
 export const verifyPasskeyRegistrationHandler = async (req: Request, res: Response): Promise<void> => {
     const registrationResponse = req.body; // The whole body is the response from @simplewebauthn/browser
-    const expectedChallenge = req.session.currentChallenge;
-    const userHandle = req.session.passkeyUserHandle; 
+    const challengeData = req.session.currentChallenge;
+    const userHandle = req.session.passkeyUserHandle;
 
     if (!registrationResponse) {
         res.status(400).json({ message: '注册响应不能为空。' });
         return;
     }
-    if (!expectedChallenge) {
+    if (!challengeData) {
         res.status(400).json({ message: '会话中未找到质询信息，请重试注册流程。' });
         return;
     }
@@ -84,6 +105,16 @@ export const verifyPasskeyRegistrationHandler = async (req: Request, res: Respon
         res.status(400).json({ message: '会话中未找到用户句柄，请重试注册流程。' });
         return;
     }
+
+    // +++ Verify challenge timestamp (5 minutes validity)
+    if (Date.now() - challengeData.timestamp > SECURITY_CONFIG.CHALLENGE_TIMEOUT) {
+        delete req.session.currentChallenge;
+        delete req.session.passkeyUserHandle;
+        res.status(400).json({ message: '注册质询已过期，请重新开始注册流程。' });
+        return;
+    }
+
+    const expectedChallenge = challengeData.challenge;
 
     try {
         const verification = await passkeyService.verifyRegistration(
@@ -95,10 +126,10 @@ export const verifyPasskeyRegistrationHandler = async (req: Request, res: Respon
         if (verification.verified && verification.newPasskeyToSave) {
             await passkeyRepository.createPasskey(verification.newPasskeyToSave);
             const userIdNum = parseInt(userHandle, 10);
-            console.log(`[AuthController] 用户 ${userHandle} 的 Passkey 注册成功并已保存。 CredentialID: ${verification.newPasskeyToSave.credential_id}`);
+            console.log(`[AuthController] 用户 ${userHandle} 的 Passkey 注册成功并已保存。 CredentialID: ${verification.newPasskeyToSave.credential_id.substring(0, 8)}***`);
             auditLogService.logAction('PASSKEY_REGISTERED', { userId: userIdNum, credentialId: verification.newPasskeyToSave.credential_id });
             notificationService.sendNotification('PASSKEY_REGISTERED', { userId: userIdNum, username: req.session.username, credentialId: verification.newPasskeyToSave.credential_id });
-            
+
             delete req.session.currentChallenge;
             delete req.session.passkeyUserHandle;
             res.status(201).json({ verified: true, message: 'Passkey 注册成功。' });
@@ -121,13 +152,17 @@ export const generatePasskeyAuthenticationOptionsHandler = async (req: Request, 
     try {
         // PasskeyService's generateAuthenticationOptions can optionally take a username
         const options = await passkeyService.generateAuthenticationOptions(username);
-        
-        req.session.currentChallenge = options.challenge;
+
+        // +++ Store challenge with timestamp for replay attack prevention
+        req.session.currentChallenge = {
+            challenge: options.challenge,
+            timestamp: Date.now()
+        };
         // For authentication, userHandle is not strictly needed in session beforehand if RP ID is specific enough
         // or if allowCredentials is used. We'll clear any old one just in case.
-        delete req.session.passkeyUserHandle; 
+        delete req.session.passkeyUserHandle;
 
-        console.log(`[AuthController] Generated Passkey authentication options (username: ${username || 'any'}), challenge: ${options.challenge.substring(0,10)}...`);
+        console.log(`[AuthController] Generated Passkey authentication options (username: ${username || 'any'})`);
         res.json(options);
     } catch (error: any) {
         console.error(`[AuthController] 生成 Passkey 认证选项时出错 (username: ${username || 'any'}):`, error.message, error.stack);
@@ -141,7 +176,7 @@ export const generatePasskeyAuthenticationOptionsHandler = async (req: Request, 
 export const verifyPasskeyAuthenticationHandler = async (req: Request, res: Response): Promise<void> => {
     // Extract assertionResponse and rememberMe from the request body
     const { assertionResponse, rememberMe } = req.body;
-    const expectedChallenge = req.session.currentChallenge;
+    const challengeData = req.session.currentChallenge;
 
     // Rename assertionResponse to authenticationResponseJSON for clarity within this scope
     const authenticationResponseJSON = assertionResponse;
@@ -150,10 +185,19 @@ export const verifyPasskeyAuthenticationHandler = async (req: Request, res: Resp
         res.status(400).json({ message: '认证响应 (assertionResponse) 不能为空。' });
         return;
     }
-    if (!expectedChallenge) {
+    if (!challengeData) {
         res.status(400).json({ message: '会话中未找到质询信息，请重试认证流程。' });
         return;
     }
+
+    // +++ Verify challenge timestamp (5 minutes validity)
+    if (Date.now() - challengeData.timestamp > SECURITY_CONFIG.CHALLENGE_TIMEOUT) {
+        delete req.session.currentChallenge;
+        res.status(400).json({ message: '认证质询已过期，请重新开始认证流程。' });
+        return;
+    }
+
+    const expectedChallenge = challengeData.challenge;
 
     try {
         // Pass the extracted authenticationResponseJSON to the service
@@ -172,30 +216,39 @@ export const verifyPasskeyAuthenticationHandler = async (req: Request, res: Resp
                 return;
             }
 
-            console.log(`[AuthController] 用户 ${user.username} (ID: ${user.id}) 通过 Passkey (ID: ${verification.passkey.id}) 认证成功。`);
-            
+            console.log(`[AuthController] 用户 ${user.username} (ID: ${user.id}) 通过 Passkey (ID: ***${verification.passkey.id.toString().substring(verification.passkey.id.toString().length - 4)}) 认证成功。`);
+
             const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
             auditLogService.logAction('PASSKEY_AUTH_SUCCESS', { userId: user.id, username: user.username, credentialId: verification.passkey.credential_id, ip: clientIp });
             notificationService.sendNotification('LOGIN_SUCCESS', { userId: user.id, username: user.username, ip: clientIp, method: 'Passkey' });
 
-            // Setup session similar to password login
-            req.session.userId = user.id;
-            req.session.username = user.username;
-            req.session.requiresTwoFactor = false; // Passkey implies 2FA characteristics
+            // 重新生成 Session ID 防止会话固定攻击
+            req.session.regenerate((err) => {
+                if (err) {
+                    console.error('Passkey 认证后会话重新生成失败:', err);
+                    res.status(500).json({ message: 'Passkey 认证成功但会话创建失败，请重试。' });
+                    return;
+                }
 
-            if (rememberMe) {
-                req.session.cookie.maxAge = 315360000000; // 10 years
-            } else {
-                req.session.cookie.maxAge = undefined; // Session cookie
-            }
-            
-            delete req.session.currentChallenge;
-            delete req.session.passkeyUserHandle;
+                // Setup session similar to password login
+                req.session.userId = user.id;
+                req.session.username = user.username;
+                req.session.requiresTwoFactor = false; // Passkey implies 2FA characteristics
 
-            res.status(200).json({
-                verified: true,
-                message: 'Passkey 认证成功。',
-                user: { id: user.id, username: user.username }
+                if (rememberMe) {
+                    req.session.cookie.maxAge = SECURITY_CONFIG.SESSION_COOKIE_MAX_AGE;
+                } else {
+                    req.session.cookie.maxAge = undefined; // Session cookie
+                }
+
+                delete req.session.currentChallenge;
+                delete req.session.passkeyUserHandle;
+
+                res.status(200).json({
+                    verified: true,
+                    message: 'Passkey 认证成功。',
+                    user: { id: user.id, username: user.username }
+                });
             });
 
         } else {
@@ -266,17 +319,17 @@ export const deleteUserPasskeyHandler = async (req: Request, res: Response): Pro
     try {
         const wasDeleted = await passkeyService.deletePasskey(userId, credentialID);
         if (wasDeleted) {
-            console.log(`[AuthController] 用户 ${username} (ID: ${userId}) 成功删除了 Passkey (CredentialID: ${credentialID})。`);
+            console.log(`[AuthController] 用户 ${username} (ID: ${userId}) 成功删除了 Passkey (CredentialID: ${credentialID.substring(0, 8)}***)。`);
             auditLogService.logAction('PASSKEY_DELETED', { userId, username, credentialId: credentialID });
             notificationService.sendNotification('PASSKEY_DELETED', { userId, username, credentialId: credentialID });
             res.status(200).json({ message: 'Passkey 删除成功。' });
         } else {
             // 这通常不应该发生，因为 service 层会在找不到或权限不足时抛出错误
-            console.warn(`[AuthController] 用户 ${username} (ID: ${userId}) 删除 Passkey (CredentialID: ${credentialID}) 失败，但未抛出错误。`);
+            console.warn(`[AuthController] 用户 ${username} (ID: ${userId}) 删除 Passkey (CredentialID: ${credentialID.substring(0, 8)}***) 失败，但未抛出错误。`);
             res.status(404).json({ message: 'Passkey 未找到或无法删除。' });
         }
     } catch (error: any) {
-        console.error(`[AuthController] 用户 ${username} (ID: ${userId}) 删除 Passkey (CredentialID: ${credentialID}) 时出错:`, error.message, error.stack);
+        console.error(`[AuthController] 用户 ${username} (ID: ${userId}) 删除 Passkey (CredentialID: ${credentialID.substring(0, 8)}***) 时出错:`, error.message, error.stack);
         if (error.message === 'Passkey not found.') {
             res.status(404).json({ message: '指定的 Passkey 未找到。' });
         } else if (error.message === 'Unauthorized to delete this passkey.') {
@@ -316,14 +369,14 @@ export const updateUserPasskeyNameHandler = async (req: Request, res: Response):
 
     try {
         await passkeyService.updatePasskeyName(userId, credentialID, trimmedName);
-        console.log(`[AuthController] 用户 ${username} (ID: ${userId}) 成功更新了 Passkey (CredentialID: ${credentialID}) 的名称为 "${trimmedName}"。`);
+        console.log(`[AuthController] 用户 ${username} (ID: ${userId}) 成功更新了 Passkey (CredentialID: ${credentialID.substring(0, 8)}***) 的名称为 "${trimmedName}"。`);
         auditLogService.logAction('PASSKEY_NAME_UPDATED', { userId, username, credentialId: credentialID, newName: trimmedName });
         // Optionally send a notification if desired
         // notificationService.sendNotification('PASSKEY_NAME_UPDATED', { userId, username, credentialId: credentialID, newName: trimmedName });
         res.status(200).json({ message: 'Passkey 名称更新成功。' });
 
     } catch (error: any) {
-        console.error(`[AuthController] 用户 ${username} (ID: ${userId}) 更新 Passkey (CredentialID: ${credentialID}) 名称时出错:`, error.message, error.stack);
+        console.error(`[AuthController] 用户 ${username} (ID: ${userId}) 更新 Passkey (CredentialID: ${credentialID.substring(0, 8)}***) 名称时出错:`, error.message, error.stack);
         if (error.message === 'Passkey not found.') {
             res.status(404).json({ message: '指定的 Passkey 未找到。' });
         } else if (error.message === 'Unauthorized to update this passkey name.') {
@@ -409,29 +462,58 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         // 检查是否启用了 2FA
         if (user.two_factor_secret) {
             console.log(`用户 ${username} 已启用 2FA，需要进行二次验证。`);
-            req.session.userId = user.id; 
-            req.session.requiresTwoFactor = true;
-            req.session.rememberMe = rememberMe; 
-            res.status(200).json({ message: '需要进行两步验证。', requiresTwoFactor: true });
+            // +++ Generate temporary token for 2FA verification
+            const tempToken = crypto.randomBytes(SECURITY_CONFIG.TEMP_TOKEN_LENGTH).toString('hex');
+            const pendingAuth: PendingAuth = {
+                tempToken,
+                userId: user.id,
+                username: user.username,
+                expiresAt: Date.now() + SECURITY_CONFIG.PENDING_AUTH_TIMEOUT
+            };
+
+            // 重新生成 Session ID 防止会话固定攻击
+            req.session.regenerate((err) => {
+                if (err) {
+                    console.error('会话重新生成失败:', err);
+                    res.status(500).json({ message: '登录过程中发生错误，请重试。' });
+                    return;
+                }
+                req.session.pendingAuth = pendingAuth;
+                req.session.rememberMe = rememberMe;
+                res.status(200).json({
+                    message: '需要进行两步验证。',
+                    requiresTwoFactor: true,
+                    tempToken  // Frontend must include this in 2FA request
+                });
+            });
         } else {
             console.log(`登录成功 (无 2FA): ${username}`);
-            const clientIp = req.ip || req.socket?.remoteAddress || 'unknown'; 
+            const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
             ipBlacklistService.resetAttempts(clientIp);
             auditLogService.logAction('LOGIN_SUCCESS', { userId: user.id, username, ip: clientIp });
-            notificationService.sendNotification('LOGIN_SUCCESS', { userId: user.id, username, ip: clientIp }); 
-            req.session.userId = user.id;
-            req.session.username = user.username;
-            req.session.requiresTwoFactor = false; 
+            notificationService.sendNotification('LOGIN_SUCCESS', { userId: user.id, username, ip: clientIp });
 
-            if (rememberMe) {
-                req.session.cookie.maxAge = 315360000000;
-            } else {
-                req.session.cookie.maxAge = undefined;
-            }
+            // 重新生成 Session ID 防止会话固定攻击
+            req.session.regenerate((err) => {
+                if (err) {
+                    console.error('会话重新生成失败:', err);
+                    res.status(500).json({ message: '登录过程中发生错误，请重试。' });
+                    return;
+                }
+                req.session.userId = user.id;
+                req.session.username = user.username;
+                req.session.requiresTwoFactor = false;
 
-            res.status(200).json({
-                message: '登录成功。',
-                user: { id: user.id, username: user.username }
+                if (rememberMe) {
+                    req.session.cookie.maxAge = SECURITY_CONFIG.SESSION_COOKIE_MAX_AGE;
+                } else {
+                    req.session.cookie.maxAge = undefined;
+                }
+
+                res.status(200).json({
+                    message: '登录成功。',
+                    user: { id: user.id, username: user.username }
+                });
             });
         }
 
@@ -480,11 +562,24 @@ export const getAuthStatus = async (req: Request, res: Response): Promise<void> 
  * 处理登录时的 2FA 验证 (POST /api/v1/auth/login/2fa)
  */
 export const verifyLogin2FA = async (req: Request, res: Response): Promise<void> => {
-    const { token } = req.body;
-    const userId = req.session.userId; 
+    const { token, tempToken } = req.body;  // +++ Accept tempToken from frontend
+    const pendingAuth = req.session.pendingAuth as PendingAuth | undefined;
 
-    if (!userId || !req.session.requiresTwoFactor) {
-        res.status(400).json({ message: '无效的请求或会话状态。' });
+    // +++ Validate pending authentication state and tempToken
+    if (!pendingAuth || !tempToken) {
+        res.status(401).json({ message: '无效的认证状态。' });
+        return;
+    }
+
+    if (pendingAuth.tempToken !== tempToken) {
+        res.status(401).json({ message: '无效的认证状态。' });
+        return;
+    }
+
+    // +++ Verify tempToken hasn't expired (5 minutes)
+    if (Date.now() > pendingAuth.expiresAt) {
+        delete req.session.pendingAuth;
+        res.status(401).json({ message: '认证已过期，请重新登录。' });
         return;
     }
 
@@ -495,12 +590,11 @@ export const verifyLogin2FA = async (req: Request, res: Response): Promise<void>
 
     try {
         const db = await getDbInstance();
-        const user = await getDb<User>(db, 'SELECT id, username, two_factor_secret FROM users WHERE id = ?', [userId]);
-
-    
+        // +++ Use pendingAuth.userId instead of session.userId
+        const user = await getDb<User>(db, 'SELECT id, username, two_factor_secret FROM users WHERE id = ?', [pendingAuth.userId]);
 
         if (!user || !user.two_factor_secret) {
-            console.error(`2FA 验证错误: 未找到用户 ${userId} 或未设置密钥。`);
+            console.error(`2FA 验证错误: 未找到用户 ${pendingAuth.userId} 或未设置密钥。`);
             res.status(400).json({ message: '无法验证，请重新登录。' });
             return;
         }
@@ -509,40 +603,55 @@ export const verifyLogin2FA = async (req: Request, res: Response): Promise<void>
             secret: user.two_factor_secret,
             encoding: 'base32',
             token: token,
-            window: 1 
+            window: 1
         });
 
         if (verified) {
             console.log(`用户 ${user.username} 2FA 验证成功。`);
-            const clientIp = req.ip || req.socket?.remoteAddress || 'unknown'; 
+            const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
             ipBlacklistService.resetAttempts(clientIp);
             auditLogService.logAction('LOGIN_SUCCESS', { userId: user.id, username: user.username, ip: clientIp, twoFactor: true });
-            notificationService.sendNotification('LOGIN_SUCCESS', { userId: user.id, username: user.username, ip: clientIp, twoFactor: true }); 
-            req.session.username = user.username;
-            req.session.requiresTwoFactor = false; 
+            notificationService.sendNotification('LOGIN_SUCCESS', { userId: user.id, username: user.username, ip: clientIp, twoFactor: true });
 
-            if (req.session.rememberMe) {
-                req.session.cookie.maxAge = 315360000000; 
-            } else {
-                req.session.cookie.maxAge = undefined; 
-            }
-            delete req.session.rememberMe;
+            // 保存 rememberMe 状态，因为 regenerate 会清空 session
+            const rememberMe = req.session.rememberMe;
 
-            res.status(200).json({
-                message: '登录成功。',
-                user: { id: user.id, username: user.username }
+            // +++ Clear pending authentication after successful verification
+            delete req.session.pendingAuth;
+
+            // 重新生成 Session ID 防止会话固定攻击
+            req.session.regenerate((err) => {
+                if (err) {
+                    console.error('2FA 验证后会话重新生成失败:', err);
+                    res.status(500).json({ message: '登录完成失败，请重试。' });
+                    return;
+                }
+                req.session.userId = user.id;
+                req.session.username = user.username;
+                req.session.requiresTwoFactor = false;
+
+                if (rememberMe) {
+                    req.session.cookie.maxAge = SECURITY_CONFIG.SESSION_COOKIE_MAX_AGE;
+                } else {
+                    req.session.cookie.maxAge = undefined;
+                }
+
+                res.status(200).json({
+                    message: '登录成功。',
+                    user: { id: user.id, username: user.username }
+                });
             });
         } else {
             console.log(`用户 ${user.username} 2FA 验证失败: 验证码错误。`);
-            const clientIp = req.ip || req.socket?.remoteAddress || 'unknown'; 
+            const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
             ipBlacklistService.recordFailedAttempt(clientIp);
             auditLogService.logAction('LOGIN_FAILURE', { userId: user.id, username: user.username, reason: 'Invalid 2FA token', ip: clientIp });
-            notificationService.sendNotification('LOGIN_FAILURE', { userId: user.id, username: user.username, reason: 'Invalid 2FA token', ip: clientIp }); 
+            notificationService.sendNotification('LOGIN_FAILURE', { userId: user.id, username: user.username, reason: 'Invalid 2FA token', ip: clientIp });
             res.status(401).json({ message: '验证码无效。' });
         }
 
     } catch (error) {
-        console.error(`用户 ${userId} 2FA 验证时发生内部错误:`, error);
+        console.error(`2FA 验证时发生内部错误 (用户: ${pendingAuth?.userId || 'unknown'}):`, error);
         res.status(500).json({ message: '两步验证过程中发生内部服务器错误。' });
     }
 };
@@ -592,8 +701,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        const saltRounds = 10;
-        const newHashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        const newHashedPassword = await bcrypt.hash(newPassword, SECURITY_CONFIG.BCRYPT_SALT_ROUNDS);
         const now = Math.floor(Date.now() / 1000);
 
 
@@ -840,8 +948,7 @@ export const setupAdmin = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, SECURITY_CONFIG.BCRYPT_SALT_ROUNDS);
         const now = Math.floor(Date.now() / 1000);
 
         const result = await runDb(db,
