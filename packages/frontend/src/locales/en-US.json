@@ -945,6 +945,17 @@
         "invalidInput": "Please enter a valid non-negative integer."
       }
     },
+    "terminalOutputEnhancer": {
+      "title": "Terminal Output Enhancer",
+      "enableLabel": "Enable Terminal Output Enhancer",
+      "description": "When enabled, the terminal will provide syntax highlighting, table formatting, link detection, and long output folding.",
+      "success": {
+        "saved": "Terminal output enhancer setting saved successfully."
+      },
+      "error": {
+        "saveFailed": "Failed to save terminal output enhancer setting."
+      }
+    },
     "ipBlacklist": {
       "title": "IP Blacklist Management",
       "description": "Configure login attempt limits and automatic ban duration. Local addresses (127.0.0.1, ::1) will not be banned.",

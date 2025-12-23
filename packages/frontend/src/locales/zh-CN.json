@@ -941,6 +941,17 @@
         "invalidInput": "请输入一个有效的非负整数。"
       }
     },
+    "terminalOutputEnhancer": {
+      "title": "终端输出增强器",
+      "enableLabel": "启用终端输出增强器",
+      "description": "启用后，终端将提供语法高亮、表格格式化、链接检测和长输出折叠等增强功能。",
+      "success": {
+        "saved": "终端输出增强器设置已保存。"
+      },
+      "error": {
+        "saveFailed": "保存终端输出增强器设置失败。"
+      }
+    },
     "ipBlacklist": {
       "title": "IP 黑名单管理",
       "description": "配置登录失败次数限制和自动封禁时长。本地地址 (127.0.0.1, ::1) 不会被封禁。",

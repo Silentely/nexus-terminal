@@ -68,6 +68,7 @@ interface SettingsState {
   showStatusMonitorIpAddress?: string; // 'true' or 'false' - 状态监视器显示IP地址
   quickCommandRowSizeMultiplier?: string; // +++ 快捷命令列表行大小乘数 (e.g., '1.0') +++
   quickCommandsCompactMode?: string; // +++ 快捷指令视图紧凑模式 (e.g., 'false') +++
+  terminalOutputEnhancerEnabled?: string; // 终端输出增强器开关 'true' or 'false'
   [key: string]: string | undefined;
 }
 
@@ -215,7 +216,7 @@ export const useSettingsStore = defineStore('settings', () => {
       }
       // Ensure it's a valid number string before parsing later
       const parsedMultiplier = parseFloat(settings.value.fileManagerRowSizeMultiplier);
-      if (isNaN(parsedMultiplier) || parsedMultiplier <= 0) {
+      if (Number.isNaN(parsedMultiplier) || parsedMultiplier <= 0) {
         console.warn(
           `[SettingsStore] Invalid fileManagerRowSizeMultiplier loaded ('${settings.value.fileManagerRowSizeMultiplier}'), resetting to default.`
         );
@@ -238,7 +239,7 @@ export const useSettingsStore = defineStore('settings', () => {
             loadedFmWidths = {};
           }
           // Validate that values are numbers
-          for (const key in loadedFmWidths) {
+          for (const key of Object.keys(loadedFmWidths)) {
             if (typeof loadedFmWidths[key] !== 'number') {
               console.warn(
                 `[SettingsStore] Invalid non-numeric value found in fileManagerColWidths for key '${key}', resetting.`
@@ -369,11 +370,19 @@ export const useSettingsStore = defineStore('settings', () => {
         );
       }
 
+      // +++ 终端输出增强器默认值 +++
+      if (settings.value.terminalOutputEnhancerEnabled === undefined) {
+        settings.value.terminalOutputEnhancerEnabled = 'true'; // 默认启用
+        console.log(
+          `[SettingsStore] terminalOutputEnhancerEnabled not found, set to default: ${settings.value.terminalOutputEnhancerEnabled}`
+        );
+      }
+
       // --- 从 localStorage 加载 QuickCommands 特有设置 ---
       const localQcRowSizeMultiplier = localStorage.getItem('nexus_quickCommandRowSizeMultiplier');
       if (localQcRowSizeMultiplier) {
         const parsedLocalMultiplier = parseFloat(localQcRowSizeMultiplier);
-        if (!isNaN(parsedLocalMultiplier) && parsedLocalMultiplier > 0) {
+        if (!Number.isNaN(parsedLocalMultiplier) && parsedLocalMultiplier > 0) {
           settings.value.quickCommandRowSizeMultiplier = localQcRowSizeMultiplier;
           console.log(
             `[SettingsStore] Loaded quickCommandRowSizeMultiplier from localStorage: ${localQcRowSizeMultiplier}`
@@ -504,6 +513,7 @@ export const useSettingsStore = defineStore('settings', () => {
       'showStatusMonitorIpAddress',
       'quickCommandRowSizeMultiplier',
       'quickCommandsCompactMode',
+      'terminalOutputEnhancerEnabled',
     ];
     if (!allowedKeys.includes(key)) {
       console.error(`[SettingsStore] 尝试更新不允许的设置键: ${key}`);
@@ -641,13 +651,14 @@ export const useSettingsStore = defineStore('settings', () => {
       'showStatusMonitorIpAddress',
       'quickCommandRowSizeMultiplier',
       'quickCommandsCompactMode',
+      'terminalOutputEnhancerEnabled',
     ];
     const filteredUpdates: Partial<SettingsState> = {};
     let languageUpdate: string | undefined;
 
-    for (const key in updates) {
+    for (const key of Object.keys(updates)) {
       if (allowedKeys.includes(key as keyof SettingsState)) {
-        filteredUpdates[key as keyof SettingsState] = updates[key];
+        filteredUpdates[key as keyof SettingsState] = updates[key as keyof SettingsState];
         if (key === 'language') {
           // Check if the language update is valid before storing it for setLocale
           const langValue = updates[key];
@@ -700,10 +711,10 @@ export const useSettingsStore = defineStore('settings', () => {
     try {
       // Use updateMultipleSettings for consistency, even for one setting
       await updateMultipleSettings({ sidebarPaneWidths: JSON.stringify(newWidths) });
-    } catch (error) {
+    } catch (err) {
       console.error(
         `[SettingsStore] Failed to save sidebarPaneWidths after updating ${paneName}:`,
-        error
+        err
       );
       // Optionally revert local state or show error to user
     }
@@ -735,8 +746,8 @@ export const useSettingsStore = defineStore('settings', () => {
         fileManagerRowSizeMultiplier: multiplierString,
         fileManagerColWidths: widthsString,
       });
-    } catch (error) {
-      console.error('[SettingsStore] Failed to save file manager layout settings:', error);
+    } catch (err) {
+      console.error('[SettingsStore] Failed to save file manager layout settings:', err);
       // Optionally revert local state or show error to user
     }
   }
@@ -765,8 +776,8 @@ export const useSettingsStore = defineStore('settings', () => {
       console.log(
         `[SettingsStore] Quick Command row size multiplier updated to: ${multiplierString}`
       );
-    } catch (error) {
-      console.error('[SettingsStore] Failed to save Quick Command row size multiplier:', error);
+    } catch (err) {
+      console.error('[SettingsStore] Failed to save Quick Command row size multiplier:', err);
       // Optionally revert local state or show error to user
     }
   }
@@ -848,8 +859,8 @@ export const useSettingsStore = defineStore('settings', () => {
         dashboardSortBy: sortBy,
         dashboardSortOrder: sortOrder,
       });
-    } catch (error) {
-      console.error('[SettingsStore] Failed to save dashboard sort preference:', error);
+    } catch (err) {
+      console.error('[SettingsStore] Failed to save dashboard sort preference:', err);
       // Optionally show error to user
     }
   }
@@ -911,13 +922,13 @@ export const useSettingsStore = defineStore('settings', () => {
   //  Getter for Status Monitor interval, returning number
   const statusMonitorIntervalSecondsNumber = computed(() => {
     const val = parseInt(settings.value.statusMonitorIntervalSeconds || '3', 10);
-    return isNaN(val) || val <= 0 ? 3 : val; // Fallback to 3 if invalid
+    return Number.isNaN(val) || val <= 0 ? 3 : val; // Fallback to 3 if invalid
   });
 
   //  Getter for File Manager row size multiplier, returning number
   const fileManagerRowSizeMultiplierNumber = computed(() => {
     const val = parseFloat(settings.value.fileManagerRowSizeMultiplier || '1.0');
-    return isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
+    return Number.isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
   });
 
   //  Getter for File Manager column widths, returning object
@@ -981,7 +992,7 @@ export const useSettingsStore = defineStore('settings', () => {
       return 5000; // Default value if not set or empty
     }
     const val = parseInt(valStr, 10);
-    if (isNaN(val) || val < 0) {
+    if (Number.isNaN(val) || val < 0) {
       return 5000; // Default value if invalid number or negative
     }
     return val; // Return 0 if it's 0, or the positive number
@@ -1008,12 +1019,17 @@ export const useSettingsStore = defineStore('settings', () => {
       return 1.0; // Default value
     }
     const val = parseFloat(valStr);
-    return isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
+    return Number.isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
   });
 
   // +++ Getter for Quick Command compact mode, returning boolean +++
   const quickCommandsCompactModeBoolean = computed(() => {
     return settings.value.quickCommandsCompactMode === 'true';
+  });
+
+  // +++ Getter for Terminal Output Enhancer enabled, returning boolean +++
+  const terminalOutputEnhancerEnabledBoolean = computed(() => {
+    return settings.value.terminalOutputEnhancerEnabled !== 'false'; // 默认启用
   });
 
   return {
@@ -1064,5 +1080,6 @@ export const useSettingsStore = defineStore('settings', () => {
     fileManagerShowDeleteConfirmationBoolean, //  Expose file manager delete confirmation getter
     terminalEnableRightClickPasteBoolean, //  Expose terminal right click paste getter
     statusMonitorShowIpBoolean, // 暴露状态监视器显示IP getter
+    terminalOutputEnhancerEnabledBoolean, // 暴露终端输出增强器开关 getter
   };
 });

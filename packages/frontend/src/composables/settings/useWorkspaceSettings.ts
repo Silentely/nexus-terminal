@@ -20,6 +20,7 @@ export function useWorkspaceSettings() {
     terminalEnableRightClickPasteBoolean,
     showPopupFileManagerBoolean,
     statusMonitorShowIpBoolean,
+    terminalOutputEnhancerEnabledBoolean,
   } = storeToRefs(settingsStore);
 
   // --- Popup Editor ---
@@ -225,7 +226,7 @@ export function useWorkspaceSettings() {
       if (
         limitValue !== null &&
         limitValue !== undefined &&
-        (isNaN(limitValue) || !Number.isInteger(limitValue) || limitValue < 0)
+        (Number.isNaN(limitValue) || !Number.isInteger(limitValue) || limitValue < 0)
       ) {
         throw new Error(
           t('settings.terminalScrollback.error.invalidInput', '请输入一个有效的非负整数。')
@@ -362,6 +363,31 @@ export function useWorkspaceSettings() {
     }
   };
 
+  // --- Terminal Output Enhancer ---
+  const terminalOutputEnhancerEnabled = ref(true);
+  const terminalOutputEnhancerLoading = ref(false);
+  const terminalOutputEnhancerMessage = ref('');
+  const terminalOutputEnhancerSuccess = ref(false);
+
+  const handleUpdateTerminalOutputEnhancerSetting = async () => {
+    terminalOutputEnhancerLoading.value = true;
+    terminalOutputEnhancerMessage.value = '';
+    terminalOutputEnhancerSuccess.value = false;
+    try {
+      const valueToSave = terminalOutputEnhancerEnabled.value ? 'true' : 'false';
+      await settingsStore.updateSetting('terminalOutputEnhancerEnabled', valueToSave);
+      terminalOutputEnhancerMessage.value = t('settings.terminalOutputEnhancer.success.saved');
+      terminalOutputEnhancerSuccess.value = true;
+    } catch (error: any) {
+      console.error('更新终端输出增强器设置失败:', error);
+      terminalOutputEnhancerMessage.value =
+        error.message || t('settings.terminalOutputEnhancer.error.saveFailed');
+      terminalOutputEnhancerSuccess.value = false;
+    } finally {
+      terminalOutputEnhancerLoading.value = false;
+    }
+  };
+
   // Watchers to sync local state with store state
   watch(
     showPopupFileEditorBoolean,
@@ -447,6 +473,13 @@ export function useWorkspaceSettings() {
     },
     { immediate: true }
   );
+  watch(
+    terminalOutputEnhancerEnabledBoolean,
+    (newValue) => {
+      terminalOutputEnhancerEnabled.value = newValue;
+    },
+    { immediate: true }
+  );
 
   return {
     popupEditorEnabled,
@@ -521,5 +554,12 @@ export function useWorkspaceSettings() {
     statusMonitorShowIpMessage,
     statusMonitorShowIpSuccess,
     handleUpdateStatusMonitorShowIpSetting,
+
+    // Terminal Output Enhancer
+    terminalOutputEnhancerEnabled,
+    terminalOutputEnhancerLoading,
+    terminalOutputEnhancerMessage,
+    terminalOutputEnhancerSuccess,
+    handleUpdateTerminalOutputEnhancerSetting,
   };
 }

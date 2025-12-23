@@ -474,6 +474,49 @@
         </form>
       </div>
       <hr class="border-border/50" />
+      <!-- Terminal Output Enhancer -->
+      <div class="settings-section-content">
+        <h3 class="text-base font-semibold text-foreground mb-3">
+          {{ $t('settings.terminalOutputEnhancer.title') }}
+        </h3>
+        <form @submit.prevent="handleUpdateTerminalOutputEnhancerSetting" class="space-y-4">
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="terminalOutputEnhancer"
+              v-model="terminalOutputEnhancerEnabled"
+              class="h-4 w-4 rounded border-border text-primary focus:ring-primary mr-2 cursor-pointer"
+            />
+            <label
+              for="terminalOutputEnhancer"
+              class="text-sm text-foreground cursor-pointer select-none"
+              >{{ $t('settings.terminalOutputEnhancer.enableLabel') }}</label
+            >
+          </div>
+          <p class="text-xs text-text-secondary mt-1">
+            {{ $t('settings.terminalOutputEnhancer.description') }}
+          </p>
+          <div class="flex items-center justify-between pt-2">
+            <button
+              type="submit"
+              :disabled="terminalOutputEnhancerLoading"
+              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium"
+            >
+              {{ $t('common.save') }}
+            </button>
+            <p
+              v-if="terminalOutputEnhancerMessage"
+              :class="[
+                'text-sm',
+                terminalOutputEnhancerSuccess ? 'text-success' : 'text-error',
+              ]"
+            >
+              {{ terminalOutputEnhancerMessage }}
+            </p>
+          </div>
+        </form>
+      </div>
+      <hr class="border-border/50" />
       <!-- Status Monitor Show IP -->
       <div class="settings-section-content">
         <h3 class="text-base font-semibold text-foreground mb-3">
@@ -679,6 +722,11 @@ const {
   statusMonitorShowIpMessage,
   statusMonitorShowIpSuccess,
   handleUpdateStatusMonitorShowIpSetting,
+  terminalOutputEnhancerEnabled,
+  terminalOutputEnhancerLoading,
+  terminalOutputEnhancerMessage,
+  terminalOutputEnhancerSuccess,
+  handleUpdateTerminalOutputEnhancerSetting,
 } = workspaceSettings;
 
 const {

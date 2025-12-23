@@ -96,6 +96,7 @@ const {
   autoCopyOnSelectBoolean,
   terminalScrollbackLimitNumber,
   terminalEnableRightClickPasteBoolean,
+  terminalOutputEnhancerEnabledBoolean,
 } = storeToRefs(settingsStore);
 
 const debounce = (func: Function, delay: number) => {
@@ -229,14 +230,16 @@ onMounted(() => {
     // 加载输出增强插件（添加错误处理，避免插件加载失败导致终端崩溃）
     try {
       outputEnhancerAddon = new OutputEnhancerAddon({
-        enabled: true,
+        enabled: terminalOutputEnhancerEnabledBoolean.value,
         enableHighlight: true,
         enableTableFormat: true,
         enableLinkDetection: true,
         foldThreshold: 500,
       });
       term.loadAddon(outputEnhancerAddon);
-      console.log(`[Terminal ${props.sessionId}] OutputEnhancerAddon 加载成功`);
+      console.log(
+        `[Terminal ${props.sessionId}] OutputEnhancerAddon 加载成功 (enabled: ${terminalOutputEnhancerEnabledBoolean.value})`
+      );
     } catch (error) {
       console.error(
         `[Terminal ${props.sessionId}] OutputEnhancerAddon 加载失败，降级使用原始终端：`,
@@ -388,6 +391,16 @@ onMounted(() => {
     watch(terminalEnableRightClickPasteBoolean, (newValue) => {
       if (newValue) addContextMenuListener();
       else removeContextMenuListener();
+    });
+
+    // 监听终端输出增强器设置变化
+    watch(terminalOutputEnhancerEnabledBoolean, (newValue) => {
+      if (outputEnhancerAddon) {
+        outputEnhancerAddon.setEnabled(newValue);
+        console.log(
+          `[Terminal ${props.sessionId}] OutputEnhancerAddon enabled: ${newValue}`
+        );
+      }
     });
 
     // --- Wheel Zoom ---
