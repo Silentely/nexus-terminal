@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+coverage
+.vite
+*.min.js
+packages/*/dist
+packages/*/build
+packages/*/coverage
+pnpm-lock.yaml
+package-lock.json
