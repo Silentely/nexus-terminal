@@ -38,7 +38,7 @@
     "ipaddr.js": "^1.9.1",
     "jschardet": "^3.1.4",
     "multer": ">=2.0.1",
-    "nodemailer": "^6.10.1",
+    "nodemailer": "^7.0.12",
     "qrcode": "^1.5.4",
     "sanitize-filename": "^1.6.3",
     "session-file-store": "^1.5.0",

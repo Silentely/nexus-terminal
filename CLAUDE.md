@@ -6,7 +6,20 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-24 00:09:22 (AI 上下文完整性验证)
+
+- **覆盖率验证**：完成全仓扫描，确认模块文档完整性与数据准确性
+- **文件统计更新**：
+  - Backend: 177 个 TypeScript 文件
+  - Frontend: 184 个 TypeScript/Vue 文件
+  - Remote Gateway: 1 个 TypeScript 文件
+  - **总计：362 个源代码文件**
+- **测试框架确认**：Backend 与 Frontend 均已配置 Vitest 测试框架
+- **索引更新**：更新 `.claude/index.json`，添加详细模块特性、测试配置、近期更新记录
+- **文档状态**：所有核心模块文档（CLAUDE.md）已完整且最新，覆盖率 100%
+
 ### 2025-12-23 (技术债务整理)
+
 - **技术债务报告**：新增 `doc/TECHNICAL_DEBT_REPORT.md`，完整分析代码库中的 TODO/FIXME 标记
 - **发现数量**：24 个技术债务标记（Backend: 11 个，Frontend: 13 个）
 - **优先级分类**：高优先级 7 个，中优先级 12 个，低优先级 5 个
@@ -165,18 +178,18 @@ sequenceDiagram
 
 ## 模块索引
 
-| 模块名称           | 路径                      | 语言/框架               | 职责描述                                                                | 文档入口                                                        |
-| ------------------ | ------------------------- | ----------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------- |
-| **backend**        | `packages/backend`        | TypeScript / Express.js | 后端 API 服务：SSH/SFTP 连接、用户认证、审计日志、通知、Docker 管理等   | [backend/CLAUDE.md](./packages/backend/CLAUDE.md)               |
-| **frontend**       | `packages/frontend`       | TypeScript / Vue 3      | 前端 Web 应用：终端界面、文件管理器、连接管理、主题定制、路由与状态管理 | [frontend/CLAUDE.md](./packages/frontend/CLAUDE.md)             |
-| **remote-gateway** | `packages/remote-gateway` | TypeScript / Express.js | 远程桌面网关：RDP/VNC 连接代理，基于 Guacamole 协议                     | [remote-gateway/CLAUDE.md](./packages/remote-gateway/CLAUDE.md) |
+| 模块名称           | 路径                      | 语言/框架               | 文件数 | 职责描述                                                                | 文档入口                                                        |
+| ------------------ | ------------------------- | ----------------------- | ------ | ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| **backend**        | `packages/backend`        | TypeScript / Express.js | 177    | 后端 API 服务：SSH/SFTP 连接、用户认证、审计日志、通知、Docker 管理等   | [backend/CLAUDE.md](./packages/backend/CLAUDE.md)               |
+| **frontend**       | `packages/frontend`       | TypeScript / Vue 3      | 184    | 前端 Web 应用：终端界面、文件管理器、连接管理、主题定制、路由与状态管理 | [frontend/CLAUDE.md](./packages/frontend/CLAUDE.md)             |
+| **remote-gateway** | `packages/remote-gateway` | TypeScript / Express.js | 1      | 远程桌面网关：RDP/VNC 连接代理，基于 Guacamole 协议                     | [remote-gateway/CLAUDE.md](./packages/remote-gateway/CLAUDE.md) |
 
 ### 规划文档
 
-| 文档                                                         | 描述                                                                                                                           |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| [PERSONAL_ROADMAP.md](./doc/PERSONAL_ROADMAP.md)             | **个人版功能规划**：Phase 6-11 详细实施计划，包含命令模板、工作区快照、AI 推荐、知识库等功能的数据库设计、模块架构、工作量评估 |
-| [TECHNICAL_DEBT_REPORT.md](./doc/TECHNICAL_DEBT_REPORT.md)   | **技术债务报告**：完整分析代码库中的 24 个 TODO/FIXME 标记，按优先级分类，提供处理建议和 GitHub Issues 转换模板                 |
+| 文档                                                       | 描述                                                                                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [PERSONAL_ROADMAP.md](./doc/PERSONAL_ROADMAP.md)           | **个人版功能规划**：Phase 6-11 详细实施计划，包含命令模板、工作区快照、AI 推荐、知识库等功能的数据库设计、模块架构、工作量评估 |
+| [TECHNICAL_DEBT_REPORT.md](./doc/TECHNICAL_DEBT_REPORT.md) | **技术债务报告**：完整分析代码库中的 24 个 TODO/FIXME 标记，按优先级分类，提供处理建议和 GitHub Issues 转换模板                |
 
 ---
 
@@ -245,17 +258,31 @@ npm run build
 
 ### 当前状态
 
-- **无自动化测试**：项目暂无测试文件（未发现 `*.test.ts`、`*.spec.ts` 或 `__tests__` 目录）
+- **测试框架已配置**：Backend 与 Frontend 均已配置 Vitest 测试框架
+- **测试覆盖率**：
+  - Backend: 发现 30+ 个 `*.test.ts` 文件（单元测试）
+  - Frontend: 发现 5+ 个 `*.test.ts` 文件（组件与 Store 测试）
 - **测试缺口**：
-  - 后端 API 单元测试与集成测试
-  - 前端组件测试与端到端测试
+  - 需提升后端 Service 层单元测试覆盖率
+  - 需补充前端 Components 与 Composables 的单元测试
+  - 缺少 E2E 测试覆盖关键用户流程
   - SSH/SFTP 协议交互测试
   - RDP/VNC 代理功能测试
 
-### 建议测试框架
+### 测试框架配置
 
-- **后端**：Jest + Supertest（API 测试）
-- **前端**：Vitest + Vue Test Utils + Cypress（E2E）
+- **后端**：Vitest + @vitest/coverage-v8（配置文件：`packages/backend/vitest.config.ts`）
+- **前端**：Vitest + Vue Test Utils + Happy DOM（配置文件：`packages/frontend/vite.config.ts`）
+- **测试命令**：
+  - 运行所有测试：`npm test`（根目录）
+  - 运行后端测试：`npm run test:backend`
+  - 运行前端测试：`npm run test:frontend`
+  - 监视模式：`npm run test:watch:backend` 或 `npm run test:watch:frontend`
+  - 覆盖率报告：`npm run test:coverage`
+
+### 建议测试框架（未实现部分）
+
+- **E2E 测试**：Cypress 或 Playwright
 - **协议测试**：模拟 SSH/SFTP 服务器进行集成测试
 
 ---
@@ -389,7 +416,9 @@ npm run build
   - 后端：`packages/backend/src/*/routes.ts`
   - 前端：`packages/frontend/src/router/index.ts`
 - **状态管理**：`packages/frontend/src/stores/*.store.ts`
-- **WebSocket**：`packages/backend/src/websocket.ts`（待补充扫描）
+- **WebSocket**：
+  - 服务端：`packages/backend/src/websocket.ts`
+  - 处理器：`packages/backend/src/websocket/handlers/`
 - **主题配置**：
   - 后端：`packages/backend/src/config/default-themes.ts`
   - 前端：`packages/frontend/src/features/appearance/config/`
@@ -416,5 +445,11 @@ Guacd (4822) → RDP/VNC 协议转换
 
 ---
 
-**文档生成时间**：2025-12-20 22:27:42（增量更新）
-**下次扫描建议**：补充后端 WebSocket 消息协议文档、前端组件 Props/Events 接口定义、E2E 测试策略
+**文档生成时间**：2025-12-24 00:09:22（覆盖率验证更新）
+**下次扫描建议**：
+
+- 补充后端 Service 层单元测试覆盖率
+- 补充前端 Components 与 Composables 的单元测试
+- 考虑添加 E2E 测试（Cypress/Playwright）验证关键用户流程
+- 监控 Phase 4/5 新增模块的测试覆盖率提升
+- 定期审查技术债务报告并处理高优先级项
