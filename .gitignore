@@ -164,3 +164,6 @@ dist-scripts/
 /packages/backend/data
 electron-app/node_modules/
 electron-app/dist_electron/
+
+# Husky git hooks (local only)
+.husky/
