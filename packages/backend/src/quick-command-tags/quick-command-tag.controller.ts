@@ -1,23 +1,24 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as QuickCommandTagService from './quick-command-tag.service';
+import { ErrorFactory } from '../utils/AppError';
 
 /**
  * 处理获取所有快捷指令标签的请求
  */
-export const getAllQuickCommandTags = async (req: Request, res: Response): Promise<void> => {
+export const getAllQuickCommandTags = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const tags = await QuickCommandTagService.getAllQuickCommandTags();
     res.status(200).json(tags);
-  } catch (error: any) {
-    console.error('[Controller] 获取快捷指令标签列表失败:', error.message);
-    res.status(500).json({ message: error.message || '无法获取快捷指令标签列表' });
+  } catch (error) {
+    console.error('[Controller] 获取快捷指令标签列表失败:', error);
+    next(error);
   }
 };
 
 /**
  * 处理添加新快捷指令标签的请求
  */
-export const addQuickCommandTag = async (req: Request, res: Response): Promise<void> => {
+export const addQuickCommandTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { name } = req.body;
 
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -36,21 +37,16 @@ export const addQuickCommandTag = async (req: Request, res: Response): Promise<v
       console.error(`[Controller] 添加快捷指令标签后未能找到 ID: ${newId}`);
       res.status(201).json({ message: '快捷指令标签已添加，但无法检索新记录', id: newId });
     }
-  } catch (error: any) {
-    console.error('[Controller] 添加快捷指令标签失败:', error.message);
-    // 检查是否是名称重复错误
-    if (error.message && error.message.includes('已存在')) {
-      res.status(409).json({ message: error.message }); // 409 Conflict
-    } else {
-      res.status(500).json({ message: error.message || '无法添加快捷指令标签' });
-    }
+  } catch (error) {
+    console.error('[Controller] 添加快捷指令标签失败:', error);
+    next(error);
   }
 };
 
 /**
  * 处理更新快捷指令标签的请求
  */
-export const updateQuickCommandTag = async (req: Request, res: Response): Promise<void> => {
+export const updateQuickCommandTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   const { name } = req.body;
 
@@ -82,24 +78,20 @@ export const updateQuickCommandTag = async (req: Request, res: Response): Promis
       } else {
         // 如果标签存在但更新失败（理论上不太可能，除非并发问题），返回服务器错误
         console.error(`[Controller] 更新快捷指令标签 ${id} 失败，但标签存在。`);
-        res.status(500).json({ message: '更新快捷指令标签时发生未知错误' });
+        next(ErrorFactory.internalError('更新快捷指令标签时发生未知错误'));
+        return;
       }
     }
-  } catch (error: any) {
-    console.error('[Controller] 更新快捷指令标签失败:', error.message);
-    // 检查是否是名称重复错误
-    if (error.message && error.message.includes('已存在')) {
-      res.status(409).json({ message: error.message }); // 409 Conflict
-    } else {
-      res.status(500).json({ message: error.message || '无法更新快捷指令标签' });
-    }
+  } catch (error) {
+    console.error('[Controller] 更新快捷指令标签失败:', error);
+    next(error);
   }
 };
 
 /**
  * 处理删除快捷指令标签的请求
  */
-export const deleteQuickCommandTag = async (req: Request, res: Response): Promise<void> => {
+export const deleteQuickCommandTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -121,10 +113,11 @@ export const deleteQuickCommandTag = async (req: Request, res: Response): Promis
     } else {
       // 如果上面检查存在但删除失败，说明有内部错误
       console.error(`[Controller] 删除快捷指令标签 ${id} 失败，但标签存在。`);
-      res.status(500).json({ message: '删除快捷指令标签时发生未知错误' });
+      next(ErrorFactory.internalError('删除快捷指令标签时发生未知错误'));
+      return;
     }
-  } catch (error: any) {
-    console.error('[Controller] 删除快捷指令标签失败:', error.message);
-    res.status(500).json({ message: error.message || '无法删除快捷指令标签' });
+  } catch (error) {
+    console.error('[Controller] 删除快捷指令标签失败:', error);
+    next(error);
   }
 };

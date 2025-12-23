@@ -84,6 +84,18 @@ export const allDb = <T = any>(
 };
 
 const runDatabaseInitializations = async (db: sqlite3.Database): Promise<void> => {
+  // 开始事务
+  await new Promise<void>((resolveTx, rejectTx) => {
+    db.run('BEGIN TRANSACTION', (beginErr) => {
+      if (beginErr) {
+        console.error('[DB Init] 开始数据库初始化事务失败:', beginErr);
+        rejectTx(new Error(`开始数据库初始化事务失败: ${beginErr.message}`));
+      } else {
+        resolveTx();
+      }
+    });
+  });
+
   try {
     await runDb(db, 'PRAGMA foreign_keys = ON;');
     for (const tableDef of tableDefinitions) {
@@ -92,8 +104,30 @@ const runDatabaseInitializations = async (db: sqlite3.Database): Promise<void> =
         await tableDef.init(db);
       }
     }
+
+    // 提交事务
+    await new Promise<void>((resolveCommit, rejectCommit) => {
+      db.run('COMMIT', (commitErr) => {
+        if (commitErr) {
+          console.error('[DB Init] 提交数据库初始化事务失败:', commitErr);
+          rejectCommit(commitErr);
+        } else {
+          console.log('[DB Init] 数据库初始化事务提交成功');
+          resolveCommit();
+        }
+      });
+    });
   } catch (error) {
-    console.error('[DB Init] 数据库初始化序列失败:', error);
+    // 回滚事务
+    await new Promise<void>((resolveRollback) => {
+      db.run('ROLLBACK', (rollbackErr) => {
+        if (rollbackErr) {
+          console.error('[DB Init] 回滚数据库初始化事务失败:', rollbackErr);
+        }
+        console.error('[DB Init] 数据库初始化序列失败，已回滚事务:', error);
+        resolveRollback();
+      });
+    });
     throw error;
   }
 };

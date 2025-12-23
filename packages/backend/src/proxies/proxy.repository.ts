@@ -1,4 +1,5 @@
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
+import { ErrorFactory } from '../utils/AppError';
 
 export interface ProxyData {
   id: number;
@@ -36,7 +37,7 @@ export const findProxyByNameTypeHostPort = async (
       `Repository: 查找代理时出错 (name=${name}, type=${type}, host=${host}, port=${port}):`,
       err.message
     );
-    throw new Error(`查找代理时出错: ${err.message}`);
+    throw ErrorFactory.databaseError('查找代理失败', `查找代理时出错: ${err.message}`);
   }
 };
 
@@ -66,12 +67,12 @@ export const createProxy = async (
     const db = await getDbInstance();
     const result = await runDb(db, sql, params);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw new Error('创建代理后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError('创建代理后未能获取有效的 lastID', '创建代理后未能获取有效的 lastID');
     }
     return result.lastID;
   } catch (err: any) {
     console.error('Repository: 创建代理时出错:', err.message);
-    throw new Error(`创建代理时出错: ${err.message}`);
+    throw ErrorFactory.databaseError('创建代理失败', `创建代理时出错: ${err.message}`);
   }
 };
 
@@ -86,7 +87,7 @@ export const findAllProxies = async (): Promise<ProxyData[]> => {
     return rows;
   } catch (err: any) {
     console.error('Repository: 查询代理列表时出错:', err.message);
-    throw new Error('获取代理列表失败');
+    throw ErrorFactory.databaseError('获取代理列表失败', '获取代理列表失败');
   }
 };
 
@@ -101,7 +102,7 @@ export const findProxyById = async (id: number): Promise<ProxyData | null> => {
     return row || null;
   } catch (err: any) {
     console.error(`Repository: 查询代理 ${id} 时出错:`, err.message);
-    throw new Error('获取代理信息失败');
+    throw ErrorFactory.databaseError('获取代理信息失败', '获取代理信息失败');
   }
 };
 
@@ -139,7 +140,7 @@ export const updateProxy = async (
     return result.changes > 0;
   } catch (err: any) {
     console.error(`Repository: 更新代理 ${id} 时出错:`, err.message);
-    throw new Error('更新代理记录失败');
+    throw ErrorFactory.databaseError('更新代理记录失败', '更新代理记录失败');
   }
 };
 
@@ -154,6 +155,6 @@ export const deleteProxy = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error(`Repository: 删除代理 ${id} 时出错:`, err.message);
-    throw new Error('删除代理记录失败');
+    throw ErrorFactory.databaseError('删除代理记录失败', '删除代理记录失败');
   }
 };

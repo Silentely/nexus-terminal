@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import bcrypt from 'bcrypt'; // Keep bcrypt import if needed elsewhere
+import { SECURITY_CONFIG } from '../config/security.config';
 
 const algorithm = 'aes-256-gcm';
 const ivLength = 16; // GCM 推荐的 IV 长度为 12 或 16 字节
@@ -81,8 +82,7 @@ export const decrypt = (encryptedText: string): string => {
 
 // --- Password Hashing (Keep if needed) ---
 export async function hashPassword(password: string): Promise<string> {
-  const saltRounds = 10;
-  return bcrypt.hash(password, saltRounds);
+  return bcrypt.hash(password, SECURITY_CONFIG.BCRYPT_SALT_ROUNDS);
 }
 export async function comparePassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);

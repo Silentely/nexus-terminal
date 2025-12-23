@@ -118,7 +118,7 @@ packages/backend/
 │   ├── quick-command-tags/         # 快捷指令标签
 │   ├── terminal-themes/            # 终端主题
 │   ├── appearance/                 # 外观设置
-│   ├── ssh_keys/                   # SSH 密钥管理
+│   ├── ssh-keys/                   # SSH 密钥管理
 │   ├── transfers/                  # 文件传输
 │   ├── path-history/               # 路径历史
 │   ├── favorite-paths/             # 收藏路径
@@ -190,7 +190,7 @@ packages/backend/
 | `/api/v1/quick-command-tags` | quick-command-tags | 快捷指令标签                          |
 | `/api/v1/terminal-themes`    | terminal-themes    | 终端主题配置                          |
 | `/api/v1/appearance`         | appearance         | 外观设置                              |
-| `/api/v1/ssh-keys`           | ssh_keys           | SSH 密钥管理                          |
+| `/api/v1/ssh-keys`           | ssh-keys           | SSH 密钥管理                          |
 | `/api/v1/transfers`          | transfers          | 文件传输状态                          |
 | `/api/v1/path-history`       | path-history       | 路径浏览历史                          |
 | `/api/v1/favorite-paths`     | favorite-paths     | 收藏路径管理                          |

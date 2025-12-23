@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as CommandHistoryService from './command-history.service';
+import { ErrorFactory } from '../utils/AppError';
 
 /**
  * 处理添加新命令历史记录的请求
  */
-export const addCommand = async (req: Request, res: Response): Promise<void> => {
+export const addCommand = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { command } = req.body;
 
   if (!command || typeof command !== 'string' || command.trim().length === 0) {
@@ -15,30 +16,30 @@ export const addCommand = async (req: Request, res: Response): Promise<void> => 
   try {
     const newId = await CommandHistoryService.addCommandHistory(command);
     res.status(201).json({ id: newId, message: '命令已添加到历史记录' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('添加命令历史记录控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法添加命令历史记录' });
+    next(error);
   }
 };
 
 /**
  * 处理获取所有命令历史记录的请求
  */
-export const getAllCommands = async (req: Request, res: Response): Promise<void> => {
+export const getAllCommands = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const history = await CommandHistoryService.getAllCommandHistory();
     // 注意：前端要求最新在下，最旧在上。Repository 返回的是升序（旧->新），符合要求。
     res.status(200).json(history);
-  } catch (error: any) {
+  } catch (error) {
     console.error('获取命令历史记录控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法获取命令历史记录' });
+    next(error);
   }
 };
 
 /**
  * 处理根据 ID 删除命令历史记录的请求
  */
-export const deleteCommand = async (req: Request, res: Response): Promise<void> => {
+export const deleteCommand = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -53,21 +54,21 @@ export const deleteCommand = async (req: Request, res: Response): Promise<void> 
     } else {
       res.status(404).json({ message: '未找到要删除的命令历史记录' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('删除命令历史记录控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法删除命令历史记录' });
+    next(error);
   }
 };
 
 /**
  * 处理清空所有命令历史记录的请求
  */
-export const clearAllCommands = async (req: Request, res: Response): Promise<void> => {
+export const clearAllCommands = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const count = await CommandHistoryService.clearAllCommandHistory();
     res.status(200).json({ count, message: `已清空 ${count} 条命令历史记录` });
-  } catch (error: any) {
+  } catch (error) {
     console.error('清空命令历史记录控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法清空命令历史记录' });
+    next(error);
   }
 };

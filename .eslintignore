@@ -7,3 +7,4 @@ coverage
 packages/*/dist
 packages/*/build
 packages/*/coverage
+commitlint.config.js

@@ -1,4 +1,5 @@
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
+import { ErrorFactory } from '../utils/AppError';
 
 export interface Passkey {
   id: number;
@@ -91,7 +92,10 @@ export class PasskeyRepository {
     // Fetch the inserted row
     const newPasskey = await this.getPasskeyById(lastID);
     if (!newPasskey) {
-      throw new Error('Failed to create or retrieve passkey after insert.');
+      throw ErrorFactory.databaseError(
+        'Passkey 创建失败',
+        'Failed to create or retrieve passkey after insert.'
+      );
     }
     return newPasskey;
   }

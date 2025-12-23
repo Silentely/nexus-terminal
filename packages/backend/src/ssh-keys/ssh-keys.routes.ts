@@ -6,7 +6,7 @@ import {
   getDecryptedSshKey,
   updateSshKey,
   deleteSshKey,
-} from './ssh_keys.controller';
+} from './ssh-keys.controller';
 
 const router = Router();
 

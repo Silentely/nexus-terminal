@@ -1,4 +1,5 @@
 import { Database } from 'sqlite3';
+import { ErrorFactory } from '../utils/AppError';
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
 
 // 定义 Quick Command Tag 类型
@@ -22,7 +23,7 @@ export const findAllQuickCommandTags = async (): Promise<QuickCommandTag[]> => {
     return rows;
   } catch (err: any) {
     console.error('[仓库] 查询快捷指令标签列表时出错:', err.message);
-    throw new Error('获取快捷指令标签列表失败');
+    throw ErrorFactory.databaseError('获取快捷指令标签列表失败', '获取快捷指令标签列表失败');
   }
 };
 
@@ -40,7 +41,7 @@ export const findQuickCommandTagById = async (id: number): Promise<QuickCommandT
     return row || null;
   } catch (err: any) {
     console.error(`[仓库] 查询快捷指令标签 ${id} 时出错:`, err.message);
-    throw new Error('获取快捷指令标签信息失败');
+    throw ErrorFactory.databaseError('获取快捷指令标签信息失败', '获取快捷指令标签信息失败');
   }
 };
 
@@ -54,15 +55,15 @@ export const createQuickCommandTag = async (name: string): Promise<number> => {
     const db = await getDbInstance();
     const result = await runDb(db, sql, [name, now, now]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw new Error('创建快捷指令标签后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError('创建快捷指令标签后未能获取有效的 lastID', '创建快捷指令标签后未能获取有效的 lastID');
     }
     return result.lastID;
   } catch (err: any) {
     console.error('[仓库] 创建快捷指令标签时出错:', err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw new Error(`快捷指令标签名称 "${name}" 已存在。`);
+      throw ErrorFactory.validationError(`快捷指令标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
     }
-    throw new Error(`创建快捷指令标签失败: ${err.message}`);
+    throw ErrorFactory.databaseError('创建快捷指令标签失败', `创建快捷指令标签失败: ${err.message}`);
   }
 };
 
@@ -79,9 +80,9 @@ export const updateQuickCommandTag = async (id: number, name: string): Promise<b
   } catch (err: any) {
     console.error(`[仓库] 更新快捷指令标签 ${id} 时出错:`, err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw new Error(`快捷指令标签名称 "${name}" 已存在。`);
+      throw ErrorFactory.validationError(`快捷指令标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
     }
-    throw new Error(`更新快捷指令标签失败: ${err.message}`);
+    throw ErrorFactory.databaseError('更新快捷指令标签失败', `更新快捷指令标签失败: ${err.message}`);
   }
 };
 
@@ -98,7 +99,7 @@ export const deleteQuickCommandTag = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error(`[仓库] 删除快捷指令标签 ${id} 时出错:`, err.message);
-    throw new Error('删除快捷指令标签失败');
+    throw ErrorFactory.databaseError('删除快捷指令标签失败', '删除快捷指令标签失败');
   }
 };
 
@@ -140,7 +141,7 @@ export const setCommandTagAssociations = async (
   } catch (err: any) {
     console.error('设置快捷指令标签关联时出错:', err.message);
     await runDb(db, 'ROLLBACK'); // 出错时回滚
-    throw new Error('无法设置快捷指令标签关联');
+    throw ErrorFactory.databaseError('无法设置快捷指令标签关联', '无法设置快捷指令标签关联');
   }
 };
 
@@ -184,7 +185,7 @@ export const addTagToCommands = async (commandIds: number[], tagId: number): Pro
   } catch (err: any) {
     console.error(`[Repo] addTagToCommands: 批量关联标签 ${tagId} 到指令时出错:`, err.message);
     await runDb(db, 'ROLLBACK');
-    throw new Error('无法批量关联标签到快捷指令');
+    throw ErrorFactory.databaseError('无法批量关联标签到快捷指令', '无法批量关联标签到快捷指令');
   }
 };
 
@@ -213,6 +214,6 @@ export const findTagsByCommandId = async (commandId: number): Promise<QuickComma
     return rows;
   } catch (err: any) {
     console.error(`Repository: 查询快捷指令 ${commandId} 的标签时出错:`, err.message);
-    throw new Error('获取快捷指令标签失败');
+    throw ErrorFactory.databaseError('获取快捷指令标签失败', '获取快捷指令标签失败');
   }
 };

@@ -1,4 +1,5 @@
 import { Database } from 'sqlite3';
+import { ErrorFactory } from '../utils/AppError';
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
 
 // Define Connection 类型 (可以从 controller 或 types 文件导入，暂时在此定义)
@@ -93,7 +94,7 @@ export const findAllConnectionsWithTags = async (): Promise<ConnectionWithTags[]
     });
   } catch (err: any) {
     console.error('Repository: 查询连接列表时出错:', err.message);
-    throw new Error('获取连接列表失败');
+    throw ErrorFactory.databaseError('获取连接列表失败', '获取连接列表失败');
   }
 };
 
@@ -131,7 +132,7 @@ export const findConnectionByIdWithTags = async (
     return null;
   } catch (err: any) {
     console.error(`Repository: 查询连接 ${id} 时出错:`, err.message);
-    throw new Error('获取连接信息失败');
+    throw ErrorFactory.databaseError('获取连接信息失败', '获取连接信息失败');
   }
 };
 
@@ -156,7 +157,7 @@ export const findFullConnectionById = async (id: number): Promise<FullConnection
     return row || null;
   } catch (err: any) {
     console.error(`Repository: 查询连接 ${id} 详细信息时出错:`, err.message);
-    throw new Error('获取连接详细信息失败');
+    throw ErrorFactory.databaseError('获取连接详细信息失败', '获取连接详细信息失败');
   }
 };
 
@@ -186,7 +187,7 @@ export const findConnectionByName = async (name: string): Promise<ConnectionBase
     return null; // Ensure null is returned if row is null
   } catch (err: any) {
     console.error(`Repository: 查询连接名称 "${name}" 时出错:`, err.message);
-    throw new Error('查找连接名称失败');
+    throw ErrorFactory.databaseError('查找连接名称失败', '查找连接名称失败');
   }
 };
 
@@ -236,12 +237,12 @@ export const createConnection = async (
     const db = await getDbInstance();
     const result = await runDb(db, sql, params);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw new Error('创建连接后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError('创建连接失败', '创建连接后未能获取有效的 lastID');
     }
     return result.lastID;
   } catch (err: any) {
     console.error('Repository: 插入连接时出错:', err.message);
-    throw new Error('创建连接记录失败');
+    throw ErrorFactory.databaseError('创建连接记录失败', '创建连接记录失败');
   }
 };
 
@@ -306,7 +307,7 @@ export const updateConnection = async (
     return result.changes > 0;
   } catch (err: any) {
     console.error(`Repository: 更新连接 ${id} 时出错:`, err.message);
-    throw new Error('更新连接记录失败');
+    throw ErrorFactory.databaseError('更新连接记录失败', '更新连接记录失败');
   }
 };
 
@@ -321,7 +322,7 @@ export const deleteConnection = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error(`Repository: 删除连接 ${id} 时出错:`, err.message);
-    throw new Error('删除连接记录失败');
+    throw ErrorFactory.databaseError('删除连接记录失败', '删除连接记录失败');
   }
 };
 
@@ -343,7 +344,7 @@ export const updateLastConnected = async (id: number, timestamp: number): Promis
     return result.changes > 0;
   } catch (err: any) {
     console.error(`Repository: 更新连接 ${id} 的 last_connected_at 时出错:`, err.message);
-    throw new Error('更新上次连接时间失败');
+    throw ErrorFactory.databaseError('更新上次连接时间失败', '更新上次连接时间失败');
   }
 };
 
@@ -374,7 +375,7 @@ export const updateConnectionTags = async (
     }
   } catch (checkErr: any) {
     console.error(`Repository: 检查连接 ${connectionId} 是否存在时出错:`, checkErr.message);
-    throw new Error('检查连接是否存在时失败'); // 抛出检查错误
+    throw ErrorFactory.databaseError('检查连接是否存在时失败', '检查连接是否存在时失败'); // 抛出检查错误
   }
 
   // 2. 执行标签更新事务
@@ -437,7 +438,7 @@ export const findConnectionTags = async (
     return rows;
   } catch (err: any) {
     console.error(`Repository: 查询连接 ${connectionId} 的标签时出错:`, err.message);
-    throw new Error('获取连接标签失败');
+    throw ErrorFactory.databaseError('获取连接标签失败', '获取连接标签失败');
   }
 };
 
@@ -478,12 +479,18 @@ export const bulkInsertConnections = async (
     try {
       const connResult = await runDb(db, insertConnSql, params);
       if (typeof connResult.lastID !== 'number' || connResult.lastID <= 0) {
-        throw new Error(`插入连接 "${connData.name}" 后未能获取有效的 lastID`);
+        throw ErrorFactory.databaseError(
+          '批量插入连接失败',
+          `插入连接 "${connData.name}" 后未能获取有效的 lastID`
+        );
       }
       results.push({ connectionId: connResult.lastID, originalData: connData });
     } catch (err: any) {
       console.error(`Repository: 批量插入连接 "${connData.name}" 时出错: ${err.message}`);
-      throw new Error(`批量插入连接 "${connData.name}" 失败`);
+      throw ErrorFactory.databaseError(
+        '批量插入连接失败',
+        `批量插入连接 "${connData.name}" 失败: ${err.message}`
+      );
     }
   }
   return results;
@@ -520,8 +527,14 @@ export const addTagToMultipleConnections = async (
     try {
       await runDb(db, 'ROLLBACK');
     } catch (rollbackErr: any) {
-      console.error(`Repository: 回滚为多个连接添加标签 ${tagId} 的事务失败:`, rollbackErr.message);
+      console.error(
+        `Repository: 回滚为多个连接添加标签 ${tagId} 的事务失败:`,
+        rollbackErr.message
+      );
     }
-    throw new Error(`为多个连接添加标签失败: ${err.message}`);
+    throw ErrorFactory.databaseError(
+      '批量关联标签失败',
+      `为多个连接添加标签失败: ${err.message}`
+    );
   }
 };

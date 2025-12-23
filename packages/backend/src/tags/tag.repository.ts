@@ -1,4 +1,5 @@
 import { Database, Statement } from 'sqlite3';
+import { ErrorFactory } from '../utils/AppError';
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
 
 // 定义 Tag 类型 (可以共享到 types 文件)
@@ -19,7 +20,7 @@ export const findAllTags = async (): Promise<TagData[]> => {
     return rows;
   } catch (err: any) {
     console.error('[仓库] 查询标签列表时出错:', err.message);
-    throw new Error('获取标签列表失败');
+    throw ErrorFactory.databaseError('获取标签列表失败', '获取标签列表失败');
   }
 };
 
@@ -33,7 +34,7 @@ export const findTagById = async (id: number): Promise<TagData | null> => {
     return row || null;
   } catch (err: any) {
     console.error(`[仓库] 查询标签 ${id} 时出错:`, err.message);
-    throw new Error('获取标签信息失败');
+    throw ErrorFactory.databaseError('获取标签信息失败', '获取标签信息失败');
   }
 };
 
@@ -47,15 +48,15 @@ export const createTag = async (name: string): Promise<number> => {
     const db = await getDbInstance();
     const result = await runDb(db, sql, [name, now, now]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw new Error('创建标签后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError('创建标签后未能获取有效的 lastID', '创建标签后未能获取有效的 lastID');
     }
     return result.lastID;
   } catch (err: any) {
     console.error('[仓库] 创建标签时出错:', err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw new Error(`标签名称 "${name}" 已存在。`);
+      throw ErrorFactory.validationError(`标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
     }
-    throw new Error(`创建标签失败: ${err.message}`);
+    throw ErrorFactory.databaseError('创建标签失败', `创建标签失败: ${err.message}`);
   }
 };
 
@@ -72,9 +73,9 @@ export const updateTag = async (id: number, name: string): Promise<boolean> => {
   } catch (err: any) {
     console.error(`[仓库] 更新标签 ${id} 时出错:`, err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw new Error(`标签名称 "${name}" 已存在。`);
+      throw ErrorFactory.validationError(`标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
     }
-    throw new Error(`更新标签失败: ${err.message}`);
+    throw ErrorFactory.databaseError('更新标签失败', `更新标签失败: ${err.message}`);
   }
 };
 
@@ -89,7 +90,7 @@ export const deleteTag = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error(`[仓库] 删除标签 ${id} 时出错:`, err.message);
-    throw new Error('删除标签失败');
+    throw ErrorFactory.databaseError('删除标签失败', '删除标签失败');
   }
 };
 
@@ -126,6 +127,9 @@ export const updateTagConnections = async (
     // 如果发生错误，回滚事务
     await runDb(db, 'ROLLBACK');
     console.error(`[仓库] 更新标签 ${tagId} 的连接关联时出错:`, err.message);
-    throw new Error(`更新标签连接关联失败: ${err.message}`);
+    throw ErrorFactory.databaseError(
+      '更新标签连接关联失败',
+      `更新标签连接关联失败: ${err.message}`
+    );
   }
 };

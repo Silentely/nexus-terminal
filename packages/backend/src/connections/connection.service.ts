@@ -1,7 +1,7 @@
 import * as ConnectionRepository from './connection.repository';
 import { encrypt, decrypt } from '../utils/crypto';
 import { AuditLogService } from '../audit/audit.service';
-import * as SshKeyService from '../ssh_keys/ssh_key.service';
+import * as SshKeyService from '../ssh-keys/ssh-keys.service';
 import {
   ConnectionBase,
   ConnectionWithTags,

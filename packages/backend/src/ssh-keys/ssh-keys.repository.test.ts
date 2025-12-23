@@ -19,7 +19,7 @@ import {
   findAllSshKeys,
   updateSshKey,
   deleteSshKey,
-} from './ssh_key.repository';
+} from './ssh-keys.repository';
 
 describe('SSH Key Repository', () => {
   beforeEach(() => {

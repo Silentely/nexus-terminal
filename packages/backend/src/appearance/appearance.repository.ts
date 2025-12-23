@@ -3,6 +3,7 @@ import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import { AppearanceSettings, UpdateAppearanceDto } from '../types/appearance.types';
 import { defaultUiTheme } from '../config/default-themes';
 import { findThemeById as findTerminalThemeById } from '../terminal-themes/terminal-theme.repository';
+import { ErrorFactory } from '../utils/AppError';
 
 const TABLE_NAME = 'appearance_settings';
 
@@ -260,7 +261,7 @@ export const ensureDefaultSettingsExist = async (db: sqlite3.Database): Promise<
     await findAndSetDefaultThemeIdIfNull(db);
   } catch (err: any) {
     console.error(`[AppearanceRepo] 检查或插入默认外观设置键值对时出错:`, err.message);
-    throw new Error(`检查或插入默认外观设置失败: ${err.message}`);
+    throw ErrorFactory.databaseError('初始化外观设置失败', `检查或插入默认外观设置失败: ${err.message}`);
   }
 };
 
@@ -325,7 +326,7 @@ export const getAppearanceSettings = async (): Promise<AppearanceSettings> => {
     return mappedSettings;
   } catch (err: any) {
     console.error('[AppearanceRepo] 获取外观设置失败:', err.message);
-    throw new Error('获取外观设置失败');
+    throw ErrorFactory.databaseError('获取外观设置失败', `获取外观设置失败: ${err.message}`);
   }
 };
 
@@ -349,14 +350,20 @@ export const updateAppearanceSettings = async (
     try {
       const themeExists = await findTerminalThemeById(settingsDto.activeTerminalThemeId);
       if (!themeExists) {
-        throw new Error(`指定的终端主题 ID 不存在: ${settingsDto.activeTerminalThemeId}`);
+        throw ErrorFactory.notFound(
+          `指定的终端主题不存在`,
+          `指定的终端主题 ID 不存在: ${settingsDto.activeTerminalThemeId}`
+        );
       }
     } catch (validationError: any) {
       console.error(
         `[AppearanceRepo] 验证主题 ID ${settingsDto.activeTerminalThemeId} 时出错:`,
         validationError.message
       );
-      throw new Error(`验证主题 ID 失败: ${validationError.message}`);
+      throw ErrorFactory.databaseError(
+        '验证主题失败',
+        `验证主题 ID 失败: ${validationError.message}`
+      );
     }
   }
   // ... 其他验证 ...
@@ -432,6 +439,6 @@ const updateAppearanceSettingsInternal = async (
     return changesMade; // 如果有任何行被插入或替换，则返回 true
   } catch (err: any) {
     console.error('[AppearanceRepo] 更新外观设置失败:', err.message);
-    throw new Error('更新外观设置失败');
+    throw ErrorFactory.databaseError('更新外观设置失败', `更新外观设置失败: ${err.message}`);
   }
 };

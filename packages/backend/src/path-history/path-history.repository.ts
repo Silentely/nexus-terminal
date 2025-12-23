@@ -1,4 +1,5 @@
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
+import { ErrorFactory } from '../utils/AppError';
 
 // 定义路径历史记录的接口
 export interface PathHistoryEntry {
@@ -32,20 +33,20 @@ export const upsertPath = async (path: string): Promise<number> => {
         return row.id;
       }
       // This case should theoretically not happen if update succeeded
-      throw new Error('更新成功但无法找到记录 ID');
+      throw ErrorFactory.databaseError('更新成功但无法找到记录 ID', '更新成功但无法找到记录 ID');
     } else {
       // 2. 没有记录被更新，说明路径不存在，执行插入
       const insertSql = `INSERT INTO path_history (path, timestamp) VALUES (?, ?)`;
       const insertResult = await runDb(db, insertSql, [path, now]);
       // Ensure lastID is valid before returning
       if (typeof insertResult.lastID !== 'number' || insertResult.lastID <= 0) {
-        throw new Error('插入新路径历史记录后未能获取有效的 lastID');
+        throw ErrorFactory.databaseError('插入新路径历史记录后未能获取有效的 lastID', '插入新路径历史记录后未能获取有效的 lastID');
       }
       return insertResult.lastID;
     }
   } catch (err: any) {
     console.error('Upsert 路径历史记录时出错:', err.message);
-    throw new Error('无法更新或插入路径历史记录');
+    throw ErrorFactory.databaseError('无法更新或插入路径历史记录', '无法更新或插入路径历史记录');
   }
 };
 
@@ -61,7 +62,7 @@ export const getAllPaths = async (): Promise<PathHistoryEntry[]> => {
     return rows;
   } catch (err: any) {
     console.error('获取路径历史记录时出错:', err.message);
-    throw new Error('无法获取路径历史记录');
+    throw ErrorFactory.databaseError('无法获取路径历史记录', '无法获取路径历史记录');
   }
 };
 
@@ -78,7 +79,7 @@ export const deletePathById = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error('删除路径历史记录时出错:', err.message);
-    throw new Error('无法删除路径历史记录');
+    throw ErrorFactory.databaseError('无法删除路径历史记录', '无法删除路径历史记录');
   }
 };
 
@@ -94,6 +95,6 @@ export const clearAllPaths = async (): Promise<number> => {
     return result.changes;
   } catch (err: any) {
     console.error('清空路径历史记录时出错:', err.message);
-    throw new Error('无法清空路径历史记录');
+    throw ErrorFactory.databaseError('无法清空路径历史记录', '无法清空路径历史记录');
   }
 };

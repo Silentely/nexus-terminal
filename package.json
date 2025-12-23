@@ -48,6 +48,8 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
     "@tailwindcss/postcss": "^4.1.4",
     "@types/qrcode": "^1.5.5",
     "@types/speakeasy": "^2.0.10",

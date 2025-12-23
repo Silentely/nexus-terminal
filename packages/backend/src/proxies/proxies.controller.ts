@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as ProxyService from './proxy.service';
 import { AuditLogService } from '../audit/audit.service';
+import { ErrorFactory } from '../utils/AppError';
 
 const auditLogService = new AuditLogService();
 
@@ -13,18 +14,18 @@ const sanitizeProxy = (
 };
 
 // 获取所有代理配置 (不含敏感信息)
-export const getAllProxies = async (req: Request, res: Response) => {
+export const getAllProxies = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const proxies = await ProxyService.getAllProxies();
     res.status(200).json(proxies.map(sanitizeProxy));
-  } catch (error: any) {
+  } catch (error) {
     console.error('Controller: 获取代理列表失败:', error);
-    res.status(500).json({ message: '获取代理列表失败', error: error.message });
+    next(error);
   }
 };
 
 // 获取单个代理配置 (不含敏感信息)
-export const getProxyById = async (req: Request, res: Response) => {
+export const getProxyById = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   try {
     const proxyId = parseInt(id, 10);
@@ -38,14 +39,14 @@ export const getProxyById = async (req: Request, res: Response) => {
     } else {
       res.status(404).json({ message: `未找到 ID 为 ${id} 的代理` });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error(`Controller: 获取代理 ${id} 失败:`, error);
-    res.status(500).json({ message: `获取代理 ${id} 失败`, error: error.message });
+    next(error);
   }
 };
 
 // 创建新的代理配置
-export const createProxy = async (req: Request, res: Response) => {
+export const createProxy = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, type, host, port } = req.body;
     if (!name || !type || !host || !port) {
@@ -79,12 +80,12 @@ export const createProxy = async (req: Request, res: Response) => {
     if (error.message.includes('缺少') || error.message.includes('需要提供')) {
       return res.status(400).json({ message: error.message });
     }
-    res.status(500).json({ message: '创建代理失败', error: error.message });
+    next(error);
   }
 };
 
 // 更新代理配置
-export const updateProxy = async (req: Request, res: Response) => {
+export const updateProxy = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   try {
     const proxyId = parseInt(id, 10);
@@ -132,12 +133,12 @@ export const updateProxy = async (req: Request, res: Response) => {
     if (error.message.includes('需要提供')) {
       return res.status(400).json({ message: error.message });
     }
-    res.status(500).json({ message: `更新代理 ${id} 失败`, error: error.message });
+    next(error);
   }
 };
 
 // 删除代理配置
-export const deleteProxy = async (req: Request, res: Response) => {
+export const deleteProxy = async (req: Request, res: Response, next: NextFunction) => {
   const { id } = req.params;
   try {
     const proxyId = parseInt(id, 10);
@@ -154,8 +155,8 @@ export const deleteProxy = async (req: Request, res: Response) => {
     } else {
       res.status(404).json({ message: `未找到 ID 为 ${id} 的代理进行删除` });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error(`Controller: 删除代理 ${id} 失败:`, error);
-    res.status(500).json({ message: `删除代理 ${id} 失败`, error: error.message });
+    next(error);
   }
 };

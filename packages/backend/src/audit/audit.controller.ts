@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuditLogService } from './audit.service';
 import { AuditLogActionType } from '../types/audit.types';
+import { ErrorFactory } from '../utils/AppError';
 
 const auditLogService = new AuditLogService();
 
@@ -9,7 +10,7 @@ export class AuditController {
    * 获取审计日志列表 (GET /api/v1/audit-logs)
    * 支持分页和过滤查询参数: limit, offset, actionType, startDate, endDate
    */
-  async getAuditLogs(req: Request, res: Response): Promise<void> {
+  async getAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // 解析查询参数
       const limit = parseInt((req.query.limit as string) || '50', 10);
@@ -71,38 +72,38 @@ export class AuditController {
         limit,
         offset,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('获取审计日志时出错:', error);
-      res.status(500).json({ message: '获取审计日志失败', error: error.message });
+      next(error); // 传递给全局错误处理中间件
     }
   }
 
   /**
    * 删除所有审计日志 (DELETE /api/v1/audit-logs)
    */
-  async deleteAllLogs(req: Request, res: Response): Promise<void> {
+  async deleteAllLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const deletedCount = await auditLogService.deleteAllLogs();
       res.status(200).json({
         message: '审计日志已全部删除',
         deletedCount,
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('删除审计日志时出错:', error);
-      res.status(500).json({ message: '删除审计日志失败', error: error.message });
+      next(error); // 传递给全局错误处理中间件
     }
   }
 
   /**
    * 获取审计日志总数 (GET /api/v1/audit-logs/count)
    */
-  async getLogCount(req: Request, res: Response): Promise<void> {
+  async getLogCount(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const count = await auditLogService.getLogCount();
       res.status(200).json({ count });
-    } catch (error: any) {
+    } catch (error) {
       console.error('获取审计日志数量时出错:', error);
-      res.status(500).json({ message: '获取审计日志数量失败', error: error.message });
+      next(error); // 传递给全局错误处理中间件
     }
   }
 }

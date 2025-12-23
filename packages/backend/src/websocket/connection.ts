@@ -28,6 +28,7 @@ import { cleanupClientConnection } from './utils';
 import { clientStates, registerUserSocket, unregisterUserSocket } from './state'; // 导入 userId 映射函数
 import { temporaryLogStorageService } from '../ssh-suspend/temporary-log-storage.service';
 import { resetHeartbeat, cleanupHeartbeat } from './heartbeat'; // 导入心跳函数
+import { validateWebSocketMessage } from './validate'; // 导入消息校验函数
 
 // Handlers
 import { handleRdpProxyConnection } from './handlers/rdp.handler';
@@ -118,7 +119,25 @@ export function initializeConnectionHandler(
           return;
         }
 
-        const { type, payload, requestId } = parsedMessage;
+        // --- 统一 Schema 校验（P1-3 安全改进）---
+        const validationResult = validateWebSocketMessage(parsedMessage);
+        if (!validationResult.success) {
+          console.warn(
+            `[WebSocket 校验] 来自 ${ws.username} 的消息校验失败: ${validationResult.error}`
+          );
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(
+              JSON.stringify({
+                type: 'error',
+                payload: validationResult.error,
+              })
+            );
+          }
+          return;
+        }
+
+        // 使用已校验的消息数据
+        const { type, payload, requestId } = validationResult.data;
         const { sessionId } = ws; // Get current WebSocket's session ID
 
         // It's crucial to get the state associated with the current ws.sessionId

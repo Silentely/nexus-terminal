@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
 import * as ConnectionService from './connection.service';
 import * as SshService from '../services/ssh.service';
@@ -9,7 +9,7 @@ import * as ConnectionRepository from './connection.repository';
 /**
  * 创建新连接 (POST /api/v1/connections)
  */
-export const createConnection = async (req: Request, res: Response): Promise<void> => {
+export const createConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const newConnection = await ConnectionService.createConnection(req.body);
     res.status(201).json({ message: '连接创建成功。', connection: newConnection });
@@ -18,7 +18,7 @@ export const createConnection = async (req: Request, res: Response): Promise<voi
     if (error.message.includes('缺少') || error.message.includes('需要提供')) {
       res.status(400).json({ message: error.message });
     } else {
-      res.status(500).json({ message: error.message || '创建连接时发生内部服务器错误。' });
+      next(error);
     }
   }
 };
@@ -26,20 +26,20 @@ export const createConnection = async (req: Request, res: Response): Promise<voi
 /**
  * 获取连接列表 (GET /api/v1/connections)
  */
-export const getConnections = async (req: Request, res: Response): Promise<void> => {
+export const getConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connections = await ConnectionService.getAllConnections();
     res.status(200).json(connections);
   } catch (error: any) {
     console.error('Controller: 获取连接列表时发生错误:', error);
-    res.status(500).json({ message: error.message || '获取连接列表时发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 获取单个连接信息 (GET /api/v1/connections/:id)
  */
-export const getConnectionById = async (req: Request, res: Response): Promise<void> => {
+export const getConnectionById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     if (isNaN(connectionId)) {
@@ -56,14 +56,14 @@ export const getConnectionById = async (req: Request, res: Response): Promise<vo
     }
   } catch (error: any) {
     console.error(`Controller: 获取连接 ${req.params.id} 时发生错误:`, error);
-    res.status(500).json({ message: error.message || '获取连接信息时发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 更新连接信息 (PUT /api/v1/connections/:id)
  */
-export const updateConnection = async (req: Request, res: Response): Promise<void> => {
+export const updateConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     if (isNaN(connectionId)) {
@@ -83,7 +83,7 @@ export const updateConnection = async (req: Request, res: Response): Promise<voi
     if (error.message.includes('需要提供')) {
       res.status(400).json({ message: error.message });
     } else {
-      res.status(500).json({ message: error.message || '更新连接时发生内部服务器错误。' });
+      next(error);
     }
   }
 };
@@ -91,7 +91,7 @@ export const updateConnection = async (req: Request, res: Response): Promise<voi
 /**
  * 删除连接 (DELETE /api/v1/connections/:id)
  */
-export const deleteConnection = async (req: Request, res: Response): Promise<void> => {
+export const deleteConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     if (isNaN(connectionId)) {
@@ -108,14 +108,14 @@ export const deleteConnection = async (req: Request, res: Response): Promise<voi
     }
   } catch (error: any) {
     console.error(`Controller: 删除连接 ${req.params.id} 时发生错误:`, error);
-    res.status(500).json({ message: error.message || '删除连接时发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 测试连接 (POST /api/v1/connections/:id/test)
  */
-export const testConnection = async (req: Request, res: Response): Promise<void> => {
+export const testConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     if (isNaN(connectionId)) {
@@ -129,16 +129,14 @@ export const testConnection = async (req: Request, res: Response): Promise<void>
     res.status(200).json({ success: true, message: '连接测试成功。', latency }); // 返回延迟
   } catch (error: any) {
     console.error(`Controller: 测试连接 ${req.params.id} 时发生错误:`, error);
-    res
-      .status(500)
-      .json({ success: false, message: error.message || '测试连接时发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 测试未保存的连接信息 (POST /api/v1/connections/test-unsaved)
  */
-export const testUnsavedConnection = async (req: Request, res: Response): Promise<void> => {
+export const testUnsavedConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // 从请求体中提取连接信息 (添加 ssh_key_id)
     const {
@@ -220,17 +218,14 @@ export const testUnsavedConnection = async (req: Request, res: Response): Promis
     res.status(200).json({ success: true, message: '连接测试成功。', latency });
   } catch (error: any) {
     console.error(`Controller: 测试未保存连接时发生错误:`, error);
-    // SshService 会抛出包含具体原因的 Error
-    res
-      .status(500)
-      .json({ success: false, message: error.message || '测试连接时发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 导出所有连接配置 (GET /api/v1/connections/export)
  */
-export const exportConnections = async (req: Request, res: Response): Promise<void> => {
+export const exportConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const exportedData = await ImportExportService.exportConnectionsAsEncryptedZip();
 
@@ -242,14 +237,14 @@ export const exportConnections = async (req: Request, res: Response): Promise<vo
     res.status(200).send(exportedData);
   } catch (error: any) {
     console.error('Controller: 导出连接时发生错误:', error);
-    res.status(500).json({ message: error.message || '导出连接时发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 导入连接配置 (POST /api/v1/connections/import)
  */
-export const importConnections = async (req: Request, res: Response): Promise<void> => {
+export const importConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ message: '未找到上传的文件 (需要名为 "connectionsFile" 的文件)。' });
     return;
@@ -277,7 +272,7 @@ export const importConnections = async (req: Request, res: Response): Promise<vo
     if (error.message.includes('解析 JSON 文件失败')) {
       res.status(400).json({ message: error.message });
     } else {
-      res.status(500).json({ message: error.message || '导入连接时发生内部服务器错误。' });
+      next(error);
     }
   }
 }; // axios 仍可能用于错误检查类型
@@ -288,7 +283,7 @@ export const importConnections = async (req: Request, res: Response): Promise<vo
  * 获取 RDP 会话的 Guacamole 令牌 (通过调用 RDP 后端)
  * GET /api/v1/connections/:id/rdp-session
  */
-export const getRdpSessionToken = async (req: Request, res: Response): Promise<void> => {
+export const getRdpSessionToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     if (isNaN(connectionId)) {
@@ -402,7 +397,11 @@ export const getRdpSessionToken = async (req: Request, res: Response): Promise<v
     } else if (error.message.includes('解密失败')) {
       responseMessage = '获取 RDP 会话令牌时发生内部错误（凭证处理失败）。';
     }
-    res.status(statusCode).json({ message: responseMessage });
+    if (statusCode >= 500) {
+      next(error);
+    } else {
+      res.status(statusCode).json({ message: responseMessage });
+    }
   }
 };
 
@@ -410,7 +409,7 @@ export const getRdpSessionToken = async (req: Request, res: Response): Promise<v
  * 获取 VNC 会话的 Guacamole 令牌 (通过调用 Guacamole 服务)
  * GET /api/v1/connections/:id/vnc-session
  */
-export const getVncSessionToken = async (req: Request, res: Response): Promise<void> => {
+export const getVncSessionToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     if (isNaN(connectionId)) {
@@ -513,13 +512,17 @@ export const getVncSessionToken = async (req: Request, res: Response): Promise<v
     } else if (error.message.includes('解密失败')) {
       responseMessage = '获取 VNC 会话令牌时发生内部错误（凭证处理失败）。';
     }
-    res.status(statusCode).json({ message: responseMessage });
+    if (statusCode >= 500) {
+      next(error);
+    } else {
+      res.status(statusCode).json({ message: responseMessage });
+    }
   }
 };
 /**
  * 克隆连接 (POST /api/v1/connections/:id/clone)
  */
-export const cloneConnection = async (req: Request, res: Response): Promise<void> => {
+export const cloneConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const originalConnectionId = parseInt(req.params.id, 10);
     const { name: newName } = req.body; // 从请求体获取新名称
@@ -543,7 +546,7 @@ export const cloneConnection = async (req: Request, res: Response): Promise<void
     } else if (error.message.includes('名称已存在')) {
       res.status(409).json({ message: error.message }); // 409 Conflict for duplicate name
     } else {
-      res.status(500).json({ message: error.message || '克隆连接时发生内部服务器错误。' });
+      next(error);
     }
   }
 };
@@ -551,7 +554,7 @@ export const cloneConnection = async (req: Request, res: Response): Promise<void
  * 为多个连接添加一个标签 (POST /api/v1/connections/add-tag)
  * 注意：我们改变了路由和方法 (POST)，并使用请求体传递所有信息，以避免嵌套事务。
  */
-export const addTagToConnections = async (req: Request, res: Response): Promise<void> => {
+export const addTagToConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { connection_ids, tag_id } = req.body;
 
@@ -575,11 +578,10 @@ export const addTagToConnections = async (req: Request, res: Response): Promise<
     res.status(200).json({ message: '标签已成功添加到指定连接。' });
   } catch (error: any) {
     console.error(`Controller: 为多个连接添加标签 ${req.body?.tag_id} 时发生错误:`, error);
-    // 可以根据服务层抛出的错误类型返回更具体的错误码
     if (error.message.includes('标签 ID') && error.message.includes('不存在')) {
       res.status(400).json({ message: error.message }); // Bad request if tag doesn't exist
     } else {
-      res.status(500).json({ message: error.message || '为连接添加标签时发生内部服务器错误。' });
+      next(error);
     }
   }
 };
@@ -588,7 +590,7 @@ export const addTagToConnections = async (req: Request, res: Response): Promise<
  * 更新单个连接的标签 (PUT /api/v1/connections/:id/tags)
  * (保留此接口，但主要逻辑由 addTagToConnections 处理)
  */
-export const updateConnectionTags = async (req: Request, res: Response): Promise<void> => {
+export const updateConnectionTags = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     const { tag_ids } = req.body;
@@ -614,7 +616,7 @@ export const updateConnectionTags = async (req: Request, res: Response): Promise
     if (error.message.includes('未找到')) {
       res.status(404).json({ message: error.message });
     } else {
-      res.status(500).json({ message: error.message || '更新连接标签时发生内部服务器错误。' });
+      next(error);
     }
   }
 };

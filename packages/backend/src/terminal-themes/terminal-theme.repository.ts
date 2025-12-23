@@ -1,4 +1,5 @@
 import { Database } from 'sqlite3';
+import { ErrorFactory } from '../utils/AppError';
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import {
   TerminalTheme,
@@ -40,7 +41,7 @@ const mapRowToTerminalTheme = (row: DbTerminalThemeRow): TerminalTheme => {
   // Basic check if row exists and has id property
   if (!row || typeof row.id === 'undefined') {
     console.error('mapRowToTerminalTheme received invalid row:', row);
-    throw new Error('Invalid database row provided to mapRowToTerminalTheme');
+    throw ErrorFactory.databaseError('Invalid database row provided to mapRowToTerminalTheme', 'Invalid database row provided to mapRowToTerminalTheme');
   }
   try {
     return {
@@ -76,7 +77,10 @@ const mapRowToTerminalTheme = (row: DbTerminalThemeRow): TerminalTheme => {
     };
   } catch (e: any) {
     console.error(`Error mapping theme data for theme ID ${row.id}:`, e.message, 'Raw row:', row);
-    throw new Error(`Failed to map theme data for theme ID ${row.id}`);
+    throw ErrorFactory.databaseError(
+      '主题数据映射失败',
+      `Failed to map theme data for theme ID ${row.id}: ${e.message}`
+    );
   }
 };
 
@@ -105,7 +109,7 @@ export const findAllThemes = async (): Promise<TerminalTheme[]> => {
     console.error('查询所有终端主题失败:', err.message);
     // 添加详细错误日志
     console.error('详细错误:', err);
-    throw new Error('查询终端主题失败');
+    throw ErrorFactory.databaseError('查询终端主题失败', '查询终端主题失败');
   }
 };
 
@@ -127,7 +131,7 @@ export const findThemeById = async (id: number): Promise<TerminalTheme | null> =
     return row ? mapRowToTerminalTheme(row) : null;
   } catch (err: any) {
     console.error(`查询 ID 为 ${id} 的终端主题失败:`, err.message);
-    throw new Error('查询终端主题失败');
+    throw ErrorFactory.databaseError('查询终端主题失败', '查询终端主题失败');
   }
 };
 
@@ -205,19 +209,22 @@ export const createTheme = async (themeDto: CreateTerminalThemeDto): Promise<Ter
     const db = await getDbInstance();
     const result = await runDb(db, sql, values);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw new Error('创建主题后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError('创建主题后未能获取有效的 lastID', '创建主题后未能获取有效的 lastID');
     }
     const newTheme = await findThemeById(result.lastID);
     if (newTheme) {
       return newTheme;
     }
-    throw new Error(`创建主题后未能检索到 ID 为 ${result.lastID} 的主题`);
+    throw ErrorFactory.databaseError(
+      '创建主题失败',
+      `创建主题后未能检索到 ID 为 ${result.lastID} 的主题`
+    );
   } catch (err: any) {
     console.error('创建新终端主题失败:', err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw new Error(`主题名称 "${themeDto.name}" 已存在。`);
+      throw ErrorFactory.validationError(`主题名称 "${themeDto.name}" 已存在`, `field: name, value: ${themeDto.name}`);
     } else {
-      throw new Error('创建终端主题失败');
+      throw ErrorFactory.databaseError('创建终端主题失败', `创建终端主题失败: ${err.message}`);
     }
   }
 };
@@ -301,9 +308,9 @@ export const updateTheme = async (
   } catch (err: any) {
     console.error(`更新 ID 为 ${id} 的终端主题失败:`, err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw new Error(`主题名称 "${themeDto.name}" 已存在。`);
+      throw ErrorFactory.validationError(`主题名称 "${themeDto.name}" 已存在`, `field: name, value: ${themeDto.name}`);
     } else {
-      throw new Error('更新终端主题失败');
+      throw ErrorFactory.databaseError('更新终端主题失败', `更新终端主题失败: ${err.message}`);
     }
   }
 };
@@ -321,7 +328,7 @@ export const deleteTheme = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error(`删除 ID 为 ${id} 的终端主题失败:`, err.message);
-    throw new Error('删除终端主题失败');
+    throw ErrorFactory.databaseError('删除终端主题失败', '删除终端主题失败');
   }
 };
 

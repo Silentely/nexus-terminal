@@ -28,7 +28,7 @@ class EmailSenderService implements INotificationSender {
 
       const finalSmtpHost = smtpHost || globalSmtpHost;
       const finalSmtpPort = smtpPort ?? (globalSmtpPortStr ? parseInt(globalSmtpPortStr, 10) : 587);
-      const finalSmtpSecure = smtpSecure ?? globalSmtpSecureStr === 'true' ?? false;
+      const finalSmtpSecure = smtpSecure ?? (globalSmtpSecureStr === 'true');
       const finalSmtpUser = smtpUser || globalSmtpUser;
       const finalSmtpPass = smtpPass || globalSmtpPass;
       const finalFrom = from || globalSmtpFrom || 'noreply@nexus-terminal.local';

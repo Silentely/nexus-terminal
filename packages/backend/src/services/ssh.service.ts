@@ -5,7 +5,7 @@ import net from 'net';
 import * as ConnectionRepository from '../connections/connection.repository';
 import * as ProxyRepository from '../proxies/proxy.repository';
 import { decrypt } from '../utils/crypto';
-import * as SshKeyService from '../ssh_keys/ssh_key.service';
+import * as SshKeyService from '../ssh-keys/ssh-keys.service';
 
 const CONNECT_TIMEOUT = 20000; // 连接超时时间 (毫秒)
 const TEST_TIMEOUT = 15000; // 测试连接超时时间 (毫秒)

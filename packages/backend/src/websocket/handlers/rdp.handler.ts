@@ -79,8 +79,10 @@ export function handleRdpProxyConnection(ws: AuthenticatedWebSocket, request: Re
 
   const remoteDesktopTargetUrl = `${cleanRemoteGatewayWsBaseUrl}/?token=${encodeURIComponent(rdpToken)}&width=${encodeURIComponent(rdpWidth)}&height=${encodeURIComponent(rdpHeight)}&dpi=${encodeURIComponent(calculatedDpi)}`;
 
+  // 安全日志：不记录包含 token 的完整 URL，避免 token 泄露
+  const safeLogUrl = `${cleanRemoteGatewayWsBaseUrl}/?token=[REDACTED]&width=${rdpWidth}&height=${rdpHeight}&dpi=${calculatedDpi}`;
   console.log(
-    `WebSocket: Remote Desktop Proxy for ${ws.username} attempting to connect to ${remoteDesktopTargetUrl}`
+    `WebSocket: Remote Desktop Proxy for ${ws.username} attempting to connect to ${safeLogUrl}`
   );
 
   const rdpWs = new WebSocket(remoteDesktopTargetUrl);

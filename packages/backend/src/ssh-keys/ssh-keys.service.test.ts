@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock SSH Key Repository
-vi.mock('./ssh_key.repository', () => ({
+vi.mock('./ssh-keys.repository', () => ({
   createSshKey: vi.fn(),
   findSshKeyById: vi.fn(),
   findAllSshKeyNames: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock('../utils/crypto', () => ({
   decrypt: vi.fn((value: string) => value.replace('encrypted_', '')),
 }));
 
-import * as SshKeyRepository from './ssh_key.repository';
+import * as SshKeyRepository from './ssh-keys.repository';
 import { encrypt, decrypt } from '../utils/crypto';
 import {
   createSshKey,
@@ -29,7 +29,7 @@ import {
   updateSshKey,
   deleteSshKey,
   getAllDecryptedSshKeys,
-} from './ssh_key.service';
+} from './ssh-keys.service';
 
 describe('SSH Key Service', () => {
   beforeEach(() => {

@@ -27,21 +27,231 @@ import { ipBlacklistCheckMiddleware } from './ipBlacklistCheck.middleware';
 
 const router = Router();
 
-// --- Public CAPTCHA Configuration ---
-// GET /api/v1/auth/captcha/config - 获取公共 CAPTCHA 配置 (公开访问)
+/**
+ * @swagger
+ * /api/v1/auth/captcha/config:
+ *   get:
+ *     summary: 获取公共 CAPTCHA 配置
+ *     tags: [auth]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: 成功获取配置
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 captchaEnabled:
+ *                   type: boolean
+ *                 siteKey:
+ *                   type: string
+ *                   nullable: true
+ */
 router.get('/captcha/config', getPublicCaptchaConfig);
 
-// --- Setup Routes (Public) ---
-// GET /api/v1/auth/needs-setup - 检查是否需要初始设置 (公开访问)
+/**
+ * @swagger
+ * /api/v1/auth/needs-setup:
+ *   get:
+ *     summary: 检查是否需要初始设置
+ *     description: 首次启动时检查系统是否需要创建管理员账户
+ *     tags: [auth]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: 成功返回设置状态
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 needsSetup:
+ *                   type: boolean
+ *                   description: 是否需要初始设置
+ */
 router.get('/needs-setup', needsSetup);
 
-// POST /api/v1/auth/setup - 执行初始设置 (公开访问，控制器内部检查)
+/**
+ * @swagger
+ * /api/v1/auth/setup:
+ *   post:
+ *     summary: 执行初始管理员设置
+ *     description: 首次启动时创建管理员账户（仅在 needsSetup 为 true 时可用）
+ *     tags: [auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: 管理员用户名
+ *                 example: admin
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: 管理员密码（建议使用强密码）
+ *                 example: MySecurePassword123!
+ *     responses:
+ *       201:
+ *         description: 管理员账户创建成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 管理员账户创建成功
+ *       422:
+ *         description: 参数验证失败
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/setup', setupAdmin);
 
-// POST /api/v1/auth/login - 用户登录接口 (添加黑名单检查)
+/**
+ * @swagger
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: 用户登录
+ *     description: 使用用户名和密码登录系统，成功后返回 Session Cookie
+ *     tags: [auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: 用户名
+ *                 example: admin
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: 密码
+ *                 example: MySecurePassword123!
+ *               captchaToken:
+ *                 type: string
+ *                 description: CAPTCHA 验证令牌（如果启用了 CAPTCHA）
+ *     responses:
+ *       200:
+ *         description: 登录成功（如果未启用 2FA）
+ *         headers:
+ *           Set-Cookie:
+ *             schema:
+ *               type: string
+ *               example: connect.sid=s%3A...; Path=/; HttpOnly
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 登录成功
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     username:
+ *                       type: string
+ *       202:
+ *         description: 需要进行 2FA 验证
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 require2FA:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 请输入双因素验证码
+ *       401:
+ *         description: 用户名或密码错误
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.post('/login', ipBlacklistCheckMiddleware, login);
 
-// PUT /api/v1/auth/password - 修改密码接口 (需要认证)
+/**
+ * @swagger
+ * /api/v1/auth/password:
+ *   put:
+ *     summary: 修改密码
+ *     description: 修改当前登录用户的密码
+ *     tags: [auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: 当前密码
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: 新密码
+ *     responses:
+ *       200:
+ *         description: 密码修改成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 密码修改成功
+ *       401:
+ *         description: 当前密码错误或未登录
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.put('/password', isAuthenticated, changePassword);
 
 // POST /api/v1/auth/login/2fa - 登录时的 2FA 验证接口 (添加黑名单检查)
@@ -58,7 +268,46 @@ router.post('/2fa/verify', isAuthenticated, verifyAndActivate2FA);
 // DELETE /api/v1/auth/2fa - 禁用 2FA (需要验证当前密码，在控制器中处理)
 router.delete('/2fa', isAuthenticated, disable2FA);
 
-// GET /api/v1/auth/status - 获取当前认证状态 (需要认证)
+/**
+ * @swagger
+ * /api/v1/auth/status:
+ *   get:
+ *     summary: 获取当前认证状态
+ *     description: 返回当前登录用户的信息和认证配置状态
+ *     tags: [auth]
+ *     responses:
+ *       200:
+ *         description: 成功获取认证状态
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isAuthenticated:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     username:
+ *                       type: string
+ *                       example: admin
+ *                     twoFactorEnabled:
+ *                       type: boolean
+ *                       example: false
+ *                     hasPasskeys:
+ *                       type: boolean
+ *                       example: true
+ *       401:
+ *         description: 未登录
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/status', isAuthenticated, getAuthStatus);
 
 // --- Passkey Routes ---
@@ -95,7 +344,29 @@ router.delete('/user/passkeys/:credentialID', isAuthenticated, deleteUserPasskey
 // PUT /api/v1/auth/user/passkeys/:credentialID/name - 更新当前用户指定的 Passkey 名称 (需要认证)
 router.put('/user/passkeys/:credentialID/name', isAuthenticated, updateUserPasskeyNameHandler);
 
-// POST /api/v1/auth/logout - 用户登出接口 (公开访问)
+/**
+ * @swagger
+ * /api/v1/auth/logout:
+ *   post:
+ *     summary: 用户登出
+ *     description: 销毁当前会话，清除登录状态
+ *     tags: [auth]
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: 登出成功
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: 登出成功
+ */
 router.post('/logout', logout);
 
 export default router;

@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as QuickCommandsService from './quick-commands.service';
 import { QuickCommandSortBy } from './quick-commands.service';
+import { ErrorFactory } from '../utils/AppError';
 
 /**
  * 处理添加新快捷指令的请求
  */
-export const addQuickCommand = async (req: Request, res: Response): Promise<void> => {
+export const addQuickCommand = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   // 从请求体中解构出 name, command, 以及可选的 tagIds 和 variables
   const { name, command, tagIds, variables } = req.body;
 
@@ -47,16 +48,16 @@ export const addQuickCommand = async (req: Request, res: Response): Promise<void
       console.error(`[Controller] 添加快捷指令后未能找到 ID: ${newId}`);
       res.status(201).json({ message: '快捷指令已添加，但无法检索新记录', id: newId });
     }
-  } catch (error: any) {
-    console.error('[Controller] 添加快捷指令失败:', error.message);
-    res.status(500).json({ message: error.message || '无法添加快捷指令' });
+  } catch (error) {
+    console.error('[Controller] 添加快捷指令失败:', error);
+    next(error);
   }
 };
 
 /**
  * 处理获取所有快捷指令的请求 (支持排序)
  */
-export const getAllQuickCommands = async (req: Request, res: Response): Promise<void> => {
+export const getAllQuickCommands = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const sortBy = req.query.sortBy as QuickCommandSortBy | undefined;
   // 验证 sortBy 参数
   const validSortBy: QuickCommandSortBy =
@@ -65,16 +66,16 @@ export const getAllQuickCommands = async (req: Request, res: Response): Promise<
   try {
     const commands = await QuickCommandsService.getAllQuickCommands(validSortBy);
     res.status(200).json(commands);
-  } catch (error: any) {
+  } catch (error) {
     console.error('获取快捷指令控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法获取快捷指令' });
+    next(error);
   }
 };
 
 /**
  * 处理更新快捷指令的请求
  */
-export const updateQuickCommand = async (req: Request, res: Response): Promise<void> => {
+export const updateQuickCommand = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   // 从请求体中解构出 name, command, 以及可选的 tagIds 和 variables
   const { name, command, tagIds, variables } = req.body;
@@ -137,19 +138,20 @@ export const updateQuickCommand = async (req: Request, res: Response): Promise<v
         res.status(404).json({ message: '未找到要更新的快捷指令' });
       } else {
         console.error(`[Controller] 更新快捷指令 ${id} 失败，但指令存在。`);
-        res.status(500).json({ message: '更新快捷指令时发生未知错误' });
+        next(ErrorFactory.internalError('更新快捷指令时发生未知错误'));
+        return;
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('更新快捷指令控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法更新快捷指令' });
+    next(error);
   }
 };
 
 /**
  * 处理删除快捷指令的请求
  */
-export const deleteQuickCommand = async (req: Request, res: Response): Promise<void> => {
+export const deleteQuickCommand = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -164,16 +166,16 @@ export const deleteQuickCommand = async (req: Request, res: Response): Promise<v
     } else {
       res.status(404).json({ message: '未找到要删除的快捷指令' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('删除快捷指令控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法删除快捷指令' });
+    next(error);
   }
 };
 
 /**
  * 处理增加快捷指令使用次数的请求
  */
-export const incrementUsage = async (req: Request, res: Response): Promise<void> => {
+export const incrementUsage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -190,16 +192,16 @@ export const incrementUsage = async (req: Request, res: Response): Promise<void>
       console.warn(`尝试增加不存在的快捷指令 (ID: ${id}) 的使用次数`);
       res.status(200).json({ message: '使用次数已记录 (或指令不存在)' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('增加快捷指令使用次数控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法增加使用次数' });
+    next(error);
   }
 };
 
 /**
  * 批量将标签分配给多个快捷指令
  */
-export const assignTagToCommands = async (req: Request, res: Response): Promise<void> => {
+export const assignTagToCommands = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   // Add : Promise<void>
   const { commandIds, tagId } = req.body;
 
@@ -221,12 +223,8 @@ export const assignTagToCommands = async (req: Request, res: Response): Promise<
       success: true,
       message: `标签 ${tagId} 已成功尝试关联到 ${commandIds.length} 个指令。`,
     });
-  } catch (error: any) {
-    console.error('[Controller] 批量分配标签时出错:', error.message);
-    // 根据错误类型返回不同的状态码可能更好，但这里简化处理
-    res
-      .status(500)
-      .json({ success: false, message: error.message || '批量分配标签时发生内部服务器错误。' });
-    // No return needed here, error handling completes the response
+  } catch (error) {
+    console.error('[Controller] 批量分配标签时出错:', error);
+    next(error);
   }
 };

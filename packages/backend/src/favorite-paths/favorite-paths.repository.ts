@@ -1,4 +1,5 @@
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
+import { ErrorFactory } from '../utils/AppError';
 
 // 定义收藏路径接口
 export interface FavoritePath {
@@ -22,12 +23,12 @@ export const addFavoritePath = async (name: string | null, path: string): Promis
     const db = await getDbInstance();
     const result = await runDb(db, sql, [name, path]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw new Error('添加收藏路径后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError('添加收藏路径后未能获取有效的 lastID', '添加收藏路径后未能获取有效的 lastID');
     }
     return result.lastID;
   } catch (err: any) {
     console.error('添加收藏路径时出错:', err.message);
-    throw new Error('无法添加收藏路径');
+    throw ErrorFactory.databaseError('无法添加收藏路径', '无法添加收藏路径');
   }
 };
 
@@ -50,7 +51,7 @@ export const updateFavoritePath = async (
     return result.changes > 0;
   } catch (err: any) {
     console.error('更新收藏路径时出错:', err.message);
-    throw new Error('无法更新收藏路径');
+    throw ErrorFactory.databaseError('无法更新收藏路径', '无法更新收藏路径');
   }
 };
 
@@ -67,7 +68,7 @@ export const deleteFavoritePath = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error('删除收藏路径时出错:', err.message);
-    throw new Error('无法删除收藏路径');
+    throw ErrorFactory.databaseError('无法删除收藏路径', '无法删除收藏路径');
   }
 };
 
@@ -79,6 +80,15 @@ export const deleteFavoritePath = async (id: number): Promise<boolean> => {
 export const getAllFavoritePaths = async (
   sortBy: 'name' | 'last_used_at' = 'name'
 ): Promise<FavoritePath[]> => {
+  // P1-4: 显式 allowlist 验证（纵深防御）
+  const ALLOWED_SORT_COLUMNS: Array<'name' | 'last_used_at'> = ['name', 'last_used_at'];
+  if (!ALLOWED_SORT_COLUMNS.includes(sortBy)) {
+    throw ErrorFactory.validationError(
+      `无效的排序字段: ${sortBy}`,
+      `field: sortBy, value: ${sortBy}, allowed: ${ALLOWED_SORT_COLUMNS.join(', ')}`
+    );
+  }
+
   let orderByClause = 'ORDER BY name ASC'; // 默认按名称升序
   if (sortBy === 'last_used_at') {
     orderByClause = 'ORDER BY last_used_at DESC, name ASC'; // 按上次使用时间降序，同时间的按名称升序
@@ -90,7 +100,7 @@ export const getAllFavoritePaths = async (
     return rows;
   } catch (err: any) {
     console.error('获取收藏路径时出错:', err.message);
-    throw new Error('无法获取收藏路径');
+    throw ErrorFactory.databaseError('无法获取收藏路径', '无法获取收藏路径');
   }
 };
 
@@ -107,7 +117,7 @@ export const updateFavoritePathLastUsedAt = async (id: number): Promise<boolean>
     return result.changes > 0;
   } catch (err: any) {
     console.error('更新收藏路径上次使用时间时出错:', err.message);
-    throw new Error('无法更新收藏路径上次使用时间');
+    throw ErrorFactory.databaseError('无法更新收藏路径上次使用时间', '无法更新收藏路径上次使用时间');
   }
 };
 
@@ -124,6 +134,6 @@ export const findFavoritePathById = async (id: number): Promise<FavoritePath | u
     return row;
   } catch (err: any) {
     console.error('查找收藏路径时出错:', err.message);
-    throw new Error('无法查找收藏路径');
+    throw ErrorFactory.databaseError('无法查找收藏路径', '无法查找收藏路径');
   }
 };

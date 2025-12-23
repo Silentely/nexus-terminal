@@ -12,8 +12,9 @@ export const SECURITY_CONFIG = {
   // 临时令牌长度 (32 字节)
   TEMP_TOKEN_LENGTH: 32,
 
-  // Session Cookie 最大存活时间 (10 年 - Remember Me)
-  SESSION_COOKIE_MAX_AGE: 315360000000,
+  // Session Cookie 最大存活时间 (30 天 - Remember Me)
+  // 与 Session Store TTL (packages/backend/src/index.ts:319) 保持一致
+  SESSION_COOKIE_MAX_AGE: 30 * 24 * 60 * 60 * 1000, // 2592000000 毫秒
 
   // bcrypt 盐轮次
   BCRYPT_SALT_ROUNDS: 10,

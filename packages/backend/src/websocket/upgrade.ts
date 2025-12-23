@@ -1,9 +1,10 @@
 import http from 'http';
 import url from 'url';
+import net from 'net';
 import { Request, RequestHandler } from 'express';
 import { WebSocketServer } from 'ws';
 import { AuthenticatedWebSocket } from './types';
-import { SECURITY_CONFIG } from './config/security.config.js';
+import { SECURITY_CONFIG } from '../config/security.config';
 
 export function initializeUpgradeHandler(
   server: http.Server,
@@ -13,7 +14,17 @@ export function initializeUpgradeHandler(
   server.on('upgrade', (request: Request, socket, head) => {
     // --- 添加详细日志：检查传入的请求头和 request.ip ---
     console.log('[WebSocket Upgrade] Received upgrade request.');
-    console.log('[WebSocket Upgrade] Request Headers:', JSON.stringify(request.headers, null, 2));
+    // 安全日志：仅记录非敏感头部（避免泄露 cookie/authorization）
+    const safeHeaders = {
+      origin: request.headers.origin,
+      'user-agent': request.headers['user-agent'],
+      'sec-websocket-key': request.headers['sec-websocket-key'],
+      'sec-websocket-version': request.headers['sec-websocket-version'],
+      upgrade: request.headers.upgrade,
+      connection: request.headers.connection,
+      host: request.headers.host,
+    };
+    console.log('[WebSocket Upgrade] Safe Headers:', safeHeaders);
     console.log(`[WebSocket Upgrade] Initial request.ip value: ${request.ip}`); // Express 尝试解析的 IP
     console.log(`[WebSocket Upgrade] X-Real-IP Header: ${request.headers['x-real-ip']}`);
     console.log(
@@ -24,24 +35,47 @@ export function initializeUpgradeHandler(
     const parsedUrl = url.parse(request.url || '', true); // Parse URL and query string
     const { pathname } = parsedUrl;
 
-    // --- 修改：尝试从头部获取 IP，并处理 X-Forwarded-For 列表 ---
+    // --- 安全的 IP 获取：仅在生产环境且在可信代理后才信任代理头部 ---
     let ipAddress: string | undefined;
+    const isProduction = process.env.NODE_ENV === 'production';
     const xForwardedFor = request.headers['x-forwarded-for'];
     const xRealIp = request.headers['x-real-ip'];
 
-    if (xForwardedFor) {
-      // 如果 X-Forwarded-For 存在，取列表中的第一个 IP
-      const ips = Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor.split(',')[0];
-      ipAddress = ips?.trim();
-      console.log(`[WebSocket Upgrade] Using first IP from X-Forwarded-For: ${ipAddress}`);
-    } else if (xRealIp) {
-      // 否则，尝试 X-Real-IP
-      ipAddress = Array.isArray(xRealIp) ? xRealIp[0] : xRealIp.trim();
-      console.log(`[WebSocket Upgrade] Using IP from X-Real-IP: ${ipAddress}`);
+    // 辅助函数：验证并返回合法 IP，失败则返回 undefined
+    const validateAndExtractIp = (rawIp: string | undefined, source: string): string | undefined => {
+      if (!rawIp) return undefined;
+      const trimmedIp = rawIp.trim();
+      // 使用 net.isIP() 验证：返回 4 (IPv4) 或 6 (IPv6)，0 表示无效
+      if (net.isIP(trimmedIp)) {
+        console.log(`[WebSocket Upgrade] Valid IP from ${source}: ${trimmedIp}`);
+        return trimmedIp;
+      } else {
+        console.warn(`[WebSocket Upgrade] Invalid IP format from ${source}: ${trimmedIp}, rejecting.`);
+        return undefined;
+      }
+    };
+
+    // 仅在生产环境才信任代理头部（与 trust proxy 配置一致）
+    if (isProduction) {
+      if (xForwardedFor) {
+        // 如果 X-Forwarded-For 存在，取列表中的第一个 IP 并验证
+        const rawIp = Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor.split(',')[0];
+        ipAddress = validateAndExtractIp(rawIp, 'X-Forwarded-For');
+      }
+      if (!ipAddress && xRealIp) {
+        // 否则，尝试 X-Real-IP 并验证
+        const rawIp = Array.isArray(xRealIp) ? xRealIp[0] : xRealIp;
+        ipAddress = validateAndExtractIp(rawIp, 'X-Real-IP');
+      }
+      if (!ipAddress) {
+        // 最后回退到 socket.remoteAddress（通常已是合法 IP）
+        ipAddress = request.socket.remoteAddress;
+        console.log(`[WebSocket Upgrade] Using socket.remoteAddress: ${ipAddress}`);
+      }
     } else {
-      // 最后回退到 socket.remoteAddress 或 request.ip
+      // 开发环境直接使用 socket.remoteAddress，避免被欺骗
       ipAddress = request.socket.remoteAddress || request.ip;
-      console.log(`[WebSocket Upgrade] Using fallback IP: ${ipAddress}`);
+      console.log(`[WebSocket Upgrade] Development mode - using direct socket IP: ${ipAddress}`);
     }
 
     // 确保 ipAddress 不是 undefined 或空字符串，否则设为 'unknown'

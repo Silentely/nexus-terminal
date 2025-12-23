@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as Service from './dashboard.service';
+import { ErrorFactory } from '../utils/AppError';
 
 const parseTimestampSeconds = (raw: unknown): number | null => {
   if (raw === undefined || raw === null) return null;
@@ -13,7 +14,7 @@ const parseTimestampSeconds = (raw: unknown): number | null => {
 /**
  * 获取仪表盘统计数据
  */
-export const getStats = async (req: Request, res: Response): Promise<void> => {
+export const getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { start, end } = req.query;
 
@@ -28,29 +29,29 @@ export const getStats = async (req: Request, res: Response): Promise<void> => {
 
     const stats = await Service.getDashboardStats(timeRange);
     res.status(200).json(stats);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Controller: 获取仪表盘统计失败:', error);
-    res.status(500).json({ message: error.message || '获取仪表盘统计失败' });
+    next(error);
   }
 };
 
 /**
  * 获取资产健康状态
  */
-export const getAssetHealth = async (req: Request, res: Response): Promise<void> => {
+export const getAssetHealth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const health = await Service.getAssetHealth();
     res.status(200).json(health);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Controller: 获取资产健康状态失败:', error);
-    res.status(500).json({ message: error.message || '获取资产健康状态失败' });
+    next(error);
   }
 };
 
 /**
  * 获取活动时间线
  */
-export const getTimeline = async (req: Request, res: Response): Promise<void> => {
+export const getTimeline = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const limit = parseInt(req.query.limit as string, 10) || 20;
     const { start, end } = req.query;
@@ -66,16 +67,16 @@ export const getTimeline = async (req: Request, res: Response): Promise<void> =>
 
     const timeline = await Service.getActivityTimeline(limit, timeRange);
     res.status(200).json({ events: timeline });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Controller: 获取活动时间线失败:', error);
-    res.status(500).json({ message: error.message || '获取活动时间线失败' });
+    next(error);
   }
 };
 
 /**
  * 获取存储统计
  */
-export const getStorage = async (req: Request, res: Response): Promise<void> => {
+export const getStorage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const stats = await Service.getStorageStats();
     res.status(200).json({
@@ -87,16 +88,16 @@ export const getStorage = async (req: Request, res: Response): Promise<void> => 
         total: Service.formatBytes(stats.totalSize),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Controller: 获取存储统计失败:', error);
-    res.status(500).json({ message: error.message || '获取存储统计失败' });
+    next(error);
   }
 };
 
 /**
  * 获取系统资源使用情况
  */
-export const getSystemResources = async (req: Request, res: Response): Promise<void> => {
+export const getSystemResources = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const resources = await Service.getSystemResources();
     res.status(200).json({
@@ -108,8 +109,8 @@ export const getSystemResources = async (req: Request, res: Response): Promise<v
         diskTotal: Service.formatBytes(resources.diskTotal),
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Controller: 获取系统资源失败:', error);
-    res.status(500).json({ message: error.message || '获取系统资源失败' });
+    next(error);
   }
 };

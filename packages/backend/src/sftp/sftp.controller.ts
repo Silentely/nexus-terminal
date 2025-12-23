@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import * as archiver from 'archiver';
 import { SFTPWrapper, Stats } from 'ssh2';
 import { WebSocket } from 'ws';
 import { clientStates } from '../websocket';
 import { ClientState, AuthenticatedWebSocket } from '../websocket/types';
+import { ErrorFactory } from '../utils/AppError';
 import {
   SftpCompressRequestPayload,
   SftpDecompressRequestPayload,
@@ -16,7 +17,7 @@ import {
 /**
  * 处理文件下载请求 (GET /api/v1/sftp/download)
  */
-export const downloadFile = async (req: Request, res: Response): Promise<void> => {
+export const downloadFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
   const remotePath = req.query.remotePath as string; // 从查询参数获取
@@ -110,10 +111,11 @@ export const downloadFile = async (req: Request, res: Response): Promise<void> =
   } catch (error: any) {
     console.error(`SFTP 下载处理失败 (用户 ${userId}, 路径 ${remotePath}):`, error);
     if (!res.headersSent) {
+      // 统一使用 ErrorFactory，不暴露内部错误细节
       if (error.message?.includes('No such file')) {
-        res.status(404).json({ message: '远程文件未找到。' });
+        next(ErrorFactory.notFound('远程文件未找到'));
       } else {
-        res.status(500).json({ message: `处理下载请求时出错: ${error.message}` });
+        next(ErrorFactory.internalError('处理文件下载请求失败'));
       }
     }
   }
@@ -122,7 +124,7 @@ export const downloadFile = async (req: Request, res: Response): Promise<void> =
 /**
  * 处理文件夹下载请求 (GET /api/v1/sftp/download-directory)
  */
-export const downloadDirectory = async (req: Request, res: Response): Promise<void> => {
+export const downloadDirectory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
   const remotePath = req.query.remotePath as string; // 从查询参数获取
@@ -277,11 +279,11 @@ export const downloadDirectory = async (req: Request, res: Response): Promise<vo
   } catch (error: any) {
     console.error(`SFTP 文件夹下载处理失败 (用户 ${userId}, 路径 ${remotePath}):`, error);
     if (!res.headersSent) {
+      // 统一使用 ErrorFactory，不暴露内部错误细节
       if (error.code === 'ENOENT' || error.message?.includes('No such file')) {
-        // 检查 SFTP 错误码或消息
-        res.status(404).json({ message: '远程目录未找到。' });
+        next(ErrorFactory.notFound('远程目录未找到'));
       } else {
-        res.status(500).json({ message: `处理文件夹下载请求时出错: ${error.message}` });
+        next(ErrorFactory.internalError('处理文件夹下载请求失败'));
       }
     } else {
       res.end(); // 如果头已发送，尝试结束响应

@@ -301,3 +301,118 @@ export interface SftpUploadProgressPayload {
   totalSize: number;
   progress: number; // Calculated percentage (0-100)
 }
+
+// --- SSH 基本操作消息类型 ---
+
+// C -> S: SSH 连接请求
+export interface SshConnectRequest {
+  type: 'ssh:connect';
+  payload: {
+    connectionId: number;
+  };
+}
+
+// C -> S: SSH 输入
+export interface SshInputRequest {
+  type: 'ssh:input';
+  payload: string;
+}
+
+// C -> S: SSH 调整终端大小
+export interface SshResizeRequest {
+  type: 'ssh:resize';
+  payload: {
+    cols: number;
+    rows: number;
+  };
+}
+
+// --- Docker 操作消息类型 ---
+
+// C -> S: 获取 Docker 容器状态
+export interface DockerGetStatusRequest {
+  type: 'docker:get_status';
+}
+
+// C -> S: 执行 Docker 命令
+export interface DockerCommandRequest {
+  type: 'docker:command';
+  payload: {
+    containerId: string;
+    command: 'start' | 'stop' | 'restart' | 'remove';
+  };
+}
+
+// C -> S: 获取 Docker 容器统计信息
+export interface DockerGetStatsRequest {
+  type: 'docker:get_stats';
+  payload: {
+    containerIds: string[];
+  };
+}
+
+// --- SFTP 基本操作消息类型 ---
+
+// C -> S: SFTP 通用操作（基础类型）
+export interface SftpBaseRequest {
+  type:
+    | 'sftp:readdir'
+    | 'sftp:stat'
+    | 'sftp:readfile'
+    | 'sftp:writefile'
+    | 'sftp:mkdir'
+    | 'sftp:rmdir'
+    | 'sftp:unlink'
+    | 'sftp:rename'
+    | 'sftp:chmod'
+    | 'sftp:realpath'
+    | 'sftp:copy'
+    | 'sftp:move'
+    | 'sftp:compress'
+    | 'sftp:decompress';
+  payload: any; // 不同操作的 payload 结构各异
+  requestId?: string;
+}
+
+// C -> S: SFTP 上传开始
+export interface SftpUploadStartRequest {
+  type: 'sftp:upload:start';
+  payload: {
+    uploadId: string;
+    fileName: string;
+    fileSize: number;
+    targetPath: string;
+  };
+}
+
+// C -> S: SFTP 上传数据块
+export interface SftpUploadChunkRequest {
+  type: 'sftp:upload:chunk';
+  payload: {
+    uploadId: string;
+    chunk: string; // Base64 编码的数据块
+    chunkIndex: number;
+  };
+}
+
+// C -> S: SFTP 取消上传
+export interface SftpUploadCancelRequest {
+  type: 'sftp:upload:cancel';
+  payload: {
+    uploadId: string;
+  };
+}
+
+// --- 统一的客户端到服务器消息类型联合 ---
+export type ClientToServerMessage =
+  | SshConnectRequest
+  | SshInputRequest
+  | SshResizeRequest
+  | DockerGetStatusRequest
+  | DockerCommandRequest
+  | DockerGetStatsRequest
+  | SftpBaseRequest
+  | SftpUploadStartRequest
+  | SftpUploadChunkRequest
+  | SftpUploadCancelRequest
+  | SshSuspendClientToServerMessages;

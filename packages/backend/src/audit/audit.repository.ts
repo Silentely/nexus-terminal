@@ -2,6 +2,7 @@ import { Database } from 'sqlite3';
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
 import { AuditLogEntry, AuditLogActionType } from '../types/audit.types';
 import { settingsService } from '../settings/settings.service';
+import { ErrorFactory } from '../utils/AppError';
 
 type DbAuditLogRow = AuditLogEntry;
 
@@ -95,7 +96,7 @@ export class AuditLogRepository {
       return result.changes;
     } catch (err: any) {
       console.error(`[审计日志] 删除所有日志时出错: ${err.message}`);
-      throw new Error(`删除审计日志失败: ${err.message}`);
+      throw ErrorFactory.databaseError('删除审计日志失败', `删除审计日志失败: ${err.message}`);
     }
   }
 
@@ -111,7 +112,7 @@ export class AuditLogRepository {
       return countRow?.total ?? 0;
     } catch (err: any) {
       console.error(`[审计日志] 获取日志总数时出错: ${err.message}`);
-      throw new Error(`获取审计日志总数失败: ${err.message}`);
+      throw ErrorFactory.databaseError('获取审计日志总数失败', `获取审计日志总数失败: ${err.message}`);
     }
   }
 
@@ -171,7 +172,7 @@ export class AuditLogRepository {
       return { logs, total };
     } catch (err: any) {
       console.error(`获取审计日志时出错:`, err.message);
-      throw new Error(`获取审计日志时出错: ${err.message}`);
+      throw ErrorFactory.databaseError('获取审计日志失败', `获取审计日志时出错: ${err.message}`);
     }
   }
 }

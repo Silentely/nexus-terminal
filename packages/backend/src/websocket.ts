@@ -26,7 +26,11 @@ export const initializeWebSocket = async (
 ): Promise<WebSocketServer> => {
   // Environment variables are expected to be loaded by index.ts
 
-  const wss = new WebSocketServer({ noServer: true });
+  // 设置最大负载大小为 4MB，防止 DoS 攻击
+  const wss = new WebSocketServer({
+    noServer: true,
+    maxPayload: 4 * 1024 * 1024, // 4MB
+  });
   // const db = await getDbInstance(); // db instance might not be directly needed here anymore if all DB interactions are in services/handlers
 
   // 1. Initialize Heartbeat

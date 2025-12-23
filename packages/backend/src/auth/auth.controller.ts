@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import { Request, Response, NextFunction } from 'express';
+import { ErrorFactory } from '../utils/AppError';
 import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
+import { hashPassword, comparePassword } from '../utils/crypto';
 import { NotificationService } from '../notifications/notification.service';
 import { AuditLogService } from '../audit/audit.service';
 import { ipBlacklistService } from './ip-blacklist.service';
@@ -58,7 +59,8 @@ declare module 'express-session' {
  */
 export const generatePasskeyRegistrationOptionsHandler = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
@@ -82,13 +84,12 @@ export const generatePasskeyRegistrationOptionsHandler = async (
 
     console.log(`[AuthController] Generated Passkey registration options for user ${username}`);
     res.json(options);
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `[AuthController] 生成 Passkey 注册选项时出错 (用户: ${username}):`,
-      error.message,
-      error.stack
+      error
     );
-    res.status(500).json({ message: '生成 Passkey 注册选项失败。', error: error.message });
+    next(error);
   }
 };
 
@@ -97,7 +98,8 @@ export const generatePasskeyRegistrationOptionsHandler = async (
  */
 export const verifyPasskeyRegistrationHandler = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   const registrationResponse = req.body; // The whole body is the response from @simplewebauthn/browser
   const challengeData = req.session.currentChallenge;
@@ -160,15 +162,12 @@ export const verifyPasskeyRegistrationHandler = async (
         error: (verification as any).error?.message || 'Unknown verification error',
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `[AuthController] 验证 Passkey 注册时出错 (用户: ${userHandle}):`,
-      error.message,
-      error.stack
+      error
     );
-    res
-      .status(500)
-      .json({ verified: false, message: '验证 Passkey 注册失败。', error: error.message });
+    next(error);
   }
 };
 
@@ -177,7 +176,8 @@ export const verifyPasskeyRegistrationHandler = async (
  */
 export const generatePasskeyAuthenticationOptionsHandler = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   const { username } = req.body; // Can be initiated by username (if not logged in) or for currently logged-in user
 
@@ -198,13 +198,12 @@ export const generatePasskeyAuthenticationOptionsHandler = async (
       `[AuthController] Generated Passkey authentication options (username: ${username || 'any'})`
     );
     res.json(options);
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `[AuthController] 生成 Passkey 认证选项时出错 (username: ${username || 'any'}):`,
-      error.message,
-      error.stack
+      error
     );
-    res.status(500).json({ message: '生成 Passkey 认证选项失败。', error: error.message });
+    next(error);
   }
 };
 
@@ -213,7 +212,8 @@ export const generatePasskeyAuthenticationOptionsHandler = async (
  */
 export const verifyPasskeyAuthenticationHandler = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
   // Extract assertionResponse and rememberMe from the request body
   const { assertionResponse, rememberMe } = req.body;
@@ -322,28 +322,26 @@ export const verifyPasskeyAuthenticationHandler = async (
       res.status(401).json({ verified: false, message: 'Passkey 认证失败。' });
     }
   } catch (error: any) {
-    console.error(`[AuthController] 验证 Passkey 认证时出错:`, error.message, error.stack);
+    console.error(`[AuthController] 验证 Passkey 认证时出错:`, error);
     const clientIp = req.ip || req.socket?.remoteAddress || 'unknown';
     auditLogService.logAction('PASSKEY_AUTH_FAILURE', {
-      credentialId: authenticationResponseJSON?.id || 'unknown', // Use the extracted object
-      reason: error.message,
+      credentialId: authenticationResponseJSON?.id || 'unknown',
+      reason: error.message || 'Unknown error',
       ip: clientIp,
     });
     notificationService.sendNotification('PASSKEY_AUTH_FAILURE', {
       credentialId: authenticationResponseJSON?.id || 'unknown',
-      reason: error.message,
+      reason: error.message || 'Unknown error',
       ip: clientIp,
     });
-    res
-      .status(500)
-      .json({ verified: false, message: '验证 Passkey 认证失败。', error: error.message });
+    next(error);
   }
 };
 
 /**
  * 获取当前认证用户的所有 Passkey (GET /api/v1/user/passkeys)
  */
-export const listUserPasskeysHandler = async (req: Request, res: Response): Promise<void> => {
+export const listUserPasskeysHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
 
@@ -358,20 +356,19 @@ export const listUserPasskeysHandler = async (req: Request, res: Response): Prom
       `[AuthController] 用户 ${username} (ID: ${userId}) 获取了 Passkey 列表，数量: ${passkeys.length}`
     );
     res.status(200).json(passkeys);
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `[AuthController] 用户 ${username} (ID: ${userId}) 获取 Passkey 列表时出错:`,
-      error.message,
-      error.stack
+      error
     );
-    res.status(500).json({ message: '获取 Passkey 列表失败。', error: error.message });
+    next(error);
   }
 };
 
 /**
  * 删除当前认证用户指定的 Passkey (DELETE /api/v1/user/passkeys/:credentialID)
  */
-export const deleteUserPasskeyHandler = async (req: Request, res: Response): Promise<void> => {
+export const deleteUserPasskeyHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
   const { credentialID } = req.params;
@@ -426,7 +423,7 @@ export const deleteUserPasskeyHandler = async (req: Request, res: Response): Pro
       });
       res.status(403).json({ message: '无权删除此 Passkey。' });
     } else {
-      res.status(500).json({ message: '删除 Passkey 失败。', error: error.message });
+      next(error);
     }
   }
 };
@@ -434,7 +431,7 @@ export const deleteUserPasskeyHandler = async (req: Request, res: Response): Pro
 /**
  * 更新当前认证用户指定的 Passkey 名称 (PUT /api/v1/user/passkeys/:credentialID/name)
  */
-export const updateUserPasskeyNameHandler = async (req: Request, res: Response): Promise<void> => {
+export const updateUserPasskeyNameHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
   const { credentialID } = req.params;
@@ -487,7 +484,7 @@ export const updateUserPasskeyNameHandler = async (req: Request, res: Response):
       });
       res.status(403).json({ message: '无权更新此 Passkey 名称。' });
     } else {
-      res.status(500).json({ message: '更新 Passkey 名称失败。', error: error.message });
+      next(error);
     }
   }
 };
@@ -495,7 +492,7 @@ export const updateUserPasskeyNameHandler = async (req: Request, res: Response):
 /**
  * 处理用户登录请求 (POST /api/v1/auth/login)
  */
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   // 从请求体中解构 username, password 和可选的 rememberMe
   const { username, password, rememberMe } = req.body;
 
@@ -570,7 +567,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const isMatch = await bcrypt.compare(password, user.hashed_password);
+    const isMatch = await comparePassword(password, user.hashed_password);
 
     if (!isMatch) {
       console.log(`登录尝试失败: 密码错误 - ${username}`);
@@ -653,14 +650,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
   } catch (error) {
     console.error('登录时出错:', error);
-    res.status(500).json({ message: '登录过程中发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 获取当前用户的认证状态 (GET /api/v1/auth/status)
  */
-export const getAuthStatus = async (req: Request, res: Response): Promise<void> => {
+export const getAuthStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
 
@@ -692,13 +689,13 @@ export const getAuthStatus = async (req: Request, res: Response): Promise<void> 
     });
   } catch (error) {
     console.error(`获取用户 ${userId} 状态时发生内部错误:`, error);
-    res.status(500).json({ message: '获取认证状态时发生内部服务器错误。' });
+    next(error);
   }
 };
 /**
  * 处理登录时的 2FA 验证 (POST /api/v1/auth/login/2fa)
  */
-export const verifyLogin2FA = async (req: Request, res: Response): Promise<void> => {
+export const verifyLogin2FA = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { token, tempToken } = req.body; // +++ Accept tempToken from frontend
   const pendingAuth = req.session.pendingAuth as PendingAuth | undefined;
 
@@ -812,14 +809,14 @@ export const verifyLogin2FA = async (req: Request, res: Response): Promise<void>
     }
   } catch (error) {
     console.error(`2FA 验证时发生内部错误 (用户: ${pendingAuth?.userId || 'unknown'}):`, error);
-    res.status(500).json({ message: '两步验证过程中发生内部服务器错误。' });
+    next(error);
   }
 };
 
 /**
  * 处理修改密码请求 (PUT /api/v1/auth/password)
  */
-export const changePassword = async (req: Request, res: Response): Promise<void> => {
+export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { currentPassword, newPassword } = req.body;
   const { userId } = req.session;
 
@@ -853,14 +850,14 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.hashed_password);
+    const isMatch = await comparePassword(currentPassword, user.hashed_password);
     if (!isMatch) {
       console.log(`修改密码尝试失败: 当前密码错误 - 用户 ID ${userId}`);
       res.status(400).json({ message: '当前密码不正确。' });
       return;
     }
 
-    const newHashedPassword = await bcrypt.hash(newPassword, SECURITY_CONFIG.BCRYPT_SALT_ROUNDS);
+    const newHashedPassword = await hashPassword(newPassword);
     const now = Math.floor(Date.now() / 1000);
 
     const result = await runDb(
@@ -882,7 +879,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
     res.status(200).json({ message: '密码已成功修改。' });
   } catch (error) {
     console.error(`修改用户 ${userId} 密码时发生内部错误:`, error);
-    res.status(500).json({ message: '修改密码过程中发生内部服务器错误。' });
+    next(error);
   }
 };
 
@@ -890,7 +887,7 @@ export const changePassword = async (req: Request, res: Response): Promise<void>
  * 开始 2FA 设置流程 (POST /api/v1/auth/2fa/setup)
  * 生成临时密钥和二维码
  */
-export const setup2FA = async (req: Request, res: Response): Promise<void> => {
+export const setup2FA = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
 
@@ -936,14 +933,14 @@ export const setup2FA = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: any) {
     console.error(`用户 ${userId} 设置 2FA 时出错:`, error);
-    res.status(500).json({ message: '设置两步验证时发生错误。', error: error.message });
+    next(error);
   }
 };
 
 /**
  * 验证并激活 2FA (POST /api/v1/auth/2fa/verify)
  */
-export const verifyAndActivate2FA = async (req: Request, res: Response): Promise<void> => {
+export const verifyAndActivate2FA = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { token } = req.body;
   const { userId } = req.session;
   const tempSecret = req.session.tempTwoFactorSecret;
@@ -999,14 +996,14 @@ export const verifyAndActivate2FA = async (req: Request, res: Response): Promise
     }
   } catch (error: any) {
     console.error(`用户 ${userId} 验证并激活 2FA 时出错:`, error);
-    res.status(500).json({ message: '验证两步验证码时发生错误。', error: error.message });
+    next(error);
   }
 };
 
 /**
  * 禁用 2FA (DELETE /api/v1/auth/2fa)
  */
-export const disable2FA = async (req: Request, res: Response): Promise<void> => {
+export const disable2FA = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { userId } = req.session;
   const { password } = req.body;
 
@@ -1030,7 +1027,7 @@ export const disable2FA = async (req: Request, res: Response): Promise<void> => 
       res.status(404).json({ message: '用户不存在。' });
       return;
     }
-    const isMatch = await bcrypt.compare(password, user.hashed_password);
+    const isMatch = await comparePassword(password, user.hashed_password);
     if (!isMatch) {
       res.status(400).json({ message: '当前密码不正确。' });
       return;
@@ -1056,7 +1053,7 @@ export const disable2FA = async (req: Request, res: Response): Promise<void> => 
     res.status(200).json({ message: '两步验证已成功禁用。' });
   } catch (error: any) {
     console.error(`用户 ${userId} 禁用 2FA 时出错:`, error);
-    res.status(500).json({ message: '禁用两步验证时发生错误。', error: error.message });
+    next(error);
   }
 };
 
@@ -1064,7 +1061,7 @@ export const disable2FA = async (req: Request, res: Response): Promise<void> => 
  * 检查是否需要进行初始设置 (GET /api/v1/auth/needs-setup)
  * 如果数据库中没有用户，则需要设置。
  */
-export const needsSetup = async (req: Request, res: Response): Promise<void> => {
+export const needsSetup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const db = await getDbInstance();
     const row = await getDb<{ count: number }>(db, 'SELECT COUNT(*) as count FROM users');
@@ -1073,14 +1070,14 @@ export const needsSetup = async (req: Request, res: Response): Promise<void> => 
     res.status(200).json({ needsSetup: userCount === 0 });
   } catch (error) {
     console.error('检查设置状态时发生内部错误:', error);
-    res.status(500).json({ message: '检查设置状态时发生错误。', needsSetup: false });
+    next(error);
   }
 };
 
 /**
  * 处理初始账号设置请求 (POST /api/v1/auth/setup)
  */
-export const setupAdmin = async (req: Request, res: Response): Promise<void> => {
+export const setupAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { username, password, confirmPassword } = req.body;
 
   if (!username || !password || !confirmPassword) {
@@ -1107,7 +1104,7 @@ export const setupAdmin = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(password, SECURITY_CONFIG.BCRYPT_SALT_ROUNDS);
+    const hashedPassword = await hashPassword(password);
     const now = Math.floor(Date.now() / 1000);
 
     const result = await runDb(
@@ -1141,7 +1138,7 @@ export const setupAdmin = async (req: Request, res: Response): Promise<void> => 
     res.status(201).json({ message: '初始账号创建成功！' });
   } catch (error: any) {
     console.error('初始设置过程中发生内部错误:', error);
-    res.status(500).json({ message: error.message || '初始设置过程中发生内部服务器错误。' });
+    next(error);
   }
 };
 
@@ -1173,7 +1170,7 @@ export const logout = (req: Request, res: Response): void => {
  * 获取公共 CAPTCHA 配置 (GET /api/v1/auth/captcha/config)
  * 返回给前端用于显示 CAPTCHA 小部件所需的信息 (不含密钥)。
  */
-export const getPublicCaptchaConfig = async (req: Request, res: Response): Promise<void> => {
+export const getPublicCaptchaConfig = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     console.log('[AuthController] Received request for public CAPTCHA config.');
     const fullConfig = await settingsService.getCaptchaConfig();
@@ -1189,13 +1186,7 @@ export const getPublicCaptchaConfig = async (req: Request, res: Response): Promi
     res.status(200).json(publicConfig);
   } catch (error: any) {
     console.error('[AuthController] 获取公共 CAPTCHA 配置时出错:', error);
-    res.status(500).json({
-      enabled: false,
-      provider: 'none',
-      hcaptchaSiteKey: '',
-      recaptchaSiteKey: '',
-      error: '获取 CAPTCHA 配置失败',
-    });
+    next(error);
   }
 };
 
@@ -1204,7 +1195,7 @@ export const getPublicCaptchaConfig = async (req: Request, res: Response): Promi
  * 或者特定用户是否配置了 Passkey (GET /api/v1/auth/passkey/has-configured?username=xxx)
  * 公开访问，用于登录页面判断是否显示 Passkey 登录按钮。
  */
-export const checkHasPasskeys = async (req: Request, res: Response): Promise<void> => {
+export const checkHasPasskeys = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const username = req.query.username as string | undefined;
   try {
     const hasPasskeys = await passkeyService.hasPasskeysConfigured(username);
@@ -1214,7 +1205,6 @@ export const checkHasPasskeys = async (req: Request, res: Response): Promise<voi
       `[AuthController] 检查 Passkey 配置状态时出错 (username: ${username || 'any'}):`,
       error.message
     );
-    // 即使出错，也返回 false，避免登录流程中断
-    res.status(200).json({ hasPasskeys: false, error: '检查 Passkey 配置时出错。' });
+    next(error);
   }
 };

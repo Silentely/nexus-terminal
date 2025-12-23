@@ -1,4 +1,5 @@
 import * as sqlite3 from 'sqlite3';
+import { ErrorFactory } from '../utils/AppError';
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
 import { SidebarConfig, LayoutNode, PaneName, CaptchaSettings } from '../types/settings.types';
 
@@ -20,7 +21,7 @@ export const settingsRepository = {
       return rows;
     } catch (err: any) {
       console.error('[Repository] 获取所有设置时出错:', err.message);
-      throw new Error('获取设置失败');
+      throw ErrorFactory.databaseError('获取设置失败', '获取设置失败');
     }
   },
 
@@ -38,7 +39,7 @@ export const settingsRepository = {
       return value;
     } catch (err: any) {
       console.error(`[Repository] 获取设置项 ${key} 时出错:`, err.message);
-      throw new Error(`获取设置项 ${key} 失败`);
+      throw ErrorFactory.databaseError('获取设置项失败', `获取设置项 ${key} 失败: ${err.message}`);
     }
   },
 
@@ -56,7 +57,7 @@ export const settingsRepository = {
       const result = await runDb(db, sql, params);
     } catch (err: any) {
       console.error(`[Repository] 设置设置项 ${key} 时出错:`, err.message);
-      throw new Error(`设置设置项 ${key} 失败`);
+      throw ErrorFactory.databaseError('设置设置项失败', `设置设置项 ${key} 失败: ${err.message}`);
     }
   },
 
@@ -70,7 +71,7 @@ export const settingsRepository = {
       return result.changes > 0;
     } catch (err: any) {
       console.error(`[Repository] 删除设置项 ${key} 时出错:`, err.message);
-      throw new Error(`删除设置项 ${key} 失败`);
+      throw ErrorFactory.databaseError('删除设置项失败', `删除设置项 ${key} 失败: ${err.message}`);
     }
   },
 
@@ -82,7 +83,7 @@ export const settingsRepository = {
       // console.log('[仓库] setMultipleSettings 成功完成。');
     } catch (error) {
       console.error('[仓库] setMultipleSettings 失败:', error);
-      throw new Error('批量设置失败');
+      throw ErrorFactory.databaseError('批量设置失败', '批量设置失败');
     }
   },
 };
@@ -124,13 +125,13 @@ export const setSidebarConfig = async (config: SidebarConfig): Promise<void> => 
       !Array.isArray(config.left) ||
       !Array.isArray(config.right)
     ) {
-      throw new Error('提供了无效的侧边栏配置对象。');
+      throw ErrorFactory.databaseError('提供了无效的侧边栏配置对象。', '提供了无效的侧边栏配置对象。');
     }
     const jsonString = JSON.stringify(config);
     await settingsRepository.setSetting(SIDEBAR_CONFIG_KEY, jsonString);
   } catch (error) {
     console.error(`[设置仓库] 设置侧边栏配置时出错 (键: ${SIDEBAR_CONFIG_KEY}):`, error);
-    throw new Error('保存侧边栏配置失败。');
+    throw ErrorFactory.databaseError('保存侧边栏配置失败。', '保存侧边栏配置失败。');
   }
 };
 
@@ -186,7 +187,7 @@ export const setCaptchaConfig = async (config: CaptchaSettings): Promise<void> =
       typeof config.enabled !== 'boolean' ||
       typeof config.provider !== 'string'
     ) {
-      throw new Error('提供了无效的 CAPTCHA 配置对象。');
+      throw ErrorFactory.databaseError('提供了无效的 CAPTCHA 配置对象。', '提供了无效的 CAPTCHA 配置对象。');
     }
     config.hcaptchaSecretKey = config.hcaptchaSecretKey || '';
     config.recaptchaSecretKey = config.recaptchaSecretKey || '';
@@ -197,7 +198,7 @@ export const setCaptchaConfig = async (config: CaptchaSettings): Promise<void> =
     await settingsRepository.setSetting(CAPTCHA_CONFIG_KEY, jsonString);
   } catch (error) {
     console.error(`[设置仓库] 设置 CAPTCHA 配置时出错 (键: ${CAPTCHA_CONFIG_KEY}):`, error);
-    throw new Error('保存 CAPTCHA 配置失败。');
+    throw ErrorFactory.databaseError('保存 CAPTCHA 配置失败。', '保存 CAPTCHA 配置失败。');
   }
 };
 
@@ -292,6 +293,6 @@ export const ensureDefaultSettingsExist = async (db: sqlite3.Database): Promise<
     }
   } catch (err: any) {
     console.error(`[设置仓库] 确保默认设置时出错:`, err.message);
-    throw new Error(`确保默认设置失败: ${err.message}`);
+    throw ErrorFactory.databaseError('确保默认设置失败', `确保默认设置失败: ${err.message}`);
   }
 };

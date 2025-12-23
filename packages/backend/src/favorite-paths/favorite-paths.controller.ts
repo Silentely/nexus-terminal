@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import * as FavoritePathsService from './favorite-paths.service';
 import { FavoritePathSortBy } from './favorite-paths.service';
+import { ErrorFactory } from '../utils/AppError';
 
 /**
  * 处理添加新收藏路径的请求
  */
-export const createFavoritePath = async (req: Request, res: Response): Promise<void> => {
+export const createFavoritePath = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { name, path } = req.body;
 
   if (!path || typeof path !== 'string' || path.trim().length === 0) {
@@ -26,16 +27,16 @@ export const createFavoritePath = async (req: Request, res: Response): Promise<v
       console.error(`[Controller] 添加收藏路径后未能找到 ID: ${newId}`);
       res.status(201).json({ message: '收藏路径已添加，但无法检索新记录', id: newId });
     }
-  } catch (error: any) {
-    console.error('[Controller] 添加收藏路径失败:', error.message);
-    res.status(500).json({ message: error.message || '无法添加收藏路径' });
+  } catch (error) {
+    console.error('[Controller] 添加收藏路径失败:', error);
+    next(error);
   }
 };
 
 /**
  * 处理获取所有收藏路径的请求 (支持排序)
  */
-export const getAllFavoritePaths = async (req: Request, res: Response): Promise<void> => {
+export const getAllFavoritePaths = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const sortBy = req.query.sortBy as FavoritePathSortBy | undefined;
   const validSortByOptions: FavoritePathSortBy[] = ['name', 'last_used_at'];
   const validSortBy: FavoritePathSortBy =
@@ -44,16 +45,16 @@ export const getAllFavoritePaths = async (req: Request, res: Response): Promise<
   try {
     const favoritePaths = await FavoritePathsService.getAllFavoritePaths(validSortBy);
     res.status(200).json(favoritePaths);
-  } catch (error: any) {
+  } catch (error) {
     console.error('获取收藏路径控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法获取收藏路径' });
+    next(error);
   }
 };
 
 /**
  * 处理根据 ID 获取单个收藏路径的请求
  */
-export const getFavoritePathById = async (req: Request, res: Response): Promise<void> => {
+export const getFavoritePathById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -68,16 +69,16 @@ export const getFavoritePathById = async (req: Request, res: Response): Promise<
     } else {
       res.status(404).json({ message: '未找到指定的收藏路径' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('获取单个收藏路径控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法获取收藏路径' });
+    next(error);
   }
 };
 
 /**
  * 处理更新收藏路径的请求
  */
-export const updateFavoritePath = async (req: Request, res: Response): Promise<void> => {
+export const updateFavoritePath = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   const { name, path } = req.body;
 
@@ -110,19 +111,20 @@ export const updateFavoritePath = async (req: Request, res: Response): Promise<v
         res.status(404).json({ message: '未找到要更新的收藏路径' });
       } else {
         console.error(`[Controller] 更新收藏路径 ${id} 失败，但路径存在。`);
-        res.status(500).json({ message: '更新收藏路径时发生未知错误' });
+        next(ErrorFactory.internalError('更新收藏路径时发生未知错误'));
+        return;
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('更新收藏路径控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法更新收藏路径' });
+    next(error);
   }
 };
 
 /**
  * 处理删除收藏路径的请求
  */
-export const deleteFavoritePath = async (req: Request, res: Response): Promise<void> => {
+export const deleteFavoritePath = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -137,16 +139,16 @@ export const deleteFavoritePath = async (req: Request, res: Response): Promise<v
     } else {
       res.status(404).json({ message: '未找到要删除的收藏路径' });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('删除收藏路径控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法删除收藏路径' });
+    next(error);
   }
 };
 
 /**
  * 处理更新收藏路径上次使用时间的请求
  */
-export const incrementUsage = async (req: Request, res: Response): Promise<void> => {
+export const incrementUsage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -176,19 +178,20 @@ export const incrementUsage = async (req: Request, res: Response): Promise<void>
       } else {
         // 路径存在，但更新操作失败
         console.warn(`[Controller] 尝试更新收藏路径 (ID: ${id}) 的上次使用时间失败，但路径存在。`);
-        res.status(500).json({ message: '更新上次使用时间失败' });
+        next(ErrorFactory.internalError('更新上次使用时间失败'));
+        return;
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('更新收藏路径上次使用时间控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法更新上次使用时间' });
+    next(error);
   }
 };
 
 /**
  * 处理更新收藏路径上次使用时间戳的请求 (PUT)
  */
-export const updateLastUsedTimestamp = async (req: Request, res: Response): Promise<void> => {
+export const updateLastUsedTimestamp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
   if (isNaN(id)) {
@@ -219,11 +222,12 @@ export const updateLastUsedTimestamp = async (req: Request, res: Response): Prom
         console.warn(
           `[Controller] 尝试更新收藏路径 (ID: ${id}) 的上次使用时间戳失败，但路径存在。`
         );
-        res.status(500).json({ message: '更新上次使用时间戳失败' });
+        next(ErrorFactory.internalError('更新上次使用时间戳失败'));
+        return;
       }
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('更新收藏路径上次使用时间戳控制器出错:', error);
-    res.status(500).json({ message: error.message || '无法更新上次使用时间戳' });
+    next(error);
   }
 };

@@ -1,4 +1,5 @@
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
+import { ErrorFactory } from '../utils/AppError';
 
 // 定义基础快捷指令接口
 export interface QuickCommand {
@@ -41,12 +42,12 @@ export const addQuickCommand = async (
     const variablesJson = variables ? JSON.stringify(variables) : null;
     const result = await runDb(db, sql, [name, command, variablesJson]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw new Error('添加快捷指令后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError('添加快捷指令后未能获取有效的 lastID', '添加快捷指令后未能获取有效的 lastID');
     }
     return result.lastID;
   } catch (err: any) {
     console.error('添加快捷指令时出错:', err.message);
-    throw new Error('无法添加快捷指令');
+    throw ErrorFactory.databaseError('无法添加快捷指令', '无法添加快捷指令');
   }
 };
 
@@ -72,7 +73,7 @@ export const updateQuickCommand = async (
     return result.changes > 0;
   } catch (err: any) {
     console.error('更新快捷指令时出错:', err.message);
-    throw new Error('无法更新快捷指令');
+    throw ErrorFactory.databaseError('无法更新快捷指令', '无法更新快捷指令');
   }
 };
 
@@ -89,7 +90,7 @@ export const deleteQuickCommand = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error('删除快捷指令时出错:', err.message);
-    throw new Error('无法删除快捷指令');
+    throw ErrorFactory.databaseError('无法删除快捷指令', '无法删除快捷指令');
   }
 };
 
@@ -101,6 +102,15 @@ export const deleteQuickCommand = async (id: number): Promise<boolean> => {
 export const getAllQuickCommands = async (
   sortBy: 'name' | 'usage_count' = 'name'
 ): Promise<QuickCommandWithTags[]> => {
+  // P1-4: 显式 allowlist 验证（纵深防御）
+  const ALLOWED_SORT_COLUMNS: Array<'name' | 'usage_count'> = ['name', 'usage_count'];
+  if (!ALLOWED_SORT_COLUMNS.includes(sortBy)) {
+    throw ErrorFactory.validationError(
+      `无效的排序字段: ${sortBy}`,
+      `field: sortBy, value: ${sortBy}, allowed: ${ALLOWED_SORT_COLUMNS.join(', ')}`
+    );
+  }
+
   let orderByClause = 'ORDER BY qc.name ASC'; // 默认按名称升序
   if (sortBy === 'usage_count') {
     orderByClause = 'ORDER BY qc.usage_count DESC, qc.name ASC'; // 按使用频率降序，同频率按名称升序
@@ -142,7 +152,7 @@ export const getAllQuickCommands = async (
     });
   } catch (err: any) {
     console.error('获取快捷指令（带标签）时出错:', err.message);
-    throw new Error('无法获取快捷指令');
+    throw ErrorFactory.databaseError('无法获取快捷指令', '无法获取快捷指令');
   }
 };
 
@@ -159,7 +169,7 @@ export const incrementUsageCount = async (id: number): Promise<boolean> => {
     return result.changes > 0;
   } catch (err: any) {
     console.error('增加快捷指令使用次数时出错:', err.message);
-    throw new Error('无法增加快捷指令使用次数');
+    throw ErrorFactory.databaseError('无法增加快捷指令使用次数', '无法增加快捷指令使用次数');
   }
 };
 
@@ -209,6 +219,6 @@ export const findQuickCommandById = async (
     return undefined;
   } catch (err: any) {
     console.error('查找快捷指令（带标签）时出错:', err.message);
-    throw new Error('无法查找快捷指令');
+    throw ErrorFactory.databaseError('无法查找快捷指令', '无法查找快捷指令');
   }
 };

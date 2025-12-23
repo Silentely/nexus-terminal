@@ -1,10 +1,11 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import type { ITheme } from 'xterm';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { CreateTerminalThemeDto, UpdateTerminalThemeDto } from '../types/terminal-theme.types';
 import * as terminalThemeService from './terminal-theme.service';
+import { ErrorFactory } from '../utils/AppError';
 
 // 配置 multer 用于处理 JSON 文件上传 (导入)
 const upload = multer({
@@ -22,19 +23,19 @@ const upload = multer({
 /**
  * 获取所有终端主题
  */
-export const getAllThemesController = async (req: Request, res: Response): Promise<void> => {
+export const getAllThemesController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const themes = await terminalThemeService.getAllThemes();
     res.status(200).json(themes);
-  } catch (error: any) {
-    res.status(500).json({ message: '获取终端主题列表失败', error: error.message });
+  } catch (error) {
+    next(error);
   }
 };
 
 /**
  * 根据 ID 获取单个终端主题
  */
-export const getThemeByIdController = async (req: Request, res: Response): Promise<void> => {
+export const getThemeByIdController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -47,15 +48,15 @@ export const getThemeByIdController = async (req: Request, res: Response): Promi
     } else {
       res.status(404).json({ message: '未找到指定的主题' });
     }
-  } catch (error: any) {
-    res.status(500).json({ message: '获取终端主题失败', error: error.message });
+  } catch (error) {
+    next(error);
   }
 };
 
 /**
  * 创建新终端主题
  */
-export const createThemeController = async (req: Request, res: Response): Promise<void> => {
+export const createThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const themeDto: CreateTerminalThemeDto = req.body;
     // 基本验证
@@ -70,7 +71,7 @@ export const createThemeController = async (req: Request, res: Response): Promis
     if (error.message.includes('已存在')) {
       res.status(409).json({ message: error.message }); // 409 Conflict
     } else {
-      res.status(400).json({ message: '创建终端主题失败', error: error.message });
+      next(error);
     }
   }
 };
@@ -78,7 +79,7 @@ export const createThemeController = async (req: Request, res: Response): Promis
 /**
  * 更新终端主题
  */
-export const updateThemeController = async (req: Request, res: Response): Promise<void> => {
+export const updateThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -102,7 +103,7 @@ export const updateThemeController = async (req: Request, res: Response): Promis
     if (error.message.includes('已存在')) {
       res.status(409).json({ message: error.message }); // 409 Conflict
     } else {
-      res.status(400).json({ message: '更新终端主题失败', error: error.message });
+      next(error);
     }
   }
 };
@@ -110,7 +111,7 @@ export const updateThemeController = async (req: Request, res: Response): Promis
 /**
  * 删除终端主题
  */
-export const deleteThemeController = async (req: Request, res: Response): Promise<void> => {
+export const deleteThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -124,15 +125,15 @@ export const deleteThemeController = async (req: Request, res: Response): Promis
       // 可能因为 ID 不存在或主题是预设主题而删除失败
       res.status(404).json({ message: '未找到可删除的主题或该主题为预设主题' });
     }
-  } catch (error: any) {
-    res.status(500).json({ message: '删除终端主题失败', error: error.message });
+  } catch (error) {
+    next(error);
   }
 };
 
 /**
  * 导入终端主题 (处理文件上传)
  */
-export const importThemeController = async (req: Request, res: Response): Promise<void> => {
+export const importThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ message: '没有上传文件' });
     return;
@@ -169,7 +170,7 @@ export const importThemeController = async (req: Request, res: Response): Promis
     } else if (error.message.includes('已存在')) {
       res.status(409).json({ message: `导入失败: ${error.message}` }); // 409 Conflict
     } else {
-      res.status(400).json({ message: '导入终端主题失败', error: error.message });
+      next(error);
     }
   }
 };
@@ -177,7 +178,7 @@ export const importThemeController = async (req: Request, res: Response): Promis
 /**
  * 导出终端主题
  */
-export const exportThemeController = async (req: Request, res: Response): Promise<void> => {
+export const exportThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -195,8 +196,8 @@ export const exportThemeController = async (req: Request, res: Response): Promis
     } else {
       res.status(404).json({ message: '未找到指定的主题' });
     }
-  } catch (error: any) {
-    res.status(500).json({ message: '导出终端主题失败', error: error.message });
+  } catch (error) {
+    next(error);
   }
 };
 

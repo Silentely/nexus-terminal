@@ -60,6 +60,7 @@ const emit = defineEmits([
 
 const editorContainer = ref<HTMLElement | null>(null);
 let editorInstance: monaco.editor.IStandaloneCodeEditor | null = null;
+let wheelEventHandler: ((event: WheelEvent) => void) | null = null; // 保存 wheel 事件处理器引用
 
 // 用于驱动编辑器实例的 ref，并与 localStorage 和 props.fontSize 同步
 const internalEditorFontSize = ref(props.fontSize);
@@ -171,33 +172,31 @@ onMounted(() => {
     const editorDomNode = editorInstance?.getDomNode();
     if (editorDomNode && editorInstance) {
       // console.log('[MonacoEditor] Adding wheel event listener.');
-      editorDomNode.addEventListener(
-        'wheel',
-        (event: WheelEvent) => {
-          if (event.ctrlKey && editorInstance) {
-            event.preventDefault();
-            const currentSizeOpt = editorInstance.getOption(monaco.editor.EditorOption.fontSize);
-            const currentSize =
-              typeof currentSizeOpt === 'number' ? currentSizeOpt : internalEditorFontSize.value;
+      // 定义事件处理器并保存引用，以便在组件销毁时正确移除
+      wheelEventHandler = (event: WheelEvent) => {
+        if (event.ctrlKey && editorInstance) {
+          event.preventDefault();
+          const currentSizeOpt = editorInstance.getOption(monaco.editor.EditorOption.fontSize);
+          const currentSize =
+            typeof currentSizeOpt === 'number' ? currentSizeOpt : internalEditorFontSize.value;
 
-            let newSize: number;
-            if (event.deltaY < 0) {
-              newSize = Math.min(currentSize + 1, 40); // 字体上限 40
-            } else {
-              newSize = Math.max(currentSize - 1, 8); // 字体下限 8
-            }
-
-            if (newSize !== currentSize) {
-              // console.log(`[MonacoEditor] Updating font size to: ${newSize}`);
-              editorInstance.updateOptions({ fontSize: newSize });
-              localStorage.setItem(FONT_SIZE_STORAGE_KEY, newSize.toString());
-              internalEditorFontSize.value = newSize; // 更新 internal ref
-              emit('update:fontSize', newSize); // 发出事件以更新 store
-            }
+          let newSize: number;
+          if (event.deltaY < 0) {
+            newSize = Math.min(currentSize + 1, 40); // 字体上限 40
+          } else {
+            newSize = Math.max(currentSize - 1, 8); // 字体下限 8
           }
-        },
-        { passive: false }
-      );
+
+          if (newSize !== currentSize) {
+            // console.log(`[MonacoEditor] Updating font size to: ${newSize}`);
+            editorInstance.updateOptions({ fontSize: newSize });
+            localStorage.setItem(FONT_SIZE_STORAGE_KEY, newSize.toString());
+            internalEditorFontSize.value = newSize; // 更新 internal ref
+            emit('update:fontSize', newSize); // 发出事件以更新 store
+          }
+        }
+      };
+      editorDomNode.addEventListener('wheel', wheelEventHandler, { passive: false });
     } else {
       // console.error('[MonacoEditor] editorDomNode or editorInstance is null, cannot add wheel listener.');
     }
@@ -278,6 +277,16 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  // 移除 wheel 事件监听器，防止内存泄漏
+  if (wheelEventHandler && editorInstance) {
+    const editorDomNode = editorInstance.getDomNode();
+    if (editorDomNode) {
+      editorDomNode.removeEventListener('wheel', wheelEventHandler);
+      wheelEventHandler = null;
+    }
+  }
+
+  // 释放编辑器实例
   if (editorInstance) {
     editorInstance.dispose();
     editorInstance = null;
