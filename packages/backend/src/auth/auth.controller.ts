@@ -15,6 +15,9 @@ import { passkeyRepository } from '../passkey/passkey.repository'; // +++ Passke
 import { userRepository } from '../user/user.repository'; // For passkey auth success
 import { SECURITY_CONFIG } from '../config/security.config';
 
+// 开发环境标志，用于控制调试日志输出
+const isDev = process.env.NODE_ENV !== 'production';
+
 const notificationService = new NotificationService();
 const auditLogService = new AuditLogService();
 
@@ -637,11 +640,13 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
             res.status(500).json({ message: '登录过程中发生错误，请重试。' });
             return;
           }
-          console.log(`[AuthController] 2FA pendingAuth 已保存到 session`);
-          console.log(`[AuthController] Session ID: ${req.sessionID}`);
-          console.log(`[AuthController] X-Forwarded-Proto: ${req.get('X-Forwarded-Proto')}`);
-          console.log(`[AuthController] req.protocol: ${req.protocol}`);
-          console.log(`[AuthController] req.secure: ${req.secure}`);
+          if (isDev) {
+            console.log(`[AuthController] 2FA pendingAuth 已保存到 session`);
+            console.log(`[AuthController] Session ID: ${req.sessionID}`);
+            console.log(`[AuthController] X-Forwarded-Proto: ${req.get('X-Forwarded-Proto')}`);
+            console.log(`[AuthController] req.protocol: ${req.protocol}`);
+            console.log(`[AuthController] req.secure: ${req.secure}`);
+          }
           res.status(200).json({
             message: '需要进行两步验证。',
             requiresTwoFactor: true,
@@ -742,22 +747,26 @@ export const verifyLogin2FA = async (
   const { token, tempToken } = req.body; // +++ Accept tempToken from frontend
   const pendingAuth = req.session.pendingAuth as PendingAuth | undefined;
 
-  // +++ Debug logging for session diagnostics
-  console.log(`[AuthController] verifyLogin2FA - Session ID: ${req.sessionID}`);
-  console.log(`[AuthController] verifyLogin2FA - Session Cookie: ${req.get('Cookie')}`);
-  console.log(`[AuthController] verifyLogin2FA - Has pendingAuth: ${!!pendingAuth}`);
-  console.log(
-    `[AuthController] verifyLogin2FA - Received tempToken: ${tempToken ? `${tempToken.substring(0, 8)}...` : 'null'}`
-  );
-  console.log(
-    `[AuthController] verifyLogin2FA - X-Forwarded-Proto: ${req.get('X-Forwarded-Proto')}`
-  );
+  // +++ Debug logging for session diagnostics (dev only)
+  if (isDev) {
+    console.log(`[AuthController] verifyLogin2FA - Session ID: ${req.sessionID}`);
+    console.log(`[AuthController] verifyLogin2FA - Session Cookie: ${req.get('Cookie')}`);
+    console.log(`[AuthController] verifyLogin2FA - Has pendingAuth: ${!!pendingAuth}`);
+    console.log(
+      `[AuthController] verifyLogin2FA - Received tempToken: ${tempToken ? `${tempToken.substring(0, 8)}...` : 'null'}`
+    );
+    console.log(
+      `[AuthController] verifyLogin2FA - X-Forwarded-Proto: ${req.get('X-Forwarded-Proto')}`
+    );
+  }
 
   // +++ Validate pending authentication state and tempToken
   if (!pendingAuth || !tempToken) {
-    console.log(
-      `[AuthController] verifyLogin2FA - FAILED: pendingAuth=${!!pendingAuth}, tempToken=${!!tempToken}`
-    );
+    if (isDev) {
+      console.log(
+        `[AuthController] verifyLogin2FA - FAILED: pendingAuth=${!!pendingAuth}, tempToken=${!!tempToken}`
+      );
+    }
     res.status(401).json({ message: '无效的认证状态。' });
     return;
   }
