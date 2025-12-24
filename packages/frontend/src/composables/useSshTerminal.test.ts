@@ -192,8 +192,7 @@ describe('useSshTerminal (createSshTerminalManager)', () => {
 
       expect(mockSendMessage).toHaveBeenCalledWith({
         type: 'ssh:input',
-        sessionId: 'session-1',
-        payload: { data: 'ls -la' },
+        payload: 'ls -la',
       });
     });
   });
@@ -232,8 +231,7 @@ describe('useSshTerminal (createSshTerminalManager)', () => {
 
       expect(mockSendMessage).toHaveBeenCalledWith({
         type: 'ssh:input',
-        sessionId: 'session-1',
-        payload: { data: 'echo hello' },
+        payload: 'echo hello',
       });
     });
   });

@@ -143,7 +143,8 @@ export function createSshTerminalManager(
 
   const handleTerminalData = (data: string) => {
     // console.debug(`[会话 ${sessionId}][SSH终端模块] 接收到终端输入:`, data);
-    sendMessage({ type: 'ssh:input', sessionId, payload: { data } });
+    // 注意：后端期望 payload 直接是字符串
+    sendMessage({ type: 'ssh:input', payload: data });
   };
 
   const handleTerminalResize = (dimensions: { cols: number; rows: number }) => {
@@ -374,7 +375,8 @@ export function createSshTerminalManager(
    */
   const sendData = (data: string) => {
     // console.debug(`[会话 ${sessionId}][SSH终端模块] 直接发送数据:`, data);
-    sendMessage({ type: 'ssh:input', sessionId, payload: { data } });
+    // 注意：后端期望 payload 直接是字符串
+    sendMessage({ type: 'ssh:input', payload: data });
   };
 
   // --- 搜索相关方法 (移除计数逻辑) ---

@@ -288,7 +288,11 @@ export function createWebSocketConnectionManager(
         // 状态保持 'connecting' 直到收到 ssh:connected
         if (!isResumeFlow) {
           // 对于普通连接，发送 ssh:connect 并等待 ssh:connected 来更新状态
-          sendMessage({ type: 'ssh:connect', payload: { connectionId: instanceDbConnectionId } });
+          // 注意：后端期望 connectionId 是 number 类型
+          sendMessage({
+            type: 'ssh:connect',
+            payload: { connectionId: parseInt(instanceDbConnectionId, 10) },
+          });
         } else {
           // 对于恢复流程，WebSocket 打开即表示连接基础已建立
           // 后续的 SSH_SUSPEND_RESUME_REQUEST 会完成会话的恢复
