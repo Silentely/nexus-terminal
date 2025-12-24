@@ -286,11 +286,8 @@ function createMockWsDeps() {
   return {
     sendMessage: vi.fn(),
     onMessage: vi.fn(() => vi.fn()),
-    offMessage: vi.fn(),
-    isConnected: { value: true },
-    isSftpReady: { value: true },
-    connectionStatus: { value: 'connected' },
-    statusMessage: { value: '' },
+    isConnected: computed(() => true),
+    isSftpReady: ref(true),
   };
 }
 
@@ -757,9 +754,8 @@ describe('FileManager.vue', () => {
       });
 
       // 文件大小应被格式化
-      expect(wrapper.text()).toContain('B') ||
-        expect(wrapper.text()).toContain('KB') ||
-        expect(wrapper.text()).toContain('MB');
+      const text = wrapper.text();
+      expect(text.includes('B') || text.includes('KB') || text.includes('MB')).toBe(true);
     });
   });
 

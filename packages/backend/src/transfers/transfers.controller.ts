@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { TransfersService } from './transfers.service';
-import { InitiateTransferPayload } from './transfers.types';
+import { initiateTransferPayloadSchema } from './transfers.schema';
 
 export class TransfersController {
   private transfersService: TransfersService;
@@ -24,30 +24,13 @@ export class TransfersController {
         return;
       }
 
-      const payload = req.body as InitiateTransferPayload;
-      // TODO: 添加payload验证逻辑
-      if (
-        !payload ||
-        !payload.connectionIds ||
-        !payload.sourceItems ||
-        !payload.remoteTargetPath ||
-        !payload.transferMethod
-      ) {
-        res.status(400).json({
-          message:
-            'Invalid payload. Required fields: connectionIds, sourceItems, remoteTargetPath, transferMethod.',
-        });
+      const parseResult = initiateTransferPayloadSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        const errorMessages = parseResult.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ');
+        res.status(400).json({ message: `请求参数验证失败: ${errorMessages}` });
         return;
       }
-      if (!Array.isArray(payload.connectionIds) || payload.connectionIds.length === 0) {
-        res.status(400).json({ message: 'connectionIds must be a non-empty array.' });
-        return;
-      }
-      if (!Array.isArray(payload.sourceItems) || payload.sourceItems.length === 0) {
-        res.status(400).json({ message: 'sourceItems must be a non-empty array.' });
-        return;
-      }
-      // 更多详细验证可以后续添加
+      const payload = parseResult.data;
 
       const task = await this.transfersService.initiateNewTransfer(payload, userId);
       res.status(202).json(task); // 202 Accepted 表示请求已接受处理，但尚未完成

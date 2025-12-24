@@ -3,7 +3,7 @@
  * 测试 SFTP 文件操作管理的核心业务逻辑
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, type Ref } from 'vue';
 import { createSftpActionsManager, type WebSocketDependencies } from './useSftpActions';
 
 // Mock vue-i18n
@@ -32,9 +32,9 @@ vi.mock('../stores/uiNotifications.store', () => ({
 describe('useSftpActions (createSftpActionsManager)', () => {
   let mockSendMessage: ReturnType<typeof vi.fn>;
   let mockOnMessage: ReturnType<typeof vi.fn>;
-  let mockIsConnected: ReturnType<typeof ref<boolean>>;
-  let mockIsSftpReady: ReturnType<typeof ref<boolean>>;
-  let currentPathRef: ReturnType<typeof ref<string>>;
+  let mockIsConnected: Ref<boolean>;
+  let mockIsSftpReady: Ref<boolean>;
+  let currentPathRef: Ref<string>;
   let messageHandlers: Map<string, ((payload: any, message?: any) => void)[]>;
 
   // 模拟 i18n 翻译函数

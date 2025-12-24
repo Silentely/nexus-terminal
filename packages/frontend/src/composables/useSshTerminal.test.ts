@@ -63,7 +63,7 @@ describe('useSshTerminal (createSshTerminalManager)', () => {
     return {
       sendMessage: mockSendMessage,
       onMessage: mockOnMessage,
-      isConnected: computed(() => mockIsConnected.value),
+      isConnected: computed(() => mockIsConnected.value ?? false),
     };
   }
 

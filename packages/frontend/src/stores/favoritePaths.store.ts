@@ -2,17 +2,14 @@ import { defineStore } from 'pinia';
 import apiClient from '../utils/apiClient';
 import { useUiNotificationsStore } from './uiNotifications.store';
 
-// TODO: Define these types more precisely based on API response
 export type FavoritePathSortType = 'name' | 'last_used_at';
 
 export interface FavoritePathItem {
-  id: string;
+  id: number;
   path: string;
-  name?: string;
-  last_used_at?: number | null; // Added last_used_at
-  // Add other relevant fields from the API if any
-  createdAt?: string;
-  updatedAt?: string;
+  name: string | null;
+  last_used_at?: number | null;
+  created_at: number;
 }
 
 export interface FavoritePathsState {
@@ -50,7 +47,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
           (fav.name && fav.name.toLowerCase().includes(lowerCaseSearchTerm))
       );
     },
-    getFavoritePathById(state): (id: string) => FavoritePathItem | undefined {
+    getFavoritePathById(state): (id: number) => FavoritePathItem | undefined {
       return (id) => state.favoritePaths.find((fav) => fav.id === id);
     },
   },
@@ -105,7 +102,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
       localStorage.setItem('favoritePathSortBy', sortBy);
       this._sortFavoritePaths(); // Re-sort locally
     },
-    async markPathAsUsed(pathId: string, t: (key: string, defaultMessage: string) => string) {
+    async markPathAsUsed(pathId: number, t: (key: string, defaultMessage: string) => string) {
       const notificationsStore = useUiNotificationsStore();
       try {
         const response = await apiClient.put<{ message: string; favoritePath: FavoritePathItem }>(
@@ -135,7 +132,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
       }
     },
     async addFavoritePath(
-      newPathData: Omit<FavoritePathItem, 'id' | 'createdAt' | 'updatedAt' | 'last_used_at'>,
+      newPathData: Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>,
       t: (key: string, defaultMessage: string) => string
     ) {
       this.isLoading = true;
@@ -165,9 +162,9 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
       }
     },
     async updateFavoritePath(
-      id: string,
+      id: number,
       updatedPathData: Partial<
-        Omit<FavoritePathItem, 'id' | 'createdAt' | 'updatedAt' | 'last_used_at'>
+        Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>
       >,
       t: (key: string, defaultMessage: string) => string
     ) {
@@ -203,7 +200,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
         this.isLoading = false;
       }
     },
-    async deleteFavoritePath(id: string, t: (key: string, defaultMessage: string) => string) {
+    async deleteFavoritePath(id: number, t: (key: string, defaultMessage: string) => string) {
       this.isLoading = true;
       this.error = null;
       const notificationsStore = useUiNotificationsStore();

@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { nextTick } from 'vue';
-import { editor, createMockEditorInstance } from 'monaco-editor';
+import { editor } from 'monaco-editor';
 import MonacoEditor from './MonacoEditor.vue';
 
 // 获取 mock 实例的辅助函数

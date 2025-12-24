@@ -267,52 +267,9 @@ const resumeSession = async (session: SuspendedSshSession) => {
   );
 
   try {
-    // 假设 sessionStore.resumeSshSession 返回一个 Promise。
-    // 如果它不返回 Promise (例如，它是一个同步的 action dispatch)，await 仍然是安全的，result 将会是 undefined。
-    // 为了获取详细信息（如是否真正恢复、历史日志），sessionStore.resumeSshSession 可能需要被修改以返回一个包含这些信息的对象。
-    const result = await sessionStore.resumeSshSession(session.suspendSessionId);
-
+    // resumeSshSession 返回 Promise<void>，调用完成即表示操作已执行
+    await sessionStore.resumeSshSession(session.suspendSessionId);
     console.log('[SuspendedSshSessionsView] Call to sessionStore.resumeSshSession completed.');
-
-    // 检查 result 是否是包含期望信息的对象结构
-    // @ts-ignore (因为我们不确定 result 的确切类型，并且这是在 Vue 文件中)
-    if (
-      result &&
-      typeof result === 'object' &&
-      ('isResumed' in result || 'historicalOutput' in result || 'message' in result)
-    ) {
-      console.log('[SuspendedSshSessionsView] Result from resumeSshSession:', result);
-      // @ts-ignore
-      console.log(
-        `[SuspendedSshSessionsView] Is session truly resumed (based on backend response)? : ${result.isResumed ? 'Yes, existing session resumed.' : 'No, a new session was likely opened (or status unknown from response).'}`
-      );
-      // @ts-ignore
-      console.log(
-        '[SuspendedSshSessionsView] Historical terminal log from backend:',
-        result.historicalOutput || 'Not provided or empty.'
-      );
-      // @ts-ignore
-      if (result.message) {
-        // @ts-ignore
-        console.log('[SuspendedSshSessionsView] Backend message:', result.message);
-      }
-    } else {
-      console.log(
-        '[SuspendedSshSessionsView] sessionStore.resumeSshSession did not return the expected detailed information object (e.g., { isResumed: boolean, historicalOutput?: string, message?: string }). The action was dispatched.'
-      );
-      console.log(
-        '[SuspendedSshSessionsView] To get client-side confirmation of session state and historical logs, the sessionStore.resumeSshSession action might need to be updated to return this data.'
-      );
-      console.log(
-        '[SuspendedSshSessionsView] For now, please check browser developer console (network tab for backend responses) or backend logs for details on session restoration and historical log loading.'
-      );
-      if (result !== undefined) {
-        console.log(
-          '[SuspendedSshSessionsView] Actual value returned by resumeSshSession (if any):',
-          result
-        );
-      }
-    }
   } catch (error) {
     console.error(
       `[SuspendedSshSessionsView] Error during resumeSession for ${session.suspendSessionId}:`,

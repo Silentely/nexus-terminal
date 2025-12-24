@@ -294,9 +294,8 @@ export class PasskeyService {
         | 'singleDevice',
     };
 
-    // Reverting to 'any' for verifyOpts due to issues with the library's
-    // type definitions for VerifyAuthenticationResponseOpts not recognizing 'authenticator' key.
-    // This aligns with the original code's approach and TODO comment.
+    // 使用 'any' 类型是因为 @simplewebauthn/server 库的类型定义
+    // 不能正确识别 'credential' 字段（原 'authenticator'）
     const verifyOpts: any = {
       response: authenticationResponseJSON,
       expectedChallenge,

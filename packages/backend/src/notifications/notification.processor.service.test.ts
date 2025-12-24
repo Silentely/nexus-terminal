@@ -65,6 +65,15 @@ vi.mock('../i18n', () => ({
     t: mockI18nT,
   },
   i18nInitializationPromise: Promise.resolve(),
+  defaultLng: 'zh-CN',
+  supportedLngs: ['zh-CN', 'en-US'],
+}));
+
+// Mock settingsService
+vi.mock('../settings/settings.service', () => ({
+  settingsService: {
+    getSetting: vi.fn().mockResolvedValue(null),
+  },
 }));
 
 describe('NotificationProcessorService', () => {

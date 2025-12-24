@@ -45,28 +45,28 @@ describe('favoritePaths.store', () => {
   it('_sortFavoritePaths 按 name 排序时应优先使用 name，否则使用 path', () => {
     const store = useFavoritePathsStore();
     store.favoritePaths = [
-      { id: '1', path: '/b', name: 'B' },
-      { id: '2', path: '/a' }, // no name
-      { id: '3', path: '/c', name: 'a' },
-    ] as FavoritePathItem[];
+      { id: 1, path: '/b', name: 'B', created_at: 1000 },
+      { id: 2, path: '/a', name: null, created_at: 1001 }, // no name
+      { id: 3, path: '/c', name: 'a', created_at: 1002 },
+    ];
 
     store.currentSortBy = 'name';
     store._sortFavoritePaths();
 
-    expect(store.favoritePaths.map((p) => p.id)).toEqual(['2', '3', '1']);
+    expect(store.favoritePaths.map((p) => p.id)).toEqual([2, 3, 1]);
   });
 
   it('fetchFavoritePaths 成功时应写入列表并进行本地排序', async () => {
     const store = useFavoritePathsStore();
     (apiClient.get as any).mockResolvedValueOnce({
       data: [
-        { id: '2', path: '/b', name: 'b' },
-        { id: '1', path: '/a', name: 'a' },
+        { id: 2, path: '/b', name: 'b', created_at: 1001 },
+        { id: 1, path: '/a', name: 'a', created_at: 1000 },
       ],
     });
 
     await store.fetchFavoritePaths(t);
-    expect(store.favoritePaths.map((p) => p.id)).toEqual(['1', '2']);
+    expect(store.favoritePaths.map((p) => p.id)).toEqual([1, 2]);
     expect(store.isLoading).toBe(false);
     expect(store.error).toBeNull();
   });
@@ -85,25 +85,25 @@ describe('favoritePaths.store', () => {
   it('setSortBy 应保存到 localStorage 并触发重新排序', () => {
     const store = useFavoritePathsStore();
     store.favoritePaths = [
-      { id: '1', path: '/a', last_used_at: 1 },
-      { id: '2', path: '/b', last_used_at: 5 },
-    ] as any;
+      { id: 1, path: '/a', name: null, last_used_at: 1, created_at: 1000 },
+      { id: 2, path: '/b', name: null, last_used_at: 5, created_at: 1001 },
+    ];
 
     store.setSortBy('last_used_at');
     expect(window.localStorage.setItem).toHaveBeenCalledWith('favoritePathSortBy', 'last_used_at');
-    expect(store.favoritePaths.map((p) => p.id)).toEqual(['2', '1']);
+    expect(store.favoritePaths.map((p) => p.id)).toEqual([2, 1]);
   });
 
   it('markPathAsUsed 成功且返回 updatedPath 时应更新并重新排序', async () => {
     const store = useFavoritePathsStore();
     store.currentSortBy = 'last_used_at';
-    store.favoritePaths = [{ id: '1', path: '/a', last_used_at: 1 }] as any;
+    store.favoritePaths = [{ id: 1, path: '/a', name: null, last_used_at: 1, created_at: 1000 }];
 
     (apiClient.put as any).mockResolvedValueOnce({
-      data: { favoritePath: { id: '1', path: '/a', last_used_at: 99 } },
+      data: { favoritePath: { id: 1, path: '/a', name: null, last_used_at: 99, created_at: 1000 } },
     });
 
-    await store.markPathAsUsed('1', t);
+    await store.markPathAsUsed(1, t);
     expect(store.favoritePaths[0].last_used_at).toBe(99);
   });
 
@@ -112,7 +112,7 @@ describe('favoritePaths.store', () => {
     (apiClient.put as any).mockResolvedValueOnce({ data: { favoritePath: null } });
     (apiClient.get as any).mockResolvedValueOnce({ data: [] });
 
-    await store.markPathAsUsed('1', t);
+    await store.markPathAsUsed(1, t);
     expect(apiClient.get).toHaveBeenCalledWith('/favorite-paths');
   });
 

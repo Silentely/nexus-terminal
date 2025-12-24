@@ -165,6 +165,84 @@ function isValidPaneNameArray(arr: any, allPanes: PaneName[]): arr is PaneName[]
   return true; // All items are unique and valid PaneNames
 }
 
+// 验证 LayoutNode 结构的有效性
+function validateLayoutNode(
+  node: any,
+  allPanes: PaneName[],
+  visitedIds: Set<string> = new Set()
+): { valid: boolean; error?: string } {
+  // 基本类型检查
+  if (!node || typeof node !== 'object') {
+    return { valid: false, error: '节点必须是非空对象' };
+  }
+
+  // 验证 id
+  if (typeof node.id !== 'string' || node.id.trim() === '') {
+    return { valid: false, error: '节点 id 必须是非空字符串' };
+  }
+
+  // 检查 id 是否重复（循环引用检测）
+  if (visitedIds.has(node.id)) {
+    return { valid: false, error: `检测到重复的节点 id: ${node.id}` };
+  }
+  visitedIds.add(node.id);
+
+  // 验证 type
+  if (node.type !== 'pane' && node.type !== 'container') {
+    return { valid: false, error: `节点 type 必须是 'pane' 或 'container'，收到: ${node.type}` };
+  }
+
+  // 验证 size（可选，但如果存在必须是有效数字）
+  if (node.size !== undefined && node.size !== null) {
+    if (typeof node.size !== 'number' || isNaN(node.size) || node.size < 0) {
+      return { valid: false, error: `节点 size 必须是非负数，收到: ${node.size}` };
+    }
+  }
+
+  // pane 类型验证
+  if (node.type === 'pane') {
+    if (!node.component) {
+      return { valid: false, error: 'pane 类型节点必须指定 component' };
+    }
+    if (!isValidPaneName(node.component, allPanes)) {
+      return { valid: false, error: `无效的 component 名称: ${node.component}` };
+    }
+  }
+
+  // container 类型验证
+  if (node.type === 'container') {
+    if (node.direction !== 'horizontal' && node.direction !== 'vertical') {
+      return {
+        valid: false,
+        error: `container 类型节点 direction 必须是 'horizontal' 或 'vertical'，收到: ${node.direction}`,
+      };
+    }
+    if (!Array.isArray(node.children)) {
+      return { valid: false, error: 'container 类型节点必须包含 children 数组' };
+    }
+    // 递归验证子节点
+    for (let i = 0; i < node.children.length; i++) {
+      const childResult = validateLayoutNode(node.children[i], allPanes, visitedIds);
+      if (!childResult.valid) {
+        return { valid: false, error: `子节点 [${i}] 验证失败: ${childResult.error}` };
+      }
+    }
+  }
+
+  return { valid: true };
+}
+
+// 验证整个布局树
+function validateLayoutTree(
+  tree: any,
+  allPanes: PaneName[]
+): { valid: boolean; error?: string } {
+  if (tree === null) {
+    return { valid: true }; // null 是有效值（空布局）
+  }
+  return validateLayoutNode(tree, allPanes, new Set());
+}
+
 // 定义 Store
 export const useLayoutStore = defineStore('layout', () => {
   // --- 状态 ---
@@ -400,10 +478,14 @@ export const useLayoutStore = defineStore('layout', () => {
 
   // 更新整个布局树（通常由配置器保存时调用）
   async function updateLayoutTree(newTree: LayoutNode | null) {
-    // Make async
-    // 可选：添加验证逻辑
-    if (newTree) {
-      // TODO: Add validation
+    // 布局配置验证
+    if (newTree !== null) {
+      const validationResult = validateLayoutTree(newTree, allPossiblePanes.value);
+      if (!validationResult.valid) {
+        console.error('[Layout Store] 布局配置验证失败:', validationResult.error);
+        return; // 验证失败，不更新布局
+      }
+      console.log('[Layout Store] 布局配置验证通过');
     }
     // Check if the tree actually changed before updating and persisting
     if (JSON.stringify(newTree) !== JSON.stringify(layoutTree.value)) {

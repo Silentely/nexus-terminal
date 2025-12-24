@@ -94,8 +94,10 @@ export const useAppearanceStore = defineStore('appearance', () => {
     const activeId = activeTerminalThemeId.value; // number | null | undefined
     if (activeId === null || activeId === undefined || allTerminalThemes.value.length === 0) {
       // 如果没有激活 ID 或列表为空，查找默认主题
-      // TODO: 需要确认默认主题的识别方式 (preset_key='default' 或 name='默认')
-      const defaultTheme = allTerminalThemes.value.find((t) => t.name === '默认'); // 假设按名称查找
+      // 优先使用 isSystemDefault 标识，回退到名称匹配
+      const defaultTheme = allTerminalThemes.value.find(
+        (t) => t.isSystemDefault === true
+      ) || allTerminalThemes.value.find((t) => t.name === '默认');
       return defaultTheme ? defaultTheme.themeData : defaultXtermTheme;
     }
     // 根据数字 ID 查找 (需要将 theme._id 转回数字比较)
@@ -113,7 +115,10 @@ export const useAppearanceStore = defineStore('appearance', () => {
     // Fallback to the currently set theme if not previewing
     const activeId = activeTerminalThemeId.value;
     if (activeId === null || activeId === undefined || allTerminalThemes.value.length === 0) {
-      const defaultPresetTheme = allTerminalThemes.value.find((t) => t.name === '默认'); // Adjust if default theme identified differently
+      // 优先使用 isSystemDefault 标识，回退到名称匹配
+      const defaultPresetTheme = allTerminalThemes.value.find(
+        (t) => t.isSystemDefault === true
+      ) || allTerminalThemes.value.find((t) => t.name === '默认');
       return defaultPresetTheme ? defaultPresetTheme.themeData : defaultXtermTheme;
     }
     const activeSetTheme = allTerminalThemes.value.find(
@@ -526,13 +531,19 @@ export const useAppearanceStore = defineStore('appearance', () => {
       // 需要将字符串 id 转换为数字进行比较
       const idNum = parseInt(id, 10);
       if (!Number.isNaN(idNum) && activeTerminalThemeId.value === idNum) {
-        // 查找默认主题的数字 ID (这里假设默认主题 ID 为 1，实际应从配置或查询获取)
-        // TODO: 需要一种可靠的方式获取默认主题的数字 ID
-        const defaultThemeIdNum = 1; // 临时硬编码，需要改进
-        console.log(
-          `[AppearanceStore] 删除的主题是当前激活主题，尝试切换到默认主题 ID: ${defaultThemeIdNum}`
+        // 查找默认主题：优先使用 isSystemDefault 标记，其次按名称 '默认'
+        const defaultTheme = allTerminalThemes.value.find(
+          (t) => t.isSystemDefault || t.name === '默认'
         );
-        await setActiveTerminalTheme(defaultThemeIdNum.toString()); // setActiveTerminalTheme 需要字符串 ID
+        const defaultThemeId = defaultTheme?._id;
+        if (defaultThemeId) {
+          console.log(
+            `[AppearanceStore] 删除的主题是当前激活主题，尝试切换到默认主题 ID: ${defaultThemeId}`
+          );
+          await setActiveTerminalTheme(defaultThemeId);
+        } else {
+          console.warn('[AppearanceStore] 无法找到默认主题，保持当前状态');
+        }
       }
       await loadInitialAppearanceData(); // 重新加载所有数据以更新列表
     } catch (err: any) {

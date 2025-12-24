@@ -26,6 +26,21 @@ interface FocusSwitcherFullConfig {
   shortcuts: Record<string, FocusItemConfig>;
 }
 
+// +++ 定义有效的焦点输入 ID 列表（与前端 focusSwitcher.store 保持一致） +++
+const VALID_FOCUS_INPUT_IDS = [
+  'commandHistorySearch',
+  'quickCommandsSearch',
+  'fileManagerSearch',
+  'commandInput',
+  'terminalSearch',
+  'connectionListSearch',
+  'fileEditorActive',
+  'fileManagerPathInput',
+] as const;
+
+// 快捷键格式验证：支持 Ctrl/Alt/Shift/Meta + 字母/数字/功能键
+const SHORTCUT_PATTERN = /^((Ctrl|Alt|Shift|Meta)\+)*([A-Za-z0-9]|F[1-9]|F1[0-2]|Escape|Enter|Tab|Space|ArrowUp|ArrowDown|ArrowLeft|ArrowRight)$/i;
+
 const FOCUS_SEQUENCE_KEY = 'focusSwitcherSequence'; // 设置键保持不变
 const NAV_BAR_VISIBLE_KEY = 'navBarVisible'; // 导航栏可见性设置键
 const LAYOUT_TREE_KEY = 'layoutTree'; // 布局树设置键
@@ -224,7 +239,42 @@ export const settingsService = {
       );
       throw new Error('Invalid full config format provided.');
     }
-    // TODO: 可能需要进一步验证 sequence 中的 id 和 shortcuts 中的 key 是否有效
+
+    // +++ 验证 sequence 中的每个 id 是否为有效的焦点输入 ID +++
+    const invalidSequenceIds = fullConfig.sequence.filter(
+      (id) => !(VALID_FOCUS_INPUT_IDS as readonly string[]).includes(id)
+    );
+    if (invalidSequenceIds.length > 0) {
+      console.error(
+        `[Service] Invalid focus input IDs in sequence: ${invalidSequenceIds.join(', ')}`
+      );
+      throw new Error(`Invalid focus input ID(s) in sequence: ${invalidSequenceIds.join(', ')}`);
+    }
+
+    // +++ 验证 shortcuts 中的每个 key 是否为有效的焦点输入 ID +++
+    const invalidShortcutKeys = Object.keys(fullConfig.shortcuts).filter(
+      (key) => !(VALID_FOCUS_INPUT_IDS as readonly string[]).includes(key)
+    );
+    if (invalidShortcutKeys.length > 0) {
+      console.error(
+        `[Service] Invalid focus input IDs in shortcuts: ${invalidShortcutKeys.join(', ')}`
+      );
+      throw new Error(`Invalid focus input ID(s) in shortcuts: ${invalidShortcutKeys.join(', ')}`);
+    }
+
+    // +++ 验证 shortcuts 中的快捷键格式是否有效 +++
+    const invalidShortcuts: string[] = [];
+    for (const [key, config] of Object.entries(fullConfig.shortcuts)) {
+      if (config.shortcut && !SHORTCUT_PATTERN.test(config.shortcut)) {
+        invalidShortcuts.push(`${key}: "${config.shortcut}"`);
+      }
+    }
+    if (invalidShortcuts.length > 0) {
+      console.warn(
+        `[Service] Invalid shortcut format(s): ${invalidShortcuts.join(', ')}. Shortcuts should follow pattern like "Ctrl+K", "Alt+Shift+F", etc.`
+      );
+      // 对于快捷键格式，仅警告而不阻止保存（允许用户自定义格式）
+    }
 
     try {
       const configJson = JSON.stringify(fullConfig); // +++ 序列化完整结构 +++

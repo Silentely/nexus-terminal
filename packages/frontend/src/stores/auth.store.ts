@@ -49,6 +49,14 @@ interface FullCaptchaSettings {
   recaptchaSecretKey?: string; // We won't use this in authStore
 }
 
+// IP 黑名单条目接口
+export interface IpBlacklistEntry {
+  ip: string;
+  attempts: number;
+  last_attempt_at: number;
+  blocked_until: number | null;
+}
+
 // Auth Store State 接口
 interface AuthState {
   isAuthenticated: boolean;
@@ -56,9 +64,9 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   loginRequires2FA: boolean;
-  // 存储 IP 黑名单数据 (虽然 actions 在这里，但 state 结构保持)
+  // 存储 IP 黑名单数据
   ipBlacklist: {
-    entries: any[]; // TODO: Define a proper type for blacklist entries
+    entries: IpBlacklistEntry[];
     total: number;
   };
   needsSetup: boolean; // 是否需要初始设置

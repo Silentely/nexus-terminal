@@ -632,14 +632,41 @@ export class TransfersService {
     });
   }
 
-  private async deleteFileOnSourceViaSftp(client: Client, remotePath: string): Promise<void> {
+  private async deleteFileOnSourceViaSftp(
+    client: Client,
+    remotePath: string,
+    signal?: AbortSignal
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
+      // 取消检查：操作开始前
+      if (signal?.aborted) {
+        return reject(new DOMException('Delete operation cancelled by user.', 'AbortError'));
+      }
+
+      let sftpSessionStarted = false;
+
+      const onAbort = () => {
+        if (!sftpSessionStarted) {
+          reject(new DOMException('Delete operation cancelled by user.', 'AbortError'));
+        }
+      };
+
+      signal?.addEventListener('abort', onAbort, { once: true });
+
       client.sftp((err, sftp) => {
+        sftpSessionStarted = true;
+        signal?.removeEventListener('abort', onAbort);
+
+        if (signal?.aborted) {
+          sftp?.end();
+          return reject(new DOMException('Delete operation cancelled by user.', 'AbortError'));
+        }
+
         if (err) return reject(new Error(`SFTP session error for key deletion: ${err.message}`));
+
         sftp.unlink(remotePath, (unlinkErr) => {
-          sftp.end(); // Ensure sftp session is closed
+          sftp.end();
           if (unlinkErr) {
-            // Log but don't necessarily reject if file just wasn't there (though it should be)
             console.warn(
               `[TransfersService] Failed to delete temporary key ${remotePath} from source:`,
               unlinkErr
@@ -1168,8 +1195,7 @@ export class TransfersService {
     } finally {
       if (tempTargetKeyPathOnSource) {
         try {
-          // TODO: Make deleteFileOnSourceViaSftp accept signal
-          await this.deleteFileOnSourceViaSftp(sourceSshClient, tempTargetKeyPathOnSource);
+          await this.deleteFileOnSourceViaSftp(sourceSshClient, tempTargetKeyPathOnSource, signal);
         } catch (cleanupError) {
           console.warn(
             `[TransfersService] Failed to cleanup temp key ${tempTargetKeyPathOnSource} on source for sub-task ${subTaskId}:`,

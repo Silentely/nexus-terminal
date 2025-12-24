@@ -10,6 +10,7 @@ import {
 import {
   temporaryLogStorageService,
   TemporaryLogStorageService,
+  SessionMetadata,
 } from './temporary-log-storage.service';
 import { ClientState } from '../websocket/types';
 // clientStates 的直接访问已移除，因为takeOverMarkedSession现在从调用者接收所需信息
@@ -24,8 +25,71 @@ export class SshSuspendService extends EventEmitter {
   constructor(logStorage?: TemporaryLogStorageService) {
     super(); // 调用 EventEmitter 的构造函数
     this.logStorageService = logStorage || temporaryLogStorageService;
-    // TODO: 考虑在服务启动时从日志目录加载持久化的 'disconnected_by_backend' 会话信息。
-    // 这需要日志文件本身包含可解析的元数据。
+    // 在服务启动时从日志目录加载持久化的 'disconnected_by_backend' 会话信息
+    this.loadPersistedSessions().catch((err) => {
+      console.error('[SshSuspendService ERROR] Failed to load persisted sessions on startup:', err);
+    });
+  }
+
+  /**
+   * 从日志目录加载持久化的 'disconnected_by_backend' 会话信息。
+   * 这些会话在后端重启后仍可被用户查看和清理。
+   */
+  private async loadPersistedSessions(): Promise<void> {
+    console.log('[SshSuspendService INFO] Loading persisted disconnected sessions from disk...');
+    const metadataIds = await this.logStorageService.listMetadataFiles();
+
+    for (const suspendSessionId of metadataIds) {
+      const metadata = await this.logStorageService.readMetadata(suspendSessionId);
+      if (!metadata) {
+        console.warn(
+          `[SshSuspendService WARN] Invalid or missing metadata for ${suspendSessionId}, skipping.`
+        );
+        continue;
+      }
+
+      // 只恢复 'disconnected_by_backend' 状态的会话
+      if (metadata.backendSshStatus !== 'disconnected_by_backend') {
+        console.warn(
+          `[SshSuspendService WARN] Metadata for ${suspendSessionId} has unexpected status '${metadata.backendSshStatus}', skipping.`
+        );
+        continue;
+      }
+
+      const userSessions = this.getUserSessions(metadata.userId);
+
+      // 如果内存中已存在该会话，跳过
+      if (userSessions.has(suspendSessionId)) {
+        console.log(
+          `[SshSuspendService DEBUG] Session ${suspendSessionId} already in memory, skipping.`
+        );
+        continue;
+      }
+
+      // 创建一个断开状态的会话记录（无 SSH 连接，仅保留元数据）
+      const sessionDetails: SuspendSessionDetails = {
+        sshClient: null as any, // 断开的会话没有活跃的 SSH 连接
+        channel: null as any,
+        tempLogPath: metadata.originalSessionId,
+        connectionName: metadata.connectionName,
+        connectionId: metadata.connectionId,
+        suspendStartTime: metadata.suspendStartTime,
+        customSuspendName: metadata.customSuspendName,
+        backendSshStatus: 'disconnected_by_backend',
+        originalSessionId: metadata.originalSessionId,
+        userId: metadata.userId,
+        disconnectionTimestamp: metadata.disconnectionTimestamp,
+      };
+
+      userSessions.set(suspendSessionId, sessionDetails);
+      console.log(
+        `[SshSuspendService INFO] Loaded persisted disconnected session: ${suspendSessionId} for user ${metadata.userId}`
+      );
+    }
+
+    console.log(
+      `[SshSuspendService INFO] Finished loading persisted sessions. Total loaded: ${metadataIds.length}`
+    );
   }
 
   /**
@@ -158,6 +222,24 @@ export class SshSuspendService extends EventEmitter {
         currentSession.backendSshStatus = 'disconnected_by_backend';
         currentSession.disconnectionTimestamp = new Date().toISOString();
 
+        // 保存会话元数据到磁盘，以便后端重启后恢复
+        const metadata: SessionMetadata = {
+          userId: currentSession.userId,
+          connectionName: currentSession.connectionName,
+          connectionId: currentSession.connectionId,
+          suspendStartTime: currentSession.suspendStartTime,
+          customSuspendName: currentSession.customSuspendName,
+          originalSessionId: currentSession.originalSessionId,
+          backendSshStatus: 'disconnected_by_backend',
+          disconnectionTimestamp: currentSession.disconnectionTimestamp,
+        };
+        this.logStorageService.writeMetadata(suspendSessionId, metadata).catch((err) => {
+          console.error(
+            `[SshSuspendService ERROR] Failed to persist metadata for ${suspendSessionId}:`,
+            err
+          );
+        });
+
         this.removeChannelListeners(channel, sshClient);
         console.log(
           `[SshSuspendService DEBUG] handleSessionTermination: Listeners removed for suspendSessionId=${suspendSessionId}.`
@@ -240,7 +322,7 @@ export class SshSuspendService extends EventEmitter {
 
   /**
    * 列出指定用户的所有挂起会话（包括活跃和已断开的）。
-   * 目前主要从内存中获取信息。
+   * 已断开的会话在服务启动时从日志目录的元数据文件中恢复到内存。
    * @param userId 用户ID。
    * @returns Promise<SuspendedSessionInfo[]> 挂起会话信息的数组。
    */
@@ -259,8 +341,6 @@ export class SshSuspendService extends EventEmitter {
         disconnectionTimestamp: details.disconnectionTimestamp,
       });
     }
-    // TODO: 增强此方法以从日志目录恢复 'disconnected_by_backend' 的会话状态，
-    // 这需要日志文件包含元数据。
     return sessionsInfo;
   }
 
@@ -351,13 +431,16 @@ export class SshSuspendService extends EventEmitter {
       console.warn(
         `[用户: ${userId}] 尝试终止的会话 ${suspendSessionId} 不存在或不是活跃状态 (${session?.backendSshStatus})。`
       );
-      // 如果会话已断开，但记录还在，也应该能被“终止”（即移除）
+      // 如果会话已断开，但记录还在，也应该能被"终止"（即移除）
       if (session && session.backendSshStatus === 'disconnected_by_backend') {
-        const logPathToDelete = session.tempLogPath; // 获取正确的日志路径
+        const logPathToDelete = session.tempLogPath;
         userSessions.delete(suspendSessionId);
-        await this.logStorageService.deleteLog(logPathToDelete);
+        await Promise.all([
+          this.logStorageService.deleteLog(logPathToDelete),
+          this.logStorageService.deleteMetadata(suspendSessionId),
+        ]);
         console.log(
-          `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} (日志: ${logPathToDelete}) 已通过终止操作移除。`
+          `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} 已通过终止操作移除（日志和元数据已删除）。`
         );
         return true;
       }
@@ -377,9 +460,13 @@ export class SshSuspendService extends EventEmitter {
       console.warn(`[用户: ${userId}, 会话: ${suspendSessionId}] 关闭sshClient时出错:`, e);
     }
 
-    const logPathToFinallyDelete = session.tempLogPath; // 获取正确的日志路径
+    const logPathToFinallyDelete = session.tempLogPath;
     userSessions.delete(suspendSessionId);
-    await this.logStorageService.deleteLog(logPathToFinallyDelete);
+    // 活跃会话被终止时不会有元数据文件，但为了保险仍尝试删除
+    await Promise.all([
+      this.logStorageService.deleteLog(logPathToFinallyDelete),
+      this.logStorageService.deleteMetadata(suspendSessionId).catch(() => {}), // 忽略不存在的情况
+    ]);
 
     console.log(
       `[用户: ${userId}] 活跃的挂起会话 ${suspendSessionId} (日志: ${logPathToFinallyDelete}) 已成功终止并移除。`
@@ -410,29 +497,26 @@ export class SshSuspendService extends EventEmitter {
       userSessions.delete(suspendSessionId);
     }
 
-    // 总是尝试删除日志文件，因为它可能对应一个已不在内存中的断开会话
+    // 总是尝试删除日志文件和元数据文件
     try {
-      // suspendSessionId 在这里是用户从UI上选择的，可能在内存中，也可能不在 (只剩日志文件)
-      // 如果在内存中，session.tempLogPath 是正确的日志标识符
-      // 如果不在内存中，suspendSessionId 本身可能就是日志文件名 (如果之前设计是这样的话，但现在统一用 originalSessionId 作为日志名基础)
-      // 假设 remove 请求中的 suspendSessionId 就是我们存储的那个挂起ID
-      const logPathToRemove = session ? session.tempLogPath : suspendSessionId; // 如果 session 不在内存，尝试直接用 suspendSessionId 作为日志文件名部分
-      await this.logStorageService.deleteLog(logPathToRemove);
+      const logPathToRemove = session ? session.tempLogPath : suspendSessionId;
+      await Promise.all([
+        this.logStorageService.deleteLog(logPathToRemove),
+        this.logStorageService.deleteMetadata(suspendSessionId),
+      ]);
       console.log(
-        `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} 的日志 (标识: ${logPathToRemove}) 已删除 (内存中状态: ${session ? session.backendSshStatus : '不在内存'})。`
+        `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} 的日志和元数据已删除 (内存中状态: ${session ? session.backendSshStatus : '不在内存'})。`
       );
       return true;
     } catch (error) {
-      console.error(`[用户: ${userId}] 删除会话 ${suspendSessionId} 的日志文件失败:`, error);
-      // 即便日志删除失败，如果内存条目已删，也算部分成功。但严格来说应返回false。
-      // 如果 session 不在内存中，但日志删除成功，也算成功。
+      console.error(`[用户: ${userId}] 删除会话 ${suspendSessionId} 的文件失败:`, error);
       return false;
     }
   }
 
   /**
    * 编辑挂起会话的自定义名称。
-   * 目前仅更新内存中的名称。
+   * 同时更新内存和元数据文件中的名称。
    * @param userId 用户ID。
    * @param suspendSessionId 挂起会话ID。
    * @param newCustomName 新的自定义名称。
@@ -456,8 +540,33 @@ export class SshSuspendService extends EventEmitter {
     console.log(
       `[用户: ${userId}] 挂起会话 ${suspendSessionId} 的自定义名称已更新为: ${newCustomName}`
     );
-    // TODO: 如果设计要求将自定义名称持久化到日志文件的元数据部分，
-    // 此处需要添加更新日志文件的逻辑。这可能涉及读取、修改元数据、然后重写文件。
+
+    // 如果会话已断开，同步更新元数据文件
+    if (session.backendSshStatus === 'disconnected_by_backend') {
+      const metadata: SessionMetadata = {
+        userId: session.userId,
+        connectionName: session.connectionName,
+        connectionId: session.connectionId,
+        suspendStartTime: session.suspendStartTime,
+        customSuspendName: newCustomName,
+        originalSessionId: session.originalSessionId,
+        backendSshStatus: 'disconnected_by_backend',
+        disconnectionTimestamp: session.disconnectionTimestamp,
+      };
+      try {
+        await this.logStorageService.writeMetadata(suspendSessionId, metadata);
+        console.log(
+          `[用户: ${userId}] 挂起会话 ${suspendSessionId} 的元数据文件已同步更新。`
+        );
+      } catch (error) {
+        console.error(
+          `[用户: ${userId}] 更新会话 ${suspendSessionId} 元数据文件失败:`,
+          error
+        );
+        // 内存已更新，元数据文件更新失败不影响返回值
+      }
+    }
+
     return true;
   }
 
@@ -481,12 +590,29 @@ export class SshSuspendService extends EventEmitter {
         `[用户: ${userId}] 会话 ${suspendSessionId} 状态更新为 'disconnected_by_backend'。原因: ${reason}`
       );
 
+      // 保存会话元数据到磁盘
+      const metadata: SessionMetadata = {
+        userId: session.userId,
+        connectionName: session.connectionName,
+        connectionId: session.connectionId,
+        suspendStartTime: session.suspendStartTime,
+        customSuspendName: session.customSuspendName,
+        originalSessionId: session.originalSessionId,
+        backendSshStatus: 'disconnected_by_backend',
+        disconnectionTimestamp: session.disconnectionTimestamp,
+      };
+      this.logStorageService.writeMetadata(suspendSessionId, metadata).catch((err) => {
+        console.error(
+          `[SshSuspendService ERROR] Failed to persist metadata for ${suspendSessionId} in handleUnexpectedDisconnection:`,
+          err
+        );
+      });
+
       this.emit('sessionAutoTerminated', {
         userId: session.userId,
         suspendSessionId,
         reason,
       });
-      // 确保所有已缓冲的日志已尝试写入 (通常由 'data' 事件处理，这里是最终状态确认)
     }
   }
 

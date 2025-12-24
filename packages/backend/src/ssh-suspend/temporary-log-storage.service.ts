@@ -5,6 +5,20 @@ const MAX_LOG_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
 const LOG_DIRECTORY = './data/temp_suspended_ssh_logs/';
 
 /**
+ * 会话元数据接口，用于持久化 'disconnected_by_backend' 状态的会话信息
+ */
+export interface SessionMetadata {
+  userId: number;
+  connectionName: string;
+  connectionId: string;
+  suspendStartTime: string;
+  customSuspendName?: string;
+  originalSessionId: string;
+  backendSshStatus: 'disconnected_by_backend';
+  disconnectionTimestamp?: string;
+}
+
+/**
  * TemporaryLogStorageService负责管理临时日志文件的原子化读、写、删除及轮替操作。
  */
 export class TemporaryLogStorageService {
@@ -27,6 +41,10 @@ export class TemporaryLogStorageService {
 
   private getLogFilePath(suspendSessionId: string): string {
     return path.join(LOG_DIRECTORY, `${suspendSessionId}.log`);
+  }
+
+  private getMetadataFilePath(suspendSessionId: string): string {
+    return path.join(LOG_DIRECTORY, `${suspendSessionId}.meta.json`);
   }
 
   /**
@@ -100,6 +118,86 @@ export class TemporaryLogStorageService {
       }
       console.error(`删除日志文件 '${filePath}' 失败:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * 写入会话元数据文件。
+   * @param suspendSessionId - 挂起会话的ID。
+   * @param metadata - 要写入的元数据。
+   */
+  async writeMetadata(suspendSessionId: string, metadata: SessionMetadata): Promise<void> {
+    const filePath = this.getMetadataFilePath(suspendSessionId);
+    try {
+      await this.ensureLogDirectoryExists();
+      await fs.writeFile(filePath, JSON.stringify(metadata, null, 2), 'utf8');
+    } catch (error) {
+      console.error(`写入元数据文件 '${filePath}' 失败:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 读取会话元数据文件。
+   * @param suspendSessionId - 挂起会话的ID。
+   * @returns 返回元数据对象，如果文件不存在或格式无效则返回 null。
+   */
+  async readMetadata(suspendSessionId: string): Promise<SessionMetadata | null> {
+    const filePath = this.getMetadataFilePath(suspendSessionId);
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      const metadata = JSON.parse(data) as SessionMetadata;
+      // 基本验证
+      if (
+        typeof metadata.userId !== 'number' ||
+        typeof metadata.connectionName !== 'string' ||
+        typeof metadata.connectionId !== 'string' ||
+        typeof metadata.originalSessionId !== 'string'
+      ) {
+        console.warn(`元数据文件 '${filePath}' 格式无效，跳过。`);
+        return null;
+      }
+      return metadata;
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        return null; // 文件不存在
+      }
+      console.error(`读取元数据文件 '${filePath}' 失败:`, error);
+      return null; // 解析失败也返回 null
+    }
+  }
+
+  /**
+   * 删除会话元数据文件。
+   * @param suspendSessionId - 挂起会话的ID。
+   */
+  async deleteMetadata(suspendSessionId: string): Promise<void> {
+    const filePath = this.getMetadataFilePath(suspendSessionId);
+    try {
+      await fs.unlink(filePath);
+    } catch (error: any) {
+      if (error.code === 'ENOENT') {
+        return; // 文件不存在，无需操作
+      }
+      console.error(`删除元数据文件 '${filePath}' 失败:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 列出日志目录中所有具有元数据文件的会话ID。
+   * @returns 返回包含所有有元数据的 suspendSessionId 的数组。
+   */
+  async listMetadataFiles(): Promise<string[]> {
+    try {
+      await this.ensureLogDirectoryExists();
+      const files = await fs.readdir(LOG_DIRECTORY);
+      return files
+        .filter((file) => file.endsWith('.meta.json'))
+        .map((file) => file.replace(/\.meta\.json$/, ''));
+    } catch (error) {
+      console.error(`列出元数据文件失败:`, error);
+      return [];
     }
   }
 

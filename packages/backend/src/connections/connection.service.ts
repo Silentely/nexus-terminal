@@ -734,9 +734,8 @@ export const addTagToConnections = async (
   try {
     await ConnectionRepository.addTagToMultipleConnections(connectionIds, tagId);
 
-    // 记录审计日志 (可以考虑为批量操作定义新的审计类型)
-    // TODO: 定义 'CONNECTIONS_TAG_ADDED' 审计日志类型
-    // auditLogService.logAction('CONNECTIONS_TAG_ADDED', { connectionIds, tagId });
+    // 记录审计日志
+    auditLogService.logAction('CONNECTIONS_TAG_ADDED', { connectionIds, tagId });
   } catch (error: any) {
     console.error(
       `Service: 为连接 ${connectionIds.join(', ')} 添加标签 ${tagId} 时发生错误:`,

@@ -10,7 +10,8 @@ import {
   TelegramConfig,
   NotificationChannelConfig,
 } from '../types/notification.types';
-import i18next, { i18nInitializationPromise } from '../i18n';
+import i18next, { i18nInitializationPromise, defaultLng, supportedLngs } from '../i18n';
+import { settingsService } from '../settings/settings.service';
 
 // 定义处理后的通知数据结构
 export interface ProcessedNotification {
@@ -91,8 +92,16 @@ class NotificationProcessorService extends EventEmitter {
         return; // 没有配置需要处理
       }
 
-      // TODO: 获取用户语言偏好，目前硬编码为 'zh-CN'
-      const userLang = 'zh-CN'; // 后续应从用户设置或请求中获取
+      // 获取用户语言偏好
+      let userLang = defaultLng;
+      try {
+        const langSetting = await settingsService.getSetting('language');
+        if (langSetting && supportedLngs.includes(langSetting)) {
+          userLang = langSetting;
+        }
+      } catch (error) {
+        console.error(`[NotificationProcessor] 获取语言设置时出错，使用默认 (${defaultLng}):`, error);
+      }
 
       // 1. 翻译事件名称
       const translatedEvent = i18next.t(`event.${eventKey}`, {
@@ -132,7 +141,16 @@ class NotificationProcessorService extends EventEmitter {
       enabled_events: [AppEventType.TestNotification as NotificationEvent],
     };
 
-    const userLang = 'zh-CN'; // TODO: Get user language preference
+    // 获取用户语言偏好
+    let userLang = defaultLng;
+    try {
+      const langSetting = await settingsService.getSetting('language');
+      if (langSetting && supportedLngs.includes(langSetting)) {
+        userLang = langSetting;
+      }
+    } catch (error) {
+      console.error(`[NotificationProcessor] 获取语言设置时出错，使用默认 (${defaultLng}):`, error);
+    }
     const translatedEvent = i18next.t(`event.${AppEventType.TestNotification}`, {
       lng: userLang,
       defaultValue: AppEventType.TestNotification,

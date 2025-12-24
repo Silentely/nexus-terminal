@@ -216,7 +216,7 @@ export const useSettingsStore = defineStore('settings', () => {
       }
       // Ensure it's a valid number string before parsing later
       const parsedMultiplier = parseFloat(settings.value.fileManagerRowSizeMultiplier);
-      if (Number.Number.isNaN(parsedMultiplier) || parsedMultiplier <= 0) {
+      if (Number.isNaN(parsedMultiplier) || parsedMultiplier <= 0) {
         console.warn(
           `[SettingsStore] Invalid fileManagerRowSizeMultiplier loaded ('${settings.value.fileManagerRowSizeMultiplier}'), resetting to default.`
         );
@@ -382,7 +382,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const localQcRowSizeMultiplier = localStorage.getItem('nexus_quickCommandRowSizeMultiplier');
       if (localQcRowSizeMultiplier) {
         const parsedLocalMultiplier = parseFloat(localQcRowSizeMultiplier);
-        if (!Number.Number.isNaN(parsedLocalMultiplier) && parsedLocalMultiplier > 0) {
+        if (!Number.isNaN(parsedLocalMultiplier) && parsedLocalMultiplier > 0) {
           settings.value.quickCommandRowSizeMultiplier = localQcRowSizeMultiplier;
           console.log(
             `[SettingsStore] Loaded quickCommandRowSizeMultiplier from localStorage: ${localQcRowSizeMultiplier}`
@@ -922,13 +922,13 @@ export const useSettingsStore = defineStore('settings', () => {
   //  Getter for Status Monitor interval, returning number
   const statusMonitorIntervalSecondsNumber = computed(() => {
     const val = parseInt(settings.value.statusMonitorIntervalSeconds || '3', 10);
-    return Number.Number.isNaN(val) || val <= 0 ? 3 : val; // Fallback to 3 if invalid
+    return Number.isNaN(val) || val <= 0 ? 3 : val; // Fallback to 3 if invalid
   });
 
   //  Getter for File Manager row size multiplier, returning number
   const fileManagerRowSizeMultiplierNumber = computed(() => {
     const val = parseFloat(settings.value.fileManagerRowSizeMultiplier || '1.0');
-    return Number.Number.isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
+    return Number.isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
   });
 
   //  Getter for File Manager column widths, returning object
@@ -992,7 +992,7 @@ export const useSettingsStore = defineStore('settings', () => {
       return 5000; // Default value if not set or empty
     }
     const val = parseInt(valStr, 10);
-    if (Number.Number.isNaN(val) || val < 0) {
+    if (Number.isNaN(val) || val < 0) {
       return 5000; // Default value if invalid number or negative
     }
     return val; // Return 0 if it's 0, or the positive number
@@ -1019,7 +1019,7 @@ export const useSettingsStore = defineStore('settings', () => {
       return 1.0; // Default value
     }
     const val = parseFloat(valStr);
-    return Number.Number.isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
+    return Number.isNaN(val) || val <= 0 ? 1.0 : val; // Fallback to 1.0 if invalid
   });
 
   // +++ Getter for Quick Command compact mode, returning boolean +++

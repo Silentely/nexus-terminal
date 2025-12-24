@@ -873,10 +873,6 @@ const finishEditingTag = async () => {
             console.error(`[QuickCmdView] assignCommandsToTagAction reported failure.`);
             // Optionally show a specific error here if the store action doesn't cover all cases
           }
-          // Remove TODO and temporary warning/refresh
-          // console.warn("TODO: Implement assignCommandsToTagAction in quickCommands.store and backend");
-          // uiNotificationsStore.showWarning("标签已创建，但指令分配功能尚未实现");
-          // await quickCommandsStore.fetchQuickCommands(); // Store action handles refresh
         } else {
           uiNotificationsStore.showInfo(t('quickCommands.tags.noCommandsToAssign'));
         }

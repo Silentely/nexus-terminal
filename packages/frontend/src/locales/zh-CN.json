@@ -408,6 +408,16 @@
   "workspace": {
     "terminal": {
       "reconnectingMsg": "正在尝试重新连接..."
+    },
+    "errors": {
+      "sessionNotFound": "会话未找到",
+      "missingConnectionId": "缺少连接 ID",
+      "wsManagerNotFound": "WebSocket 管理器未找到"
+    }
+  },
+  "session": {
+    "errors": {
+      "connectionNotFound": "找不到连接信息"
     }
   },
   "fileEditor": {
@@ -497,7 +507,9 @@
       "commandNotFoundCompress": "服务器上缺少 '{command}' 命令，无法完成压缩操作。",
       "commandNotFoundDecompress": "服务器上缺少 '{command}' 命令，无法完成解压操作。",
       "genericCommandNotFound": "服务器上缺少 '{command}' 命令，无法完成 '{operation}' 操作。",
-      "copyPathFailed": "复制路径失败"
+      "copyPathFailed": "复制路径失败",
+      "sftpManagerUnavailable": "SFTP 管理器不可用",
+      "missingSessionId": "缺少会话 ID"
     },
     "notifications": {
       "copySuccess": "复制成功",
@@ -1781,6 +1793,13 @@
       "completed": "已完成",
       "failed": "已失败",
       "cancelled": "已取消"
+    }
+  },
+  "editor": {
+    "unsavedChanges": {
+      "title": "未保存的更改",
+      "message": "文件 \"{filename}\" 有未保存的更改。确定要丢弃这些更改吗？",
+      "discard": "丢弃更改"
     }
   },
   "aiOps": {

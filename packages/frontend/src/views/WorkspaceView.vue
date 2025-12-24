@@ -26,6 +26,7 @@ import {
   type WorkspaceEventPayloads,
 } from '../composables/workspaceEvents';
 import type { WebSocketDependencies } from '../composables/useSftpActions';
+import { useUiNotificationsStore } from '../stores/uiNotifications.store';
 
 // --- Setup ---
 const { t } = useI18n();
@@ -35,6 +36,7 @@ const fileEditorStore = useFileEditorStore();
 const layoutStore = useLayoutStore();
 const commandHistoryStore = useCommandHistoryStore();
 const connectionsStore = useConnectionsStore();
+const uiNotificationsStore = useUiNotificationsStore();
 const { isHeaderVisible } = storeToRefs(layoutStore);
 const { isMobile } = useDeviceDetection();
 
@@ -801,7 +803,7 @@ const handleFileManagerOpenRequest = (payload: { sessionId: string }) => {
   const session = sessionStore.sessions.get(sessionId);
   if (!session) {
     console.error(`[WorkspaceView] Cannot open file manager: Session ${sessionId} not found.`);
-    // TODO: Show error notification
+    uiNotificationsStore.showError(t('workspace.errors.sessionNotFound'));
     return;
   }
 
@@ -811,7 +813,7 @@ const handleFileManagerOpenRequest = (payload: { sessionId: string }) => {
     console.error(
       `[WorkspaceView] Cannot open file manager: Missing dbConnectionId for session ${sessionId}.`
     );
-    // TODO: Show error notification
+    uiNotificationsStore.showError(t('workspace.errors.missingConnectionId'));
     return;
   }
 
@@ -820,7 +822,7 @@ const handleFileManagerOpenRequest = (payload: { sessionId: string }) => {
     console.error(
       `[WorkspaceView] Cannot open file manager: wsManager not found for session ${sessionId}.`
     );
-    // TODO: Show error notification
+    uiNotificationsStore.showError(t('workspace.errors.wsManagerNotFound'));
     return;
   }
   const wsDeps: WebSocketDependencies = {

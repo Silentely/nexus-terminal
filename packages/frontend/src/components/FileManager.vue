@@ -1115,7 +1115,7 @@ const handleCompress = (items: FileListItem[], format: CompressFormat) => {
     console.error(
       `[FileManager ${props.sessionId}-${props.instanceId}] Cannot compress: SFTP manager not available.`
     );
-    // TODO: Show error notification
+    uiNotificationsStore.showError(t('fileManager.errors.sftpManagerUnavailable'));
     return;
   }
   console.log(
@@ -1130,7 +1130,7 @@ const handleDecompress = (item: FileListItem) => {
     console.error(
       `[FileManager ${props.sessionId}-${props.instanceId}] Cannot decompress: SFTP manager not available.`
     );
-    // TODO: Show error notification
+    uiNotificationsStore.showError(t('fileManager.errors.sftpManagerUnavailable'));
     return;
   }
   console.log(
@@ -1437,9 +1437,7 @@ watchEffect((onCleanup) => {
             `[FileManager ${props.sessionId}-${props.instanceId}] Failed to get realpath for '${requestedPath}':`,
             payload
           );
-          // TODO: 可以考虑通过 manager instance 暴露错误状态
-          // 目前仅记录日志。
-          // 即使获取 realpath 失败，也标记初始加载尝试完成，避免重复尝试
+          // 获取 realpath 失败时仅记录日志，标记初始加载完成以避免重复尝试
           currentSftpManager.value?.setInitialLoadDone(true);
           cleanupListeners();
         }
@@ -2008,7 +2006,7 @@ defineExpose({ focusSearchInput, startPathEdit });
 const handleOpenEditorClick = () => {
   if (!props.sessionId) {
     console.error(`[FileManager ${props.instanceId}] Cannot open editor: Missing session ID.`);
-    // TODO: Show error notification to user
+    uiNotificationsStore.showError(t('fileManager.errors.missingSessionId'));
     return;
   }
   console.log(

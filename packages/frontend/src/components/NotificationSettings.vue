@@ -194,12 +194,10 @@ const closeForm = () => {
   editingSetting.value = null;
 };
 
-// TODO: Implement save logic when form component is ready
+// 保存回调：表单组件内部已处理 store 更新，此处仅需关闭表单
 const handleSave = (savedSetting: NotificationSetting) => {
   console.log('Setting saved:', savedSetting);
   closeForm();
-  // The store should have updated the list automatically after add/update
-  // Optionally, you could force a refresh if needed: store.fetchSettings();
 };
 </script>
 

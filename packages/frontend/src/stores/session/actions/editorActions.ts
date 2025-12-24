@@ -105,20 +105,50 @@ export const openFileInSession = (
   }
 };
 
-export const closeEditorTabInSession = (sessionId: string, tabId: string) => {
+export const closeEditorTabInSession = async (
+  sessionId: string,
+  tabId: string,
+  dependencies?: {
+    showConfirmDialog?: (options: {
+      title?: string;
+      message: string;
+      confirmText?: string;
+      cancelText?: string;
+    }) => Promise<boolean>;
+    t?: (key: string, defaultMessage: string) => string;
+  }
+): Promise<boolean> => {
   const session = sessions.value.get(sessionId);
   if (!session) {
     console.error(`[EditorActions] 尝试在不存在的会话 ${sessionId} 中关闭标签页 ${tabId}`);
-    return;
+    return false;
   }
 
   const tabIndex = session.editorTabs.value.findIndex((tab) => tab.id === tabId);
   if (tabIndex === -1) {
     console.warn(`[EditorActions] 尝试关闭会话 ${sessionId} 中不存在的标签页 ID: ${tabId}`);
-    return;
+    return false;
   }
 
-  // TODO: 检查 isDirty 状态，提示保存？
+  const tab = session.editorTabs.value[tabIndex];
+
+  // 检查未保存更改
+  if (tab.isModified && dependencies?.showConfirmDialog && dependencies?.t) {
+    const shouldDiscard = await dependencies.showConfirmDialog({
+      title: dependencies.t('editor.unsavedChanges.title', '未保存的更改'),
+      message: dependencies.t(
+        'editor.unsavedChanges.message',
+        `文件 "${tab.filename}" 有未保存的更改。确定要丢弃这些更改吗？`
+      ),
+      confirmText: dependencies.t('editor.unsavedChanges.discard', '丢弃更改'),
+      cancelText: dependencies.t('common.cancel', '取消'),
+    });
+
+    if (!shouldDiscard) {
+      console.log(`[EditorActions] 用户取消关闭有未保存更改的标签页: ${tabId}`);
+      return false;
+    }
+  }
 
   session.editorTabs.value.splice(tabIndex, 1);
   console.log(`[EditorActions] 已从会话 ${sessionId} 中移除标签页: ${tabId}`);
@@ -127,11 +157,12 @@ export const closeEditorTabInSession = (sessionId: string, tabId: string) => {
     const remainingTabs = session.editorTabs.value;
     const nextActiveTabId =
       remainingTabs.length > 0
-        ? remainingTabs[Math.max(0, tabIndex > 0 ? tabIndex - 1 : 0)].id // 激活前一个或第一个
+        ? remainingTabs[Math.max(0, tabIndex > 0 ? tabIndex - 1 : 0)].id
         : null;
     session.activeEditorTabId.value = nextActiveTabId;
     console.log(`[EditorActions] 会话 ${sessionId} 关闭活动标签页后，切换到: ${nextActiveTabId}`);
   }
+  return true;
 };
 
 export const setActiveEditorTabInSession = (sessionId: string, tabId: string) => {
@@ -325,7 +356,19 @@ export const changeEncodingInSession = (sessionId: string, tabId: string, newEnc
   }
 };
 
-export const closeOtherTabsInSession = (sessionId: string, targetTabId: string) => {
+export const closeOtherTabsInSession = async (
+  sessionId: string,
+  targetTabId: string,
+  dependencies?: {
+    showConfirmDialog?: (options: {
+      title?: string;
+      message: string;
+      confirmText?: string;
+      cancelText?: string;
+    }) => Promise<boolean>;
+    t?: (key: string, defaultMessage: string) => string;
+  }
+) => {
   const session = sessions.value.get(sessionId);
   if (!session) return;
   const targetTab = session.editorTabs.value.find((tab) => tab.id === targetTabId);
@@ -333,12 +376,25 @@ export const closeOtherTabsInSession = (sessionId: string, targetTabId: string) 
 
   console.log(`[EditorActions ${sessionId}] 关闭除 ${targetTabId} 之外的所有标签页...`);
   const tabsToClose = session.editorTabs.value.filter((tab) => tab.id !== targetTabId);
-  // 为了避免在迭代中修改数组导致的问题，先收集 ID
   const idsToClose = tabsToClose.map((t) => t.id);
-  idsToClose.forEach((id) => closeEditorTabInSession(sessionId, id));
+  for (const id of idsToClose) {
+    await closeEditorTabInSession(sessionId, id, dependencies);
+  }
 };
 
-export const closeTabsToTheRightInSession = (sessionId: string, targetTabId: string) => {
+export const closeTabsToTheRightInSession = async (
+  sessionId: string,
+  targetTabId: string,
+  dependencies?: {
+    showConfirmDialog?: (options: {
+      title?: string;
+      message: string;
+      confirmText?: string;
+      cancelText?: string;
+    }) => Promise<boolean>;
+    t?: (key: string, defaultMessage: string) => string;
+  }
+) => {
   const session = sessions.value.get(sessionId);
   if (!session) return;
   const targetIndex = session.editorTabs.value.findIndex((tab) => tab.id === targetTabId);
@@ -347,7 +403,9 @@ export const closeTabsToTheRightInSession = (sessionId: string, targetTabId: str
   console.log(`[EditorActions ${sessionId}] 关闭 ${targetTabId} 右侧的所有标签页...`);
   const tabsToClose = session.editorTabs.value.slice(targetIndex + 1);
   const idsToClose = tabsToClose.map((t) => t.id);
-  idsToClose.forEach((id) => closeEditorTabInSession(sessionId, id));
+  for (const id of idsToClose) {
+    await closeEditorTabInSession(sessionId, id, dependencies);
+  }
 };
 
 export const updateTabScrollPositionInSession = (
@@ -372,7 +430,19 @@ export const updateTabScrollPositionInSession = (
   }
 };
 
-export const closeTabsToTheLeftInSession = (sessionId: string, targetTabId: string) => {
+export const closeTabsToTheLeftInSession = async (
+  sessionId: string,
+  targetTabId: string,
+  dependencies?: {
+    showConfirmDialog?: (options: {
+      title?: string;
+      message: string;
+      confirmText?: string;
+      cancelText?: string;
+    }) => Promise<boolean>;
+    t?: (key: string, defaultMessage: string) => string;
+  }
+) => {
   const session = sessions.value.get(sessionId);
   if (!session) return;
   const targetIndex = session.editorTabs.value.findIndex((tab) => tab.id === targetTabId);
@@ -381,5 +451,7 @@ export const closeTabsToTheLeftInSession = (sessionId: string, targetTabId: stri
   console.log(`[EditorActions ${sessionId}] 关闭 ${targetTabId} 左侧的所有标签页...`);
   const tabsToClose = session.editorTabs.value.slice(0, targetIndex);
   const idsToClose = tabsToClose.map((t) => t.id);
-  idsToClose.forEach((id) => closeEditorTabInSession(sessionId, id));
+  for (const id of idsToClose) {
+    await closeEditorTabInSession(sessionId, id, dependencies);
+  }
 };

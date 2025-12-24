@@ -42,10 +42,11 @@ export const openNewSession = (
   dependencies: {
     connectionsStore: ReturnType<typeof useConnectionsStore>;
     t: ReturnType<typeof useI18n>['t'];
+    showError?: (message: string) => void;
   },
   existingSessionId?: string // 可选的预定义会话 ID
 ) => {
-  const { connectionsStore, t } = dependencies;
+  const { connectionsStore, t, showError } = dependencies;
   let connInfo: ConnectionInfo | undefined;
   let connIdForLog: string | number;
 
@@ -62,7 +63,7 @@ export const openNewSession = (
   );
   if (!connInfo) {
     console.error(`[SessionActions] 无法打开新会话：找不到 ID 为 ${connIdForLog} 的连接信息。`);
-    // TODO: 向用户显示错误
+    showError?.(t('session.errors.connectionNotFound'));
     return;
   }
 

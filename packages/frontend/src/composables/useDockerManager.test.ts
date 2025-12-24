@@ -59,7 +59,7 @@ describe('useDockerManager (createDockerManager)', () => {
     return {
       sendMessage: mockSendMessage,
       onMessage: mockOnMessage,
-      isConnected: computed(() => mockIsConnected.value),
+      isConnected: computed(() => mockIsConnected.value ?? false),
     };
   }
 

@@ -14,6 +14,10 @@ const mockLogStorageService = vi.hoisted(() => ({
   readLog: vi.fn(),
   deleteLog: vi.fn(),
   listLogFiles: vi.fn(),
+  writeMetadata: vi.fn(),
+  readMetadata: vi.fn(),
+  deleteMetadata: vi.fn(),
+  listMetadataFiles: vi.fn(),
 }));
 
 const mockUuid = vi.hoisted(() => ({
@@ -57,6 +61,10 @@ describe('SshSuspendService', () => {
     mockLogStorageService.writeToLog.mockResolvedValue(undefined);
     mockLogStorageService.readLog.mockResolvedValue('log content');
     mockLogStorageService.deleteLog.mockResolvedValue(undefined);
+    mockLogStorageService.writeMetadata.mockResolvedValue(undefined);
+    mockLogStorageService.readMetadata.mockResolvedValue(null);
+    mockLogStorageService.deleteMetadata.mockResolvedValue(undefined);
+    mockLogStorageService.listMetadataFiles.mockResolvedValue([]);
     service = new SshSuspendService(mockLogStorageService as any);
   });
 

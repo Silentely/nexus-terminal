@@ -19,8 +19,8 @@ const emit = defineEmits(['close', 'saveSuccess']);
 const { t } = useI18n();
 const favoritePathsStore = useFavoritePathsStore();
 
-const form = ref({
-  id: '',
+const form = ref<{ id: number | null; path: string; name: string }>({
+  id: null,
   path: '',
   name: '',
 });
@@ -41,7 +41,7 @@ watch(
           name: props.pathData.name || '',
         };
       } else {
-        form.value = { id: '', path: '', name: '' };
+        form.value = { id: null, path: '', name: '' };
       }
     }
   },
@@ -68,12 +68,12 @@ const handleSubmit = async () => {
   isLoading.value = true;
   errorMessage.value = null;
   try {
-    if (isEditMode.value && form.value.id) {
+    if (isEditMode.value && form.value.id !== null) {
       await favoritePathsStore.updateFavoritePath(
         form.value.id,
         {
           path: form.value.path,
-          name: form.value.name || undefined, // Send undefined if empty to allow backend to handle
+          name: form.value.name || null, // Send null if empty to match backend type
         },
         t
       );
@@ -81,7 +81,7 @@ const handleSubmit = async () => {
       await favoritePathsStore.addFavoritePath(
         {
           path: form.value.path,
-          name: form.value.name || undefined,
+          name: form.value.name || null,
         },
         t
       );

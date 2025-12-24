@@ -407,6 +407,16 @@
   "workspace": {
     "terminal": {
       "reconnectingMsg": "Attempting to reconnect..."
+    },
+    "errors": {
+      "sessionNotFound": "Session not found",
+      "missingConnectionId": "Missing connection ID",
+      "wsManagerNotFound": "WebSocket manager not found"
+    }
+  },
+  "session": {
+    "errors": {
+      "connectionNotFound": "Connection info not found"
     }
   },
   "fileEditor": {
@@ -496,7 +506,9 @@
       "commandNotFoundCompress": "Command '{command}' not found on server, cannot complete compression.",
       "commandNotFoundDecompress": "Command '{command}' not found on server, cannot complete decompression.",
       "genericCommandNotFound": "Command '{command}' not found on server, cannot complete '{operation}' operation.",
-      "copyPathFailed": "Failed to copy path"
+      "copyPathFailed": "Failed to copy path",
+      "sftpManagerUnavailable": "SFTP manager unavailable",
+      "missingSessionId": "Missing session ID"
     },
     "notifications": {
       "copySuccess": "Copy successful",
@@ -1743,6 +1755,13 @@
       "updateError": "Failed to update favorite path.",
       "deleteSuccess": "Favorite path deleted successfully.",
       "deleteError": "Failed to delete favorite path."
+    }
+  },
+  "editor": {
+    "unsavedChanges": {
+      "title": "Unsaved Changes",
+      "message": "File \"{filename}\" has unsaved changes. Are you sure you want to discard them?",
+      "discard": "Discard Changes"
     }
   },
   "pathHistory": {

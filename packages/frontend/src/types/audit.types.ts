@@ -21,6 +21,8 @@ export type AuditLogActionType =
   | 'TAG_CREATED'
   | 'TAG_UPDATED'
   | 'TAG_DELETED'
+  | 'CONNECTIONS_TAG_ADDED'
+  | 'CONNECTIONS_TAG_REMOVED'
   // Settings
   | 'SETTINGS_UPDATED'
   | 'IP_WHITELIST_UPDATED'

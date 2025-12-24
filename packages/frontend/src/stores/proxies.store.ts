@@ -33,15 +33,12 @@ export const useProxiesStore = defineStore('proxies', {
       this.isLoading = true;
       this.error = null;
       try {
-        const response = await apiClient.get<ProxyInfo[]>('/proxies'); // 使用 apiClient
+        const response = await apiClient.get<ProxyInfo[]>('/proxies');
         this.proxies = response.data;
       } catch (err: any) {
         console.error('获取代理列表失败:', err);
         this.error = err.response?.data?.message || err.message || '获取代理列表时发生未知错误。';
-        if (err.response?.status === 401) {
-          console.warn('未授权，需要登录才能获取代理列表。');
-          // TODO: 处理未授权情况
-        }
+        // 401 未授权由 apiClient 拦截器统一处理
       } finally {
         this.isLoading = false;
       }
@@ -54,7 +51,7 @@ export const useProxiesStore = defineStore('proxies', {
       host: string;
       port: number;
       username?: string | null;
-      password?: string | null; // 包含原始密码
+      password?: string | null;
     }) {
       this.isLoading = true;
       this.error = null;
@@ -62,19 +59,14 @@ export const useProxiesStore = defineStore('proxies', {
         const response = await apiClient.post<{ message: string; proxy: ProxyInfo }>(
           '/proxies',
           newProxyData
-        ); // 使用 apiClient
-        this.proxies.unshift(response.data.proxy); // 将新代理添加到列表开头
-        return true; // 成功
+        );
+        this.proxies.unshift(response.data.proxy);
+        return true;
       } catch (err: any) {
         console.error('添加代理失败:', err);
         this.error = err.response?.data?.message || err.message || '添加代理时发生未知错误。';
-        if (err.response?.status === 401) {
-          console.warn('未授权，需要登录才能添加代理。');
-        }
-        if (err.response?.status === 409) {
-          console.warn('添加代理冲突:', err.response?.data?.message);
-        }
-        return false; // 失败
+        // 401/409 错误：401 由拦截器处理，409 冲突已记录在 error
+        return false;
       } finally {
         this.isLoading = false;
       }
@@ -91,25 +83,19 @@ export const useProxiesStore = defineStore('proxies', {
         const response = await apiClient.put<{ message: string; proxy: ProxyInfo }>(
           `/proxies/${proxyId}`,
           updatedData
-        ); // 使用 apiClient
+        );
         const index = this.proxies.findIndex((p) => p.id === proxyId);
         if (index !== -1) {
-          // 使用返回的更新后的信息替换旧信息
           this.proxies[index] = { ...this.proxies[index], ...response.data.proxy };
         } else {
-          await this.fetchProxies(); // 如果本地找不到，重新获取列表
+          await this.fetchProxies();
         }
-        return true; // 成功
+        return true;
       } catch (err: any) {
         console.error(`更新代理 ${proxyId} 失败:`, err);
         this.error = err.response?.data?.message || err.message || '更新代理时发生未知错误。';
-        if (err.response?.status === 401) {
-          console.warn('未授权，需要登录才能更新代理。');
-        }
-        if (err.response?.status === 409) {
-          console.warn('更新代理冲突:', err.response?.data?.message);
-        }
-        return false; // 失败
+        // 401/409 错误：401 由拦截器处理，409 冲突已记录在 error
+        return false;
       } finally {
         this.isLoading = false;
       }
@@ -120,16 +106,14 @@ export const useProxiesStore = defineStore('proxies', {
       this.isLoading = true;
       this.error = null;
       try {
-        await apiClient.delete(`/proxies/${proxyId}`); // 使用 apiClient
-        this.proxies = this.proxies.filter((p) => p.id !== proxyId); // 从列表中移除
-        return true; // 成功
+        await apiClient.delete(`/proxies/${proxyId}`);
+        this.proxies = this.proxies.filter((p) => p.id !== proxyId);
+        return true;
       } catch (err: any) {
         console.error(`删除代理 ${proxyId} 失败:`, err);
         this.error = err.response?.data?.message || err.message || '删除代理时发生未知错误。';
-        if (err.response?.status === 401) {
-          console.warn('未授权，需要登录才能删除代理。');
-        }
-        return false; // 失败
+        // 401 由拦截器统一处理
+        return false;
       } finally {
         this.isLoading = false;
       }
