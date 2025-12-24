@@ -3,6 +3,6 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": ["src/**/*", "guacamole-lite.d.ts"],
+  "include": ["src/**/*", "guacamole-lite.d.ts", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }

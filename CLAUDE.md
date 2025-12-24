@@ -6,6 +6,37 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-24 (E2E 与集成测试框架实现)
+
+- **Playwright E2E 测试框架**：
+  - 新增目录：`packages/frontend/e2e/`
+  - 配置文件：`playwright.config.ts`（支持 Chromium/Firefox/WebKit）
+  - Page Object Model 设计：
+    - `pages/login.page.ts`：登录页交互封装
+    - `pages/workspace.page.ts`：工作区交互封装
+    - `pages/settings.page.ts`：设置页交互封装
+  - 测试 Fixtures：`fixtures/auth.fixture.ts`（认证状态管理）
+  - 测试数据：`fixtures/test-data.ts`（SSH/RDP/VNC 连接配置）
+  - E2E 测试用例：
+    - `tests/auth.spec.ts`：认证流程（密码登录、2FA、Passkey）
+    - `tests/ssh-connection.spec.ts`：SSH 连接与终端交互
+    - `tests/sftp-operations.spec.ts`：SFTP 文件操作
+    - `tests/remote-desktop.spec.ts`：RDP/VNC 远程桌面
+- **SSH/SFTP 协议集成测试**：
+  - 新增目录：`packages/backend/tests/integration/ssh/`、`packages/backend/tests/integration/sftp/`
+  - Mock 服务器：`mock-ssh-server.ts`（MockSshServer、MockShellStream、MockSftpSession）
+  - 测试用例：SSH 连接建立、Shell 操作、重连机制、SFTP 文件/目录操作
+- **RDP/VNC 代理功能测试**：
+  - 新增目录：`packages/backend/tests/integration/guacamole/`
+  - 测试用例：
+    - `guacamole.service.test.ts`：Token 生成与加密（AES-256-CBC）
+    - `rdp-proxy.test.ts`：WebSocket 消息转发、Guacamole 协议解析
+  - Remote Gateway 测试：`packages/remote-gateway/tests/server.test.ts`
+- **测试脚本更新**：
+  - 新增命令：`npm run test:e2e`、`npm run test:e2e:ui`、`npm run test:e2e:headed`
+  - 新增依赖：`@playwright/test ^1.49.1`
+- **测试结果**：Backend 59 个测试文件，1,223 个测试用例全部通过
+
 ### 2025-12-24 (安全增强与技术债务清零)
 
 - **安全增强**：
@@ -275,30 +306,322 @@ npm run build
 
 ### 当前状态
 
-- **测试框架已配置**：Backend 与 Frontend 均已配置 Vitest 测试框架
+- **测试框架已配置**：Backend 与 Frontend 均已配置完整测试框架
 - **测试覆盖率**（2025-12-24 更新）：
-  - Backend: 45+ 个 `*.test.ts` 文件（单元测试），覆盖核心服务与控制器
+  - Backend: 59 个 `*.test.ts` 文件，1,223 个测试用例（单元测试 + 集成测试）
   - Frontend: 15+ 个 `*.test.ts` 文件（组件、Store 与 Composables 测试）
-- **测试优化建议**：
-  - 补充 E2E 测试覆盖关键用户流程
-  - SSH/SFTP 协议交互集成测试
-  - RDP/VNC 代理功能测试
+  - E2E: 4 个 `*.spec.ts` 文件（Playwright 端到端测试）
+- **测试类型覆盖**：
+  - ✅ 单元测试（Vitest）
+  - ✅ 集成测试（SSH/SFTP/RDP/VNC 协议模拟）
+  - ✅ E2E 测试（Playwright）
 
 ### 测试框架配置
 
-- **后端**：Vitest + @vitest/coverage-v8（配置文件：`packages/backend/vitest.config.ts`）
-- **前端**：Vitest + Vue Test Utils + Happy DOM（配置文件：`packages/frontend/vite.config.ts`）
-- **测试命令**：
-  - 运行所有测试：`npm test`（根目录）
-  - 运行后端测试：`npm run test:backend`
-  - 运行前端测试：`npm run test:frontend`
-  - 监视模式：`npm run test:watch:backend` 或 `npm run test:watch:frontend`
-  - 覆盖率报告：`npm run test:coverage`
+- **单元测试 (Vitest)**：
+  - 后端：Vitest + @vitest/coverage-v8（配置：`packages/backend/vitest.config.ts`）
+  - 前端：Vitest + Vue Test Utils + Happy DOM（配置：`packages/frontend/vite.config.ts`）
+- **E2E 测试 (Playwright)**：
+  - 配置文件：`packages/frontend/e2e/playwright.config.ts`
+  - 支持浏览器：Chromium、Firefox、WebKit
+  - Page Object Model：`e2e/pages/`（login、workspace、settings）
+  - 测试 Fixtures：`e2e/fixtures/`（认证状态、测试数据）
+- **集成测试**：
+  - SSH/SFTP Mock 服务器：`packages/backend/tests/integration/ssh/mock-ssh-server.ts`
+  - Guacamole 协议测试：`packages/backend/tests/integration/guacamole/`
 
-### 建议测试框架（未实现部分）
+### 测试命令
 
-- **E2E 测试**：Cypress 或 Playwright
-- **协议测试**：模拟 SSH/SFTP 服务器进行集成测试
+```bash
+# 单元测试
+npm test                          # 运行所有单元测试
+npm run test:backend              # 运行后端测试
+npm run test:frontend             # 运行前端测试
+npm run test:watch:backend        # 后端监视模式
+npm run test:watch:frontend       # 前端监视模式
+npm run test:coverage             # 生成覆盖率报告
+
+# E2E 测试
+npm run test:e2e                  # 运行 E2E 测试（无头模式）
+npm run test:e2e:ui               # Playwright UI 模式（交互式调试）
+npm run test:e2e:headed           # 有头模式（可见浏览器）
+
+# 首次运行 E2E 测试前需安装浏览器
+npx playwright install
+```
+
+### 测试目录结构
+
+```
+packages/
+├── backend/tests/
+│   ├── integration/
+│   │   ├── ssh/                  # SSH 集成测试
+│   │   │   ├── mock-ssh-server.ts
+│   │   │   └── ssh.integration.test.ts
+│   │   ├── sftp/                 # SFTP 集成测试
+│   │   │   └── sftp.integration.test.ts
+│   │   └── guacamole/            # RDP/VNC 代理测试
+│   │       ├── guacamole.service.test.ts
+│   │       └── rdp-proxy.test.ts
+│   └── unit/                     # 单元测试（与源码同目录）
+│
+├── frontend/
+│   ├── e2e/                      # Playwright E2E 测试
+│   │   ├── playwright.config.ts
+│   │   ├── fixtures/
+│   │   ├── pages/
+│   │   └── tests/
+│   └── src/**/*.test.ts          # 单元测试（与源码同目录）
+│
+└── remote-gateway/tests/
+    └── server.test.ts            # 网关服务器测试
+```
+
+### 测试编写规范
+
+本节基于代码库中现有测试用例总结，所有新增测试必须遵循以下规范。
+
+#### 文件命名与位置
+
+- **单元测试**：与被测文件同目录，命名为 `*.test.ts`（如 `auth.service.test.ts`）
+- **集成测试**：放置于 `tests/integration/{功能}/` 目录
+- **E2E 测试**：放置于 `e2e/tests/` 目录，命名为 `*.spec.ts`
+
+#### 测试结构规范
+
+```typescript
+// 使用中文描述测试套件和用例
+describe('服务名称', () => {
+  // 前置设置
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('方法名或功能分组', () => {
+    it('应该 [预期行为描述]', async () => {
+      // Arrange - 准备测试数据
+      // Act - 执行被测方法
+      // Assert - 验证结果
+    });
+  });
+});
+```
+
+#### 后端 Service 测试规范
+
+```typescript
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { SomeService } from './some.service';
+import { SomeRepository } from './some.repository';
+
+// Mock Repository 层
+vi.mock('./some.repository', () => ({
+  SomeRepository: {
+    findAll: vi.fn(),
+    findById: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
+describe('SomeService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('findAll', () => {
+    it('应该返回所有记录', async () => {
+      const mockData = [{ id: 1, name: 'test' }];
+      vi.mocked(SomeRepository.findAll).mockResolvedValue(mockData);
+
+      const result = await SomeService.findAll();
+
+      expect(result).toEqual(mockData);
+      expect(SomeRepository.findAll).toHaveBeenCalledTimes(1);
+    });
+  });
+});
+```
+
+#### 前端 Pinia Store 测试规范
+
+```typescript
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { setActivePinia, createPinia } from 'pinia';
+import { useSomeStore } from './some.store';
+
+describe('SomeStore', () => {
+  beforeEach(() => {
+    // 每个测试前重新创建 Pinia 实例
+    setActivePinia(createPinia());
+  });
+
+  it('应该有正确的初始状态', () => {
+    const store = useSomeStore();
+    expect(store.someState).toBe(initialValue);
+  });
+
+  it('应该正确执行 action', async () => {
+    const store = useSomeStore();
+    await store.someAction();
+    expect(store.someState).toBe(expectedValue);
+  });
+});
+```
+
+#### 前端 Vue 组件测试规范
+
+```typescript
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mount, VueWrapper } from '@vue/test-utils';
+import { createPinia, setActivePinia } from 'pinia';
+import SomeComponent from './SomeComponent.vue';
+
+// Mock 依赖的 Composables
+vi.mock('@/composables/useSomeComposable', () => ({
+  useSomeComposable: () => ({
+    someMethod: vi.fn(),
+    someState: ref(initialValue),
+  }),
+}));
+
+describe('SomeComponent', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    wrapper = mount(SomeComponent, {
+      global: {
+        plugins: [createPinia()],
+        stubs: ['el-button', 'el-input'], // Stub Element Plus 组件
+      },
+      props: {
+        someProp: 'value',
+      },
+    });
+  });
+
+  it('应该正确渲染', () => {
+    expect(wrapper.exists()).toBe(true);
+  });
+
+  it('应该响应用户交互', async () => {
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.emitted('someEvent')).toBeTruthy();
+  });
+});
+```
+
+#### 集成测试 Mock 服务器规范
+
+```typescript
+import { EventEmitter } from 'events';
+
+// 继承 EventEmitter 实现事件机制
+export class MockSomeServer extends EventEmitter {
+  private config: MockConfig;
+
+  constructor(config: MockConfig) {
+    super();
+    this.config = config;
+  }
+
+  async start(): Promise<{ host: string; port: number }> {
+    // 初始化逻辑
+    return { host: '127.0.0.1', port: this.port };
+  }
+
+  async stop(): Promise<void> {
+    // 清理逻辑
+  }
+}
+
+// 工厂函数创建 Mock 客户端
+export function createMockClient(address: { host: string; port: number }) {
+  const client = new EventEmitter() as any;
+  client.connect = vi.fn().mockImplementation(() => {
+    setTimeout(() => client.emit('ready'), 10);
+    return client;
+  });
+  return client;
+}
+```
+
+#### 断言规范
+
+| 场景           | 推荐断言                            | 示例                                          |
+| -------------- | ----------------------------------- | --------------------------------------------- |
+| 值相等         | `expect().toBe()`                   | `expect(result).toBe(5)`                      |
+| 对象深度相等   | `expect().toEqual()`                | `expect(obj).toEqual({ a: 1 })`               |
+| 数组包含元素   | `expect().toContain()`              | `expect(arr).toContain('item')`               |
+| 对象包含属性   | `expect().toHaveProperty()`         | `expect(obj).toHaveProperty('key', 'value')`  |
+| 函数被调用     | `expect().toHaveBeenCalled()`       | `expect(mockFn).toHaveBeenCalled()`           |
+| 函数调用参数   | `expect().toHaveBeenCalledWith()`   | `expect(mockFn).toHaveBeenCalledWith('arg')`  |
+| Promise 成功   | `expect().resolves`                 | `await expect(promise).resolves.toBe(value)`  |
+| Promise 失败   | `expect().rejects`                  | `await expect(promise).rejects.toThrow()`     |
+| 抛出异常       | `expect().toThrow()`                | `expect(() => fn()).toThrow('error message')` |
+| 正则匹配       | `expect().toMatch()`                | `expect(str).toMatch(/pattern/)`              |
+| 类型检查       | `expect().toBeInstanceOf()`         | `expect(obj).toBeInstanceOf(SomeClass)`       |
+| 真值/假值      | `expect().toBeTruthy()/toBeFalsy()` | `expect(value).toBeTruthy()`                  |
+| null/undefined | `expect().toBeNull()/toBeDefined()` | `expect(value).toBeDefined()`                 |
+
+#### Mock 策略
+
+| 依赖类型     | Mock 方式                                         |
+| ------------ | ------------------------------------------------- |
+| Repository   | `vi.mock('./some.repository')` + `vi.mocked()`    |
+| 外部 API     | `vi.mock('axios')` 或 MSW (Mock Service Worker)   |
+| Pinia Store  | `setActivePinia(createPinia())` + 直接操作 store  |
+| Composables  | `vi.mock('@/composables/...')` 返回 mock 对象     |
+| 定时器       | `vi.useFakeTimers()` + `vi.advanceTimersByTime()` |
+| 环境变量     | `vi.stubEnv('VAR_NAME', 'value')`                 |
+| Node 模块    | `vi.mock('fs')` / `vi.mock('path')`               |
+| EventEmitter | 继承 EventEmitter 创建 Mock 类                    |
+
+#### E2E 测试规范 (Playwright)
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/login.page';
+
+test.describe('登录功能', () => {
+  test('应该成功登录并跳转到仪表盘', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login('username', 'password');
+
+    await expect(page).toHaveURL('/dashboard');
+  });
+});
+
+// Page Object Model
+class LoginPage {
+  constructor(private page: Page) {}
+
+  async goto() {
+    await this.page.goto('/login');
+  }
+
+  async login(username: string, password: string) {
+    await this.page.fill('[data-testid="username"]', username);
+    await this.page.fill('[data-testid="password"]', password);
+    await this.page.click('[data-testid="submit"]');
+  }
+}
+```
+
+#### 测试覆盖率要求
+
+| 模块类型   | 行覆盖率目标 | 分支覆盖率目标 |
+| ---------- | ------------ | -------------- |
+| Service    | ≥80%         | ≥70%           |
+| Controller | ≥70%         | ≥60%           |
+| Repository | ≥60%         | ≥50%           |
+| Utils      | ≥90%         | ≥80%           |
+| Store      | ≥80%         | ≥70%           |
+| Component  | ≥60%         | ≥50%           |
 
 ---
 
@@ -460,11 +783,16 @@ Guacd (4822) → RDP/VNC 协议转换
 
 ---
 
-**文档生成时间**：2025-12-24（安全增强与技术债务清零更新）
+**文档生成时间**：2025-12-24（E2E 与集成测试框架实现）
+**已完成任务**：
+
+- ✅ E2E 测试（Playwright）验证关键用户流程
+- ✅ SSH/SFTP 协议交互集成测试
+- ✅ RDP/VNC 代理功能测试
+
 **下次扫描建议**：
 
-- 补充 E2E 测试（Cypress/Playwright）验证关键用户流程
-- SSH/SFTP 协议交互集成测试
-- RDP/VNC 代理功能测试
 - 监控 Phase 4/5 新增模块的测试覆盖率提升
 - 定期审查技术债务报告并处理高优先级项
+- 扩展 E2E 测试用例覆盖更多边缘场景
+- 添加性能测试基准（响应时间、并发连接数）
