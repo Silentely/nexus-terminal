@@ -113,6 +113,7 @@ const handlePasskeyLogin = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(authOptionsBody),
+      credentials: 'include', // 必须携带 cookie 以保持 session 一致性
     });
 
     if (!optionsResponse.ok) {
