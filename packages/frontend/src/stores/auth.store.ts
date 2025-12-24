@@ -64,6 +64,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   loginRequires2FA: boolean;
+  tempToken: string | null; // 2FA 临时令牌
   // 存储 IP 黑名单数据
   ipBlacklist: {
     entries: IpBlacklistEntry[];
@@ -83,6 +84,7 @@ export const useAuthStore = defineStore('auth', {
     isLoading: false,
     error: null,
     loginRequires2FA: false, // 初始为不需要
+    tempToken: null, // 2FA 临时令牌
     ipBlacklist: { entries: [], total: 0 }, // 初始化黑名单状态
     needsSetup: false, // 初始假设不需要设置
     publicCaptchaConfig: null, //  Initialize CAPTCHA config as null
@@ -117,12 +119,15 @@ export const useAuthStore = defineStore('auth', {
           message: string;
           user?: UserInfo;
           requiresTwoFactor?: boolean;
+          tempToken?: string; // 后端返回的临时令牌，用于 2FA 验证
         }>('/auth/login', payload); // 使用 apiClient
 
         if (response.data.requiresTwoFactor) {
           // 需要 2FA 验证
           console.log('登录需要 2FA 验证');
           this.loginRequires2FA = true;
+          // 保存 tempToken 用于后续 2FA 验证
+          this.tempToken = response.data.tempToken || null;
           // 不设置 isAuthenticated 和 user，等待 2FA 验证
           return { requiresTwoFactor: true }; // 返回特殊状态给调用者
         }
@@ -146,6 +151,7 @@ export const useAuthStore = defineStore('auth', {
         this.isAuthenticated = false;
         this.user = null;
         this.loginRequires2FA = false;
+        this.tempToken = null; // 清理临时令牌
         this.error = err.response?.data?.message || err.message || '登录时发生未知错误。';
         return { success: false, error: this.error };
       } finally {
@@ -163,12 +169,13 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await apiClient.post<{ message: string; user: UserInfo }>(
           '/auth/login/2fa',
-          { token }
+          { token, tempToken: this.tempToken } // 发送 tempToken 用于后端验证
         ); // 使用 apiClient
         // 2FA 验证成功
         this.isAuthenticated = true;
         this.user = response.data.user;
         this.loginRequires2FA = false; // 重置状态
+        this.tempToken = null; // 清理临时令牌
         console.log('2FA 验证成功，登录完成:', this.user);
         // 设置语言
         if (this.user?.language) {
