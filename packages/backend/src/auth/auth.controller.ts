@@ -629,10 +629,20 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
         }
         req.session.pendingAuth = pendingAuth;
         req.session.rememberMe = rememberMe;
-        res.status(200).json({
-          message: '需要进行两步验证。',
-          requiresTwoFactor: true,
-          tempToken, // Frontend must include this in 2FA request
+
+        // 显式保存 session 以确保 pendingAuth 被持久化并设置 cookie
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('[AuthController] 2FA 认证状态保存失败:', saveErr);
+            res.status(500).json({ message: '登录过程中发生错误，请重试。' });
+            return;
+          }
+          console.log(`[AuthController] 2FA pendingAuth 已保存到 session`);
+          res.status(200).json({
+            message: '需要进行两步验证。',
+            requiresTwoFactor: true,
+            tempToken, // Frontend must include this in 2FA request
+          });
         });
       });
     } else {
