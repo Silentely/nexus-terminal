@@ -6,6 +6,22 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-24 (安全增强与技术债务清零)
+
+- **安全增强**：
+  - bcrypt saltRounds 从 10 提升至 12（符合 2025 年安全标准）
+  - 实现加密密钥轮换机制（`crypto.ts` 重构）
+    - 支持多版本密钥共存
+    - 新增 `rotateEncryptionKey()` / `reEncrypt()` / `getKeyRotationStatus()` API
+    - 新加密格式：`[keyVersion(4B)][iv(16B)][encrypted][tag(16B)]`
+    - 保持向后兼容：自动识别并解密旧格式数据
+  - 代码审查报告 13 项问题全部修复（P0-P3）
+- **技术债务清零**：24/24 项技术债务已全部修复（100%）
+- **测试覆盖率大幅提升**：
+  - 新增 20+ 测试文件（Backend + Frontend）
+  - ESLint 配置优化，164 文件变更
+- **文档状态**：所有核心模块文档已更新至最新状态
+
 ### 2025-12-24 00:09:22 (AI 上下文完整性验证)
 
 - **覆盖率验证**：完成全仓扫描，确认模块文档完整性与数据准确性
@@ -247,10 +263,11 @@ npm run build
 - **根目录 `.env`**：定义部署模式、端口等全局配置
 - **data/.env**：定义后端加密密钥、Guacamole 连接信息（自动生成）
 - **关键变量**：
-  - `ENCRYPTION_KEY`：数据库敏感信息加密密钥（自动生成）
+  - `ENCRYPTION_KEY`：数据库敏感信息加密密钥（32字节 hex，支持密钥轮换）
   - `SESSION_SECRET`：会话密钥（自动生成）
   - `GUACD_HOST` / `GUACD_PORT`：Guacamole daemon 地址（默认 localhost:4822）
   - `RP_ID` / `RP_ORIGIN`：Passkey 登录配置
+- **安全配置常量**：详见 [Backend CLAUDE.md](./packages/backend/CLAUDE.md#安全配置常量srcconfgsecurityconfigts)
 
 ---
 
@@ -259,14 +276,12 @@ npm run build
 ### 当前状态
 
 - **测试框架已配置**：Backend 与 Frontend 均已配置 Vitest 测试框架
-- **测试覆盖率**：
-  - Backend: 发现 30+ 个 `*.test.ts` 文件（单元测试）
-  - Frontend: 发现 5+ 个 `*.test.ts` 文件（组件与 Store 测试）
-- **测试缺口**：
-  - 需提升后端 Service 层单元测试覆盖率
-  - 需补充前端 Components 与 Composables 的单元测试
-  - 缺少 E2E 测试覆盖关键用户流程
-  - SSH/SFTP 协议交互测试
+- **测试覆盖率**（2025-12-24 更新）：
+  - Backend: 45+ 个 `*.test.ts` 文件（单元测试），覆盖核心服务与控制器
+  - Frontend: 15+ 个 `*.test.ts` 文件（组件、Store 与 Composables 测试）
+- **测试优化建议**：
+  - 补充 E2E 测试覆盖关键用户流程
+  - SSH/SFTP 协议交互集成测试
   - RDP/VNC 代理功能测试
 
 ### 测试框架配置
@@ -445,11 +460,11 @@ Guacd (4822) → RDP/VNC 协议转换
 
 ---
 
-**文档生成时间**：2025-12-24 00:09:22（覆盖率验证更新）
+**文档生成时间**：2025-12-24（安全增强与技术债务清零更新）
 **下次扫描建议**：
 
-- 补充后端 Service 层单元测试覆盖率
-- 补充前端 Components 与 Composables 的单元测试
-- 考虑添加 E2E 测试（Cypress/Playwright）验证关键用户流程
+- 补充 E2E 测试（Cypress/Playwright）验证关键用户流程
+- SSH/SFTP 协议交互集成测试
+- RDP/VNC 代理功能测试
 - 监控 Phase 4/5 新增模块的测试覆盖率提升
 - 定期审查技术债务报告并处理高优先级项

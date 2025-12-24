@@ -6,6 +6,19 @@
 
 ## 变更记录 (Changelog)
 
+### 2025-12-24 (安全增强与技术债务清零)
+
+- **安全配置升级**：
+  - bcrypt saltRounds 从 10 提升至 12（符合 2025 年安全标准）
+  - 新增 `src/config/security.config.ts`：集中管理所有安全相关常量
+- **加密密钥轮换机制**（`src/utils/crypto.ts` 重构）：
+  - 支持多版本密钥共存（KeyVersion 接口）
+  - 新加密格式：`[keyVersion(4B)][iv(16B)][encrypted][tag(16B)]`
+  - 新增 API：`initializeKeyRotation()`、`rotateEncryptionKey()`、`reEncrypt()`、`getKeyRotationStatus()`
+  - 保持向后兼容：`isLegacyFormat()` 自动识别并解密旧格式数据
+- **测试覆盖率大幅提升**：新增 15+ 测试文件，覆盖核心服务与控制器
+- **技术债务清零**：Backend 模块 11 项技术债务已全部修复
+
 ### 2025-12-21 (Phase 5 - AI 智能运维)
 
 - **新增 ai-ops 模块**：实现 AI 智能运维功能
@@ -155,6 +168,7 @@ packages/backend/
 │   │   └── ...
 │   │
 │   ├── config/                     # 配置文件
+│   │   ├── security.config.ts      # 安全配置常量（2025-12-24 新增）
 │   │   └── default-themes.ts       # 预设终端主题
 │   │
 │   ├── types/                      # TypeScript 类型定义
@@ -245,6 +259,19 @@ packages/backend/
 - `src/websocket.ts` - WebSocket 服务初始化
 - `src/database/connection.ts` - SQLite 数据库连接管理
 - `src/database/schema.ts` - 所有数据表 DDL 定义
+- `src/config/security.config.ts` - 安全配置常量（bcrypt轮次、会话超时等）
+
+### 安全与加密
+
+- `src/utils/crypto.ts` - 核心加密模块（支持密钥轮换）
+  - `encrypt(text)` / `decrypt(encryptedText)` - AES-256-GCM 加解密
+  - `initializeKeyRotation()` - 初始化密钥轮换系统
+  - `rotateEncryptionKey(newKeyHex)` - 轮换到新密钥
+  - `reEncrypt(encryptedText)` - 使用当前密钥重新加密旧数据
+  - `getKeyRotationStatus()` - 获取密钥状态信息
+  - `hashPassword(password)` / `comparePassword(password, hash)` - bcrypt 密码哈希
+  - `generateSecureRandomString(length)` - 安全随机字符串生成
+  - `bufferToBase64url(buffer)` / `base64urlToBuffer(base64urlString)` - WebAuthn 编码工具
 
 ### 核心业务
 
@@ -281,16 +308,27 @@ npm start
 
 ## 环境变量
 
-| 变量名           | 默认值      | 描述                   |
-| ---------------- | ----------- | ---------------------- |
-| `PORT`           | 3001        | API 服务端口           |
-| `NODE_ENV`       | development | 运行环境               |
-| `ENCRYPTION_KEY` | (自动生成)  | 数据库敏感信息加密密钥 |
-| `SESSION_SECRET` | (自动生成)  | 会话密钥               |
-| `GUACD_HOST`     | localhost   | Guacamole daemon 地址  |
-| `GUACD_PORT`     | 4822        | Guacamole daemon 端口  |
-| `RP_ID`          | -           | Passkey 认证的 RP ID   |
-| `RP_ORIGIN`      | -           | Passkey 认证的 Origin  |
+| 变量名           | 默认值      | 描述                                           |
+| ---------------- | ----------- | ---------------------------------------------- |
+| `PORT`           | 3001        | API 服务端口                                   |
+| `NODE_ENV`       | development | 运行环境                                       |
+| `ENCRYPTION_KEY` | (自动生成)  | 数据库敏感信息加密密钥（32字节 hex，支持轮换） |
+| `SESSION_SECRET` | (自动生成)  | 会话密钥                                       |
+| `GUACD_HOST`     | localhost   | Guacamole daemon 地址                          |
+| `GUACD_PORT`     | 4822        | Guacamole daemon 端口                          |
+| `RP_ID`          | -           | Passkey 认证的 RP ID                           |
+| `RP_ORIGIN`      | -           | Passkey 认证的 Origin                          |
+
+### 安全配置常量（`src/config/security.config.ts`）
+
+| 常量名                   | 值               | 描述                                 |
+| ------------------------ | ---------------- | ------------------------------------ |
+| `CHALLENGE_TIMEOUT`      | 5 分钟           | WebAuthn Challenge 超时              |
+| `PENDING_AUTH_TIMEOUT`   | 5 分钟           | 2FA 临时认证超时                     |
+| `TEMP_TOKEN_LENGTH`      | 32 字节          | 临时令牌长度                         |
+| `SESSION_COOKIE_MAX_AGE` | 30 天            | Session Cookie 最大存活时间          |
+| `BCRYPT_SALT_ROUNDS`     | 12               | bcrypt 盐轮次（2025年推荐值：12-14） |
+| `ALLOWED_WS_ORIGINS`     | localhost:5173等 | WebSocket 允许的 Origin 白名单       |
 
 ---
 
@@ -336,4 +374,4 @@ repository.ts → 数据访问与 SQL 操作
 
 ---
 
-**文档生成时间**：2025-12-21（Phase 3/4/5 更新）
+**文档生成时间**：2025-12-24（安全增强与技术债务清零更新）
