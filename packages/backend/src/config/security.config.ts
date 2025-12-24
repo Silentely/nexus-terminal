@@ -16,8 +16,8 @@ export const SECURITY_CONFIG = {
   // 与 Session Store TTL (packages/backend/src/index.ts:319) 保持一致
   SESSION_COOKIE_MAX_AGE: 30 * 24 * 60 * 60 * 1000, // 2592000000 毫秒
 
-  // bcrypt 盐轮次
-  BCRYPT_SALT_ROUNDS: 10,
+  // bcrypt 盐轮次 (2025年推荐值：12-14)
+  BCRYPT_SALT_ROUNDS: 12,
 
   // WebSocket 允许的 Origin 白名单 (CSWSH 防护)
   ALLOWED_WS_ORIGINS: [
