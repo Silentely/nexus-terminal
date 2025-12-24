@@ -35,6 +35,11 @@
 
       <!-- Settings Content based on activeTab -->
       <div v-else class="space-y-6">
+        <!-- AI Settings Tab -->
+        <div v-if="activeTab === 'ai'">
+          <AISettingsSection />
+        </div>
+
         <!-- Security Tab Content -->
         <div v-if="activeTab === 'security'">
           <div
@@ -145,6 +150,7 @@ import WorkspaceSettingsSection from '../components/settings/WorkspaceSettingsSe
 import SystemSettingsSection from '../components/settings/SystemSettingsSection.vue';
 import DataManagementSection from '../components/settings/DataManagementSection.vue';
 import AppearanceSection from '../components/settings/AppearanceSection.vue';
+import AISettingsSection from '../components/settings/AISettingsSection.vue';
 
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
@@ -156,6 +162,7 @@ const { isUpdateAvailable, checkLatestVersion } = useVersionCheck();
 const tabs = ref([
   { key: 'workspace', label: t('settings.tabs.workspace', '工作区') },
   { key: 'system', label: t('settings.tabs.system', '系统') },
+  { key: 'ai', label: t('settings.tabs.ai', 'AI 助手') },
   { key: 'security', label: t('settings.tabs.security', '安全') },
   { key: 'ipControl', label: t('settings.tabs.ipControl', 'IP 管控') },
   { key: 'dataManagement', label: t('settings.tabs.dataManagement', '数据管理') },

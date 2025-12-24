@@ -4,6 +4,7 @@
 
 import { Router } from 'express';
 import * as AIController from './ai.controller';
+import * as NL2CMDController from './nl2cmd.controller';
 import { isAuthenticated } from '../auth/auth.middleware';
 
 const router = Router();
@@ -31,5 +32,13 @@ router.get('/patterns', AIController.getCommandPatterns);
 
 // POST /api/v1/ai/cleanup - 清理用户旧会话
 router.post('/cleanup', AIController.cleanupSessions);
+
+// AI Provider 配置相关路由
+router.get('/settings', NL2CMDController.getAISettings);
+router.post('/settings', NL2CMDController.saveAISettings);
+router.post('/test', NL2CMDController.testAIConnection);
+
+// NL2CMD 生成命令
+router.post('/nl2cmd', NL2CMDController.generateCommand);
 
 export default router;
