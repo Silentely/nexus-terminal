@@ -238,14 +238,7 @@ app.use(
 );
 
 // 3. Rate Limiting - 限流配置
-// 登录端点严格限流（防止暴力破解）
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 分钟
-  max: 5, // 最多 5 次尝试
-  message: '登录尝试次数过多，请 15 分钟后再试',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// 认证相关端点的精细化限流已在 auth.routes.ts 中配置（见 src/config/rate-limit.config.ts）
 
 // 一般 API 宽松限流
 const apiLimiter = rateLimit({
@@ -362,8 +355,8 @@ const startServer = () => {
   // --- 结束 Swagger 文档路由 ---
 
   // --- 应用 API 路由 ---
-  // 认证路由（严格限流）
-  app.use('/api/v1/auth', authLimiter, authRouter);
+  // 认证路由（限流策略已在 auth.routes.ts 中精细化配置）
+  app.use('/api/v1/auth', authRouter);
 
   // 一般 API 路由（宽松限流）
   app.use('/api/v1/connections', apiLimiter, connectionsRouter);

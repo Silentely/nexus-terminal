@@ -24,6 +24,7 @@ import {
 } from './auth.controller';
 import { isAuthenticated } from './auth.middleware';
 import { ipBlacklistCheckMiddleware } from './ipBlacklistCheck.middleware';
+import { strictAuthLimiter, moderateAuthLimiter } from '../config/rate-limit.config';
 
 const router = Router();
 
@@ -123,7 +124,7 @@ router.get('/needs-setup', needsSetup);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/setup', setupAdmin);
+router.post('/setup', strictAuthLimiter, setupAdmin);
 
 /**
  * @swagger
@@ -204,7 +205,7 @@ router.post('/setup', setupAdmin);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/login', ipBlacklistCheckMiddleware, login);
+router.post('/login', strictAuthLimiter, ipBlacklistCheckMiddleware, login);
 
 /**
  * @swagger
@@ -256,7 +257,7 @@ router.put('/password', isAuthenticated, changePassword);
 
 // POST /api/v1/auth/login/2fa - 登录时的 2FA 验证接口 (添加黑名单检查)
 // (不需要单独的 isAuthenticated，依赖 login 接口设置的临时 session)
-router.post('/login/2fa', ipBlacklistCheckMiddleware, verifyLogin2FA);
+router.post('/login/2fa', strictAuthLimiter, ipBlacklistCheckMiddleware, verifyLogin2FA);
 
 // --- 2FA 管理接口 (都需要认证) ---
 // POST /api/v1/auth/2fa/setup - 开始 2FA 设置，生成密钥和二维码
@@ -322,11 +323,16 @@ router.post(
 router.post('/passkey/register', isAuthenticated, verifyPasskeyRegistrationHandler);
 
 // POST /api/v1/auth/passkey/authentication-options - 生成 Passkey 认证选项 (公开或半公开，取决于是否提供了用户名)
-router.post('/passkey/authentication-options', generatePasskeyAuthenticationOptionsHandler);
+router.post(
+  '/passkey/authentication-options',
+  moderateAuthLimiter,
+  generatePasskeyAuthenticationOptionsHandler
+);
 
 // POST /api/v1/auth/passkey/authenticate - 验证 Passkey 并登录用户 (公开)
 router.post(
   '/passkey/authenticate',
+  strictAuthLimiter,
   ipBlacklistCheckMiddleware,
   verifyPasskeyAuthenticationHandler
 );
