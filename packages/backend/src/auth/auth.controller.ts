@@ -82,8 +82,15 @@ export const generatePasskeyRegistrationOptionsHandler = async (
     // The user.id from options is a Uint8Array. We need to store the original string userId for userHandle.
     req.session.passkeyUserHandle = userId.toString();
 
-    console.log(`[AuthController] Generated Passkey registration options for user ${username}`);
-    res.json(options);
+    // 显式保存 session 以确保 challenge 被持久化
+    req.session.save((err) => {
+      if (err) {
+        console.error('[AuthController] 保存 session 失败:', err);
+        return next(err);
+      }
+      console.log(`[AuthController] Generated Passkey registration options for user ${username}`);
+      res.json(options);
+    });
   } catch (error) {
     console.error(`[AuthController] 生成 Passkey 注册选项时出错 (用户: ${username}):`, error);
     next(error);
@@ -188,10 +195,18 @@ export const generatePasskeyAuthenticationOptionsHandler = async (
     // or if allowCredentials is used. We'll clear any old one just in case.
     delete req.session.passkeyUserHandle;
 
-    console.log(
-      `[AuthController] Generated Passkey authentication options (username: ${username || 'any'})`
-    );
-    res.json(options);
+    // 显式保存 session 以确保 challenge 被持久化并设置 cookie
+    // 这对于新 session（用户未登录时）尤为重要
+    req.session.save((err) => {
+      if (err) {
+        console.error('[AuthController] 保存 session 失败:', err);
+        return next(err);
+      }
+      console.log(
+        `[AuthController] Generated Passkey authentication options (username: ${username || 'any'})`
+      );
+      res.json(options);
+    });
   } catch (error) {
     console.error(
       `[AuthController] 生成 Passkey 认证选项时出错 (username: ${username || 'any'}):`,
