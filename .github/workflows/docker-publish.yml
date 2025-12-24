@@ -17,20 +17,72 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-  build-and-push:
+  # 检测文件变更（仅 main 分支普通推送时执行）
+  detect-changes:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service:
-          - name: backend
-            dockerfile: packages/backend/Dockerfile
-            image: backend
-          - name: frontend
-            dockerfile: packages/frontend/Dockerfile
-            image: frontend
-          - name: remote-gateway
-            dockerfile: packages/remote-gateway/Dockerfile
-            image: remote-gateway
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      remote-gateway: ${{ steps.filter.outputs.remote-gateway }}
+      should_build_all: ${{ steps.check.outputs.should_build_all }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 检查是否需要全量构建
+        id: check
+        run: |
+          # Tag 推送、repository_dispatch、workflow_dispatch 时全量构建
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            echo "should_build_all=true" >> $GITHUB_OUTPUT
+            echo "✅ Tag 推送，将全量构建所有镜像"
+          elif [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "should_build_all=true" >> $GITHUB_OUTPUT
+            echo "✅ repository_dispatch 触发，将全量构建所有镜像"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_build_all=true" >> $GITHUB_OUTPUT
+            echo "✅ 手动触发，将全量构建所有镜像"
+          else
+            echo "should_build_all=false" >> $GITHUB_OUTPUT
+            echo "✅ main 分支推送，将检测变更按需构建"
+          fi
+
+      - name: 检测文件变更
+        if: steps.check.outputs.should_build_all == 'false'
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'packages/backend/**'
+              - 'package.json'
+              - 'package-lock.json'
+            frontend:
+              - 'packages/frontend/**'
+              - 'package.json'
+              - 'package-lock.json'
+            remote-gateway:
+              - 'packages/remote-gateway/**'
+              - 'package.json'
+              - 'package-lock.json'
+
+      - name: 输出变更检测结果
+        run: |
+          echo "=========================================="
+          echo "变更检测结果："
+          echo "  全量构建: ${{ steps.check.outputs.should_build_all }}"
+          if [[ "${{ steps.check.outputs.should_build_all }}" == "false" ]]; then
+            echo "  backend 变更: ${{ steps.filter.outputs.backend }}"
+            echo "  frontend 变更: ${{ steps.filter.outputs.frontend }}"
+            echo "  remote-gateway 变更: ${{ steps.filter.outputs.remote-gateway }}"
+          fi
+          echo "=========================================="
+
+  # 构建 Backend 镜像
+  build-backend:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should_build_all == 'true' || needs.detect-changes.outputs.backend == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,30 +90,23 @@ jobs:
       - name: 读取版本号
         id: version
         run: |
-          # 从 repository_dispatch payload 读取版本号
           PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
-
           if [ -n "$PAYLOAD_VERSION" ]; then
             VERSION="$PAYLOAD_VERSION"
             echo "✅ 使用 payload 中的版本号：$VERSION"
           elif [[ "${{ github.ref_name }}" == "main" ]]; then
-            # main 分支构建时使用 dev 版本号
             VERSION="dev"
             echo "✅ 使用 main 分支版本号：$VERSION"
           else
-            # 从 VERSION 文件读取
             VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "latest")
             echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
           fi
-
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: 判断构建类型
         id: build_type
         run: |
-          # 检测是否来自 repository_dispatch（由构建与发布触发）
           PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
-
           if [[ "${{ github.event_name }}" == "repository_dispatch" && -n "$PAYLOAD_VERSION" ]]; then
             echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
@@ -85,7 +130,6 @@ jobs:
         run: |
           echo "dev" > VERSION
           echo "✅ 已更新 VERSION 文件为 'dev'"
-          cat VERSION
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -104,26 +148,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}-${{ matrix.service.image }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}-backend
           tags: |
-            # main 分支推送时构建 dev 标签
             type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
-
-            # tag 推送时构建 latest、版本号和 SHA 标签
             type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
             type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
             type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
-
-            # 其他情况（手动触发）的备用标签
             type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' && steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
             type=ref,event=tag,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
             type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
 
-      - name: Build and push ${{ matrix.service.name }}
+      - name: Build and push backend
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ${{ matrix.service.dockerfile }}
+          file: packages/backend/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -134,21 +173,201 @@ jobs:
 
       - name: Show published tags
         run: |
-          echo "构建类型: ${{ steps.build_type.outputs.BUILD_TYPE }}"
+          echo "🚀 Backend 镜像构建完成"
           echo "Published: ${{ steps.meta.outputs.tags }}"
-          echo "================================================"
-          if [[ "${{ steps.build_type.outputs.BUILD_TYPE }}" == "dev" ]]; then
-            echo "🚀 已构建 dev 镜像（从 main 分支）"
-          elif [[ "${{ steps.build_type.outputs.IS_TAG_PUSH }}" == "true" ]]; then
-            echo "🎉 已构建 release 镜像（latest + 版本号）"
+
+  # 构建 Frontend 镜像
+  build-frontend:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should_build_all == 'true' || needs.detect-changes.outputs.frontend == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 读取版本号
+        id: version
+        run: |
+          PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
+          if [ -n "$PAYLOAD_VERSION" ]; then
+            VERSION="$PAYLOAD_VERSION"
+            echo "✅ 使用 payload 中的版本号：$VERSION"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            VERSION="dev"
+            echo "✅ 使用 main 分支版本号：$VERSION"
           else
-            echo "🔧 手动触发构建"
+            VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "latest")
+            echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 判断构建类型
+        id: build_type
+        run: |
+          PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
+          if [[ "${{ github.event_name }}" == "repository_dispatch" && -n "$PAYLOAD_VERSION" ]]; then
+            echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "BUILD_TYPE=dev" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+          else
+            echo "BUILD_TYPE=manual" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: 更新 VERSION 文件（main 分支构建时）
+        if: steps.build_type.outputs.BUILD_TYPE == 'dev'
+        run: |
+          echo "dev" > VERSION
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}-frontend
+          tags: |
+            type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
+            type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
+            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
+            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' && steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+            type=ref,event=tag,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: packages/frontend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - name: Show published tags
+        run: |
+          echo "🚀 Frontend 镜像构建完成"
+          echo "Published: ${{ steps.meta.outputs.tags }}"
+
+  # 构建 Remote Gateway 镜像
+  build-remote-gateway:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should_build_all == 'true' || needs.detect-changes.outputs.remote-gateway == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 读取版本号
+        id: version
+        run: |
+          PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
+          if [ -n "$PAYLOAD_VERSION" ]; then
+            VERSION="$PAYLOAD_VERSION"
+            echo "✅ 使用 payload 中的版本号：$VERSION"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            VERSION="dev"
+            echo "✅ 使用 main 分支版本号：$VERSION"
+          else
+            VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "latest")
+            echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 判断构建类型
+        id: build_type
+        run: |
+          PAYLOAD_VERSION=$(jq -r '.client_payload.version // ""' "$GITHUB_EVENT_PATH")
+          if [[ "${{ github.event_name }}" == "repository_dispatch" && -n "$PAYLOAD_VERSION" ]]; then
+            echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "BUILD_TYPE=dev" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+          else
+            echo "BUILD_TYPE=manual" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 更新 VERSION 文件（main 分支构建时）
+        if: steps.build_type.outputs.BUILD_TYPE == 'dev'
+        run: |
+          echo "dev" > VERSION
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}-remote-gateway
+          tags: |
+            type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
+            type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
+            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
+            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' && steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+            type=ref,event=tag,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
+
+      - name: Build and push remote-gateway
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: packages/remote-gateway/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+          sbom: false
+
+      - name: Show published tags
+        run: |
+          echo "🚀 Remote Gateway 镜像构建完成"
+          echo "Published: ${{ steps.meta.outputs.tags }}"
+
+  # 清理旧的 workflow 运行记录
   cleanup-old-runs:
     name: Cleanup workflow runs (3 days)
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [build-backend, build-frontend, build-remote-gateway]
+    if: always()
     steps:
       - name: Delete runs older than 3 days
         uses: actions/github-script@v7
