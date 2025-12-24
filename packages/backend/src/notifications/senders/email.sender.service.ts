@@ -28,7 +28,7 @@ class EmailSenderService implements INotificationSender {
 
       const finalSmtpHost = smtpHost || globalSmtpHost;
       const finalSmtpPort = smtpPort ?? (globalSmtpPortStr ? parseInt(globalSmtpPortStr, 10) : 587);
-      const finalSmtpSecure = smtpSecure ?? (globalSmtpSecureStr === 'true');
+      const finalSmtpSecure = smtpSecure ?? globalSmtpSecureStr === 'true';
       const finalSmtpUser = smtpUser || globalSmtpUser;
       const finalSmtpPass = smtpPass || globalSmtpPass;
       const finalFrom = from || globalSmtpFrom || 'noreply@nexus-terminal.local';
@@ -40,7 +40,7 @@ class EmailSenderService implements INotificationSender {
         throw new Error('SMTP host configuration is missing.');
       }
 
-      if (isNaN(finalSmtpPort) || finalSmtpPort <= 0) {
+      if (Number.isNaN(finalSmtpPort) || finalSmtpPort <= 0) {
         console.error(
           `[EmailSender] Invalid SMTP port configured: ${finalSmtpPort}. Using default 587.`
         );

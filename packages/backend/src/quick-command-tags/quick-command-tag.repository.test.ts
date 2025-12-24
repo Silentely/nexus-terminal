@@ -3,6 +3,18 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
+import {
+  findAllQuickCommandTags,
+  findQuickCommandTagById,
+  createQuickCommandTag,
+  updateQuickCommandTag,
+  deleteQuickCommandTag,
+  setCommandTagAssociations,
+  addTagToCommands,
+  findTagsByCommandId,
+} from './quick-command-tag.repository';
+
 // Mock 数据库连接
 const { mockPrepare } = vi.hoisted(() => {
   const mockPrepare = vi.fn().mockReturnValue({
@@ -20,18 +32,6 @@ vi.mock('../database/connection', () => ({
   getDb: vi.fn(),
   allDb: vi.fn().mockResolvedValue([]),
 }));
-
-import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
-import {
-  findAllQuickCommandTags,
-  findQuickCommandTagById,
-  createQuickCommandTag,
-  updateQuickCommandTag,
-  deleteQuickCommandTag,
-  setCommandTagAssociations,
-  addTagToCommands,
-  findTagsByCommandId,
-} from './quick-command-tag.repository';
 
 describe('Quick Command Tag Repository', () => {
   beforeEach(() => {
@@ -121,16 +121,14 @@ describe('Quick Command Tag Repository', () => {
     it('lastID 无效时应抛出异常', async () => {
       (runDb as any).mockResolvedValueOnce({ lastID: 0, changes: 0 });
 
-      await expect(createQuickCommandTag('Test')).rejects.toThrow(
-        '创建快捷指令标签后未能获取有效的 lastID'
-      );
+      await expect(createQuickCommandTag('Test')).rejects.toThrow('创建快捷指令标签失败');
     });
 
     it('名称重复时应抛出友好异常', async () => {
       (runDb as any).mockRejectedValueOnce(new Error('UNIQUE constraint failed'));
 
       await expect(createQuickCommandTag('Duplicate')).rejects.toThrow(
-        '快捷指令标签名称 "Duplicate" 已存在。'
+        '快捷指令标签名称 "Duplicate" 已存在'
       );
     });
 
@@ -164,7 +162,7 @@ describe('Quick Command Tag Repository', () => {
       (runDb as any).mockRejectedValueOnce(new Error('UNIQUE constraint failed'));
 
       await expect(updateQuickCommandTag(1, 'Duplicate')).rejects.toThrow(
-        '快捷指令标签名称 "Duplicate" 已存在。'
+        '快捷指令标签名称 "Duplicate" 已存在'
       );
     });
 

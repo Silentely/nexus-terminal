@@ -268,8 +268,8 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
     const endSuffix = parseInt(endIpParts[3], 10);
 
     if (
-      isNaN(startSuffix) ||
-      isNaN(endSuffix) ||
+      Number.isNaN(startSuffix) ||
+      Number.isNaN(endSuffix) ||
       startSuffix < 0 ||
       startSuffix > 255 ||
       endSuffix < 0 ||
@@ -314,8 +314,8 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
     note: string | null;
     error?: string;
   } => {
-    line = line.trim();
-    if (!line) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) {
       return {
         type: 'SSH',
         userHostPort: '',
@@ -330,9 +330,11 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
     }
 
     // 1. Extract user@host:port
-    const firstSpaceIndex = line.indexOf(' ');
-    const userHostPortPart = firstSpaceIndex === -1 ? line : line.substring(0, firstSpaceIndex);
-    const optionsString = firstSpaceIndex === -1 ? '' : line.substring(firstSpaceIndex + 1).trim();
+    const firstSpaceIndex = trimmedLine.indexOf(' ');
+    const userHostPortPart =
+      firstSpaceIndex === -1 ? trimmedLine : trimmedLine.substring(0, firstSpaceIndex);
+    const optionsString =
+      firstSpaceIndex === -1 ? '' : trimmedLine.substring(firstSpaceIndex + 1).trim();
 
     // 2. Validate user@host:port (allow user@host without port)
     const userHostPortRegex = /^([^@\s]+)@([^:\s]+)(?::([0-9]+))?$/;
@@ -589,7 +591,7 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
         allConnectionsValid = false;
         break;
       }
-      if (isNaN(port) || port <= 0 || port > 65535) {
+      if (Number.isNaN(port) || port <= 0 || port > 65535) {
         uiNotificationsStore.showError(
           t('connections.form.scriptErrorInvalidPort', {
             line,

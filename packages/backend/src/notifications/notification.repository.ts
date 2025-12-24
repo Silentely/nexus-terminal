@@ -98,7 +98,10 @@ export class NotificationSettingsRepository {
       const result = await runDb(db, sql, params);
       // Ensure lastID is valid before returning
       if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-        throw ErrorFactory.databaseError('创建通知设置后未能获取有效的 lastID', '创建通知设置后未能获取有效的 lastID');
+        throw ErrorFactory.databaseError(
+          '创建通知设置后未能获取有效的 lastID',
+          '创建通知设置后未能获取有效的 lastID'
+        );
       }
       return result.lastID;
     } catch (err: any) {

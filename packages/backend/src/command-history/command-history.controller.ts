@@ -5,7 +5,11 @@ import { ErrorFactory } from '../utils/AppError';
 /**
  * 处理添加新命令历史记录的请求
  */
-export const addCommand = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const addCommand = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { command } = req.body;
 
   if (!command || typeof command !== 'string' || command.trim().length === 0) {
@@ -25,7 +29,11 @@ export const addCommand = async (req: Request, res: Response, next: NextFunction
 /**
  * 处理获取所有命令历史记录的请求
  */
-export const getAllCommands = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllCommands = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const history = await CommandHistoryService.getAllCommandHistory();
     // 注意：前端要求最新在下，最旧在上。Repository 返回的是升序（旧->新），符合要求。
@@ -39,10 +47,14 @@ export const getAllCommands = async (req: Request, res: Response, next: NextFunc
 /**
  * 处理根据 ID 删除命令历史记录的请求
  */
-export const deleteCommand = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteCommand = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的 ID' });
     return;
   }
@@ -63,7 +75,11 @@ export const deleteCommand = async (req: Request, res: Response, next: NextFunct
 /**
  * 处理清空所有命令历史记录的请求
  */
-export const clearAllCommands = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const clearAllCommands = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const count = await CommandHistoryService.clearAllCommandHistory();
     res.status(200).json({ count, message: `已清空 ${count} 条命令历史记录` });

@@ -192,11 +192,11 @@ export class StatusMonitorService {
             let usedVal = parseInt(parts[2], 10);
 
             if (isBusyBox) {
-              if (!isNaN(totalVal)) totalVal = Math.round(totalVal / 1024);
-              if (!isNaN(usedVal)) usedVal = Math.round(usedVal / 1024);
+              if (!Number.isNaN(totalVal)) totalVal = Math.round(totalVal / 1024);
+              if (!Number.isNaN(usedVal)) usedVal = Math.round(usedVal / 1024);
             }
 
-            if (!isNaN(totalVal) && !isNaN(usedVal)) {
+            if (!Number.isNaN(totalVal) && !Number.isNaN(usedVal)) {
               status.memTotal = totalVal;
               status.memUsed = usedVal;
               status.memPercent =
@@ -211,11 +211,11 @@ export class StatusMonitorService {
             let usedVal = parseInt(parts[2], 10);
 
             if (isBusyBox) {
-              if (!isNaN(totalVal)) totalVal = Math.round(totalVal / 1024);
-              if (!isNaN(usedVal)) usedVal = Math.round(usedVal / 1024);
+              if (!Number.isNaN(totalVal)) totalVal = Math.round(totalVal / 1024);
+              if (!Number.isNaN(usedVal)) usedVal = Math.round(usedVal / 1024);
             }
 
-            if (!isNaN(totalVal) && !isNaN(usedVal)) {
+            if (!Number.isNaN(totalVal) && !Number.isNaN(usedVal)) {
               status.swapTotal = totalVal;
               status.swapUsed = usedVal;
               status.swapPercent =
@@ -263,7 +263,12 @@ export class StatusMonitorService {
 
                 if (percentStr) {
                   const percentMatch = percentStr.match(/(\d+)%/);
-                  if (!isNaN(total) && !isNaN(used) && percentMatch && percentMatch[1]) {
+                  if (
+                    !Number.isNaN(total) &&
+                    !Number.isNaN(used) &&
+                    percentMatch &&
+                    percentMatch[1]
+                  ) {
                     status.diskTotal = total; // KB
                     status.diskUsed = used; // KB
                     status.diskPercent = parseFloat(percentMatch[1]);
@@ -405,7 +410,7 @@ export class StatusMonitorService {
         const interfaceName = parts[0];
         const rx_bytes = parseInt(parts[1], 10);
         const tx_bytes = parseInt(parts[9], 10);
-        if (!isNaN(rx_bytes) && !isNaN(tx_bytes)) {
+        if (!Number.isNaN(rx_bytes) && !Number.isNaN(tx_bytes)) {
           stats[interfaceName] = { rx_bytes, tx_bytes };
         }
       }
@@ -509,7 +514,7 @@ export class StatusMonitorService {
       const fields = fieldsStr.map(Number); // Convert remaining fields to numbers
 
       // We need at least the first 4 fields (user, nice, system, idle)
-      if (fields.length < 4 || fields.slice(0, 4).some(isNaN)) {
+      if (fields.length < 4 || fields.slice(0, 4).some(Number.isNaN)) {
         // console.warn("Invalid format or missing required fields in 'cpu ' line:", cpuLine);
         return null;
       }
@@ -517,10 +522,10 @@ export class StatusMonitorService {
       const idle = fields[3]; // The 4th field (index 3) is idle time
 
       // Total time is the sum of all fields. Filter out NaN values just in case.
-      const total = fields.reduce((sum, value) => sum + (isNaN(value) ? 0 : value), 0);
+      const total = fields.reduce((sum, value) => sum + (Number.isNaN(value) ? 0 : value), 0);
 
       // Final check for NaN just to be safe
-      if (isNaN(total) || isNaN(idle)) {
+      if (Number.isNaN(total) || Number.isNaN(idle)) {
         // console.warn("NaN detected after parsing /proc/stat fields:", fields);
         return null;
       }

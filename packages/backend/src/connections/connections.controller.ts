@@ -9,7 +9,11 @@ import * as ConnectionRepository from './connection.repository';
 /**
  * 创建新连接 (POST /api/v1/connections)
  */
-export const createConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createConnection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const newConnection = await ConnectionService.createConnection(req.body);
     res.status(201).json({ message: '连接创建成功。', connection: newConnection });
@@ -26,7 +30,11 @@ export const createConnection = async (req: Request, res: Response, next: NextFu
 /**
  * 获取连接列表 (GET /api/v1/connections)
  */
-export const getConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getConnections = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connections = await ConnectionService.getAllConnections();
     res.status(200).json(connections);
@@ -39,10 +47,14 @@ export const getConnections = async (req: Request, res: Response, next: NextFunc
 /**
  * 获取单个连接信息 (GET /api/v1/connections/:id)
  */
-export const getConnectionById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getConnectionById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
-    if (isNaN(connectionId)) {
+    if (Number.isNaN(connectionId)) {
       res.status(400).json({ message: '无效的连接 ID。' });
       return;
     }
@@ -63,10 +75,14 @@ export const getConnectionById = async (req: Request, res: Response, next: NextF
 /**
  * 更新连接信息 (PUT /api/v1/connections/:id)
  */
-export const updateConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateConnection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
-    if (isNaN(connectionId)) {
+    if (Number.isNaN(connectionId)) {
       res.status(400).json({ message: '无效的连接 ID。' });
       return;
     }
@@ -91,10 +107,14 @@ export const updateConnection = async (req: Request, res: Response, next: NextFu
 /**
  * 删除连接 (DELETE /api/v1/connections/:id)
  */
-export const deleteConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteConnection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
-    if (isNaN(connectionId)) {
+    if (Number.isNaN(connectionId)) {
       res.status(400).json({ message: '无效的连接 ID。' });
       return;
     }
@@ -115,10 +135,14 @@ export const deleteConnection = async (req: Request, res: Response, next: NextFu
 /**
  * 测试连接 (POST /api/v1/connections/:id/test)
  */
-export const testConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const testConnection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
-    if (isNaN(connectionId)) {
+    if (Number.isNaN(connectionId)) {
       res.status(400).json({ message: '无效的连接 ID。' });
       return;
     }
@@ -136,7 +160,11 @@ export const testConnection = async (req: Request, res: Response, next: NextFunc
 /**
  * 测试未保存的连接信息 (POST /api/v1/connections/test-unsaved)
  */
-export const testUnsavedConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const testUnsavedConnection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     // 从请求体中提取连接信息 (添加 ssh_key_id)
     const {
@@ -196,16 +224,16 @@ export const testUnsavedConnection = async (req: Request, res: Response, next: N
     };
 
     // 验证 port 和 proxy_id 是否为有效数字
-    if (isNaN(connectionConfig.port)) {
+    if (Number.isNaN(connectionConfig.port)) {
       res.status(400).json({ success: false, message: '端口号必须是有效的数字。' });
       return;
     }
-    if (proxy_id && isNaN(connectionConfig.proxy_id as number)) {
+    if (proxy_id && Number.isNaN(connectionConfig.proxy_id as number)) {
       res.status(400).json({ success: false, message: '代理 ID 必须是有效的数字。' });
       return;
     }
     // 验证 ssh_key_id (如果提供了)
-    if (ssh_key_id && isNaN(connectionConfig.ssh_key_id as number)) {
+    if (ssh_key_id && Number.isNaN(connectionConfig.ssh_key_id as number)) {
       res.status(400).json({ success: false, message: 'SSH 密钥 ID 必须是有效的数字。' });
       return;
     }
@@ -225,7 +253,11 @@ export const testUnsavedConnection = async (req: Request, res: Response, next: N
 /**
  * 导出所有连接配置 (GET /api/v1/connections/export)
  */
-export const exportConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const exportConnections = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const exportedData = await ImportExportService.exportConnectionsAsEncryptedZip();
 
@@ -244,7 +276,11 @@ export const exportConnections = async (req: Request, res: Response, next: NextF
 /**
  * 导入连接配置 (POST /api/v1/connections/import)
  */
-export const importConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const importConnections = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ message: '未找到上传的文件 (需要名为 "connectionsFile" 的文件)。' });
     return;
@@ -283,10 +319,14 @@ export const importConnections = async (req: Request, res: Response, next: NextF
  * 获取 RDP 会话的 Guacamole 令牌 (通过调用 RDP 后端)
  * GET /api/v1/connections/:id/rdp-session
  */
-export const getRdpSessionToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getRdpSessionToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
-    if (isNaN(connectionId)) {
+    if (Number.isNaN(connectionId)) {
       res.status(400).json({ message: '无效的连接 ID。' });
       return;
     }
@@ -409,10 +449,14 @@ export const getRdpSessionToken = async (req: Request, res: Response, next: Next
  * 获取 VNC 会话的 Guacamole 令牌 (通过调用 Guacamole 服务)
  * GET /api/v1/connections/:id/vnc-session
  */
-export const getVncSessionToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getVncSessionToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
-    if (isNaN(connectionId)) {
+    if (Number.isNaN(connectionId)) {
       res.status(400).json({ message: '无效的连接 ID。' });
       return;
     }
@@ -522,12 +566,16 @@ export const getVncSessionToken = async (req: Request, res: Response, next: Next
 /**
  * 克隆连接 (POST /api/v1/connections/:id/clone)
  */
-export const cloneConnection = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const cloneConnection = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const originalConnectionId = parseInt(req.params.id, 10);
     const { name: newName } = req.body; // 从请求体获取新名称
 
-    if (isNaN(originalConnectionId)) {
+    if (Number.isNaN(originalConnectionId)) {
       res.status(400).json({ message: '无效的原始连接 ID。' });
       return;
     }
@@ -554,7 +602,11 @@ export const cloneConnection = async (req: Request, res: Response, next: NextFun
  * 为多个连接添加一个标签 (POST /api/v1/connections/add-tag)
  * 注意：我们改变了路由和方法 (POST)，并使用请求体传递所有信息，以避免嵌套事务。
  */
-export const addTagToConnections = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const addTagToConnections = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const { connection_ids, tag_id } = req.body;
 
@@ -590,12 +642,16 @@ export const addTagToConnections = async (req: Request, res: Response, next: Nex
  * 更新单个连接的标签 (PUT /api/v1/connections/:id/tags)
  * (保留此接口，但主要逻辑由 addTagToConnections 处理)
  */
-export const updateConnectionTags = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateConnectionTags = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
     const { tag_ids } = req.body;
 
-    if (isNaN(connectionId)) {
+    if (Number.isNaN(connectionId)) {
       res.status(400).json({ message: '无效的连接 ID。' });
       return;
     }

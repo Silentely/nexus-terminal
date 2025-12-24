@@ -23,7 +23,11 @@ const upload = multer({
 /**
  * 获取所有终端主题
  */
-export const getAllThemesController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllThemesController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const themes = await terminalThemeService.getAllThemes();
     res.status(200).json(themes);
@@ -35,10 +39,14 @@ export const getAllThemesController = async (req: Request, res: Response, next: 
 /**
  * 根据 ID 获取单个终端主题
  */
-export const getThemeByIdController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getThemeByIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       res.status(400).json({ message: '无效的主题 ID' });
       return;
     }
@@ -56,7 +64,11 @@ export const getThemeByIdController = async (req: Request, res: Response, next: 
 /**
  * 创建新终端主题
  */
-export const createThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createThemeController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const themeDto: CreateTerminalThemeDto = req.body;
     // 基本验证
@@ -79,10 +91,14 @@ export const createThemeController = async (req: Request, res: Response, next: N
 /**
  * 更新终端主题
  */
-export const updateThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateThemeController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       res.status(400).json({ message: '无效的主题 ID' });
       return;
     }
@@ -111,10 +127,14 @@ export const updateThemeController = async (req: Request, res: Response, next: N
 /**
  * 删除终端主题
  */
-export const deleteThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteThemeController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       res.status(400).json({ message: '无效的主题 ID' });
       return;
     }
@@ -133,7 +153,11 @@ export const deleteThemeController = async (req: Request, res: Response, next: N
 /**
  * 导入终端主题 (处理文件上传)
  */
-export const importThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const importThemeController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ message: '没有上传文件' });
     return;
@@ -178,10 +202,14 @@ export const importThemeController = async (req: Request, res: Response, next: N
 /**
  * 导出终端主题
  */
-export const exportThemeController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const exportThemeController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       res.status(400).json({ message: '无效的主题 ID' });
       return;
     }

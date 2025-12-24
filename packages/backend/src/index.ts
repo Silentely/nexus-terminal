@@ -355,7 +355,7 @@ const startServer = () => {
         customSiteTitle: '星枢终端 API 文档',
       })
     );
-    console.log('[Swagger] API 文档已启用: http://localhost:' + port + '/api-docs');
+    console.log(`[Swagger] API 文档已启用: http://localhost:${port}/api-docs`);
   } else {
     console.log('[Swagger] 生产环境已禁用 API 文档');
   }

@@ -35,7 +35,9 @@ export class DockerController {
       // 验证 command 是否是允许的类型
       const allowedCommands: DockerCommand[] = ['start', 'stop', 'restart', 'remove'];
       if (!command || !allowedCommands.includes(command)) {
-        throw ErrorFactory.validationError(`Invalid command. Must be one of: ${allowedCommands.join(', ')}.`);
+        throw ErrorFactory.validationError(
+          `Invalid command. Must be one of: ${allowedCommands.join(', ')}.`
+        );
       }
 
       // 调用服务执行命令

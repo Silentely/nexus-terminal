@@ -141,11 +141,11 @@ export const assignTagToCommands = async (commandIds: number[], tagId: number): 
     // 基本验证
     if (
       !Array.isArray(commandIds) ||
-      commandIds.some((id) => typeof id !== 'number' || isNaN(id))
+      commandIds.some((id) => typeof id !== 'number' || Number.isNaN(id))
     ) {
       throw new Error('无效的指令 ID 列表');
     }
-    if (typeof tagId !== 'number' || isNaN(tagId)) {
+    if (typeof tagId !== 'number' || Number.isNaN(tagId)) {
       throw new Error('无效的标签 ID');
     }
 

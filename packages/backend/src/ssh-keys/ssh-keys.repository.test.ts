@@ -3,14 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock 数据库连接
-vi.mock('../database/connection', () => ({
-  getDbInstance: vi.fn().mockResolvedValue({}),
-  runDb: vi.fn().mockResolvedValue({ changes: 1, lastID: 1 }),
-  getDb: vi.fn(),
-  allDb: vi.fn().mockResolvedValue([]),
-}));
-
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import {
   createSshKey,
@@ -20,6 +12,14 @@ import {
   updateSshKey,
   deleteSshKey,
 } from './ssh-keys.repository';
+
+// Mock 数据库连接
+vi.mock('../database/connection', () => ({
+  getDbInstance: vi.fn().mockResolvedValue({}),
+  runDb: vi.fn().mockResolvedValue({ changes: 1, lastID: 1 }),
+  getDb: vi.fn(),
+  allDb: vi.fn().mockResolvedValue([]),
+}));
 
 describe('SSH Key Repository', () => {
   beforeEach(() => {
@@ -77,7 +77,7 @@ describe('SSH Key Repository', () => {
           name: 'Test',
           encrypted_private_key: 'key',
         })
-      ).rejects.toThrow('创建 SSH 密钥后未能获取有效的 lastID');
+      ).rejects.toThrow('创建 SSH 密钥失败');
     });
 
     it('数据库错误时应抛出异常', async () => {

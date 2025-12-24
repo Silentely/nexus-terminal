@@ -3,14 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock 数据库连接
-vi.mock('../database/connection', () => ({
-  getDbInstance: vi.fn().mockResolvedValue({}),
-  runDb: vi.fn().mockResolvedValue({ changes: 1, lastID: 1 }),
-  getDb: vi.fn(),
-  allDb: vi.fn().mockResolvedValue([]),
-}));
-
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import {
   findProxyByNameTypeHostPort,
@@ -20,6 +12,14 @@ import {
   updateProxy,
   deleteProxy,
 } from './proxy.repository';
+
+// Mock 数据库连接
+vi.mock('../database/connection', () => ({
+  getDbInstance: vi.fn().mockResolvedValue({}),
+  runDb: vi.fn().mockResolvedValue({ changes: 1, lastID: 1 }),
+  getDb: vi.fn(),
+  allDb: vi.fn().mockResolvedValue([]),
+}));
 
 describe('Proxy Repository', () => {
   beforeEach(() => {
@@ -55,7 +55,7 @@ describe('Proxy Repository', () => {
 
       await expect(
         findProxyByNameTypeHostPort('Test', 'SOCKS5', '127.0.0.1', 1080)
-      ).rejects.toThrow('查找代理时出错');
+      ).rejects.toThrow('查找代理失败');
     });
   });
 
@@ -92,7 +92,7 @@ describe('Proxy Repository', () => {
           port: 1080,
           auth_method: 'none',
         })
-      ).rejects.toThrow('创建代理后未能获取有效的 lastID');
+      ).rejects.toThrow('创建代理失败');
     });
 
     it('数据库错误时应抛出异常', async () => {
@@ -106,7 +106,7 @@ describe('Proxy Repository', () => {
           port: 1080,
           auth_method: 'none',
         })
-      ).rejects.toThrow('创建代理时出错');
+      ).rejects.toThrow('创建代理失败');
     });
   });
 

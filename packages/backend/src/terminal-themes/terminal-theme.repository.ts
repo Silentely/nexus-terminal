@@ -41,7 +41,10 @@ const mapRowToTerminalTheme = (row: DbTerminalThemeRow): TerminalTheme => {
   // Basic check if row exists and has id property
   if (!row || typeof row.id === 'undefined') {
     console.error('mapRowToTerminalTheme received invalid row:', row);
-    throw ErrorFactory.databaseError('Invalid database row provided to mapRowToTerminalTheme', 'Invalid database row provided to mapRowToTerminalTheme');
+    throw ErrorFactory.databaseError(
+      'Invalid database row provided to mapRowToTerminalTheme',
+      'Invalid database row provided to mapRowToTerminalTheme'
+    );
   }
   try {
     return {
@@ -119,7 +122,7 @@ export const findAllThemes = async (): Promise<TerminalTheme[]> => {
  * @returns Promise<TerminalTheme | null>
  */
 export const findThemeById = async (id: number): Promise<TerminalTheme | null> => {
-  if (isNaN(id) || id <= 0) {
+  if (Number.isNaN(id) || id <= 0) {
     console.error('findThemeById called with invalid ID:', id);
     return null;
   }
@@ -209,7 +212,10 @@ export const createTheme = async (themeDto: CreateTerminalThemeDto): Promise<Ter
     const db = await getDbInstance();
     const result = await runDb(db, sql, values);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw ErrorFactory.databaseError('创建主题后未能获取有效的 lastID', '创建主题后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError(
+        '创建主题后未能获取有效的 lastID',
+        '创建主题后未能获取有效的 lastID'
+      );
     }
     const newTheme = await findThemeById(result.lastID);
     if (newTheme) {
@@ -222,7 +228,10 @@ export const createTheme = async (themeDto: CreateTerminalThemeDto): Promise<Ter
   } catch (err: any) {
     console.error('创建新终端主题失败:', err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw ErrorFactory.validationError(`主题名称 "${themeDto.name}" 已存在`, `field: name, value: ${themeDto.name}`);
+      throw ErrorFactory.validationError(
+        `主题名称 "${themeDto.name}" 已存在`,
+        `field: name, value: ${themeDto.name}`
+      );
     } else {
       throw ErrorFactory.databaseError('创建终端主题失败', `创建终端主题失败: ${err.message}`);
     }
@@ -308,7 +317,10 @@ export const updateTheme = async (
   } catch (err: any) {
     console.error(`更新 ID 为 ${id} 的终端主题失败:`, err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw ErrorFactory.validationError(`主题名称 "${themeDto.name}" 已存在`, `field: name, value: ${themeDto.name}`);
+      throw ErrorFactory.validationError(
+        `主题名称 "${themeDto.name}" 已存在`,
+        `field: name, value: ${themeDto.name}`
+      );
     } else {
       throw ErrorFactory.databaseError('更新终端主题失败', `更新终端主题失败: ${err.message}`);
     }

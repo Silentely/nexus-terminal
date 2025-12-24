@@ -85,10 +85,7 @@ export const generatePasskeyRegistrationOptionsHandler = async (
     console.log(`[AuthController] Generated Passkey registration options for user ${username}`);
     res.json(options);
   } catch (error) {
-    console.error(
-      `[AuthController] 生成 Passkey 注册选项时出错 (用户: ${username}):`,
-      error
-    );
+    console.error(`[AuthController] 生成 Passkey 注册选项时出错 (用户: ${username}):`, error);
     next(error);
   }
 };
@@ -163,10 +160,7 @@ export const verifyPasskeyRegistrationHandler = async (
       });
     }
   } catch (error) {
-    console.error(
-      `[AuthController] 验证 Passkey 注册时出错 (用户: ${userHandle}):`,
-      error
-    );
+    console.error(`[AuthController] 验证 Passkey 注册时出错 (用户: ${userHandle}):`, error);
     next(error);
   }
 };
@@ -341,7 +335,11 @@ export const verifyPasskeyAuthenticationHandler = async (
 /**
  * 获取当前认证用户的所有 Passkey (GET /api/v1/user/passkeys)
  */
-export const listUserPasskeysHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const listUserPasskeysHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
 
@@ -368,7 +366,11 @@ export const listUserPasskeysHandler = async (req: Request, res: Response, next:
 /**
  * 删除当前认证用户指定的 Passkey (DELETE /api/v1/user/passkeys/:credentialID)
  */
-export const deleteUserPasskeyHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteUserPasskeyHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
   const { credentialID } = req.params;
@@ -431,7 +433,11 @@ export const deleteUserPasskeyHandler = async (req: Request, res: Response, next
 /**
  * 更新当前认证用户指定的 Passkey 名称 (PUT /api/v1/user/passkeys/:credentialID/name)
  */
-export const updateUserPasskeyNameHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateUserPasskeyNameHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
   const { credentialID } = req.params;
@@ -657,7 +663,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 /**
  * 获取当前用户的认证状态 (GET /api/v1/auth/status)
  */
-export const getAuthStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAuthStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
 
@@ -695,7 +705,11 @@ export const getAuthStatus = async (req: Request, res: Response, next: NextFunct
 /**
  * 处理登录时的 2FA 验证 (POST /api/v1/auth/login/2fa)
  */
-export const verifyLogin2FA = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const verifyLogin2FA = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { token, tempToken } = req.body; // +++ Accept tempToken from frontend
   const pendingAuth = req.session.pendingAuth as PendingAuth | undefined;
 
@@ -816,7 +830,11 @@ export const verifyLogin2FA = async (req: Request, res: Response, next: NextFunc
 /**
  * 处理修改密码请求 (PUT /api/v1/auth/password)
  */
-export const changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const changePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { currentPassword, newPassword } = req.body;
   const { userId } = req.session;
 
@@ -940,7 +958,11 @@ export const setup2FA = async (req: Request, res: Response, next: NextFunction):
 /**
  * 验证并激活 2FA (POST /api/v1/auth/2fa/verify)
  */
-export const verifyAndActivate2FA = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const verifyAndActivate2FA = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { token } = req.body;
   const { userId } = req.session;
   const tempSecret = req.session.tempTwoFactorSecret;
@@ -1003,7 +1025,11 @@ export const verifyAndActivate2FA = async (req: Request, res: Response, next: Ne
 /**
  * 禁用 2FA (DELETE /api/v1/auth/2fa)
  */
-export const disable2FA = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const disable2FA = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { userId } = req.session;
   const { password } = req.body;
 
@@ -1061,7 +1087,11 @@ export const disable2FA = async (req: Request, res: Response, next: NextFunction
  * 检查是否需要进行初始设置 (GET /api/v1/auth/needs-setup)
  * 如果数据库中没有用户，则需要设置。
  */
-export const needsSetup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const needsSetup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const db = await getDbInstance();
     const row = await getDb<{ count: number }>(db, 'SELECT COUNT(*) as count FROM users');
@@ -1077,7 +1107,11 @@ export const needsSetup = async (req: Request, res: Response, next: NextFunction
 /**
  * 处理初始账号设置请求 (POST /api/v1/auth/setup)
  */
-export const setupAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const setupAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { username, password, confirmPassword } = req.body;
 
   if (!username || !password || !confirmPassword) {
@@ -1170,7 +1204,11 @@ export const logout = (req: Request, res: Response): void => {
  * 获取公共 CAPTCHA 配置 (GET /api/v1/auth/captcha/config)
  * 返回给前端用于显示 CAPTCHA 小部件所需的信息 (不含密钥)。
  */
-export const getPublicCaptchaConfig = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getPublicCaptchaConfig = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     console.log('[AuthController] Received request for public CAPTCHA config.');
     const fullConfig = await settingsService.getCaptchaConfig();
@@ -1195,7 +1233,11 @@ export const getPublicCaptchaConfig = async (req: Request, res: Response, next: 
  * 或者特定用户是否配置了 Passkey (GET /api/v1/auth/passkey/has-configured?username=xxx)
  * 公开访问，用于登录页面判断是否显示 Passkey 登录按钮。
  */
-export const checkHasPasskeys = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const checkHasPasskeys = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const username = req.query.username as string | undefined;
   try {
     const hasPasskeys = await passkeyService.hasPasskeysConfigured(username);

@@ -143,7 +143,7 @@ export function usePasskeyManagement() {
     if (!dateInput) return t('statusMonitor.notAvailable', 'N/A');
     try {
       const date = new Date(typeof dateInput === 'number' ? dateInput * 1000 : dateInput);
-      return !isNaN(date.getTime())
+      return !Number.isNaN(date.getTime())
         ? date.toLocaleString()
         : t('statusMonitor.notAvailable', 'N/A');
     } catch (e) {

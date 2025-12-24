@@ -6,7 +6,11 @@ import { ErrorFactory } from '../utils/AppError';
 /**
  * 获取所有 SSH 密钥的名称列表 (GET /api/v1/ssh-keys)
  */
-export const getSshKeyNames = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getSshKeyNames = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const keys = await SshKeyService.getAllSshKeyNames();
     res.status(200).json(keys);
@@ -19,7 +23,11 @@ export const getSshKeyNames = async (req: Request, res: Response, next: NextFunc
 /**
  * 创建新的 SSH 密钥 (POST /api/v1/ssh-keys)
  */
-export const createSshKey = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createSshKey = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const input: CreateSshKeyInput = req.body;
     // 基本验证，更详细的验证在 Service 层
@@ -44,10 +52,14 @@ export const createSshKey = async (req: Request, res: Response, next: NextFuncti
  * 获取单个 SSH 密钥的详细信息 (包含解密后的凭证) - 谨慎使用，可能主要用于编辑回显
  * (GET /api/v1/ssh-keys/:id/details) - 使用不同的路径以示区分
  */
-export const getDecryptedSshKey = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getDecryptedSshKey = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const keyId = parseInt(req.params.id, 10);
-    if (isNaN(keyId)) {
+    if (Number.isNaN(keyId)) {
       res.status(400).json({ message: '无效的密钥 ID。' });
       return;
     }
@@ -67,10 +79,14 @@ export const getDecryptedSshKey = async (req: Request, res: Response, next: Next
 /**
  * 更新 SSH 密钥 (PUT /api/v1/ssh-keys/:id)
  */
-export const updateSshKey = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateSshKey = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const keyId = parseInt(req.params.id, 10);
-    if (isNaN(keyId)) {
+    if (Number.isNaN(keyId)) {
       res.status(400).json({ message: '无效的密钥 ID。' });
       return;
     }
@@ -101,10 +117,14 @@ export const updateSshKey = async (req: Request, res: Response, next: NextFuncti
 /**
  * 删除 SSH 密钥 (DELETE /api/v1/ssh-keys/:id)
  */
-export const deleteSshKey = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteSshKey = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const keyId = parseInt(req.params.id, 10);
-    if (isNaN(keyId)) {
+    if (Number.isNaN(keyId)) {
       res.status(400).json({ message: '无效的密钥 ID。' });
       return;
     }

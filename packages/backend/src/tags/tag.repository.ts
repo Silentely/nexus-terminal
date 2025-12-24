@@ -1,5 +1,5 @@
 import { Database, Statement } from 'sqlite3';
-import { ErrorFactory } from '../utils/AppError';
+import { AppError, ErrorFactory } from '../utils/AppError';
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
 
 // 定义 Tag 类型 (可以共享到 types 文件)
@@ -48,13 +48,23 @@ export const createTag = async (name: string): Promise<number> => {
     const db = await getDbInstance();
     const result = await runDb(db, sql, [name, now, now]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw ErrorFactory.databaseError('创建标签后未能获取有效的 lastID', '创建标签后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError(
+        '创建标签后未能获取有效的 lastID',
+        '创建标签后未能获取有效的 lastID'
+      );
     }
     return result.lastID;
   } catch (err: any) {
     console.error('[仓库] 创建标签时出错:', err.message);
+    // 如果已经是 AppError（我们自己抛出的），直接重新抛出
+    if (err instanceof AppError) {
+      throw err;
+    }
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw ErrorFactory.validationError(`标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
+      throw ErrorFactory.validationError(
+        `标签名称 "${name}" 已存在`,
+        `field: name, value: ${name}`
+      );
     }
     throw ErrorFactory.databaseError('创建标签失败', `创建标签失败: ${err.message}`);
   }
@@ -73,7 +83,10 @@ export const updateTag = async (id: number, name: string): Promise<boolean> => {
   } catch (err: any) {
     console.error(`[仓库] 更新标签 ${id} 时出错:`, err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw ErrorFactory.validationError(`标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
+      throw ErrorFactory.validationError(
+        `标签名称 "${name}" 已存在`,
+        `field: name, value: ${name}`
+      );
     }
     throw ErrorFactory.databaseError('更新标签失败', `更新标签失败: ${err.message}`);
   }

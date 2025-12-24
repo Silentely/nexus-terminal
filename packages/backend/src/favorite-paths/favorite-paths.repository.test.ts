@@ -1,12 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../database/connection', () => ({
-  getDbInstance: vi.fn().mockResolvedValue({}),
-  runDb: vi.fn(),
-  getDb: vi.fn(),
-  allDb: vi.fn(),
-}));
-
 import { runDb, getDb, allDb } from '../database/connection';
 import {
   addFavoritePath,
@@ -16,6 +9,13 @@ import {
   updateFavoritePathLastUsedAt,
   findFavoritePathById,
 } from './favorite-paths.repository';
+
+vi.mock('../database/connection', () => ({
+  getDbInstance: vi.fn().mockResolvedValue({}),
+  runDb: vi.fn(),
+  getDb: vi.fn(),
+  allDb: vi.fn(),
+}));
 
 describe('favorite-paths.repository', () => {
   beforeEach(() => {

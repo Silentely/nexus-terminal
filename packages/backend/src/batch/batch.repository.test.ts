@@ -5,6 +5,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as batchRepository from './batch.repository';
 import type { BatchTask, BatchSubTask, BatchExecPayload } from './batch.types';
 
+import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
+
 // Mock 数据库连接
 vi.mock('../database/connection', () => ({
   getDbInstance: vi.fn().mockResolvedValue({}),
@@ -12,8 +14,6 @@ vi.mock('../database/connection', () => ({
   getDb: vi.fn(),
   allDb: vi.fn().mockResolvedValue([]),
 }));
-
-import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 
 describe('Batch Repository', () => {
   const mockPayload: BatchExecPayload = {

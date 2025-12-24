@@ -38,7 +38,11 @@ export const getStats = async (req: Request, res: Response, next: NextFunction):
 /**
  * 获取资产健康状态
  */
-export const getAssetHealth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAssetHealth = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const health = await Service.getAssetHealth();
     res.status(200).json(health);
@@ -51,7 +55,11 @@ export const getAssetHealth = async (req: Request, res: Response, next: NextFunc
 /**
  * 获取活动时间线
  */
-export const getTimeline = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getTimeline = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const limit = parseInt(req.query.limit as string, 10) || 20;
     const { start, end } = req.query;
@@ -76,7 +84,11 @@ export const getTimeline = async (req: Request, res: Response, next: NextFunctio
 /**
  * 获取存储统计
  */
-export const getStorage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getStorage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const stats = await Service.getStorageStats();
     res.status(200).json({
@@ -97,7 +109,11 @@ export const getStorage = async (req: Request, res: Response, next: NextFunction
 /**
  * 获取系统资源使用情况
  */
-export const getSystemResources = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getSystemResources = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const resources = await Service.getSystemResources();
     res.status(200).json({

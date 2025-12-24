@@ -3,15 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock Terminal Theme Repository
-vi.mock('./terminal-theme.repository', () => ({
-  findAllThemes: vi.fn(),
-  findThemeById: vi.fn(),
-  createTheme: vi.fn(),
-  updateTheme: vi.fn(),
-  deleteTheme: vi.fn(),
-}));
-
 import * as terminalThemeRepository from './terminal-theme.repository';
 import {
   getAllThemes,
@@ -21,6 +12,15 @@ import {
   deleteExistingTheme,
   importTheme,
 } from './terminal-theme.service';
+
+// Mock Terminal Theme Repository
+vi.mock('./terminal-theme.repository', () => ({
+  findAllThemes: vi.fn(),
+  findThemeById: vi.fn(),
+  createTheme: vi.fn(),
+  updateTheme: vi.fn(),
+  deleteTheme: vi.fn(),
+}));
 
 describe('Terminal Theme Service', () => {
   beforeEach(() => {

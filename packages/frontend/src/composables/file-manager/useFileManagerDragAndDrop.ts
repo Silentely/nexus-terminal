@@ -167,18 +167,21 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
   };
 
   // --- 递归遍历文件树的辅助函数 ---
-  const traverseFileTree = (item: FileSystemEntry, path = '') => {
-    path = path || '';
+  const traverseFileTree = (item: FileSystemEntry, basePath = '') => {
+    const currentPath = basePath || '';
     if (item.isFile) {
       // 文件处理
       (item as FileSystemFileEntry).file(
         (file) => {
           // 调用上传函数，传递文件和相对路径
-          console.log(`[DragDrop] Uploading file: ${path}${file.name}`);
-          onFileUpload(file, path); // 传递相对路径
+          console.log(`[DragDrop] Uploading file: ${currentPath}${file.name}`);
+          onFileUpload(file, currentPath); // 传递相对路径
         },
         (err) => {
-          console.error(`[DragDrop] Error getting file from entry: ${path}${item.name}`, err);
+          console.error(
+            `[DragDrop] Error getting file from entry: ${currentPath}${item.name}`,
+            err
+          );
         }
       );
     } else if (item.isDirectory) {
@@ -187,15 +190,18 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
       dirReader.readEntries(
         (entries) => {
           console.log(
-            `[DragDrop] Traversing directory: ${path}${item.name}, found ${entries.length} entries.`
+            `[DragDrop] Traversing directory: ${currentPath}${item.name}, found ${entries.length} entries.`
           );
           // 递归遍历目录中的每个条目
           entries.forEach((entry) => {
-            traverseFileTree(entry, `${path + item.name}/`); // 更新相对路径
+            traverseFileTree(entry, `${currentPath + item.name}/`); // 更新相对路径
           });
         },
         (err) => {
-          console.error(`[DragDrop] Error reading directory entries: ${path}${item.name}`, err);
+          console.error(
+            `[DragDrop] Error reading directory entries: ${currentPath}${item.name}`,
+            err
+          );
         }
       );
     }

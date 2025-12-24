@@ -3,6 +3,20 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { getDb, allDb } from '../database/connection';
+import * as AIRepository from './ai.repository';
+import { clientStates, userSockets } from '../websocket/state';
+import {
+  getOrCreateSession,
+  processQuery,
+  getSystemHealthSummary,
+  analyzeCommandPatterns,
+  getUserSessions,
+  getSessionDetails,
+  deleteSession,
+  cleanupUserSessions,
+} from './ai.service';
+
 // Mock uuid
 vi.mock('uuid', () => ({
   v4: vi.fn(() => 'mock-uuid-1234'),
@@ -33,20 +47,6 @@ vi.mock('../websocket/state', () => ({
   clientStates: new Map(),
   userSockets: new Map(),
 }));
-
-import { getDb, allDb } from '../database/connection';
-import * as AIRepository from './ai.repository';
-import { clientStates, userSockets } from '../websocket/state';
-import {
-  getOrCreateSession,
-  processQuery,
-  getSystemHealthSummary,
-  analyzeCommandPatterns,
-  getUserSessions,
-  getSessionDetails,
-  deleteSession,
-  cleanupUserSessions,
-} from './ai.service';
 
 describe('AI Service', () => {
   beforeEach(() => {

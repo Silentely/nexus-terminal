@@ -3,15 +3,15 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { getDbInstance, getDb, allDb } from '../database/connection';
+import { UserRepository, userRepository, User } from './user.repository';
+
 // Mock 数据库连接
 vi.mock('../database/connection', () => ({
   getDbInstance: vi.fn().mockResolvedValue({}),
   getDb: vi.fn(),
   allDb: vi.fn().mockResolvedValue([]),
 }));
-
-import { getDbInstance, getDb, allDb } from '../database/connection';
-import { UserRepository, userRepository, User } from './user.repository';
 
 describe('UserRepository', () => {
   let repository: UserRepository;

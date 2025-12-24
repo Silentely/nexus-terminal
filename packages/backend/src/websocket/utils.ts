@@ -48,7 +48,7 @@ export function parsePortsString(portsString: string | undefined | null): PortIn
       }
     }
 
-    if (!isNaN(privatePort)) {
+    if (!Number.isNaN(privatePort)) {
       ports.push({
         IP: ip,
         PrivatePort: privatePort,

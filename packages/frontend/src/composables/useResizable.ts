@@ -153,8 +153,8 @@ export function useResizable(
       const parsedHeight = parseFloat(computedStyle.height);
 
       // Fallback to minWidth/minHeight if parsing results in NaN, or ensure value is at least minWidth/minHeight
-      width.value = isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
-      height.value = isNaN(parsedHeight) ? minHeight : Math.max(minHeight, parsedHeight);
+      width.value = Number.isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
+      height.value = Number.isNaN(parsedHeight) ? minHeight : Math.max(minHeight, parsedHeight);
 
       el.addEventListener('mousedown', handleMouseDown);
       el.addEventListener('mousemove', handleElementHover); // For cursor changes
@@ -194,8 +194,8 @@ export function useResizable(
       const parsedHeight = parseFloat(computedStyle.height);
 
       // Fallback to minWidth/minHeight if parsing results in NaN, or ensure value is at least minWidth/minHeight
-      width.value = isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
-      height.value = isNaN(parsedHeight) ? minHeight : Math.max(minHeight, parsedHeight);
+      width.value = Number.isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
+      height.value = Number.isNaN(parsedHeight) ? minHeight : Math.max(minHeight, parsedHeight);
 
       newEl.addEventListener('mousedown', handleMouseDown);
       newEl.addEventListener('mousemove', handleElementHover);

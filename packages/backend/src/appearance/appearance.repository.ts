@@ -40,7 +40,7 @@ const mapRowsToAppearanceSettings = (rows: DbAppearanceSettingsRow[]): Appearanc
         break;
       case 'activeTerminalThemeId':
         const parsedId = parseInt(row.value, 10);
-        settings.activeTerminalThemeId = isNaN(parsedId) ? null : parsedId;
+        settings.activeTerminalThemeId = Number.isNaN(parsedId) ? null : parsedId;
         break;
       case 'terminalFontFamily':
         settings.terminalFontFamily = row.value;
@@ -261,7 +261,10 @@ export const ensureDefaultSettingsExist = async (db: sqlite3.Database): Promise<
     await findAndSetDefaultThemeIdIfNull(db);
   } catch (err: any) {
     console.error(`[AppearanceRepo] 检查或插入默认外观设置键值对时出错:`, err.message);
-    throw ErrorFactory.databaseError('初始化外观设置失败', `检查或插入默认外观设置失败: ${err.message}`);
+    throw ErrorFactory.databaseError(
+      '初始化外观设置失败',
+      `检查或插入默认外观设置失败: ${err.message}`
+    );
   }
 };
 

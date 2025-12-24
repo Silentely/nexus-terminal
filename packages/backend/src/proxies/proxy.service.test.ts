@@ -3,6 +3,16 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import * as ProxyRepository from './proxy.repository';
+import { encrypt, decrypt } from '../utils/crypto';
+import {
+  getAllProxies,
+  getProxyById,
+  createProxy,
+  updateProxy,
+  deleteProxy,
+} from './proxy.service';
+
 // Mock Proxy Repository
 vi.mock('./proxy.repository', () => ({
   findAllProxies: vi.fn(),
@@ -17,16 +27,6 @@ vi.mock('../utils/crypto', () => ({
   encrypt: vi.fn((value: string) => `encrypted_${value}`),
   decrypt: vi.fn((value: string) => value.replace('encrypted_', '')),
 }));
-
-import * as ProxyRepository from './proxy.repository';
-import { encrypt, decrypt } from '../utils/crypto';
-import {
-  getAllProxies,
-  getProxyById,
-  createProxy,
-  updateProxy,
-  deleteProxy,
-} from './proxy.service';
 
 describe('Proxy Service', () => {
   beforeEach(() => {

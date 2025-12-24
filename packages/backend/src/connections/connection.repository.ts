@@ -87,7 +87,7 @@ export const findAllConnectionsWithTags = async (): Promise<ConnectionWithTags[]
           ? row.tag_ids_str
               .split(',')
               .map(Number)
-              .filter((id) => !isNaN(id))
+              .filter((id) => !Number.isNaN(id))
           : [],
         jump_chain: jumpChainStr ? (JSON.parse(jumpChainStr) as number[]) : null,
       } as ConnectionWithTags;
@@ -124,7 +124,7 @@ export const findConnectionByIdWithTags = async (
           ? row.tag_ids_str
               .split(',')
               .map(Number)
-              .filter((id) => !isNaN(id))
+              .filter((id) => !Number.isNaN(id))
           : [],
         jump_chain: jumpChainStr ? (JSON.parse(jumpChainStr) as number[]) : null,
       } as ConnectionWithTags;
@@ -527,14 +527,8 @@ export const addTagToMultipleConnections = async (
     try {
       await runDb(db, 'ROLLBACK');
     } catch (rollbackErr: any) {
-      console.error(
-        `Repository: 回滚为多个连接添加标签 ${tagId} 的事务失败:`,
-        rollbackErr.message
-      );
+      console.error(`Repository: 回滚为多个连接添加标签 ${tagId} 的事务失败:`, rollbackErr.message);
     }
-    throw ErrorFactory.databaseError(
-      '批量关联标签失败',
-      `为多个连接添加标签失败: ${err.message}`
-    );
+    throw ErrorFactory.databaseError('批量关联标签失败', `为多个连接添加标签失败: ${err.message}`);
   }
 };

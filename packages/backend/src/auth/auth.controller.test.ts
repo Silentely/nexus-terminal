@@ -6,6 +6,13 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Request, Response } from 'express';
 import * as authController from './auth.controller';
 
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import speakeasy from 'speakeasy';
+import { getDb } from '../database/connection';
+import { passkeyService } from '../passkey/passkey.service';
+import { userRepository } from '../user/user.repository';
+
 // Mock dependencies
 vi.mock('../database/connection', () => ({
   getDbInstance: vi.fn(),
@@ -72,13 +79,6 @@ vi.mock('../user/user.repository', () => ({
   },
 }));
 
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import speakeasy from 'speakeasy';
-import { getDb } from '../database/connection';
-import { passkeyService } from '../passkey/passkey.service';
-import { userRepository } from '../user/user.repository';
-
 describe('Auth Controller - Security Fixes', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -121,7 +121,8 @@ describe('Auth Controller - Security Fixes', () => {
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    // 注意：不要使用 vi.resetAllMocks()，它会清除 mock 函数的实现
+    // vi.clearAllMocks() 已在 beforeEach 中执行，用于清除调用记录
   });
 
   /**

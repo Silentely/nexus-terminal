@@ -58,7 +58,7 @@ export async function handleSshConnect(
     ws.sessionId = newSessionId; // Assign new sessionId to the WebSocket
 
     const dbConnectionIdAsNumber = parseInt(dbConnectionId, 10);
-    if (isNaN(dbConnectionIdAsNumber)) {
+    if (Number.isNaN(dbConnectionIdAsNumber)) {
       console.error(
         `WebSocket: 无效的 dbConnectionId '${dbConnectionId}' (非数字)，无法创建会话 ${newSessionId}。`
       );

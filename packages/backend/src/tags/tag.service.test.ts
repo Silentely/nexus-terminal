@@ -3,16 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock Tag Repository
-vi.mock('./tag.repository', () => ({
-  findAllTags: vi.fn(),
-  findTagById: vi.fn(),
-  createTag: vi.fn(),
-  updateTag: vi.fn(),
-  deleteTag: vi.fn(),
-  updateTagConnections: vi.fn(),
-}));
-
 import * as TagRepository from './tag.repository';
 import {
   getAllTags,
@@ -22,6 +12,16 @@ import {
   deleteTag,
   updateTagConnections,
 } from './tag.service';
+
+// Mock Tag Repository
+vi.mock('./tag.repository', () => ({
+  findAllTags: vi.fn(),
+  findTagById: vi.fn(),
+  createTag: vi.fn(),
+  updateTag: vi.fn(),
+  deleteTag: vi.fn(),
+  updateTagConnections: vi.fn(),
+}));
 
 describe('Tag Service', () => {
   beforeEach(() => {

@@ -108,7 +108,7 @@ export function useSystemSettings() {
     statusMonitorSuccess.value = false;
     try {
       const intervalValue = statusMonitorIntervalLocal.value;
-      if (isNaN(intervalValue) || intervalValue < 1 || !Number.isInteger(intervalValue)) {
+      if (Number.isNaN(intervalValue) || intervalValue < 1 || !Number.isInteger(intervalValue)) {
         throw new Error(t('settings.statusMonitor.error.invalidInterval'));
       }
       await settingsStore.updateSetting('statusMonitorIntervalSeconds', String(intervalValue));
@@ -136,7 +136,7 @@ export function useSystemSettings() {
     dockerSettingsSuccess.value = false;
     try {
       const intervalValue = dockerInterval.value;
-      if (isNaN(intervalValue) || intervalValue < 1) {
+      if (Number.isNaN(intervalValue) || intervalValue < 1) {
         throw new Error(t('settings.docker.error.invalidInterval'));
       }
       await settingsStore.updateMultipleSettings({

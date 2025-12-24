@@ -29,7 +29,7 @@ export function useAuditSettings() {
     auditLogMaxEntriesSuccess.value = false;
     try {
       const { value } = auditLogMaxEntries;
-      if (isNaN(value) || value < 100 || !Number.isInteger(value)) {
+      if (Number.isNaN(value) || value < 100 || !Number.isInteger(value)) {
         throw new Error(t('settings.auditLog.error.invalidMaxEntries', '请输入大于等于100的整数'));
       }
       const response = await apiClient.put('/settings/audit-log-max-entries', {

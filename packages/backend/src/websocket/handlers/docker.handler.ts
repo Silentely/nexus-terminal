@@ -567,7 +567,7 @@ export async function startDockerStatusPolling(sessionId: string): Promise<void>
     const intervalSetting = await settingsService.getSetting('dockerStatusIntervalSeconds');
     if (intervalSetting) {
       const intervalSeconds = parseInt(intervalSetting, 10);
-      if (!isNaN(intervalSeconds) && intervalSeconds >= 1) {
+      if (!Number.isNaN(intervalSeconds) && intervalSeconds >= 1) {
         dockerPollIntervalMs = intervalSeconds * 1000;
         console.log(
           `[Docker Polling] Using interval from settings: ${intervalSeconds}s (${dockerPollIntervalMs}ms) for session ${sessionId}`

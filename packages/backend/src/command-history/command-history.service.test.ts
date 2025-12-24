@@ -3,14 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock Command History Repository
-vi.mock('./command-history.repository', () => ({
-  upsertCommand: vi.fn(),
-  getAllCommands: vi.fn(),
-  deleteCommandById: vi.fn(),
-  clearAllCommands: vi.fn(),
-}));
-
 import * as CommandHistoryRepository from './command-history.repository';
 import {
   addCommandHistory,
@@ -18,6 +10,14 @@ import {
   deleteCommandHistoryById,
   clearAllCommandHistory,
 } from './command-history.service';
+
+// Mock Command History Repository
+vi.mock('./command-history.repository', () => ({
+  upsertCommand: vi.fn(),
+  getAllCommands: vi.fn(),
+  deleteCommandById: vi.fn(),
+  clearAllCommands: vi.fn(),
+}));
 
 describe('Command History Service', () => {
   beforeEach(() => {

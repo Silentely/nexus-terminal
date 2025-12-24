@@ -9,7 +9,7 @@ const localeModules = import.meta.glob('./locales/*.json', { eager: true, import
 const messages: Record<string, any> = {};
 const availableLocales: string[] = [];
 
-for (const path in localeModules) {
+for (const path of Object.keys(localeModules)) {
   // 从路径中提取语言代码 (例如 './locales/en.json' -> 'en')
   const locale = path.match(/.\/locales\/(.+)\.json$/)?.[1];
   if (locale) {

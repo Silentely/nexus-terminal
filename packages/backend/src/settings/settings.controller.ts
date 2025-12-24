@@ -112,7 +112,7 @@ export const settingsController = {
         'showStatusMonitorIpAddress', // 添加状态监视器IP显示键 (与服务层和前端统一)
       ];
       const filteredSettings: Record<string, string> = {};
-      for (const key in settingsToUpdate) {
+      for (const key of Object.keys(settingsToUpdate)) {
         if (allowedSettingsKeys.includes(key)) {
           filteredSettings[key] = settingsToUpdate[key];
         }
@@ -537,7 +537,11 @@ export const settingsController = {
   },
 
   // --- Show Status Monitor IP Address ---
-  async getShowStatusMonitorIpAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getShowStatusMonitorIpAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const isEnabled = await settingsService.getShowStatusMonitorIpAddress();
       res.json({ enabled: isEnabled });
@@ -547,7 +551,11 @@ export const settingsController = {
     }
   },
 
-  async setShowStatusMonitorIpAddress(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async setShowStatusMonitorIpAddress(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const { enabled } = req.body;
       console.log('[SettingsController] 请求体 enabled:', enabled);

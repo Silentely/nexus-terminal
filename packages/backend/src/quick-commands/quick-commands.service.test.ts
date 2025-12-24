@@ -3,6 +3,18 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import * as QuickCommandsRepository from './quick-commands.repository';
+import * as QuickCommandTagRepository from '../quick-command-tags/quick-command-tag.repository';
+import {
+  addQuickCommand,
+  updateQuickCommand,
+  deleteQuickCommand,
+  getAllQuickCommands,
+  incrementUsageCount,
+  getQuickCommandById,
+  assignTagToCommands,
+} from './quick-commands.service';
+
 // Mock Quick Commands Repository
 vi.mock('./quick-commands.repository', () => ({
   addQuickCommand: vi.fn(),
@@ -18,18 +30,6 @@ vi.mock('../quick-command-tags/quick-command-tag.repository', () => ({
   setCommandTagAssociations: vi.fn(),
   addTagToCommands: vi.fn(),
 }));
-
-import * as QuickCommandsRepository from './quick-commands.repository';
-import * as QuickCommandTagRepository from '../quick-command-tags/quick-command-tag.repository';
-import {
-  addQuickCommand,
-  updateQuickCommand,
-  deleteQuickCommand,
-  getAllQuickCommands,
-  incrementUsageCount,
-  getQuickCommandById,
-  assignTagToCommands,
-} from './quick-commands.service';
 
 describe('Quick Commands Service', () => {
   beforeEach(() => {

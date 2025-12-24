@@ -91,7 +91,7 @@ export class PasskeyService {
     userHandleFromClient: string
   ): Promise<VerifiedRegistrationResponse & { newPasskeyToSave?: NewPasskey }> {
     const userId = parseInt(userHandleFromClient, 10);
-    if (isNaN(userId)) {
+    if (Number.isNaN(userId)) {
       throw new Error('Invalid user handle provided.');
     }
     const user = await this.userRepo.findUserById(userId);

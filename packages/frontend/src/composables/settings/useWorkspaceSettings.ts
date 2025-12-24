@@ -226,7 +226,7 @@ export function useWorkspaceSettings() {
       if (
         limitValue !== null &&
         limitValue !== undefined &&
-        (Number.isNaN(limitValue) || !Number.isInteger(limitValue) || limitValue < 0)
+        (Number.Number.isNaN(limitValue) || !Number.isInteger(limitValue) || limitValue < 0)
       ) {
         throw new Error(
           t('settings.terminalScrollback.error.invalidInput', '请输入一个有效的非负整数。')

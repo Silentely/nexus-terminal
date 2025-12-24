@@ -3,14 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock 数据库连接
-vi.mock('../database/connection', () => ({
-  getDbInstance: vi.fn().mockResolvedValue({}),
-  runDb: vi.fn().mockResolvedValue({ changes: 1 }),
-  getDb: vi.fn(),
-  allDb: vi.fn().mockResolvedValue([]),
-}));
-
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import {
   settingsRepository,
@@ -19,6 +11,14 @@ import {
   getCaptchaConfig,
   setCaptchaConfig,
 } from './settings.repository';
+
+// Mock 数据库连接
+vi.mock('../database/connection', () => ({
+  getDbInstance: vi.fn().mockResolvedValue({}),
+  runDb: vi.fn().mockResolvedValue({ changes: 1 }),
+  getDb: vi.fn(),
+  allDb: vi.fn().mockResolvedValue([]),
+}));
 
 describe('Settings Repository', () => {
   beforeEach(() => {
@@ -78,7 +78,7 @@ describe('Settings Repository', () => {
     it('数据库错误时应抛出异常', async () => {
       (getDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-      await expect(settingsRepository.getSetting('key')).rejects.toThrow('获取设置项 key 失败');
+      await expect(settingsRepository.getSetting('key')).rejects.toThrow('获取设置项失败');
     });
   });
 
@@ -96,9 +96,7 @@ describe('Settings Repository', () => {
     it('数据库错误时应抛出异常', async () => {
       (runDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-      await expect(settingsRepository.setSetting('key', 'value')).rejects.toThrow(
-        '设置设置项 key 失败'
-      );
+      await expect(settingsRepository.setSetting('key', 'value')).rejects.toThrow('设置设置项失败');
     });
   });
 
@@ -123,7 +121,7 @@ describe('Settings Repository', () => {
     it('数据库错误时应抛出异常', async () => {
       (runDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-      await expect(settingsRepository.deleteSetting('key')).rejects.toThrow('删除设置项 key 失败');
+      await expect(settingsRepository.deleteSetting('key')).rejects.toThrow('删除设置项失败');
     });
   });
 

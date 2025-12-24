@@ -6,7 +6,11 @@ import { ErrorFactory } from '../utils/AppError';
 /**
  * 处理添加新收藏路径的请求
  */
-export const createFavoritePath = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const createFavoritePath = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { name, path } = req.body;
 
   if (!path || typeof path !== 'string' || path.trim().length === 0) {
@@ -36,7 +40,11 @@ export const createFavoritePath = async (req: Request, res: Response, next: Next
 /**
  * 处理获取所有收藏路径的请求 (支持排序)
  */
-export const getAllFavoritePaths = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllFavoritePaths = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const sortBy = req.query.sortBy as FavoritePathSortBy | undefined;
   const validSortByOptions: FavoritePathSortBy[] = ['name', 'last_used_at'];
   const validSortBy: FavoritePathSortBy =
@@ -54,10 +62,14 @@ export const getAllFavoritePaths = async (req: Request, res: Response, next: Nex
 /**
  * 处理根据 ID 获取单个收藏路径的请求
  */
-export const getFavoritePathById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getFavoritePathById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的 ID' });
     return;
   }
@@ -78,11 +90,15 @@ export const getFavoritePathById = async (req: Request, res: Response, next: Nex
 /**
  * 处理更新收藏路径的请求
  */
-export const updateFavoritePath = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateFavoritePath = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   const { name, path } = req.body;
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的 ID' });
     return;
   }
@@ -124,10 +140,14 @@ export const updateFavoritePath = async (req: Request, res: Response, next: Next
 /**
  * 处理删除收藏路径的请求
  */
-export const deleteFavoritePath = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteFavoritePath = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的 ID' });
     return;
   }
@@ -148,10 +168,14 @@ export const deleteFavoritePath = async (req: Request, res: Response, next: Next
 /**
  * 处理更新收藏路径上次使用时间的请求
  */
-export const incrementUsage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const incrementUsage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的 ID' });
     return;
   }
@@ -191,10 +215,14 @@ export const incrementUsage = async (req: Request, res: Response, next: NextFunc
 /**
  * 处理更新收藏路径上次使用时间戳的请求 (PUT)
  */
-export const updateLastUsedTimestamp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateLastUsedTimestamp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的 ID' });
     return;
   }

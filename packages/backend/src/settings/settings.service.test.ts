@@ -3,6 +3,15 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { settingsService } from './settings.service';
+import {
+  settingsRepository,
+  getSidebarConfig,
+  setSidebarConfig,
+  getCaptchaConfig,
+  setCaptchaConfig,
+} from './settings.repository';
+
 // Mock settings repository
 vi.mock('./settings.repository', () => ({
   settingsRepository: {
@@ -17,15 +26,6 @@ vi.mock('./settings.repository', () => ({
   getCaptchaConfig: vi.fn(),
   setCaptchaConfig: vi.fn(),
 }));
-
-import { settingsService } from './settings.service';
-import {
-  settingsRepository,
-  getSidebarConfig,
-  setSidebarConfig,
-  getCaptchaConfig,
-  setCaptchaConfig,
-} from './settings.repository';
 
 describe('Settings Service', () => {
   beforeEach(() => {

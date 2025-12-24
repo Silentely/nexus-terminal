@@ -84,7 +84,7 @@ export class NotificationController {
     const settingData: Partial<Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>> =
       req.body;
 
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       // Use i18next.t for i18n
       res.status(400).json({ message: i18next.t('notificationController.errorInvalidId') });
       return;
@@ -124,7 +124,7 @@ export class NotificationController {
   delete = async (req: Request, res: Response): Promise<void> => {
     const id = parseInt(req.params.id, 10);
 
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       // Use i18next.t for i18n
       res.status(400).json({ message: i18next.t('notificationController.errorInvalidId') });
       return;
@@ -176,7 +176,7 @@ export class NotificationController {
   testSetting = async (req: Request, res: Response): Promise<void> => {
     const id = parseInt(req.params.id, 10);
 
-    if (isNaN(id)) {
+    if (Number.isNaN(id)) {
       // Use i18next.t for i18n
       res.status(400).json({ message: i18next.t('notificationController.errorInvalidId') });
       return;

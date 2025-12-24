@@ -67,7 +67,10 @@ export const createProxy = async (
     const db = await getDbInstance();
     const result = await runDb(db, sql, params);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw ErrorFactory.databaseError('创建代理后未能获取有效的 lastID', '创建代理后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError(
+        '创建代理后未能获取有效的 lastID',
+        '创建代理后未能获取有效的 lastID'
+      );
     }
     return result.lastID;
   } catch (err: any) {

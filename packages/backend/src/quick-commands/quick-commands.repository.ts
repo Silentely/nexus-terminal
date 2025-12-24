@@ -42,7 +42,10 @@ export const addQuickCommand = async (
     const variablesJson = variables ? JSON.stringify(variables) : null;
     const result = await runDb(db, sql, [name, command, variablesJson]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw ErrorFactory.databaseError('添加快捷指令后未能获取有效的 lastID', '添加快捷指令后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError(
+        '添加快捷指令后未能获取有效的 lastID',
+        '添加快捷指令后未能获取有效的 lastID'
+      );
     }
     return result.lastID;
   } catch (err: any) {
@@ -146,7 +149,7 @@ export const getAllQuickCommands = async (
           ? row.tag_ids_str
               .split(',')
               .map(Number)
-              .filter((id) => !isNaN(id))
+              .filter((id) => !Number.isNaN(id))
           : [],
       };
     });
@@ -212,7 +215,7 @@ export const findQuickCommandById = async (
           ? row.tag_ids_str
               .split(',')
               .map(Number)
-              .filter((id) => !isNaN(id))
+              .filter((id) => !Number.isNaN(id))
           : [],
       };
     }

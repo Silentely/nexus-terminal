@@ -40,7 +40,10 @@ export const upsertPath = async (path: string): Promise<number> => {
       const insertResult = await runDb(db, insertSql, [path, now]);
       // Ensure lastID is valid before returning
       if (typeof insertResult.lastID !== 'number' || insertResult.lastID <= 0) {
-        throw ErrorFactory.databaseError('插入新路径历史记录后未能获取有效的 lastID', '插入新路径历史记录后未能获取有效的 lastID');
+        throw ErrorFactory.databaseError(
+          '插入新路径历史记录后未能获取有效的 lastID',
+          '插入新路径历史记录后未能获取有效的 lastID'
+        );
       }
       return insertResult.lastID;
     }

@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { runDb, getDb, allDb } from '../database/connection';
+import { upsertPath, getAllPaths, deletePathById, clearAllPaths } from './path-history.repository';
+
 vi.mock('../database/connection', () => ({
   getDbInstance: vi.fn().mockResolvedValue({}),
   runDb: vi.fn(),
   getDb: vi.fn(),
   allDb: vi.fn(),
 }));
-
-import { runDb, getDb, allDb } from '../database/connection';
-import { upsertPath, getAllPaths, deletePathById, clearAllPaths } from './path-history.repository';
 
 describe('path-history.repository', () => {
   beforeEach(() => {

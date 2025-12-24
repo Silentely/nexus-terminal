@@ -29,7 +29,7 @@ export const getProxyById = async (req: Request, res: Response, next: NextFuncti
   const { id } = req.params;
   try {
     const proxyId = parseInt(id, 10);
-    if (isNaN(proxyId)) {
+    if (Number.isNaN(proxyId)) {
       return res.status(400).json({ message: '无效的代理 ID' });
     }
     const proxy = await ProxyService.getProxyById(proxyId);
@@ -89,7 +89,7 @@ export const updateProxy = async (req: Request, res: Response, next: NextFunctio
   const { id } = req.params;
   try {
     const proxyId = parseInt(id, 10);
-    if (isNaN(proxyId)) {
+    if (Number.isNaN(proxyId)) {
       return res.status(400).json({ message: '无效的代理 ID' });
     }
 
@@ -142,7 +142,7 @@ export const deleteProxy = async (req: Request, res: Response, next: NextFunctio
   const { id } = req.params;
   try {
     const proxyId = parseInt(id, 10);
-    if (isNaN(proxyId)) {
+    if (Number.isNaN(proxyId)) {
       return res.status(400).json({ message: '无效的代理 ID' });
     }
 

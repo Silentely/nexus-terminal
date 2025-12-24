@@ -612,10 +612,11 @@ export const getConnectionWithDecryptedCredentials = async (
       `[Service:getConnWithDecrypt] Failed to decrypt credentials for connection ID ${id}:`,
       error
     );
-    // Decide how to handle decryption errors. Throw? Return null password?
-    // For now, we'll log and continue, returning undefined credentials.
-    // Consider throwing an error if credentials are required but decryption fails.
-    // Or return a specific error structure: return { error: 'Decryption failed' };
+    // 关键配置错误（如 SSH 密钥不存在）必须重新抛出，让调用者处理
+    if (error.message?.includes('SSH 密钥')) {
+      throw error;
+    }
+    // 其他解密错误（如加密密钥变更）记录日志并继续，返回 undefined 凭证
   }
 
   console.log(

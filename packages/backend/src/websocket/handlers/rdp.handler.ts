@@ -38,7 +38,7 @@ export function handleRdpProxyConnection(ws: AuthenticatedWebSocket, request: Re
   const rdpWidth = parseInt(rdpWidthStr, 10);
   const rdpHeight = parseInt(rdpHeightStr, 10);
 
-  if (isNaN(rdpWidth) || isNaN(rdpHeight) || rdpWidth <= 0 || rdpHeight <= 0) {
+  if (Number.isNaN(rdpWidth) || Number.isNaN(rdpHeight) || rdpWidth <= 0 || rdpHeight <= 0) {
     console.error(
       `WebSocket: RDP Proxy connection for ${ws.username} has invalid width or height parameters.`
     );

@@ -5,6 +5,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import axios from 'axios';
 import { CaptchaService, captchaService } from './captcha.service';
 
+import { settingsService } from '../settings/settings.service';
+
 // Mock axios
 vi.mock('axios', () => ({
   default: {
@@ -18,8 +20,6 @@ vi.mock('../settings/settings.service', () => ({
     getCaptchaConfig: vi.fn(),
   },
 }));
-
-import { settingsService } from '../settings/settings.service';
 
 describe('CaptchaService', () => {
   let service: CaptchaService;

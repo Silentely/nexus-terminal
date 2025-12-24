@@ -3,6 +3,10 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
+import { settingsService } from '../settings/settings.service';
+import { IpBlacklistService, ipBlacklistService } from './ip-blacklist.service';
+
 // Mock 数据库连接
 vi.mock('../database/connection', () => ({
   getDbInstance: vi.fn().mockResolvedValue({}),
@@ -25,10 +29,6 @@ vi.mock('../notifications/notification.service', () => ({
     sendNotification: vi.fn().mockResolvedValue(undefined),
   })),
 }));
-
-import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
-import { settingsService } from '../settings/settings.service';
-import { IpBlacklistService, ipBlacklistService } from './ip-blacklist.service';
 
 describe('IpBlacklistService', () => {
   let service: IpBlacklistService;

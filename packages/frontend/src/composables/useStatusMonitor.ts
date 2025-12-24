@@ -39,7 +39,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
     currentHistory.shift(); // 移除最旧的数据点
     // 如果新值无效（undefined 或 null），推入 null，否则推入数字
     currentHistory.push(
-      newValue === undefined || newValue === null || isNaN(newValue) ? null : newValue
+      newValue === undefined || newValue === null || Number.isNaN(newValue) ? null : newValue
     );
     historyRef.value = [...currentHistory]; // 触发响应式更新
   };

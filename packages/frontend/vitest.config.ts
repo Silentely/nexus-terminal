@@ -37,6 +37,7 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      'monaco-editor': path.resolve(__dirname, 'tests/__mocks__/monaco-editor.ts'),
     },
   },
 });

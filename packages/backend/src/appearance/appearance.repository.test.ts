@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { runDb, allDb } from '../database/connection';
+import { findThemeById } from '../terminal-themes/terminal-theme.repository';
+import { defaultUiTheme } from '../config/default-themes';
+import { getAppearanceSettings, updateAppearanceSettings } from './appearance.repository';
+
 vi.mock('../database/connection', () => ({
   getDbInstance: vi.fn().mockResolvedValue({}),
   runDb: vi.fn(),
@@ -10,11 +15,6 @@ vi.mock('../database/connection', () => ({
 vi.mock('../terminal-themes/terminal-theme.repository', () => ({
   findThemeById: vi.fn(),
 }));
-
-import { runDb, allDb } from '../database/connection';
-import { findThemeById } from '../terminal-themes/terminal-theme.repository';
-import { defaultUiTheme } from '../config/default-themes';
-import { getAppearanceSettings, updateAppearanceSettings } from './appearance.repository';
 
 describe('appearance.repository', () => {
   beforeEach(() => {
@@ -57,7 +57,7 @@ describe('appearance.repository', () => {
     it('activeTerminalThemeId 指向不存在主题时应抛出异常', async () => {
       (findThemeById as any).mockResolvedValueOnce(null);
       await expect(updateAppearanceSettings({ activeTerminalThemeId: 123 } as any)).rejects.toThrow(
-        '验证主题 ID 失败'
+        '验证主题失败'
       );
     });
 

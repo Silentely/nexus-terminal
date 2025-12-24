@@ -3,14 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock 数据库连接
-vi.mock('../database/connection', () => ({
-  getDbInstance: vi.fn().mockResolvedValue({}),
-  runDb: vi.fn().mockResolvedValue({ changes: 1, lastID: 1 }),
-  getDb: vi.fn(),
-  allDb: vi.fn().mockResolvedValue([]),
-}));
-
 import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
 import {
   findAllConnectionsWithTags,
@@ -24,6 +16,14 @@ import {
   updateConnectionTags,
   findConnectionTags,
 } from './connection.repository';
+
+// Mock 数据库连接
+vi.mock('../database/connection', () => ({
+  getDbInstance: vi.fn().mockResolvedValue({}),
+  runDb: vi.fn().mockResolvedValue({ changes: 1, lastID: 1 }),
+  getDb: vi.fn(),
+  allDb: vi.fn().mockResolvedValue([]),
+}));
 
 describe('Connection Repository', () => {
   beforeEach(() => {

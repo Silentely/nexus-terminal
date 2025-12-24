@@ -5,7 +5,11 @@ import { ErrorFactory } from '../utils/AppError';
 /**
  * 处理获取所有快捷指令标签的请求
  */
-export const getAllQuickCommandTags = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getAllQuickCommandTags = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const tags = await QuickCommandTagService.getAllQuickCommandTags();
     res.status(200).json(tags);
@@ -18,7 +22,11 @@ export const getAllQuickCommandTags = async (req: Request, res: Response, next: 
 /**
  * 处理添加新快捷指令标签的请求
  */
-export const addQuickCommandTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const addQuickCommandTag = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { name } = req.body;
 
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -46,11 +54,15 @@ export const addQuickCommandTag = async (req: Request, res: Response, next: Next
 /**
  * 处理更新快捷指令标签的请求
  */
-export const updateQuickCommandTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const updateQuickCommandTag = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   const { name } = req.body;
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的标签 ID' });
     return;
   }
@@ -91,10 +103,14 @@ export const updateQuickCommandTag = async (req: Request, res: Response, next: N
 /**
  * 处理删除快捷指令标签的请求
  */
-export const deleteQuickCommandTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const deleteQuickCommandTag = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     res.status(400).json({ message: '无效的标签 ID' });
     return;
   }

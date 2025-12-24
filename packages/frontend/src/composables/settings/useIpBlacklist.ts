@@ -67,10 +67,10 @@ export function useIpBlacklist() {
     try {
       const maxAttempts = parseInt(blacklistSettingsForm.maxLoginAttempts, 10);
       const banDuration = parseInt(blacklistSettingsForm.loginBanDuration, 10);
-      if (isNaN(maxAttempts) || maxAttempts <= 0) {
+      if (Number.isNaN(maxAttempts) || maxAttempts <= 0) {
         throw new Error(t('settings.ipBlacklist.error.invalidMaxAttempts'));
       }
-      if (isNaN(banDuration) || banDuration <= 0) {
+      if (Number.isNaN(banDuration) || banDuration <= 0) {
         throw new Error(t('settings.ipBlacklist.error.invalidBanDuration'));
       }
       await settingsStore.updateMultipleSettings({

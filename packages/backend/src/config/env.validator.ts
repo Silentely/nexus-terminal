@@ -284,7 +284,7 @@ export function validateEnvironment(): EnvironmentConfig {
       (config as any)[envKey] = value;
     } else if (schema.type === 'number') {
       const numValue = parseInt(value, 10);
-      if (isNaN(numValue)) {
+      if (Number.isNaN(numValue)) {
         errors.push(`环境变量 ${envKey} 必须是有效的数字，当前值: "${value}"`);
         continue;
       }

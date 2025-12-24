@@ -36,7 +36,7 @@ const taskAbortControllers = new Map<string, AbortController>();
  */
 function sendBatchEvent(userId: number | string, message: BatchWsMessage): void {
   const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-  if (isNaN(numericUserId)) {
+  if (Number.isNaN(numericUserId)) {
     console.warn(`[BatchService] 无效的 userId: ${userId}，跳过广播。`);
     return;
   }

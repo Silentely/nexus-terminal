@@ -112,7 +112,10 @@ export class AuditLogRepository {
       return countRow?.total ?? 0;
     } catch (err: any) {
       console.error(`[审计日志] 获取日志总数时出错: ${err.message}`);
-      throw ErrorFactory.databaseError('获取审计日志总数失败', `获取审计日志总数失败: ${err.message}`);
+      throw ErrorFactory.databaseError(
+        '获取审计日志总数失败',
+        `获取审计日志总数失败: ${err.message}`
+      );
     }
   }
 

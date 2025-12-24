@@ -3,6 +3,9 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
+import { AuditLogRepository } from './audit.repository';
+
 // Mock 数据库连接
 vi.mock('../database/connection', () => ({
   getDbInstance: vi.fn().mockResolvedValue({}),
@@ -10,9 +13,6 @@ vi.mock('../database/connection', () => ({
   getDb: vi.fn(),
   allDb: vi.fn().mockResolvedValue([]),
 }));
-
-import { getDbInstance, runDb, getDb, allDb } from '../database/connection';
-import { AuditLogRepository } from './audit.repository';
 
 describe('AuditLogRepository', () => {
   let repository: AuditLogRepository;
@@ -182,7 +182,7 @@ describe('AuditLogRepository', () => {
     it('数据库错误时应抛出异常', async () => {
       (getDb as any).mockRejectedValueOnce(new Error('Database error'));
 
-      await expect(repository.getLogs()).rejects.toThrow('获取审计日志时出错');
+      await expect(repository.getLogs()).rejects.toThrow('获取审计日志失败');
     });
   });
 

@@ -42,7 +42,10 @@ export function initializeUpgradeHandler(
     const xRealIp = request.headers['x-real-ip'];
 
     // 辅助函数：验证并返回合法 IP，失败则返回 undefined
-    const validateAndExtractIp = (rawIp: string | undefined, source: string): string | undefined => {
+    const validateAndExtractIp = (
+      rawIp: string | undefined,
+      source: string
+    ): string | undefined => {
       if (!rawIp) return undefined;
       const trimmedIp = rawIp.trim();
       // 使用 net.isIP() 验证：返回 4 (IPv4) 或 6 (IPv6)，0 表示无效
@@ -50,7 +53,9 @@ export function initializeUpgradeHandler(
         console.log(`[WebSocket Upgrade] Valid IP from ${source}: ${trimmedIp}`);
         return trimmedIp;
       } else {
-        console.warn(`[WebSocket Upgrade] Invalid IP format from ${source}: ${trimmedIp}, rejecting.`);
+        console.warn(
+          `[WebSocket Upgrade] Invalid IP format from ${source}: ${trimmedIp}, rejecting.`
+        );
         return undefined;
       }
     };

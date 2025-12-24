@@ -3,17 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock Quick Command Tag Repository
-vi.mock('./quick-command-tag.repository', () => ({
-  findAllQuickCommandTags: vi.fn(),
-  findQuickCommandTagById: vi.fn(),
-  createQuickCommandTag: vi.fn(),
-  updateQuickCommandTag: vi.fn(),
-  deleteQuickCommandTag: vi.fn(),
-  setCommandTagAssociations: vi.fn(),
-  findTagsByCommandId: vi.fn(),
-}));
-
 import * as QuickCommandTagRepository from './quick-command-tag.repository';
 import {
   getAllQuickCommandTags,
@@ -24,6 +13,17 @@ import {
   setCommandTags,
   getTagsForCommand,
 } from './quick-command-tag.service';
+
+// Mock Quick Command Tag Repository
+vi.mock('./quick-command-tag.repository', () => ({
+  findAllQuickCommandTags: vi.fn(),
+  findQuickCommandTagById: vi.fn(),
+  createQuickCommandTag: vi.fn(),
+  updateQuickCommandTag: vi.fn(),
+  deleteQuickCommandTag: vi.fn(),
+  setCommandTagAssociations: vi.fn(),
+  findTagsByCommandId: vi.fn(),
+}));
 
 describe('Quick Command Tag Service', () => {
   beforeEach(() => {

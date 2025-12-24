@@ -16,9 +16,17 @@ export interface INotificationSender {
 class NotificationDispatcherService {
   // 使用 Map 来存储不同渠道类型的发送器实例
   private senders: Map<NotificationChannelType, INotificationSender>;
+  // 跟踪是否已开始监听
+  private isListening: boolean = false;
 
   constructor() {
     this.senders = new Map();
+  }
+
+  /**
+   * 初始化服务：注册默认发送器并开始监听
+   */
+  initialize() {
     // 注册具体的发送器实例
     this.registerSender('telegram', telegramSenderService);
     this.registerSender('email', emailSenderService);
@@ -42,7 +50,11 @@ class NotificationDispatcherService {
     console.log(`[NotificationDispatcher] 已为通道类型 '${channelType}' 注册发送器。`);
   }
 
-  private listenForNotifications() {
+  listenForNotifications() {
+    if (this.isListening) {
+      return;
+    }
+    this.isListening = true;
     notificationProcessorService.on(
       'sendNotification',
       (processedNotification: ProcessedNotification) => {
@@ -60,11 +72,15 @@ class NotificationDispatcherService {
     console.log('[NotificationDispatcher] 正在监听处理后的通知。');
   }
 
-  private async dispatchNotification(notification: ProcessedNotification) {
+  async dispatchNotification(notification: ProcessedNotification): Promise<void> {
+    if (!notification) {
+      console.error('[NotificationDispatcher] 收到空的通知对象');
+      return;
+    }
     const sender = this.senders.get(notification.channelType);
 
     if (!sender) {
-      console.warn(
+      console.error(
         `[NotificationDispatcher] 没有为通道类型注册发送器: ${notification.channelType}。跳过通知。`
       );
       return;
@@ -84,10 +100,11 @@ class NotificationDispatcherService {
   }
 }
 
-// 创建单例并导出
+// 创建单例并初始化
 const notificationDispatcherService = new NotificationDispatcherService();
+notificationDispatcherService.initialize();
 
-// 导出接口，以便其他发送器可以实现它
-// (或者将接口移到 types 文件中)
+// 导出类和接口以支持测试
+export { NotificationDispatcherService };
 
 export default notificationDispatcherService;

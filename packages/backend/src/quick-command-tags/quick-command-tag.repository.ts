@@ -55,15 +55,24 @@ export const createQuickCommandTag = async (name: string): Promise<number> => {
     const db = await getDbInstance();
     const result = await runDb(db, sql, [name, now, now]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw ErrorFactory.databaseError('创建快捷指令标签后未能获取有效的 lastID', '创建快捷指令标签后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError(
+        '创建快捷指令标签后未能获取有效的 lastID',
+        '创建快捷指令标签后未能获取有效的 lastID'
+      );
     }
     return result.lastID;
   } catch (err: any) {
     console.error('[仓库] 创建快捷指令标签时出错:', err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw ErrorFactory.validationError(`快捷指令标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
+      throw ErrorFactory.validationError(
+        `快捷指令标签名称 "${name}" 已存在`,
+        `field: name, value: ${name}`
+      );
     }
-    throw ErrorFactory.databaseError('创建快捷指令标签失败', `创建快捷指令标签失败: ${err.message}`);
+    throw ErrorFactory.databaseError(
+      '创建快捷指令标签失败',
+      `创建快捷指令标签失败: ${err.message}`
+    );
   }
 };
 
@@ -80,9 +89,15 @@ export const updateQuickCommandTag = async (id: number, name: string): Promise<b
   } catch (err: any) {
     console.error(`[仓库] 更新快捷指令标签 ${id} 时出错:`, err.message);
     if (err.message.includes('UNIQUE constraint failed')) {
-      throw ErrorFactory.validationError(`快捷指令标签名称 "${name}" 已存在`, `field: name, value: ${name}`);
+      throw ErrorFactory.validationError(
+        `快捷指令标签名称 "${name}" 已存在`,
+        `field: name, value: ${name}`
+      );
     }
-    throw ErrorFactory.databaseError('更新快捷指令标签失败', `更新快捷指令标签失败: ${err.message}`);
+    throw ErrorFactory.databaseError(
+      '更新快捷指令标签失败',
+      `更新快捷指令标签失败: ${err.message}`
+    );
   }
 };
 
@@ -127,7 +142,7 @@ export const setCommandTagAssociations = async (
       const stmt = await db.prepare(insertSql);
       for (const tagId of tagIds) {
         // 验证 tagId 是否为有效数字
-        if (typeof tagId !== 'number' || isNaN(tagId)) {
+        if (typeof tagId !== 'number' || Number.isNaN(tagId)) {
           console.warn(
             `[Repo] setCommandTagAssociations: 无效的 tagId (${tagId})，跳过关联到指令 ${commandId}。`
           );
@@ -166,9 +181,9 @@ export const addTagToCommands = async (commandIds: number[], tagId: number): Pro
       // 验证 commandId 和 tagId 是否为有效数字（可选，但推荐）
       if (
         typeof commandId !== 'number' ||
-        isNaN(commandId) ||
+        Number.isNaN(commandId) ||
         typeof tagId !== 'number' ||
-        isNaN(tagId)
+        Number.isNaN(tagId)
       ) {
         console.warn(
           `[Repo] addTagToCommands: 无效的 commandId (${commandId}) 或 tagId (${tagId})，跳过关联。`

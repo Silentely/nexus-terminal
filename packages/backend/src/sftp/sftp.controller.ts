@@ -17,7 +17,11 @@ import {
 /**
  * 处理文件下载请求 (GET /api/v1/sftp/download)
  */
-export const downloadFile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const downloadFile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
   const remotePath = req.query.remotePath as string; // 从查询参数获取
@@ -38,7 +42,7 @@ export const downloadFile = async (req: Request, res: Response, next: NextFuncti
   let targetState: ClientState | null = null;
   const targetDbConnectionId = parseInt(connectionId, 10); // 将查询参数字符串转换为数字
 
-  if (isNaN(targetDbConnectionId)) {
+  if (Number.isNaN(targetDbConnectionId)) {
     res.status(400).json({ message: '无效的 connectionId。' });
     return;
   }
@@ -124,7 +128,11 @@ export const downloadFile = async (req: Request, res: Response, next: NextFuncti
 /**
  * 处理文件夹下载请求 (GET /api/v1/sftp/download-directory)
  */
-export const downloadDirectory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const downloadDirectory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
   const remotePath = req.query.remotePath as string; // 从查询参数获取
@@ -145,7 +153,7 @@ export const downloadDirectory = async (req: Request, res: Response, next: NextF
   let targetState: ClientState | null = null;
   const targetDbConnectionId = parseInt(connectionId, 10); // 将查询参数字符串转换为数字
 
-  if (isNaN(targetDbConnectionId)) {
+  if (Number.isNaN(targetDbConnectionId)) {
     res.status(400).json({ message: '无效的 connectionId。' });
     return;
   }

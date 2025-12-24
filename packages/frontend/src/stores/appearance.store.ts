@@ -343,7 +343,7 @@ export const useAppearanceStore = defineStore('appearance', () => {
 
     // 1. 将传入的字符串 ID 转换为数字
     const idNum = parseInt(themeId, 10);
-    if (isNaN(idNum)) {
+    if (Number.isNaN(idNum)) {
       console.error(
         `[AppearanceStore] setActiveTerminalTheme 接收到无效的数字 ID 字符串: ${themeId}`
       );
@@ -525,7 +525,7 @@ export const useAppearanceStore = defineStore('appearance', () => {
       // 如果删除的是当前激活的主题，则切换回默认主题 ID
       // 需要将字符串 id 转换为数字进行比较
       const idNum = parseInt(id, 10);
-      if (!isNaN(idNum) && activeTerminalThemeId.value === idNum) {
+      if (!Number.isNaN(idNum) && activeTerminalThemeId.value === idNum) {
         // 查找默认主题的数字 ID (这里假设默认主题 ID 为 1，实际应从配置或查询获取)
         // TODO: 需要一种可靠的方式获取默认主题的数字 ID
         const defaultThemeIdNum = 1; // 临时硬编码，需要改进

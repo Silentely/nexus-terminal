@@ -451,7 +451,7 @@ export class NotificationService {
   ): string {
     if (!template) return defaultText;
     let rendered = template;
-    for (const key in data) {
+    for (const key of Object.keys(data)) {
       rendered = rendered.replace(new RegExp(`\\{${key}\\}`, 'g'), data[key]);
     }
     return rendered;

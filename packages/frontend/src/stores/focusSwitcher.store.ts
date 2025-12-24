@@ -121,7 +121,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
       // 验证 shortcuts (itemConfigs)
       if (typeof loadedFullConfig?.shortcuts === 'object' && loadedFullConfig.shortcuts !== null) {
         const validConfigs: Record<string, FocusItemConfig> = {};
-        for (const id in loadedFullConfig.shortcuts) {
+        for (const id of Object.keys(loadedFullConfig.shortcuts)) {
           if (availableIds.has(id)) {
             // 只保留有效的 ID
             const config = loadedFullConfig.shortcuts[id];
@@ -250,7 +250,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
     // 更新 itemConfigs (过滤无效 ID 和快捷键)
     if (typeof newFullConfig?.shortcuts === 'object' && newFullConfig.shortcuts !== null) {
       const validConfigs: Record<string, FocusItemConfig> = {};
-      for (const id in newFullConfig.shortcuts) {
+      for (const id of Object.keys(newFullConfig.shortcuts)) {
         if (availableIds.has(id)) {
           const config = newFullConfig.shortcuts[id];
           if (
@@ -435,7 +435,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
   // +++ 根据快捷键获取目标 ID +++
   // +++ 修改：根据 itemConfigs 获取快捷键对应的目标 ID +++
   function getFocusTargetIdByShortcut(shortcut: string): string | null {
-    for (const id in itemConfigs.value) {
+    for (const id of Object.keys(itemConfigs.value)) {
       if (itemConfigs.value[id]?.shortcut === shortcut) {
         return id;
       }

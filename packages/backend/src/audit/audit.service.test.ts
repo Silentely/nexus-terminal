@@ -3,6 +3,9 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { AuditLogService } from './audit.service';
+import { AuditLogRepository } from './audit.repository';
+
 // Mock AuditLogRepository
 vi.mock('./audit.repository', () => ({
   AuditLogRepository: vi.fn().mockImplementation(() => ({
@@ -10,9 +13,6 @@ vi.mock('./audit.repository', () => ({
     getLogs: vi.fn().mockResolvedValue({ logs: [], total: 0 }),
   })),
 }));
-
-import { AuditLogService } from './audit.service';
-import { AuditLogRepository } from './audit.repository';
 
 describe('AuditLogService', () => {
   let service: AuditLogService;

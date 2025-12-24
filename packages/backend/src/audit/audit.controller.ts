@@ -25,19 +25,19 @@ export class AuditController {
       const searchTerm = req.query.search as string | undefined;
 
       // 输入验证 (基本)
-      if (isNaN(limit) || limit <= 0) {
+      if (Number.isNaN(limit) || limit <= 0) {
         res.status(400).json({ message: '无效的 limit 参数' });
         return;
       }
-      if (isNaN(offset) || offset < 0) {
+      if (Number.isNaN(offset) || offset < 0) {
         res.status(400).json({ message: '无效的 offset 参数' });
         return;
       }
-      if (startDate && isNaN(startDate)) {
+      if (startDate && Number.isNaN(startDate)) {
         res.status(400).json({ message: '无效的 startDate 参数' });
         return;
       }
-      if (endDate && isNaN(endDate)) {
+      if (endDate && Number.isNaN(endDate)) {
         res.status(400).json({ message: '无效的 endDate 参数' });
         return;
       }

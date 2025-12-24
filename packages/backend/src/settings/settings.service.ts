@@ -399,7 +399,7 @@ export const settingsService = {
       if (intervalStr) {
         const intervalNum = parseInt(intervalStr, 10);
         // 验证是否为正整数
-        if (!isNaN(intervalNum) && intervalNum > 0) {
+        if (!Number.isNaN(intervalNum) && intervalNum > 0) {
           return intervalNum;
         }
         console.warn(
@@ -754,7 +754,7 @@ export const settingsService = {
       const maxStr = await settingsRepository.getSetting(AUDIT_LOG_MAX_ENTRIES_KEY);
       if (maxStr) {
         const maxNum = parseInt(maxStr, 10);
-        if (!isNaN(maxNum) && maxNum > 0) {
+        if (!Number.isNaN(maxNum) && maxNum > 0) {
           return maxNum;
         }
       }

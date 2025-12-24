@@ -20,7 +20,7 @@ export const getAllThemes = async (): Promise<TerminalTheme[]> => {
  * @returns Promise<TerminalTheme | null>
  */
 export const getThemeById = async (id: number): Promise<TerminalTheme | null> => {
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     throw new Error('无效的主题 ID');
   }
   return terminalThemeRepository.findThemeById(id);
@@ -55,7 +55,7 @@ export const updateExistingTheme = async (
   id: number,
   themeDto: UpdateTerminalThemeDto
 ): Promise<boolean> => {
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     throw new Error('无效的主题 ID');
   }
   // 可选：验证 themeDto
@@ -76,7 +76,7 @@ export const updateExistingTheme = async (
  * @returns Promise<boolean> 是否成功删除
  */
 export const deleteExistingTheme = async (id: number): Promise<boolean> => {
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     throw new Error('无效的主题 ID');
   }
   return terminalThemeRepository.deleteTheme(id);

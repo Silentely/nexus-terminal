@@ -125,7 +125,10 @@ export const setSidebarConfig = async (config: SidebarConfig): Promise<void> => 
       !Array.isArray(config.left) ||
       !Array.isArray(config.right)
     ) {
-      throw ErrorFactory.databaseError('提供了无效的侧边栏配置对象。', '提供了无效的侧边栏配置对象。');
+      throw ErrorFactory.databaseError(
+        '提供了无效的侧边栏配置对象。',
+        '提供了无效的侧边栏配置对象。'
+      );
     }
     const jsonString = JSON.stringify(config);
     await settingsRepository.setSetting(SIDEBAR_CONFIG_KEY, jsonString);
@@ -187,7 +190,10 @@ export const setCaptchaConfig = async (config: CaptchaSettings): Promise<void> =
       typeof config.enabled !== 'boolean' ||
       typeof config.provider !== 'string'
     ) {
-      throw ErrorFactory.databaseError('提供了无效的 CAPTCHA 配置对象。', '提供了无效的 CAPTCHA 配置对象。');
+      throw ErrorFactory.databaseError(
+        '提供了无效的 CAPTCHA 配置对象。',
+        '提供了无效的 CAPTCHA 配置对象。'
+      );
     }
     config.hcaptchaSecretKey = config.hcaptchaSecretKey || '';
     config.recaptchaSecretKey = config.recaptchaSecretKey || '';

@@ -101,7 +101,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
   // 验证 terminalFontSize (如果提供了)
   if (settingsDto.terminalFontSize !== undefined && settingsDto.terminalFontSize !== null) {
     const size = Number(settingsDto.terminalFontSize);
-    if (isNaN(size) || size <= 0) {
+    if (Number.isNaN(size) || size <= 0) {
       throw new Error(`无效的终端字体大小: ${settingsDto.terminalFontSize}。必须是一个正数。`);
     }
     // 可以选择将验证后的数字类型赋值回 DTO，以确保类型正确传递给仓库层
@@ -114,7 +114,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
     settingsDto.terminalFontSizeMobile !== null
   ) {
     const size = Number(settingsDto.terminalFontSizeMobile);
-    if (isNaN(size) || size <= 0) {
+    if (Number.isNaN(size) || size <= 0) {
       throw new Error(
         `无效的移动端终端字体大小: ${settingsDto.terminalFontSizeMobile}。必须是一个正数。`
       );
@@ -126,7 +126,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
   // 验证 editorFontSize (如果提供了)
   if (settingsDto.editorFontSize !== undefined && settingsDto.editorFontSize !== null) {
     const size = Number(settingsDto.editorFontSize);
-    if (isNaN(size) || size <= 0) {
+    if (Number.isNaN(size) || size <= 0) {
       throw new Error(`无效的编辑器字体大小: ${settingsDto.editorFontSize}。必须是一个正数。`);
     }
     // 确保类型正确传递给仓库层
@@ -136,7 +136,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
   // 验证 mobileEditorFontSize (如果提供了)
   if (settingsDto.mobileEditorFontSize !== undefined && settingsDto.mobileEditorFontSize !== null) {
     const size = Number(settingsDto.mobileEditorFontSize);
-    if (isNaN(size) || size <= 0) {
+    if (Number.isNaN(size) || size <= 0) {
       throw new Error(
         `无效的移动端编辑器字体大小: ${settingsDto.mobileEditorFontSize}。必须是一个正数。`
       );
@@ -171,7 +171,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
     settingsDto.terminalBackgroundOverlayOpacity !== null
   ) {
     const opacity = Number(settingsDto.terminalBackgroundOverlayOpacity);
-    if (isNaN(opacity) || opacity < 0 || opacity > 1) {
+    if (Number.isNaN(opacity) || opacity < 0 || opacity > 1) {
       throw new Error(
         `无效的终端背景蒙版透明度: ${settingsDto.terminalBackgroundOverlayOpacity}。必须是一个 0 到 1 之间的数字。`
       );
@@ -593,6 +593,7 @@ export const getRemoteHtmlPresetsRepositoryUrl = async (): Promise<string | null
 export const updateRemoteHtmlPresetsRepositoryUrl = async (url: string | null): Promise<void> => {
   try {
     // 验证 URL 格式 (可选, 但推荐)
+    let finalUrl = url;
     if (url && typeof url === 'string' && url.trim() !== '') {
       // 简单的 URL 验证，可以根据需要增强
       if (!url.startsWith('https://github.com/') && !url.startsWith('http://github.com/')) {
@@ -601,13 +602,13 @@ export const updateRemoteHtmlPresetsRepositoryUrl = async (url: string | null): 
       }
     } else if (url === '') {
       // 如果是空字符串，则视为 null，表示清除
-      url = null;
+      finalUrl = null;
     } else if (url !== null) {
       throw new Error('无效的 URL 值。');
     }
 
-    await updateSettings({ remoteHtmlPresetsUrl: url });
-    console.log(`[AppearanceService] 远程 HTML 主题仓库链接更新为: ${url}`);
+    await updateSettings({ remoteHtmlPresetsUrl: finalUrl });
+    console.log(`[AppearanceService] 远程 HTML 主题仓库链接更新为: ${finalUrl}`);
   } catch (error: any) {
     console.error('[AppearanceService] 更新远程 HTML 主题仓库链接失败:', error);
     throw error; // 重新抛出，让控制器处理

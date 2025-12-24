@@ -23,7 +23,10 @@ export const addFavoritePath = async (name: string | null, path: string): Promis
     const db = await getDbInstance();
     const result = await runDb(db, sql, [name, path]);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw ErrorFactory.databaseError('添加收藏路径后未能获取有效的 lastID', '添加收藏路径后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError(
+        '添加收藏路径后未能获取有效的 lastID',
+        '添加收藏路径后未能获取有效的 lastID'
+      );
     }
     return result.lastID;
   } catch (err: any) {
@@ -117,7 +120,10 @@ export const updateFavoritePathLastUsedAt = async (id: number): Promise<boolean>
     return result.changes > 0;
   } catch (err: any) {
     console.error('更新收藏路径上次使用时间时出错:', err.message);
-    throw ErrorFactory.databaseError('无法更新收藏路径上次使用时间', '无法更新收藏路径上次使用时间');
+    throw ErrorFactory.databaseError(
+      '无法更新收藏路径上次使用时间',
+      '无法更新收藏路径上次使用时间'
+    );
   }
 };
 

@@ -256,7 +256,7 @@ export const resumeSshSession = async (suspendSessionId: string): Promise<void> 
   }
 
   const originalConnectionId = parseInt(sessionToResumeInfo.connectionId, 10);
-  if (isNaN(originalConnectionId)) {
+  if (Number.isNaN(originalConnectionId)) {
     console.error(
       `[${t('term.sshSuspend')}] 恢复操作失败：无效的原始连接 ID ${sessionToResumeInfo.connectionId}`
     );

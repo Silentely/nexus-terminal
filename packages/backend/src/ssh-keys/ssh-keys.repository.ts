@@ -33,7 +33,10 @@ export const createSshKey = async (data: CreateSshKeyData): Promise<number> => {
     const db = await getDbInstance();
     const result = await runDb(db, sql, params);
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
-      throw ErrorFactory.databaseError('创建 SSH 密钥后未能获取有效的 lastID', '创建 SSH 密钥后未能获取有效的 lastID');
+      throw ErrorFactory.databaseError(
+        '创建 SSH 密钥后未能获取有效的 lastID',
+        '创建 SSH 密钥后未能获取有效的 lastID'
+      );
     }
     console.log(`Repository: SSH 密钥创建成功，ID: ${result.lastID}`);
     return result.lastID;
@@ -73,7 +76,10 @@ export const findAllSshKeyNames = async (): Promise<{ id: number; name: string }
     return rows;
   } catch (err: any) {
     console.error('Repository: 查找所有 SSH 密钥名称失败:', err.message);
-    throw ErrorFactory.databaseError('查找所有 SSH 密钥名称失败', `查找所有 SSH 密钥名称失败: ${err.message}`);
+    throw ErrorFactory.databaseError(
+      '查找所有 SSH 密钥名称失败',
+      `查找所有 SSH 密钥名称失败: ${err.message}`
+    );
   }
 };
 
@@ -89,7 +95,10 @@ export const findAllSshKeys = async (): Promise<SshKeyDbRow[]> => {
     return rows;
   } catch (err: any) {
     console.error('Repository: 查找所有 SSH 密钥记录失败:', err.message);
-    throw ErrorFactory.databaseError('查找所有 SSH 密钥记录失败', `查找所有 SSH 密钥记录失败: ${err.message}`);
+    throw ErrorFactory.databaseError(
+      '查找所有 SSH 密钥记录失败',
+      `查找所有 SSH 密钥记录失败: ${err.message}`
+    );
   }
 };
 
