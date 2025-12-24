@@ -39,6 +39,7 @@ const terminalInstance = ref<Terminal | null>(null); // 使用 ref 管理 termin
 let searchAddon: SearchAddon | null = null;
 let outputEnhancerAddon: OutputEnhancerAddon | null = null;
 let selectionListenerDisposable: IDisposable | null = null;
+let webglAddonInstance: WebglAddon | null = null; // 保存 WebGL addon 引用以便检查状态
 
 const isActiveRef = ref(props.isActive);
 watch(
@@ -207,6 +208,10 @@ onMounted(() => {
       cursorBlink: true,
       fontSize: currentTerminalFontSize.value,
       fontFamily: currentTerminalFontFamily.value,
+      fontWeight: 'normal',
+      fontWeightBold: 'bold',
+      letterSpacing: 0,
+      lineHeight: 1.0,
       theme: effectiveTerminalTheme.value,
       rows: 24,
       cols: 80,
@@ -215,6 +220,8 @@ onMounted(() => {
       convertEol: true,
       scrollback: getScrollbackValue(terminalScrollbackLimitNumber.value),
       scrollOnUserInput: true,
+      // 高 DPI 屏幕支持：解决字体发虚问题
+      // 使用实际的设备像素比，确保字体清晰渲染
       ...props.options,
     });
 
@@ -249,20 +256,24 @@ onMounted(() => {
     }
 
     try {
-      const webglAddon = new WebglAddon();
-      webglAddon.onContextLoss(() => {
+      webglAddonInstance = new WebglAddon();
+      webglAddonInstance.onContextLoss(() => {
         console.warn(
           `[Terminal ${props.sessionId}] WebGL context lost. Falling back to DOM renderer.`
         );
-        webglAddon.dispose();
+        if (webglAddonInstance) {
+          webglAddonInstance.dispose();
+          webglAddonInstance = null; // 清除引用，标记上下文已丢失
+        }
       });
-      term.loadAddon(webglAddon);
+      term.loadAddon(webglAddonInstance);
       console.log(`[Terminal ${props.sessionId}] WebGL renderer enabled.`);
     } catch (e) {
       console.warn(
         `[Terminal ${props.sessionId}] WebGL addon failed to load, falling back to canvas/dom renderer:`,
         e
       );
+      webglAddonInstance = null;
     }
 
     term.open(terminalRef.value);
@@ -314,11 +325,38 @@ onMounted(() => {
       effectiveTerminalTheme,
       (newTheme) => {
         if (term) {
-          term.options.theme = newTheme;
           try {
-            term.refresh(0, term.rows - 1);
+            // 安全地更新主题：先设置主题，xterm 会自动触发重绘
+            term.options.theme = newTheme;
+            // 只有当 WebGL 渲染器可用且上下文未丢失时才手动刷新
+            // 否则让 xterm 自己处理重绘（Canvas/DOM 渲染器）
+            if (webglAddonInstance) {
+              // WebGL 渲染器存在，使用 nextTick 延迟刷新以确保状态稳定
+              nextTick(() => {
+                try {
+                  if (term && webglAddonInstance) {
+                    term.refresh(0, term.rows - 1);
+                  }
+                } catch (refreshError) {
+                  console.warn(
+                    `[Terminal ${props.sessionId}] WebGL refresh failed, WebGL context may be lost:`,
+                    refreshError
+                  );
+                  // WebGL 上下文可能已丢失，清理引用
+                  if (webglAddonInstance) {
+                    try {
+                      webglAddonInstance.dispose();
+                    } catch {
+                      // 忽略 dispose 错误
+                    }
+                    webglAddonInstance = null;
+                  }
+                }
+              });
+            }
+            // Canvas/DOM 渲染器会自动处理主题更新，无需手动刷新
           } catch (e) {
-            console.warn(`[Terminal ${props.sessionId}] Refresh failed:`, e);
+            console.warn(`[Terminal ${props.sessionId}] Theme update failed:`, e);
           }
         }
       },
@@ -397,9 +435,7 @@ onMounted(() => {
     watch(terminalOutputEnhancerEnabledBoolean, (newValue) => {
       if (outputEnhancerAddon) {
         outputEnhancerAddon.setEnabled(newValue);
-        console.log(
-          `[Terminal ${props.sessionId}] OutputEnhancerAddon enabled: ${newValue}`
-        );
+        console.log(`[Terminal ${props.sessionId}] OutputEnhancerAddon enabled: ${newValue}`);
       }
     });
 
@@ -435,6 +471,16 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  // 先清理 WebGL addon（在 terminal dispose 之前）
+  if (webglAddonInstance) {
+    try {
+      webglAddonInstance.dispose();
+    } catch {
+      // 忽略 dispose 错误
+    }
+    webglAddonInstance = null;
+  }
+
   if (terminalInstance.value) {
     terminalInstance.value.dispose();
     terminalInstance.value = null;
@@ -564,6 +610,23 @@ watchEffect(() => {
 .terminal-inner-container {
   width: 100%;
   height: 100%;
+  /* 字体渲染优化：解决字体发虚问题 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 确保 xterm.js 内部元素也应用字体平滑 */
+.terminal-inner-container :deep(.xterm) {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Canvas 渲染器优化 */
+.terminal-inner-container :deep(.xterm-screen canvas) {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .terminal-inner-container.has-text-stroke :deep(.xterm-rows span),

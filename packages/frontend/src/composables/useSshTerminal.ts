@@ -42,45 +42,130 @@ export function createSshTerminalManager(
 
   // +++ Throttling State +++
   let isFlushing = false;
+  let flushScheduled = false;
+  let lastFlushTime = 0;
+  const FLUSH_INTERVAL_MS = 16; // 约 60fps，减少写入频率
+  const IDLE_CALLBACK_TIMEOUT_MS = 50; // requestIdleCallback 超时
 
-  // +++ Flush Buffer Function +++
+  // 合并 Uint8Array 数组为单个 Uint8Array
+  const mergeUint8Arrays = (arrays: Uint8Array[]): Uint8Array => {
+    const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const arr of arrays) {
+      result.set(arr, offset);
+      offset += arr.length;
+    }
+    return result;
+  };
+
+  // 执行实际的缓冲区写入
+  const doFlush = () => {
+    if (!terminalInstance.value || terminalOutputBuffer.value.length === 0) {
+      isFlushing = false;
+      flushScheduled = false;
+      return;
+    }
+
+    const buffer = terminalOutputBuffer.value;
+    terminalOutputBuffer.value = []; // 先清空，避免竞态
+
+    // 合并所有数据后一次性写入，减少 DOM 操作
+    if (buffer.length === 1) {
+      terminalInstance.value.write(buffer[0]);
+    } else {
+      const allStrings = buffer.every((item) => typeof item === 'string');
+      const allUint8Arrays = buffer.every((item) => item instanceof Uint8Array);
+
+      if (allStrings) {
+        // 字符串批量合并
+        terminalInstance.value.write((buffer as string[]).join(''));
+      } else if (allUint8Arrays) {
+        // Uint8Array 批量合并
+        terminalInstance.value.write(mergeUint8Arrays(buffer as Uint8Array[]));
+      } else {
+        // 混合类型：分组处理，减少写入次数
+        let strBatch = '';
+        let uint8Batch: Uint8Array[] = [];
+
+        const flushStrBatch = () => {
+          if (strBatch) {
+            terminalInstance.value!.write(strBatch);
+            strBatch = '';
+          }
+        };
+        const flushUint8Batch = () => {
+          if (uint8Batch.length > 0) {
+            terminalInstance.value!.write(
+              uint8Batch.length === 1 ? uint8Batch[0] : mergeUint8Arrays(uint8Batch)
+            );
+            uint8Batch = [];
+          }
+        };
+
+        for (const chunk of buffer) {
+          if (typeof chunk === 'string') {
+            flushUint8Batch();
+            strBatch += chunk;
+          } else {
+            flushStrBatch();
+            uint8Batch.push(chunk);
+          }
+        }
+        flushStrBatch();
+        flushUint8Batch();
+      }
+    }
+
+    lastFlushTime = performance.now();
+    isFlushing = false;
+    flushScheduled = false;
+
+    // 如果写入期间有新数据到达，安排下一次刷新
+    if (terminalOutputBuffer.value.length > 0) {
+      scheduleFlush();
+    }
+  };
+
+  // 安排刷新：使用 requestIdleCallback 优先处理非紧急输出
+  const scheduleFlush = () => {
+    if (flushScheduled) return;
+    flushScheduled = true;
+
+    const timeSinceLastFlush = performance.now() - lastFlushTime;
+
+    // 如果距离上次刷新时间较短，使用 requestIdleCallback 延迟处理
+    if (timeSinceLastFlush < FLUSH_INTERVAL_MS && 'requestIdleCallback' in window) {
+      (window as any).requestIdleCallback(
+        (deadline: IdleDeadline) => {
+          // 如果有空闲时间或超时，执行刷新
+          if (deadline.timeRemaining() > 0 || deadline.didTimeout) {
+            doFlush();
+          } else {
+            // 没有空闲时间，使用 rAF
+            flushScheduled = false;
+            requestAnimationFrame(() => {
+              flushScheduled = true;
+              doFlush();
+            });
+          }
+        },
+        { timeout: IDLE_CALLBACK_TIMEOUT_MS }
+      );
+    } else {
+      // 首次刷新或浏览器不支持 requestIdleCallback，使用 rAF
+      requestAnimationFrame(doFlush);
+    }
+  };
+
+  // 兼容旧逻辑的 flushBuffer 函数
   const flushBuffer = () => {
     if (!terminalInstance.value || terminalOutputBuffer.value.length === 0) {
       isFlushing = false;
       return;
     }
-
-    const buffer = terminalOutputBuffer.value;
-    // Optimization: Handle the common case of a single chunk without copying
-    if (buffer.length === 1) {
-      terminalInstance.value.write(buffer[0]);
-      terminalOutputBuffer.value = [];
-    } else {
-      // Check if all items are strings to optimize joining
-      const allStrings = buffer.every((item) => typeof item === 'string');
-      if (allStrings) {
-        // If all strings, join efficiently
-        terminalInstance.value.write((buffer as string[]).join(''));
-      } else {
-        // Mixed content or all binary. Write chunks sequentially (or merge TypedArrays if performant, but sequential write is usually fine for xterm)
-        // Merging Uint8Arrays can be costly. Xterm handles sequential writes well.
-        // However, to truly throttle, we should merge.
-        // For simplicity and safety with mixed types, we iterate.
-        // Xterm's write buffer handles this well if we do it in one rAF cycle.
-        for (const chunk of buffer) {
-          terminalInstance.value.write(chunk);
-        }
-      }
-      terminalOutputBuffer.value = [];
-    }
-
-    // Continue flushing if more data arrived during the write (unlikely but possible with microtasks)
-    // or just reset flag to allow next rAF to be scheduled
-    if (terminalOutputBuffer.value.length > 0) {
-      requestAnimationFrame(flushBuffer);
-    } else {
-      isFlushing = false;
-    }
+    isFlushing = true;
+    scheduleFlush();
   };
 
   // 辅助函数：获取终端消息文本
