@@ -285,7 +285,8 @@ export function handleSshInput(ws: AuthenticatedWebSocket, payload: any): void {
     );
     return;
   }
-  const data = payload?.data;
+  // 注意：Schema 已校验 payload 为 string 类型
+  const data = typeof payload === 'string' ? payload : payload?.data;
   if (typeof data === 'string' && state.isShellReady) {
     // Check isShellReady
     state.sshShellStream.write(data);
