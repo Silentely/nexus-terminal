@@ -15,8 +15,9 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
     provider: 'openai',
     baseUrl: 'https://api.openai.com',
     apiKey: '',
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4o-mini',
     openaiEndpoint: 'chat/completions',
+    rateLimitEnabled: true,
   });
 
   const isLoading = ref(false);
@@ -102,8 +103,9 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
       provider: 'openai',
       baseUrl: 'https://api.openai.com',
       apiKey: '',
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       openaiEndpoint: 'chat/completions',
+      rateLimitEnabled: true,
     };
   }
 

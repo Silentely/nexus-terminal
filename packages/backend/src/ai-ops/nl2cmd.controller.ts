@@ -75,8 +75,9 @@ export const getAISettings = async (req: Request, res: Response): Promise<void> 
           provider: 'openai',
           baseUrl: 'https://api.openai.com',
           apiKey: '',
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           openaiEndpoint: 'chat/completions',
+          rateLimitEnabled: true,
         },
       });
       return;
@@ -106,7 +107,7 @@ export const saveAISettings = async (req: Request, res: Response): Promise<void>
     return;
   }
 
-  const { enabled, provider, baseUrl, apiKey, model, openaiEndpoint } = req.body;
+  const { enabled, provider, baseUrl, apiKey, model, openaiEndpoint, rateLimitEnabled } = req.body;
 
   // 参数验证
   if (typeof enabled !== 'boolean') {
@@ -146,6 +147,7 @@ export const saveAISettings = async (req: Request, res: Response): Promise<void>
       apiKey: finalApiKey || '',
       model,
       openaiEndpoint: provider === 'openai' ? openaiEndpoint || 'chat/completions' : undefined,
+      rateLimitEnabled: rateLimitEnabled !== false, // 默认启用
     };
 
     await NL2CMDService.saveAISettings(settings);

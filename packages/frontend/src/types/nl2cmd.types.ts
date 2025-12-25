@@ -16,6 +16,7 @@ export interface AISettings {
   apiKey: string;
   model: string;
   openaiEndpoint?: OpenAIEndpoint;
+  rateLimitEnabled?: boolean; // 是否启用速率限制（默认 true）
 }
 
 // NL2CMD 请求

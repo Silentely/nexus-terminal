@@ -3,7 +3,7 @@
  * 负责与各个 AI Provider 通信，将自然语言转换为命令行指令
  */
 
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 import {
   AIProvider,
   AIProviderConfig,
@@ -20,6 +20,7 @@ import {
   AISettings,
 } from './nl2cmd.types';
 import { settingsRepository } from '../settings/settings.repository';
+import { encrypt, decrypt } from '../utils/crypto';
 
 const AI_SETTINGS_KEY = 'aiProviderConfig';
 
@@ -33,6 +34,15 @@ export async function getAISettings(): Promise<AISettings | null> {
       return null;
     }
     const config = JSON.parse(configJson) as AISettings;
+    // 解密 API Key
+    if (config.apiKey) {
+      try {
+        config.apiKey = decrypt(config.apiKey);
+      } catch (decryptError) {
+        // 如果解密失败，可能是旧的明文存储，保持原样
+        console.warn('[NL2CMD] API Key 解密失败，可能是旧格式明文存储');
+      }
+    }
     return config;
   } catch (error) {
     console.error('[NL2CMD] 获取 AI 配置失败:', error);
@@ -45,7 +55,12 @@ export async function getAISettings(): Promise<AISettings | null> {
  */
 export async function saveAISettings(settings: AISettings): Promise<void> {
   try {
-    await settingsRepository.setSetting(AI_SETTINGS_KEY, JSON.stringify(settings));
+    // 加密 API Key 后存储
+    const settingsToStore = {
+      ...settings,
+      apiKey: settings.apiKey ? encrypt(settings.apiKey) : '',
+    };
+    await settingsRepository.setSetting(AI_SETTINGS_KEY, JSON.stringify(settingsToStore));
   } catch (error) {
     console.error('[NL2CMD] 保存 AI 配置失败:', error);
     throw new Error('保存 AI 配置失败');
@@ -88,11 +103,25 @@ function detectSystemInfo(osType?: string, shellType?: string): { os: string; sh
 }
 
 /**
+ * 清理用户输入，防止 Prompt 注入
+ */
+function sanitizeUserInput(input: string): string {
+  return input
+    .replace(/[\r\n]+/g, ' ') // 移除换行符
+    .replace(/```/g, '') // 移除代码块标记
+    .replace(/\${/g, '') // 移除模板字符串标记
+    .trim()
+    .slice(0, 500); // 限制长度
+}
+
+/**
  * 构建 NL2CMD Prompt
  */
 function buildNL2CMDPrompt(request: NL2CMDRequest): string {
   const { os, shell } = detectSystemInfo(request.osType, request.shellType);
   const currentPath = request.currentPath || '~';
+  // 清理用户输入，防止 Prompt 注入
+  const sanitizedQuery = sanitizeUserInput(request.query);
 
   return `你是一个专业的命令行助手。请将用户的自然语言描述转换为对应的命令行指令。
 
@@ -108,7 +137,7 @@ function buildNL2CMDPrompt(request: NL2CMDRequest): string {
 4. 确保命令语法适配指定的操作系统和 Shell 类型
 5. 对于危险操作（如 rm -rf），添加 --interactive 或 -i 等安全选项
 
-用户描述：${request.query}
+用户描述：${sanitizedQuery}
 
 请直接返回命令：`;
 }
@@ -157,8 +186,7 @@ async function callOpenAIChatCompletions(
     messages: [
       {
         role: 'system',
-        content:
-          '你是一个专业的命令行助手，专门帮助用户将自然语言转换为精确的命令行指令。',
+        content: '你是一个专业的命令行助手，专门帮助用户将自然语言转换为精确的命令行指令。',
       },
       {
         role: 'user',
@@ -201,13 +229,9 @@ async function callOpenAIResponses(config: AIProviderConfig, prompt: string): Pr
 
 /**
  * 调用 Gemini API
+ * Gemini API URL 格式: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
  */
 async function callGemini(config: AIProviderConfig, prompt: string): Promise<string> {
-  const client = axios.create({
-    baseURL: config.baseUrl,
-    timeout: 30000,
-  });
-
   const requestBody: GeminiRequest = {
     contents: [
       {
@@ -224,10 +248,16 @@ async function callGemini(config: AIProviderConfig, prompt: string): Promise<str
     },
   };
 
-  // Gemini API URL: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}
-  const url = `${config.baseUrl}/v1beta/models/${config.model}:generateContent?key=${config.apiKey}`;
+  // 构建完整 URL，API Key 通过 query 参数传递（Gemini API 官方方式）
+  const baseUrl = config.baseUrl.replace(/\/$/, ''); // 移除末尾斜杠
+  const url = `${baseUrl}/v1beta/models/${config.model}:generateContent`;
 
-  const response = await client.post<GeminiResponse>(url, requestBody);
+  const response = await axios.post<GeminiResponse>(url, requestBody, {
+    params: { key: config.apiKey },
+    headers: { 'Content-Type': 'application/json' },
+    timeout: 30000,
+  });
+
   const content = response.data.candidates[0]?.content?.parts[0]?.text || '';
   return content.trim();
 }
@@ -358,10 +388,44 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
     // 提供更友好的错误信息
     let errorMessage = '生成命令失败';
     if (axios.isAxiosError(error)) {
-      if (error.response) {
-        errorMessage = `API 错误: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
-      } else if (error.request) {
-        errorMessage = '无法连接到 AI 服务，请检查网络或 Base URL 配置';
+      const status = error.response?.status;
+      const data = error.response?.data;
+
+      // 根据状态码提供更具体的错误提示
+      switch (status) {
+        case 400:
+          errorMessage = '请求参数错误，请检查模型名称是否正确';
+          break;
+        case 401:
+          errorMessage = 'API Key 无效或已过期，请检查配置';
+          break;
+        case 403:
+          errorMessage = 'API Key 权限不足或账户被禁用';
+          break;
+        case 404:
+          errorMessage = '请求的 API 端点或模型不存在，请检查 Base URL 和模型名称';
+          break;
+        case 429:
+          errorMessage = 'API 请求频率超限或配额已耗尽，请稍后再试';
+          break;
+        case 500:
+        case 502:
+        case 503:
+          errorMessage = 'AI 服务暂时不可用，请稍后重试';
+          break;
+        default:
+          if (error.response) {
+            // 尝试提取错误详情
+            const errorDetail =
+              typeof data === 'object'
+                ? data?.error?.message || data?.message || JSON.stringify(data)
+                : data;
+            errorMessage = `API 错误 (${status}): ${errorDetail}`;
+          } else if (error.request) {
+            errorMessage = '无法连接到 AI 服务，请检查网络连接或 Base URL 配置';
+          } else {
+            errorMessage = error.message || '请求配置错误';
+          }
       }
     } else if (error.message) {
       errorMessage = error.message;

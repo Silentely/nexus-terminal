@@ -1,8 +1,6 @@
 <template>
   <div class="bg-background border border-border rounded-lg shadow-sm overflow-hidden">
-    <h2
-      class="text-lg font-semibold text-foreground px-6 py-4 border-b border-border bg-header/50"
-    >
+    <h2 class="text-lg font-semibold text-foreground px-6 py-4 border-b border-border bg-header/50">
       AI 助手配置
     </h2>
     <div class="p-6 space-y-6">
@@ -40,9 +38,7 @@
           <el-option label="Chat Completions (/v1/chat/completions)" value="chat/completions" />
           <el-option label="Responses (/v1/responses)" value="responses" />
         </el-select>
-        <p class="text-xs text-muted-foreground mt-1">
-          选择使用的 OpenAI API 端点类型
-        </p>
+        <p class="text-xs text-muted-foreground mt-1">选择使用的 OpenAI API 端点类型</p>
       </div>
 
       <!-- Base URL -->
@@ -68,22 +64,29 @@
           placeholder="sk-..."
           show-password
         />
-        <p class="text-xs text-muted-foreground mt-1">
-          您的 API Key 将被安全加密存储
-        </p>
+        <p class="text-xs text-muted-foreground mt-1">您的 API Key 将被安全加密存储</p>
       </div>
 
       <!-- Model -->
       <div>
         <label class="text-sm font-medium text-foreground">模型</label>
-        <el-input
-          v-model="localSettings.model"
-          class="mt-2"
-          :placeholder="getModelPlaceholder()"
-        />
+        <el-input v-model="localSettings.model" class="mt-2" :placeholder="getModelPlaceholder()" />
         <p class="text-xs text-muted-foreground mt-1">
           {{ getModelHint() }}
         </p>
+      </div>
+
+      <hr class="border-border/50" />
+
+      <!-- 速率限制开关 -->
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="text-sm font-medium text-foreground">启用速率限制</label>
+          <p class="text-xs text-muted-foreground mt-1">
+            限制每分钟最多 10 次请求，防止 API 配额快速耗尽
+          </p>
+        </div>
+        <el-switch v-model="localSettings.rateLimitEnabled" />
       </div>
 
       <!-- 操作按钮 -->
@@ -91,12 +94,8 @@
         <el-button type="primary" @click="handleSave" :loading="aiSettingsStore.isLoading">
           保存配置
         </el-button>
-        <el-button @click="handleTest" :loading="aiSettingsStore.isTesting">
-          测试连接
-        </el-button>
-        <el-button @click="handleReset" :disabled="aiSettingsStore.isLoading">
-          重置
-        </el-button>
+        <el-button @click="handleTest" :loading="aiSettingsStore.isTesting"> 测试连接 </el-button>
+        <el-button @click="handleReset" :disabled="aiSettingsStore.isLoading"> 重置 </el-button>
       </div>
 
       <!-- 提示信息 -->
@@ -105,7 +104,10 @@
           <strong>使用说明：</strong>
         </p>
         <ul class="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-          <li>配置完成后，在终端界面按 <code class="px-1 py-0.5 bg-muted rounded">Ctrl+I</code> 唤起 AI 助手</li>
+          <li>
+            配置完成后，在终端界面按 <code class="px-1 py-0.5 bg-muted rounded">Ctrl+I</code> 唤起
+            AI 助手
+          </li>
           <li>输入自然语言描述（如"查找大于100M的文件"），AI 将生成对应命令</li>
           <li>生成的命令会自动填入终端输入行，您可以审核后再执行</li>
           <li>危险命令会有警告提示，请务必仔细检查后再执行</li>
@@ -129,8 +131,9 @@ const localSettings = ref<AISettings>({
   provider: 'openai',
   baseUrl: 'https://api.openai.com',
   apiKey: '',
-  model: 'gpt-3.5-turbo',
+  model: 'gpt-4o-mini',
   openaiEndpoint: 'chat/completions',
+  rateLimitEnabled: true,
 });
 
 // 初始化：加载配置
@@ -157,17 +160,17 @@ function handleProviderChange() {
   switch (localSettings.value.provider) {
     case 'openai':
       localSettings.value.baseUrl = 'https://api.openai.com';
-      localSettings.value.model = 'gpt-3.5-turbo';
+      localSettings.value.model = 'gpt-4o-mini';
       localSettings.value.openaiEndpoint = 'chat/completions';
       break;
     case 'gemini':
       localSettings.value.baseUrl = 'https://generativelanguage.googleapis.com';
-      localSettings.value.model = 'gemini-pro';
+      localSettings.value.model = 'gemini-2.0-flash';
       delete localSettings.value.openaiEndpoint;
       break;
     case 'claude':
       localSettings.value.baseUrl = 'https://api.anthropic.com';
-      localSettings.value.model = 'claude-3-haiku-20240307';
+      localSettings.value.model = 'claude-3-5-haiku-20241022';
       delete localSettings.value.openaiEndpoint;
       break;
   }
@@ -191,11 +194,11 @@ function getBaseUrlPlaceholder(): string {
 function getModelPlaceholder(): string {
   switch (localSettings.value.provider) {
     case 'openai':
-      return 'gpt-3.5-turbo, gpt-4, gpt-4-turbo 等';
+      return 'gpt-4o-mini, gpt-4o, gpt-4-turbo 等';
     case 'gemini':
-      return 'gemini-pro, gemini-1.5-pro 等';
+      return 'gemini-2.0-flash, gemini-1.5-pro 等';
     case 'claude':
-      return 'claude-3-haiku-20240307, claude-3-sonnet-20240229 等';
+      return 'claude-sonnet-4, claude-3-5-haiku-20241022 等';
     default:
       return '';
   }
@@ -205,11 +208,11 @@ function getModelPlaceholder(): string {
 function getModelHint(): string {
   switch (localSettings.value.provider) {
     case 'openai':
-      return '推荐使用 gpt-3.5-turbo 或 gpt-4';
+      return '推荐使用 gpt-4o-mini（经济高效）或 gpt-4o';
     case 'gemini':
-      return '推荐使用 gemini-pro';
+      return '推荐使用 gemini-2.0-flash';
     case 'claude':
-      return '推荐使用 claude-3-haiku-20240307（速度快且经济）';
+      return '推荐使用 claude-3-5-haiku-20241022（速度快且经济）';
     default:
       return '';
   }

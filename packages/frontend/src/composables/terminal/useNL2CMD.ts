@@ -9,6 +9,13 @@ import apiClient from '../../utils/apiClient';
 import type { NL2CMDRequest, NL2CMDResponse } from '../../types/nl2cmd.types';
 import { useAISettingsStore } from '../../stores/aiSettings.store';
 
+// 远程服务器 OS/Shell 类型配置
+export interface RemoteSystemInfo {
+  osType: string;
+  shellType: string;
+  currentPath?: string;
+}
+
 export function useNL2CMD() {
   const aiSettingsStore = useAISettingsStore();
 
@@ -22,8 +29,26 @@ export function useNL2CMD() {
   const query = ref('');
   const isLoading = ref(false);
 
+  // 远程系统信息（可由调用方设置）
+  const remoteSystemInfo = ref<RemoteSystemInfo>({
+    osType: 'Linux', // 默认：远程服务器最常见的是 Linux
+    shellType: 'bash', // 默认：最常见的 Shell
+    currentPath: '~',
+  });
+
   // 计算属性：AI 是否已启用
   const isAIEnabled = computed(() => aiSettingsStore.settings.enabled);
+
+  /**
+   * 设置远程系统信息
+   * 可由终端组件在连接时或检测到系统信息后调用
+   */
+  function setRemoteSystemInfo(info: Partial<RemoteSystemInfo>) {
+    remoteSystemInfo.value = {
+      ...remoteSystemInfo.value,
+      ...info,
+    };
+  }
 
   /**
    * 显示 NL2CMD 输入框
@@ -46,27 +71,6 @@ export function useNL2CMD() {
   }
 
   /**
-   * 检测操作系统类型
-   */
-  function detectOSType(): string {
-    const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes('win')) return 'Windows';
-    if (ua.includes('mac')) return 'macOS';
-    if (ua.includes('linux')) return 'Linux';
-    return 'Linux'; // 默认
-  }
-
-  /**
-   * 检测 Shell 类型（基于用户代理，实际应该从 SSH 会话中获取）
-   */
-  function detectShellType(): string {
-    const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes('win')) return 'PowerShell';
-    // 对于 Linux/macOS，默认 bash，实际应从服务端获取
-    return 'bash';
-  }
-
-  /**
    * 生成命令
    */
   async function generateCommand(): Promise<string | null> {
@@ -79,8 +83,10 @@ export function useNL2CMD() {
     try {
       const request: NL2CMDRequest = {
         query: query.value.trim(),
-        osType: detectOSType(),
-        shellType: detectShellType(),
+        // 使用远程系统信息，而非本地浏览器 UA 检测
+        osType: remoteSystemInfo.value.osType,
+        shellType: remoteSystemInfo.value.shellType,
+        currentPath: remoteSystemInfo.value.currentPath,
       };
 
       const response = await apiClient.post<NL2CMDResponse>('/api/v1/ai/nl2cmd', request);
@@ -127,9 +133,11 @@ export function useNL2CMD() {
     query,
     isLoading,
     isAIEnabled,
+    remoteSystemInfo,
     show,
     hide,
     generateCommand,
     cancel,
+    setRemoteSystemInfo,
   };
 }

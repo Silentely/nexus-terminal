@@ -76,9 +76,11 @@ const {
   query: nl2cmdQuery,
   isLoading: nl2cmdLoading,
   isAIEnabled: isNL2CMDEnabled,
+  remoteSystemInfo: nl2cmdRemoteSystemInfo,
   show: showNL2CMD,
   hide: hideNL2CMD,
   generateCommand: generateNL2CMD,
+  setRemoteSystemInfo: setNL2CMDRemoteSystemInfo,
 } = nl2cmd;
 const nl2cmdInputRef = ref<HTMLTextAreaElement | null>(null);
 
@@ -349,6 +351,15 @@ onMounted(() => {
       sessionId: props.sessionId,
       terminal: term,
       searchAddon: searchAddon,
+    });
+
+    // Initialize NL2CMD remote system info
+    // SSH connections typically target Linux servers, default to Linux/bash
+    // Future enhancement: detect OS from SSH banner or uname command
+    setNL2CMDRemoteSystemInfo({
+      osType: 'Linux',
+      shellType: 'bash',
+      currentPath: '~',
     });
 
     // --- Selection & Copy ---
@@ -673,11 +684,7 @@ watchEffect(() => {
     <div ref="terminalRef" class="terminal-inner-container"></div>
 
     <transition name="nl2cmd-fade">
-      <div
-        v-if="nl2cmdVisible"
-        class="nl2cmd-overlay"
-        @click.self="closeNL2CMDPanel"
-      >
+      <div v-if="nl2cmdVisible" class="nl2cmd-overlay" @click.self="closeNL2CMDPanel">
         <div class="nl2cmd-content">
           <div class="nl2cmd-header">
             <h3 class="nl2cmd-title">
@@ -739,15 +746,13 @@ watchEffect(() => {
               <span v-if="!nl2cmdLoading">生成命令</span>
               <span v-else>生成中...</span>
             </button>
-            <button class="nl2cmd-btn nl2cmd-btn-secondary" @click="closeNL2CMDPanel">
-              取消
-            </button>
+            <button class="nl2cmd-btn nl2cmd-btn-secondary" @click="closeNL2CMDPanel">取消</button>
           </div>
         </div>
       </div>
     </transition>
-    </div>
-    </template>
+  </div>
+</template>
 
 <style scoped>
 .terminal-outer-wrapper {
