@@ -198,7 +198,14 @@ async function callOpenAIChatCompletions(
   };
 
   const response = await client.post<OpenAIChatResponse>('/v1/chat/completions', requestBody);
-  const content = response.data.choices[0]?.message?.content || '';
+
+  // 安全检查：确保响应结构正确
+  const choices = response.data?.choices;
+  if (!choices || choices.length === 0) {
+    throw new Error('OpenAI API 返回空响应');
+  }
+
+  const content = choices[0]?.message?.content || '';
   return content.trim();
 }
 
@@ -230,11 +237,13 @@ async function callOpenAIResponses(config: AIProviderConfig, prompt: string): Pr
 /**
  * 调用 Gemini API
  * Gemini API URL 格式: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+ * 文档参考: https://ai.google.dev/api/generate-content
  */
 async function callGemini(config: AIProviderConfig, prompt: string): Promise<string> {
   const requestBody: GeminiRequest = {
     contents: [
       {
+        role: 'user', // 明确指定角色
         parts: [
           {
             text: prompt,
@@ -258,7 +267,13 @@ async function callGemini(config: AIProviderConfig, prompt: string): Promise<str
     timeout: 30000,
   });
 
-  const content = response.data.candidates[0]?.content?.parts[0]?.text || '';
+  // 安全检查：确保响应结构正确
+  const candidates = response.data?.candidates;
+  if (!candidates || candidates.length === 0) {
+    throw new Error('Gemini API 返回空响应');
+  }
+
+  const content = candidates[0]?.content?.parts?.[0]?.text || '';
   return content.trim();
 }
 
@@ -290,7 +305,19 @@ async function callClaude(config: AIProviderConfig, prompt: string): Promise<str
   };
 
   const response = await client.post<ClaudeResponse>('/v1/messages', requestBody);
-  const content = response.data.content[0]?.text || '';
+
+  // 安全检查：确保响应结构正确
+  const contentArray = response.data?.content;
+  if (!contentArray || contentArray.length === 0) {
+    throw new Error('Claude API 返回空响应');
+  }
+
+  // 检查是否被拒绝
+  if (response.data.stop_reason === 'refusal') {
+    throw new Error('Claude 拒绝生成该内容');
+  }
+
+  const content = contentArray[0]?.text || '';
   return content.trim();
 }
 

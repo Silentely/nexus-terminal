@@ -44,7 +44,8 @@ export interface OpenAIChatRequest {
     content: string;
   }>;
   temperature?: number;
-  max_tokens?: number;
+  max_tokens?: number; // 传统模型使用
+  max_completion_tokens?: number; // 新模型（如 o1 系列）使用
 }
 
 // OpenAI Chat Completions API 响应
@@ -145,7 +146,8 @@ export interface ClaudeResponse {
     text: string;
   }>;
   model: string;
-  stop_reason: string;
+  stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'refusal' | string;
+  stop_sequence?: string; // 触发停止的序列
   usage: {
     input_tokens: number;
     output_tokens: number;
