@@ -12,7 +12,6 @@
             启用后可在终端使用 Ctrl+I 快捷键调用 AI 生成命令
           </p>
         </div>
-        <!-- 使用原生 Checkbox 替代 el-switch，或者使用一个简单的 Toggle 组件 -->
         <label class="relative inline-flex items-center cursor-pointer">
           <input type="checkbox" v-model="localSettings.enabled" class="sr-only peer" />
           <div
@@ -131,33 +130,46 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="flex items-center space-x-3 pt-4">
-        <button
-          type="button"
-          @click="handleSave"
-          :disabled="aiSettingsStore.isLoading"
-          class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ aiSettingsStore.isLoading ? '保存中...' : '保存配置' }}
-        </button>
+      <div class="flex items-center justify-between pt-4">
+        <div class="flex items-center space-x-3">
+          <button
+            type="button"
+            @click="handleSave"
+            :disabled="aiSettingsStore.isLoading"
+            class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ aiSettingsStore.isLoading ? '保存中...' : '保存配置' }}
+          </button>
 
-        <button
-          type="button"
-          @click="handleTest"
-          :disabled="aiSettingsStore.isTesting"
-          class="px-4 py-2 bg-background border border-border text-foreground rounded-md shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ aiSettingsStore.isTesting ? '测试中...' : '测试连接' }}
-        </button>
+          <button
+            type="button"
+            @click="handleTest"
+            :disabled="aiSettingsStore.isTesting"
+            class="px-4 py-2 bg-background border border-border text-foreground rounded-md shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ aiSettingsStore.isTesting ? '测试中...' : '测试连接' }}
+          </button>
 
-        <button
-          type="button"
-          @click="handleReset"
-          :disabled="aiSettingsStore.isLoading"
-          class="px-4 py-2 bg-background border border-border text-foreground rounded-md shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          <button
+            type="button"
+            @click="handleReset"
+            :disabled="aiSettingsStore.isLoading"
+            class="px-4 py-2 bg-background border border-border text-foreground rounded-md shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            重置
+          </button>
+        </div>
+
+        <!-- 消息提示 -->
+        <p
+          v-if="statusMessage"
+          :class="[
+            'text-sm transition-opacity duration-300',
+            statusSuccess ? 'text-success' : 'text-error',
+          ]"
         >
-          重置
-        </button>
+          {{ statusMessage }}
+        </p>
       </div>
 
       <!-- 提示信息 -->
@@ -181,7 +193,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { ElMessage } from 'element-plus';
 import { useAISettingsStore } from '../../stores/aiSettings.store';
 import type { AISettings } from '../../types/nl2cmd.types';
 
@@ -199,6 +210,17 @@ const localSettings = ref<AISettings>({
 });
 
 const showPassword = ref(false);
+const statusMessage = ref('');
+const statusSuccess = ref(false);
+
+// 设置状态消息并自动清除
+function setStatus(message: string, isSuccess: boolean) {
+  statusMessage.value = message;
+  statusSuccess.value = isSuccess;
+  setTimeout(() => {
+    statusMessage.value = '';
+  }, 3000);
+}
 
 // 初始化：加载配置
 onMounted(async () => {
@@ -206,7 +228,7 @@ onMounted(async () => {
     await aiSettingsStore.loadSettings();
     localSettings.value = { ...aiSettingsStore.settings };
   } catch (error) {
-    ElMessage.error('加载 AI 配置失败');
+    setStatus('加载 AI 配置失败', false);
   }
 });
 
@@ -287,19 +309,19 @@ async function handleSave() {
   try {
     // 验证必填项
     if (!localSettings.value.baseUrl || !localSettings.value.model) {
-      ElMessage.warning('请填写完整的配置信息');
+      setStatus('请填写完整的配置信息', false);
       return;
     }
 
     if (localSettings.value.enabled && !localSettings.value.apiKey) {
-      ElMessage.warning('启用 AI 助手需要填写 API Key');
+      setStatus('启用 AI 助手需要填写 API Key', false);
       return;
     }
 
     await aiSettingsStore.saveSettings(localSettings.value);
-    ElMessage.success('AI 配置已保存');
+    setStatus('AI 配置已保存', true);
   } catch (error) {
-    ElMessage.error('保存 AI 配置失败');
+    setStatus('保存 AI 配置失败', false);
   }
 }
 
@@ -308,25 +330,25 @@ async function handleTest() {
   try {
     // 验证必填项
     if (!localSettings.value.baseUrl || !localSettings.value.apiKey || !localSettings.value.model) {
-      ElMessage.warning('请填写完整的配置信息');
+      setStatus('请填写完整的配置信息', false);
       return;
     }
 
     const success = await aiSettingsStore.testConnection(localSettings.value);
     if (success) {
-      ElMessage.success('连接测试成功！AI 服务可用');
+      setStatus('连接测试成功！AI 服务可用', true);
     } else {
-      ElMessage.error('连接测试失败，请检查配置');
+      setStatus('连接测试失败，请检查配置', false);
     }
   } catch (error) {
-    ElMessage.error('测试连接时发生错误');
+    setStatus('测试连接时发生错误', false);
   }
 }
 
 // 重置配置
 function handleReset() {
   localSettings.value = { ...aiSettingsStore.settings };
-  ElMessage.info('已恢复为上次保存的配置');
+  setStatus('已恢复为上次保存的配置', true);
 }
 </script>
 
