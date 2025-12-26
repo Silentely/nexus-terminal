@@ -145,6 +145,27 @@
         </p>
       </div>
 
+      <!-- 流式响应开关（仅 OpenAI 支持） -->
+      <div v-if="localSettings.provider === 'openai'">
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="streaming"
+            v-model="localSettings.streamingEnabled"
+            class="h-4 w-4 rounded border-border text-primary focus:ring-primary mr-2 cursor-pointer"
+          />
+          <label
+            for="streaming"
+            class="text-sm font-medium text-foreground cursor-pointer select-none"
+          >
+            启用流式响应
+          </label>
+        </div>
+        <p class="text-xs text-muted-foreground mt-1 ml-6">
+          启用后命令会逐步显示，有更好的交互体验（仅支持 OpenAI Chat Completions）
+        </p>
+      </div>
+
       <!-- 操作按钮 -->
       <div class="flex items-center justify-between pt-4">
         <div class="flex items-center space-x-3">
@@ -220,6 +241,7 @@ const localSettings = ref<AISettings>({
   model: 'gpt-4o-mini',
   openaiEndpoint: 'chat/completions',
   rateLimitEnabled: true,
+  streamingEnabled: false,
 });
 
 const showPassword = ref(false);
