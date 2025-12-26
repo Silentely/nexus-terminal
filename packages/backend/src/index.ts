@@ -200,11 +200,22 @@ const server = http.createServer(app);
 // 仅在生产环境启用（通常在反向代理如 Nginx 后运行）
 // 使用明确的 hop 数而非 boolean true，以限制可信代理层级
 // 默认信任 1 层代理（通常是 Nginx），可通过 TRUST_PROXY_HOPS 环境变量自定义
-const isProduction = process.env.NODE_ENV === 'production';
-const trustProxyHops = process.env.TRUST_PROXY_HOPS
-  ? parseInt(process.env.TRUST_PROXY_HOPS, 10)
-  : 1;
-app.set('trust proxy', isProduction ? trustProxyHops : false);
+// Update: Default to 1 to avoid express-rate-limit errors when behind a proxy even in dev
+const trustProxyEnv = process.env.TRUST_PROXY;
+let trustProxyValue: number | boolean | string = 1;
+
+if (trustProxyEnv) {
+  if (trustProxyEnv.toLowerCase() === 'true') trustProxyValue = true;
+  else if (trustProxyEnv.toLowerCase() === 'false') trustProxyValue = false;
+  else {
+    const parsed = parseInt(trustProxyEnv, 10);
+    trustProxyValue = Number.isNaN(parsed) ? trustProxyEnv : parsed;
+  }
+} else if (process.env.TRUST_PROXY_HOPS) {
+  trustProxyValue = parseInt(process.env.TRUST_PROXY_HOPS, 10);
+}
+
+app.set('trust proxy', trustProxyValue);
 
 // --- 安全中间件 ---
 // 1. Helmet - 设置 HTTP 安全头
