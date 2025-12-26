@@ -19,6 +19,7 @@ import {
 // Import extracted composables
 import { useTerminalFit } from '../../composables/terminal/useTerminalFit';
 import { useTerminalSocket } from '../../composables/terminal/useTerminalSocket';
+import { useNL2CMD } from '../../composables/terminal/useNL2CMD';
 import { OutputEnhancerAddon } from './addons/output-enhancer';
 
 // 定义 props 和 emits
@@ -67,6 +68,63 @@ const { fitAddon, fitAndEmitResizeNow, setupResizeObserver } = useTerminalFit(
 );
 
 const { setupInputHandler } = useTerminalSocket(terminalInstance, props.sessionId, streamRef);
+
+// NL2CMD (Natural Language to Command)
+const nl2cmd = useNL2CMD();
+const {
+  isVisible: nl2cmdVisible,
+  query: nl2cmdQuery,
+  isLoading: nl2cmdLoading,
+  isAIEnabled: isNL2CMDEnabled,
+  remoteSystemInfo: nl2cmdRemoteSystemInfo,
+  show: showNL2CMD,
+  hide: hideNL2CMD,
+  generateCommand: generateNL2CMD,
+  setRemoteSystemInfo: setNL2CMDRemoteSystemInfo,
+} = nl2cmd;
+const nl2cmdInputRef = ref<HTMLTextAreaElement | null>(null);
+
+const openNL2CMDPanel = () => {
+  showNL2CMD();
+  nextTick(() => {
+    nl2cmdInputRef.value?.focus();
+  });
+};
+
+const closeNL2CMDPanel = () => {
+  hideNL2CMD();
+};
+
+const submitNL2CMD = async () => {
+  const command = await generateNL2CMD();
+  if (command) {
+    emitWorkspaceEvent('terminal:input', {
+      sessionId: props.sessionId,
+      data: command,
+    });
+  }
+};
+
+const handleNL2CMDTextareaKeydown = async (event: KeyboardEvent) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    event.preventDefault();
+    await submitNL2CMD();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    closeNL2CMDPanel();
+  }
+};
+
+watch(
+  () => nl2cmdVisible.value,
+  (visible) => {
+    if (visible) {
+      nextTick(() => {
+        nl2cmdInputRef.value?.focus();
+      });
+    }
+  }
+);
 
 let initialPinchDistance = 0;
 let currentFontSizeOnPinchStart = 0;
@@ -295,6 +353,15 @@ onMounted(() => {
       searchAddon: searchAddon,
     });
 
+    // Initialize NL2CMD remote system info
+    // SSH connections typically target Linux servers, default to Linux/bash
+    // Future enhancement: detect OS from SSH banner or uname command
+    setNL2CMDRemoteSystemInfo({
+      osType: 'Linux',
+      shellType: 'bash',
+      currentPath: '~',
+    });
+
     // --- Selection & Copy ---
     let currentSelection = '';
     const handleSelectionChange = () => {
@@ -379,7 +446,7 @@ onMounted(() => {
 
     term.focus();
 
-    // --- Ctrl+Shift+C/V/O ---
+    // --- Ctrl+Shift+C/V/O / Ctrl+I (NL2CMD) ---
     if (term.textarea) {
       term.textarea.addEventListener('keydown', async (event: KeyboardEvent) => {
         if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
@@ -418,6 +485,11 @@ onMounted(() => {
               console.log('[Terminal] No folded content to expand');
             }
           }
+        } else if (event.ctrlKey && !event.shiftKey && event.code === 'KeyI') {
+          // Ctrl+I: 唤起 NL2CMD (Natural Language to Command)
+          event.preventDefault();
+          event.stopPropagation();
+          openNL2CMDPanel();
         }
       });
     }
@@ -595,7 +667,90 @@ watchEffect(() => {
 
 <template>
   <div ref="terminalOuterWrapperRef" class="terminal-outer-wrapper">
+    <div class="terminal-toolbar">
+      <button
+        type="button"
+        class="nl2cmd-trigger"
+        @click="openNL2CMDPanel"
+        :disabled="!isNL2CMDEnabled"
+        :title="isNL2CMDEnabled ? 'Ctrl+I 唤起 AI 指令生成' : '请在设置中启用 AI 助手'"
+      >
+        <span class="trigger-icon">✨</span>
+        <span>AI 命令</span>
+        <span class="trigger-shortcut">Ctrl+I</span>
+      </button>
+    </div>
+
     <div ref="terminalRef" class="terminal-inner-container"></div>
+
+    <transition name="nl2cmd-fade">
+      <div v-if="nl2cmdVisible" class="nl2cmd-overlay" @click.self="closeNL2CMDPanel">
+        <div class="nl2cmd-content">
+          <div class="nl2cmd-header">
+            <h3 class="nl2cmd-title">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="nl2cmd-icon"
+              >
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" x2="12" y1="19" y2="22"></line>
+              </svg>
+              自然语言指令生成
+            </h3>
+            <button class="nl2cmd-close" @click="closeNL2CMDPanel" title="关闭 (Esc)">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" x2="6" y1="6" y2="18"></line>
+                <line x1="6" x2="18" y1="6" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          <div class="nl2cmd-body">
+            <label class="nl2cmd-label">请输入自然语言描述：</label>
+            <textarea
+              ref="nl2cmdInputRef"
+              v-model="nl2cmdQuery"
+              class="nl2cmd-textarea"
+              placeholder="例如：查找当前目录下大于 100M 的文件并按大小排序"
+              rows="3"
+              @keydown="handleNL2CMDTextareaKeydown"
+            ></textarea>
+            <div class="nl2cmd-hint">
+              提示：按 <kbd>Ctrl+Enter</kbd> 生成命令，<kbd>Esc</kbd> 关闭
+            </div>
+          </div>
+          <div class="nl2cmd-footer">
+            <button
+              class="nl2cmd-btn nl2cmd-btn-primary"
+              @click="submitNL2CMD"
+              :disabled="nl2cmdLoading"
+            >
+              <span v-if="!nl2cmdLoading">生成命令</span>
+              <span v-else>生成中...</span>
+            </button>
+            <button class="nl2cmd-btn nl2cmd-btn-secondary" @click="closeNL2CMDPanel">取消</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -607,23 +762,64 @@ watchEffect(() => {
   position: relative;
 }
 
+.terminal-toolbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.nl2cmd-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nl2cmd-trigger:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.nl2cmd-trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trigger-icon {
+  font-size: 16px;
+}
+
+.trigger-shortcut {
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: monospace;
+}
+
 .terminal-inner-container {
   width: 100%;
   height: 100%;
-  /* 字体渲染优化：解决字体发虚问题 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* 确保 xterm.js 内部元素也应用字体平滑 */
 .terminal-inner-container :deep(.xterm) {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Canvas 渲染器优化 */
 .terminal-inner-container :deep(.xterm-screen canvas) {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
@@ -644,5 +840,173 @@ watchEffect(() => {
 .terminal-inner-container.has-text-shadow :deep(.xterm-rows div > span),
 .terminal-inner-container.has-text-shadow :deep(.xterm-rows div) {
   text-shadow: var(--terminal-shadow);
+}
+
+/* NL2CMD Panel Styles */
+.nl2cmd-fade-enter-active,
+.nl2cmd-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.nl2cmd-fade-enter-from,
+.nl2cmd-fade-leave-to {
+  opacity: 0;
+}
+
+.nl2cmd-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.nl2cmd-content {
+  background: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 600px;
+  overflow: hidden;
+}
+
+.nl2cmd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.nl2cmd-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.nl2cmd-icon {
+  flex-shrink: 0;
+}
+
+.nl2cmd-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.nl2cmd-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nl2cmd-body {
+  padding: 20px;
+}
+
+.nl2cmd-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ddd;
+}
+
+.nl2cmd-textarea {
+  width: 100%;
+  padding: 12px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.nl2cmd-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.nl2cmd-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.nl2cmd-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.nl2cmd-hint kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #fff;
+}
+
+.nl2cmd-footer {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1a1a1a;
+}
+
+.nl2cmd-btn {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nl2cmd-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.nl2cmd-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.nl2cmd-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.nl2cmd-btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ddd;
+}
+
+.nl2cmd-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 </style>
