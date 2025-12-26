@@ -34,6 +34,14 @@ export interface NL2CMDResponse {
   explanation?: string; // 命令解释
   warning?: string; // 警告信息（对于危险命令）
   error?: string; // 错误信息
+  streaming?: boolean; // 是否为流式响应
+}
+
+// 流式响应事件类型
+export interface NL2CMDStreamEvent {
+  type: 'chunk' | 'done' | 'error';
+  data?: string;
+  error?: string;
 }
 
 // OpenAI Chat Completions API 请求
@@ -46,6 +54,7 @@ export interface OpenAIChatRequest {
   temperature?: number;
   max_tokens?: number; // 传统模型使用
   max_completion_tokens?: number; // 新模型（如 o1 系列）使用
+  stream?: boolean; // 流式响应开关
 }
 
 // OpenAI Chat Completions API 响应
@@ -163,4 +172,5 @@ export interface AISettings {
   model: string;
   openaiEndpoint?: OpenAIEndpoint;
   rateLimitEnabled?: boolean; // 是否启用速率限制（默认 true）
+  streamingEnabled?: boolean; // 是否启用流式响应（默认 false）
 }

@@ -1,10 +1,14 @@
 /**
  * NL2CMD (Natural Language to Command) Service
  * 负责与各个 AI Provider 通信，将自然语言转换为命令行指令
+ *
+ * 优化特性：
+ * - Axios 客户端单例复用
+ * - 流式响应支持
+ * - 快速失败（不重试）
  */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import crypto from 'crypto';
 import {
   AIProvider,
   AIProviderConfig,
@@ -20,35 +24,38 @@ import {
   ClaudeResponse,
   AISettings,
 } from './nl2cmd.types';
+import { NL2CMD_CONFIG, safeBaseUrlForLog, shouldLogTiming } from './nl2cmd.constants';
 import { settingsRepository } from '../settings/settings.repository';
 import { encrypt, decrypt } from '../utils/crypto';
 
 const AI_SETTINGS_KEY = 'aiProviderConfig';
 
-type NL2CMDTraceOptions = {
-  traceId?: string;
-};
+/**
+ * Axios 客户端缓存（按 baseUrl + apiKey 缓存）
+ */
+const axiosClientCache = new Map<string, AxiosInstance>();
 
-const NL2CMD_TIMING_LOG_ENABLED = process.env.NL2CMD_TIMING_LOG === '1';
+/**
+ * 获取或创建 Axios 客户端（单例复用）
+ */
+function getAxiosClient(baseUrl: string, apiKey: string): AxiosInstance {
+  const cacheKey = `${baseUrl}::${apiKey.substring(0, 8)}`;
 
-const parseIntOr = (value: unknown, fallback: number): number => {
-  if (typeof value !== 'string') return fallback;
-  const parsed = parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-const NL2CMD_SLOW_THRESHOLD_MS = parseIntOr(process.env.NL2CMD_SLOW_THRESHOLD_MS, 3000);
-
-const shouldLogTiming = (totalMs: number): boolean =>
-  NL2CMD_TIMING_LOG_ENABLED || totalMs >= NL2CMD_SLOW_THRESHOLD_MS;
-
-const safeBaseUrlForLog = (baseUrl: string): string => {
-  try {
-    return new URL(baseUrl).host;
-  } catch {
-    return baseUrl;
+  let client = axiosClientCache.get(cacheKey);
+  if (!client) {
+    client = axios.create({
+      baseURL: baseUrl,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      timeout: NL2CMD_CONFIG.REQUEST_TIMEOUT_MS,
+    });
+    axiosClientCache.set(cacheKey, client);
   }
-};
+
+  return client;
+}
 
 /**
  * 获取 AI Provider 配置
@@ -61,17 +68,17 @@ export async function getAISettings(): Promise<AISettings | null> {
     }
     const config = JSON.parse(configJson) as AISettings;
 
-    // 确保 enabled 是 boolean 类型
+    // 确保 enabled 和 streamingEnabled 是 boolean 类型
     if (config) {
       config.enabled = !!config.enabled;
+      config.streamingEnabled = !!config.streamingEnabled;
     }
 
     // 解密 API Key
     if (config.apiKey) {
       try {
         config.apiKey = decrypt(config.apiKey);
-      } catch (decryptError) {
-        // 如果解密失败，可能是旧的明文存储，保持原样
+      } catch {
         console.warn('[NL2CMD] API Key 解密失败，可能是旧格式明文存储');
       }
     }
@@ -87,7 +94,6 @@ export async function getAISettings(): Promise<AISettings | null> {
  */
 export async function saveAISettings(settings: AISettings): Promise<void> {
   try {
-    // 加密 API Key 后存储
     const settingsToStore = {
       ...settings,
       apiKey: settings.apiKey ? encrypt(settings.apiKey) : '',
@@ -100,15 +106,13 @@ export async function saveAISettings(settings: AISettings): Promise<void> {
 }
 
 /**
- * 检测操作系统类型和Shell类型
+ * 检测操作系统类型和 Shell 类型
  */
 function detectSystemInfo(osType?: string, shellType?: string): { os: string; shell: string } {
-  // 如果客户端提供了信息，优先使用
   if (osType && shellType) {
     return { os: osType, shell: shellType };
   }
 
-  // 否则基于服务器环境检测（作为后备）
   const platform = process.platform;
   let os = 'Linux';
   let shell = 'bash';
@@ -139,11 +143,11 @@ function detectSystemInfo(osType?: string, shellType?: string): { os: string; sh
  */
 function sanitizeUserInput(input: string): string {
   return input
-    .replace(/[\r\n]+/g, ' ') // 移除换行符
-    .replace(/```/g, '') // 移除代码块标记
-    .replace(/\${/g, '') // 移除模板字符串标记
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/```/g, '')
+    .replace(/\${/g, '')
     .trim()
-    .slice(0, 500); // 限制长度
+    .slice(0, NL2CMD_CONFIG.MAX_QUERY_LENGTH);
 }
 
 /**
@@ -152,7 +156,6 @@ function sanitizeUserInput(input: string): string {
 function buildNL2CMDPrompt(request: NL2CMDRequest): string {
   const { os, shell } = detectSystemInfo(request.osType, request.shellType);
   const currentPath = request.currentPath || '~';
-  // 清理用户输入，防止 Prompt 注入
   const sanitizedQuery = sanitizeUserInput(request.query);
 
   return `你是一个专业的命令行助手。请将用户的自然语言描述转换为对应的命令行指令。
@@ -202,16 +205,10 @@ function detectDangerousCommand(command: string): string | undefined {
  */
 async function callOpenAIChatCompletions(
   config: AIProviderConfig,
-  prompt: string
+  prompt: string,
+  stream: boolean = false
 ): Promise<string> {
-  const client = axios.create({
-    baseURL: config.baseUrl,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.apiKey}`,
-    },
-    timeout: 30000,
-  });
+  const client = getAxiosClient(config.baseUrl, config.apiKey);
 
   const requestBody: OpenAIChatRequest = {
     model: config.model,
@@ -225,13 +222,23 @@ async function callOpenAIChatCompletions(
         content: prompt,
       },
     ],
-    temperature: 0.3,
-    max_completion_tokens: 500,
+    temperature: NL2CMD_CONFIG.TEMPERATURE,
+    max_completion_tokens: NL2CMD_CONFIG.MAX_OUTPUT_TOKENS,
   };
 
-  const response = await client.post<OpenAIChatResponse>('/v1/chat/completions', requestBody);
+  if (stream) {
+    requestBody.stream = true;
+  }
 
-  // 安全检查：确保响应结构正确
+  // 流式响应需要设置 responseType
+  if (stream) {
+    const streamResponse = await client.post('/v1/chat/completions', requestBody, {
+      responseType: 'stream',
+    });
+    return await parseStreamResponse(streamResponse.data);
+  }
+
+  const response = await client.post<OpenAIChatResponse>('/v1/chat/completions', requestBody);
   const choices = response.data?.choices;
   if (!choices || choices.length === 0) {
     throw new Error('OpenAI API 返回空响应');
@@ -242,28 +249,80 @@ async function callOpenAIChatCompletions(
 }
 
 /**
+ * 解析流式响应
+ * 处理 NodeJS Readable Stream 格式的 SSE 响应
+ */
+async function parseStreamResponse(data: unknown): Promise<string> {
+  const chunks: string[] = [];
+
+  // 处理 NodeJS Stream（axios responseType: 'stream'）
+  if (data && typeof data === 'object' && 'on' in data) {
+    const stream = data as NodeJS.ReadableStream;
+    const buffer: Buffer[] = [];
+
+    await new Promise<void>((resolve, reject) => {
+      stream.on('data', (chunk: Buffer) => buffer.push(chunk));
+      stream.on('end', resolve);
+      stream.on('error', reject);
+    });
+
+    const fullData = Buffer.concat(buffer).toString('utf-8');
+    const lines = fullData.split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const jsonStr = line.slice(6);
+        if (jsonStr === '[DONE]') continue;
+
+        try {
+          const chunk = JSON.parse(jsonStr);
+          const content = chunk.choices?.[0]?.delta?.content;
+          if (content) {
+            chunks.push(content);
+          }
+        } catch {
+          // 忽略解析错误
+        }
+      }
+    }
+  } else if (Buffer.isBuffer(data)) {
+    // 兼容测试中的 Buffer 格式
+    const lines = data.toString('utf-8').split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const jsonStr = line.slice(6);
+        if (jsonStr === '[DONE]') continue;
+
+        try {
+          const chunk = JSON.parse(jsonStr);
+          const content = chunk.choices?.[0]?.delta?.content;
+          if (content) {
+            chunks.push(content);
+          }
+        } catch {
+          // 忽略解析错误
+        }
+      }
+    }
+  }
+
+  return chunks.join('');
+}
+
+/**
  * 调用 OpenAI API (Responses)
  */
 async function callOpenAIResponses(config: AIProviderConfig, prompt: string): Promise<string> {
-  const client = axios.create({
-    baseURL: config.baseUrl,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${config.apiKey}`,
-    },
-    timeout: 30000,
-  });
+  const client = getAxiosClient(config.baseUrl, config.apiKey);
 
   const requestBody: OpenAIResponsesRequest = {
     model: config.model,
     input: prompt,
-    temperature: 0.3,
-    max_tokens: 500,
+    temperature: NL2CMD_CONFIG.TEMPERATURE,
+    max_tokens: NL2CMD_CONFIG.MAX_OUTPUT_TOKENS,
   };
 
   const response = await client.post<OpenAIResponsesResponse>('/v1/responses', requestBody);
 
-  // 安全检查：确保响应结构正确
   if (!response.data || !response.data.response) {
     throw new Error('OpenAI Responses API 返回空响应');
   }
@@ -274,38 +333,30 @@ async function callOpenAIResponses(config: AIProviderConfig, prompt: string): Pr
 
 /**
  * 调用 Gemini API
- * Gemini API URL 格式: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
- * 文档参考: https://ai.google.dev/api/generate-content
  */
 async function callGemini(config: AIProviderConfig, prompt: string): Promise<string> {
   const requestBody: GeminiRequest = {
     contents: [
       {
-        role: 'user', // 明确指定角色
-        parts: [
-          {
-            text: prompt,
-          },
-        ],
+        role: 'user',
+        parts: [{ text: prompt }],
       },
     ],
     generationConfig: {
-      temperature: 0.3,
-      maxOutputTokens: 500,
+      temperature: NL2CMD_CONFIG.TEMPERATURE,
+      maxOutputTokens: NL2CMD_CONFIG.MAX_OUTPUT_TOKENS,
     },
   };
 
-  // 构建完整 URL，API Key 通过 query 参数传递（Gemini API 官方方式）
-  const baseUrl = config.baseUrl.replace(/\/$/, ''); // 移除末尾斜杠
+  const baseUrl = config.baseUrl.replace(/\/$/, '');
   const url = `${baseUrl}/v1beta/models/${config.model}:generateContent`;
 
   const response = await axios.post<GeminiResponse>(url, requestBody, {
     params: { key: config.apiKey },
     headers: { 'Content-Type': 'application/json' },
-    timeout: 30000,
+    timeout: NL2CMD_CONFIG.REQUEST_TIMEOUT_MS,
   });
 
-  // 安全检查：确保响应结构正确
   const candidates = response.data?.candidates;
   if (!candidates || candidates.length === 0) {
     throw new Error('Gemini API 返回空响应');
@@ -317,6 +368,7 @@ async function callGemini(config: AIProviderConfig, prompt: string): Promise<str
 
 /**
  * 调用 Claude API
+ * 注意：Claude API 需要特定的 headers，不能使用共享的 getAxiosClient
  */
 async function callClaude(config: AIProviderConfig, prompt: string): Promise<string> {
   const client = axios.create({
@@ -325,26 +377,21 @@ async function callClaude(config: AIProviderConfig, prompt: string): Promise<str
       'Content-Type': 'application/json',
       'x-api-key': config.apiKey,
       'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
     },
-    timeout: 30000,
+    timeout: NL2CMD_CONFIG.REQUEST_TIMEOUT_MS,
   });
 
   const requestBody: ClaudeRequest = {
     model: config.model,
-    max_tokens: 500,
-    temperature: 0.3,
+    max_tokens: NL2CMD_CONFIG.MAX_OUTPUT_TOKENS,
+    temperature: NL2CMD_CONFIG.TEMPERATURE,
     system: '你是一个专业的命令行助手，专门帮助用户将自然语言转换为精确的命令行指令。',
-    messages: [
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
+    messages: [{ role: 'user', content: prompt }],
   };
 
   const response = await client.post<ClaudeResponse>('/v1/messages', requestBody);
 
-  // 安全检查：确保响应结构正确
   const contentArray = response.data?.content;
   if (!contentArray || contentArray.length === 0) {
     throw new Error('Claude API 返回空响应');
@@ -358,19 +405,17 @@ async function callClaude(config: AIProviderConfig, prompt: string): Promise<str
  * 清理 AI 返回的命令（移除 Markdown 代码块等）
  */
 function cleanCommandOutput(output: string): string {
-  // 移除 Markdown 代码块
   let cleaned = output.replace(/```[\w]*\n?/g, '').replace(/```/g, '');
 
-  // 移除开头的命令提示符
+  // 移除反引号包裹的单行代码
+  cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
+
   cleaned = cleaned.replace(/^\$\s+/, '').replace(/^>\s+/, '');
 
-  // 移除多余的换行和空格
   cleaned = cleaned.trim();
 
-  // 如果包含多行，只取第一行（通常是命令本身）
   const lines = cleaned.split('\n');
   if (lines.length > 1) {
-    // 查找第一行非空且看起来像命令的行
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
@@ -383,37 +428,84 @@ function cleanCommandOutput(output: string): string {
 }
 
 /**
+ * 构建错误信息
+ */
+function buildErrorMessage(error: AxiosError): string {
+  let errorMessage = '生成命令失败';
+  const status = error.response?.status;
+  const data = error.response?.data;
+
+  if (error.code === 'ECONNABORTED' && error.config?.timeout) {
+    errorMessage = `AI 服务响应超时（${error.config.timeout}ms），请稍后重试或检查网络/Base URL 配置`;
+    return errorMessage;
+  }
+
+  switch (status) {
+    case 400:
+      errorMessage = '请求参数错误，请检查模型名称是否正确';
+      break;
+    case 401:
+      errorMessage = 'API Key 无效或已过期，请检查配置';
+      break;
+    case 403:
+      errorMessage = 'API Key 权限不足或账户被禁用';
+      break;
+    case 404:
+      errorMessage = '请求的 API 端点或模型不存在，请检查 Base URL 和模型名称';
+      break;
+    case 429:
+      console.warn('[NL2CMD] Upstream 429 Error Details:', {
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        status,
+        data,
+      });
+      errorMessage = 'API 请求频率超限或配额已耗尽，请稍后再试';
+      if (data && typeof data === 'object' && (data as any).error?.message) {
+        errorMessage += `: ${(data as any).error.message}`;
+      }
+      break;
+    case 500:
+    case 502:
+    case 503:
+      errorMessage = 'AI 服务暂时不可用，请稍后重试';
+      break;
+    default:
+      if (error.response) {
+        const errorObj = data as { error?: { message?: string }; message?: string } | undefined;
+        const errorDetail = errorObj?.error?.message || errorObj?.message || JSON.stringify(data);
+        errorMessage = `API 错误 (${status}): ${errorDetail}`;
+      } else if (error.request) {
+        errorMessage = '无法连接到 AI 服务，请检查网络连接或 Base URL 配置';
+      } else {
+        errorMessage = error.message || '请求配置错误';
+      }
+  }
+
+  return errorMessage;
+}
+
+/**
  * 生成命令（主函数）
+ * 特性：快速失败，不重试
  */
 export async function generateCommand(
   request: NL2CMDRequest,
-  options?: NL2CMDTraceOptions
+  traceId?: string
 ): Promise<NL2CMDResponse> {
-  const traceId = options?.traceId || crypto.randomBytes(8).toString('hex');
-  const totalStart = Date.now();
+  const startTime = Date.now();
 
   try {
-    // 获取 AI 配置
-    const settingsStart = Date.now();
     const settings = await getAISettings();
-    const settingsMs = Date.now() - settingsStart;
 
     if (!settings || !settings.enabled) {
-      const totalMs = Date.now() - totalStart;
+      const totalMs = Date.now() - startTime;
       if (shouldLogTiming(totalMs)) {
-        console.info('[NL2CMD Timing] Disabled', {
-          traceId,
-          totalMs,
-          settingsMs,
-        });
+        console.info('[NL2CMD Timing] Disabled', { traceId, totalMs });
       }
-      return {
-        success: false,
-        error: 'AI 功能未启用或未配置',
-      };
+      return { success: false, error: 'AI 功能未启用或未配置' };
     }
 
-    // 构建配置
     const config: AIProviderConfig = {
       provider: settings.provider,
       baseUrl: settings.baseUrl,
@@ -422,10 +514,7 @@ export async function generateCommand(
       openaiEndpoint: settings.openaiEndpoint,
     };
 
-    // 构建 Prompt
-    const promptStart = Date.now();
     const prompt = buildNL2CMDPrompt(request);
-    const promptMs = Date.now() - promptStart;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[NL2CMD Debug] Request:', {
@@ -435,15 +524,18 @@ export async function generateCommand(
       console.log('[NL2CMD Debug] Generated Prompt:', prompt);
     }
 
-    // 根据不同 Provider 调用对应的 API
+    // 调用 AI Provider
     const providerStart = Date.now();
     let rawCommand: string;
+
+    const streamingEnabled = settings.streamingEnabled ?? false;
+
     switch (config.provider) {
       case 'openai':
         if (config.openaiEndpoint === 'responses') {
           rawCommand = await callOpenAIResponses(config, prompt);
         } else {
-          rawCommand = await callOpenAIChatCompletions(config, prompt);
+          rawCommand = await callOpenAIChatCompletions(config, prompt, streamingEnabled);
         }
         break;
       case 'gemini':
@@ -453,44 +545,25 @@ export async function generateCommand(
         rawCommand = await callClaude(config, prompt);
         break;
       default:
-        {
-          const totalMs = Date.now() - totalStart;
-          if (shouldLogTiming(totalMs)) {
-            console.info('[NL2CMD Timing] Unsupported provider', {
-              traceId,
-              totalMs,
-              settingsMs,
-              promptMs,
-              providerMs: Date.now() - providerStart,
-              provider: config.provider,
-            });
-          }
-        }
-        return {
-          success: false,
-          error: '不支持的 AI Provider',
-        };
+        return { success: false, error: '不支持的 AI Provider' };
     }
+
     const providerMs = Date.now() - providerStart;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[NL2CMD Debug] Raw AI Output:', rawCommand);
     }
 
-    // 清理命令输出
-    const cleanStart = Date.now();
     const command = cleanCommandOutput(rawCommand);
-    const cleanMs = Date.now() - cleanStart;
+    const cleanMs = Date.now() - providerStart;
 
     if (!command) {
       console.warn('[NL2CMD] Warning: AI returned empty command. Raw output:', rawCommand);
-      const totalMs = Date.now() - totalStart;
+      const totalMs = Date.now() - startTime;
       if (shouldLogTiming(totalMs)) {
         console.info('[NL2CMD Timing] Empty command', {
           traceId,
           totalMs,
-          settingsMs,
-          promptMs,
           providerMs,
           cleanMs,
           provider: config.provider,
@@ -499,35 +572,29 @@ export async function generateCommand(
           queryLen: request.query.length,
         });
       }
-      return {
-        success: false,
-        error: 'AI 未能生成有效命令，请尝试更详细的描述',
-      };
+      return { success: false, error: 'AI 未能生成有效命令，请尝试更详细的描述' };
     }
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[NL2CMD Debug] Cleaned Command:', command);
     }
 
-    // 检测危险命令
     const warning = detectDangerousCommand(command);
 
-    const totalMs = Date.now() - totalStart;
+    const totalMs = Date.now() - startTime;
     if (shouldLogTiming(totalMs)) {
       console.info('[NL2CMD Timing] Success', {
         traceId,
         totalMs,
-        settingsMs,
-        promptMs,
         providerMs,
         cleanMs,
         provider: config.provider,
         model: config.model,
-        openaiEndpoint: config.provider === 'openai' ? config.openaiEndpoint : undefined,
         baseUrl: safeBaseUrlForLog(config.baseUrl),
         queryLen: request.query.length,
         hasWarning: Boolean(warning),
         commandLen: command.length,
+        streaming: streamingEnabled,
       });
     }
 
@@ -535,86 +602,32 @@ export async function generateCommand(
       success: true,
       command,
       warning,
+      streaming: streamingEnabled,
     };
-  } catch (error: any) {
-    const totalMs = Date.now() - totalStart;
+  } catch (error) {
+    const totalMs = Date.now() - startTime;
     if (shouldLogTiming(totalMs)) {
       console.warn('[NL2CMD Timing] Failed', {
         traceId,
         totalMs,
         queryLen: request.query.length,
-        errorName: error?.name,
+        errorName: (error as Error)?.name,
         errorCode: (error as AxiosError | undefined)?.code,
       });
     }
+
     console.error('[NL2CMD] 生成命令失败:', error);
 
-    // 提供更友好的错误信息
-    let errorMessage = '生成命令失败';
+    let errorMessage: string;
     if (axios.isAxiosError(error)) {
-      const status = error.response?.status;
-      const data = error.response?.data;
-      const timeoutMs =
-        typeof error.config?.timeout === 'number' ? error.config.timeout : undefined;
-
-      if (error.code === 'ECONNABORTED' && timeoutMs) {
-        errorMessage = `AI 服务响应超时（${timeoutMs}ms），请稍后重试或检查网络/Base URL 配置`;
-        return { success: false, error: errorMessage };
-      }
-
-      // 根据状态码提供更具体的错误提示
-      switch (status) {
-        case 400:
-          errorMessage = '请求参数错误，请检查模型名称是否正确';
-          break;
-        case 401:
-          errorMessage = 'API Key 无效或已过期，请检查配置';
-          break;
-        case 403:
-          errorMessage = 'API Key 权限不足或账户被禁用';
-          break;
-        case 404:
-          errorMessage = '请求的 API 端点或模型不存在，请检查 Base URL 和模型名称';
-          break;
-        case 429:
-          console.warn('[NL2CMD] Upstream 429 Error Details:', {
-            url: error.config?.url,
-            baseURL: error.config?.baseURL,
-            status,
-            data,
-          });
-          errorMessage = 'API 请求频率超限或配额已耗尽，请稍后再试';
-          if (data && typeof data === 'object' && (data as any).error?.message) {
-            errorMessage += `: ${(data as any).error.message}`;
-          }
-          break;
-        case 500:
-        case 502:
-        case 503:
-          errorMessage = 'AI 服务暂时不可用，请稍后重试';
-          break;
-        default:
-          if (error.response) {
-            // 尝试提取错误详情
-            const errorDetail =
-              typeof data === 'object'
-                ? data?.error?.message || data?.message || JSON.stringify(data)
-                : data;
-            errorMessage = `API 错误 (${status}): ${errorDetail}`;
-          } else if (error.request) {
-            errorMessage = '无法连接到 AI 服务，请检查网络连接或 Base URL 配置';
-          } else {
-            errorMessage = error.message || '请求配置错误';
-          }
-      }
-    } else if (error.message) {
+      errorMessage = buildErrorMessage(error);
+    } else if (error instanceof Error) {
       errorMessage = error.message;
+    } else {
+      errorMessage = '生成命令失败';
     }
 
-    return {
-      success: false,
-      error: errorMessage,
-    };
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -623,10 +636,9 @@ export async function generateCommand(
  */
 export async function testAIConnection(
   config: AIProviderConfig,
-  options?: NL2CMDTraceOptions
+  traceId?: string
 ): Promise<boolean> {
-  const traceId = options?.traceId || crypto.randomBytes(8).toString('hex');
-  const totalStart = Date.now();
+  const startTime = Date.now();
 
   try {
     const testRequest: NL2CMDRequest = {
@@ -637,7 +649,6 @@ export async function testAIConnection(
 
     const prompt = buildNL2CMDPrompt(testRequest);
 
-    // 根据不同 Provider 测试连接
     const providerStart = Date.now();
     switch (config.provider) {
       case 'openai':
@@ -657,7 +668,7 @@ export async function testAIConnection(
         return false;
     }
 
-    const totalMs = Date.now() - totalStart;
+    const totalMs = Date.now() - startTime;
     if (shouldLogTiming(totalMs)) {
       console.info('[NL2CMD Timing] Test success', {
         traceId,
@@ -665,14 +676,13 @@ export async function testAIConnection(
         providerMs: Date.now() - providerStart,
         provider: config.provider,
         model: config.model,
-        openaiEndpoint: config.provider === 'openai' ? config.openaiEndpoint : undefined,
         baseUrl: safeBaseUrlForLog(config.baseUrl),
       });
     }
 
     return true;
   } catch (error) {
-    const totalMs = Date.now() - totalStart;
+    const totalMs = Date.now() - startTime;
     if (shouldLogTiming(totalMs)) {
       console.warn('[NL2CMD Timing] Test failed', {
         traceId,
@@ -680,11 +690,18 @@ export async function testAIConnection(
         provider: config.provider,
         model: config.model,
         baseUrl: safeBaseUrlForLog(config.baseUrl),
-        errorName: (error as any)?.name,
+        errorName: (error as Error)?.name,
         errorCode: (error as AxiosError | undefined)?.code,
       });
     }
     console.error('[NL2CMD] 测试连接失败:', error);
     return false;
   }
+}
+
+/**
+ * 清除 Axios 客户端缓存（用于测试或配置变更时）
+ */
+export function clearAxiosClientCache(): void {
+  axiosClientCache.clear();
 }

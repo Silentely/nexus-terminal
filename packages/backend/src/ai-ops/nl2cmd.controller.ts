@@ -4,7 +4,12 @@
  */
 
 import { Request, Response } from 'express';
-import crypto from 'crypto';
+import {
+  createTraceId,
+  shouldLogTiming,
+  safeBaseUrlForLog,
+  NL2CMD_CONFIG,
+} from './nl2cmd.constants';
 import * as NL2CMDService from './nl2cmd.service';
 import { NL2CMDRequest, AIProviderConfig, AISettings } from './nl2cmd.types';
 
@@ -14,29 +19,6 @@ import { NL2CMDRequest, AIProviderConfig, AISettings } from './nl2cmd.types';
 function getUserId(req: Request): number | null {
   return (req.session as any)?.userId ?? null;
 }
-
-const createTraceId = (): string => crypto.randomBytes(8).toString('hex');
-
-const parseIntOr = (value: unknown, fallback: number): number => {
-  if (typeof value !== 'string') return fallback;
-  const parsed = parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
-
-const NL2CMD_TIMING_LOG_ENABLED = process.env.NL2CMD_TIMING_LOG === '1';
-
-const NL2CMD_SLOW_THRESHOLD_MS = parseIntOr(process.env.NL2CMD_SLOW_THRESHOLD_MS, 3000);
-
-const shouldLogTiming = (totalMs: number): boolean =>
-  NL2CMD_TIMING_LOG_ENABLED || totalMs >= NL2CMD_SLOW_THRESHOLD_MS;
-
-const safeBaseUrlForLog = (baseUrl: string): string => {
-  try {
-    return new URL(baseUrl).host;
-  } catch {
-    return baseUrl;
-  }
-};
 
 /**
  * 生成命令
@@ -60,7 +42,7 @@ export const generateCommand = async (req: Request, res: Response): Promise<void
     return;
   }
 
-  if (query.length > 500) {
+  if (query.length > NL2CMD_CONFIG.MAX_QUERY_LENGTH) {
     res.status(400).json({ success: false, error: '查询内容不能超过 500 字符' });
     return;
   }
@@ -73,7 +55,7 @@ export const generateCommand = async (req: Request, res: Response): Promise<void
       currentPath,
     };
 
-    const response = await NL2CMDService.generateCommand(request, { traceId });
+    const response = await NL2CMDService.generateCommand(request, traceId);
     res.status(200).json(response);
 
     const durationMs = Date.now() - start;
@@ -87,7 +69,7 @@ export const generateCommand = async (req: Request, res: Response): Promise<void
         shellType: request.shellType,
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('[NL2CMD Controller] 生成命令失败:', error);
     const durationMs = Date.now() - start;
     if (shouldLogTiming(durationMs)) {
@@ -121,6 +103,7 @@ export const getAISettings = async (req: Request, res: Response): Promise<void> 
           model: 'gpt-4o-mini',
           openaiEndpoint: 'chat/completions',
           rateLimitEnabled: true,
+          streamingEnabled: false,
         },
       });
       return;
@@ -133,7 +116,7 @@ export const getAISettings = async (req: Request, res: Response): Promise<void> 
     };
 
     res.status(200).json({ success: true, settings: maskedSettings });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[NL2CMD Controller] 获取 AI 配置失败:', error);
     res.status(500).json({ success: false, message: '获取 AI 配置失败' });
   }
@@ -150,7 +133,16 @@ export const saveAISettings = async (req: Request, res: Response): Promise<void>
     return;
   }
 
-  const { enabled, provider, baseUrl, apiKey, model, openaiEndpoint, rateLimitEnabled } = req.body;
+  const {
+    enabled,
+    provider,
+    baseUrl,
+    apiKey,
+    model,
+    openaiEndpoint,
+    rateLimitEnabled,
+    streamingEnabled,
+  } = req.body;
 
   // 参数验证
   if (typeof enabled !== 'boolean') {
@@ -190,12 +182,17 @@ export const saveAISettings = async (req: Request, res: Response): Promise<void>
       apiKey: finalApiKey || '',
       model,
       openaiEndpoint: provider === 'openai' ? openaiEndpoint || 'chat/completions' : undefined,
-      rateLimitEnabled: rateLimitEnabled !== false, // 默认启用
+      rateLimitEnabled: rateLimitEnabled !== false,
+      streamingEnabled: streamingEnabled === true, // 显式处理流式开关
     };
 
     await NL2CMDService.saveAISettings(settings);
+
+    // 清除旧的 Axios 客户端缓存（如果有配置变更）
+    NL2CMDService.clearAxiosClientCache();
+
     res.status(200).json({ success: true, message: 'AI 配置已保存' });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[NL2CMD Controller] 保存 AI 配置失败:', error);
     res.status(500).json({ success: false, message: '保存 AI 配置失败' });
   }
@@ -256,7 +253,7 @@ export const testAIConnection = async (req: Request, res: Response): Promise<voi
       openaiEndpoint: provider === 'openai' ? openaiEndpoint || 'chat/completions' : undefined,
     };
 
-    const success = await NL2CMDService.testAIConnection(config, { traceId });
+    const success = await NL2CMDService.testAIConnection(config, traceId);
 
     if (success) {
       res.status(200).json({ success: true, message: '连接测试成功' });
@@ -275,7 +272,7 @@ export const testAIConnection = async (req: Request, res: Response): Promise<voi
         baseUrl: safeBaseUrlForLog(baseUrl),
       });
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('[NL2CMD Controller] 测试连接失败:', error);
     const durationMs = Date.now() - start;
     if (shouldLogTiming(durationMs)) {
