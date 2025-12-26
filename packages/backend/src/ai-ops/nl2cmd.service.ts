@@ -382,6 +382,14 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
     // 构建 Prompt
     const prompt = buildNL2CMDPrompt(request);
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[NL2CMD Debug] Request:', {
+        ...request,
+        query: request.query.substring(0, 50) + (request.query.length > 50 ? '...' : ''),
+      });
+      console.log('[NL2CMD Debug] Generated Prompt:', prompt);
+    }
+
     // 根据不同 Provider 调用对应的 API
     let rawCommand: string;
     switch (config.provider) {
@@ -405,8 +413,16 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
         };
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[NL2CMD Debug] Raw AI Output:', rawCommand);
+    }
+
     // 清理命令输出
     const command = cleanCommandOutput(rawCommand);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[NL2CMD Debug] Cleaned Command:', command);
+    }
 
     // 检测危险命令
     const warning = detectDangerousCommand(command);

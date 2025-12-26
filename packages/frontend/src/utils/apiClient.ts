@@ -12,6 +12,9 @@ const apiClient = axios.create({
 // 请求拦截器 (可选，例如添加认证 Token)
 apiClient.interceptors.request.use(
   (config) => {
+    if (import.meta.env.DEV) {
+      console.log(`[apiClient Debug] ${config.method?.toUpperCase()} ${config.url}`);
+    }
     // 可以在这里添加逻辑，比如从 store 获取 token 并添加到请求头
     // const authStore = useAuthStore();
     // if (authStore.token) {

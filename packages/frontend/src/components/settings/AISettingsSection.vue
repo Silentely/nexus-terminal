@@ -21,7 +21,7 @@
           </label>
         </div>
         <p class="text-xs text-muted-foreground mt-1 ml-6">
-          启用后可在终端使用 Ctrl+I 快捷键调用 AI 生成命令
+          启用后可在终端界面点击 AI 助手图标唤起功能
         </p>
       </div>
 
@@ -194,10 +194,7 @@
           <strong>使用说明：</strong>
         </p>
         <ul class="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-          <li>
-            配置完成后，在终端界面按 <code class="px-1 py-0.5 bg-muted rounded">Ctrl+I</code> 唤起
-            AI 助手
-          </li>
+          <li>配置完成后，在终端界面点击 AI 助手图标唤起功能</li>
           <li>输入自然语言描述（如"查找大于100M的文件"），AI 将生成对应命令</li>
           <li>生成的命令会自动填入终端输入行，您可以审核后再执行</li>
           <li>危险命令会有警告提示，请务必仔细检查后再执行</li>

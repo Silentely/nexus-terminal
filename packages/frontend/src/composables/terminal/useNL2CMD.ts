@@ -89,10 +89,25 @@ export function useNL2CMD() {
         currentPath: remoteSystemInfo.value.currentPath,
       };
 
+      if (import.meta.env.DEV) {
+        console.log('[NL2CMD Debug] Request:', request);
+      }
+
       const response = await apiClient.post<NL2CMDResponse>('/ai/nl2cmd', request);
 
-      if (response.data.success && response.data.command) {
+      if (import.meta.env.DEV) {
+        console.log('[NL2CMD Debug] Response:', response.data);
+      }
+
+      if (response.data.success) {
         const command = response.data.command;
+
+        if (!command) {
+          const msg = 'AI 未能生成命令，请尝试更详细地描述您的需求';
+          if (import.meta.env.DEV) console.warn('[NL2CMD Debug] Empty command returned');
+          ElMessage.warning(msg);
+          return null;
+        }
 
         // 如果有警告，显示警告信息
         if (response.data.warning) {
@@ -108,7 +123,9 @@ export function useNL2CMD() {
         hide();
         return command;
       } else {
-        ElMessage.error(response.data.error || '生成命令失败');
+        const errorMsg = response.data.error || '生成命令失败';
+        if (import.meta.env.DEV) console.error('[NL2CMD Debug] API Error:', errorMsg);
+        ElMessage.error(errorMsg);
         return null;
       }
     } catch (error: any) {

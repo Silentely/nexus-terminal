@@ -379,7 +379,7 @@ onMounted(() => {
 
     term.focus();
 
-    // --- Ctrl+Shift+C/V/O / Ctrl+I (NL2CMD) ---
+    // --- Ctrl+Shift+C/V/O (Terminal Actions) ---
     if (term.textarea) {
       term.textarea.addEventListener('keydown', async (event: KeyboardEvent) => {
         if (event.ctrlKey && event.shiftKey && event.code === 'KeyC') {
@@ -595,8 +595,6 @@ watchEffect(() => {
 
 <template>
   <div ref="terminalOuterWrapperRef" class="terminal-outer-wrapper">
-    <div class="terminal-toolbar"></div>
-
     <div ref="terminalRef" class="terminal-inner-container"></div>
   </div>
 </template>
@@ -607,51 +605,6 @@ watchEffect(() => {
   height: 100%;
   overflow: hidden;
   position: relative;
-}
-
-.terminal-toolbar {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
-}
-
-.nl2cmd-trigger {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  color: var(--text-primary);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  opacity: 0.6;
-}
-
-.nl2cmd-trigger:hover:not(:disabled) {
-  opacity: 1;
-  background: var(--bg-hover);
-}
-
-.nl2cmd-trigger:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.trigger-icon {
-  font-size: 14px;
-}
-
-.trigger-shortcut {
-  padding: 1px 4px;
-  background: var(--bg-tertiary);
-  border-radius: 3px;
-  font-size: 10px;
-  font-family: monospace;
-  opacity: 0.7;
 }
 
 .terminal-inner-container {

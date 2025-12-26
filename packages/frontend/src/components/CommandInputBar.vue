@@ -574,11 +574,7 @@ const handleQuickCommandExecute = (command: string) => {
           @click="toggleAI"
           class="flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
           :title="
-            isNL2CMDEnabled
-              ? isAIActive
-                ? '关闭 AI 助手'
-                : 'AI 助手 (Ctrl+I)'
-              : '请在设置中启用 AI 助手'
+            isNL2CMDEnabled ? (isAIActive ? '关闭 AI 助手' : 'AI 助手') : '请在设置中启用 AI 助手'
           "
           :disabled="!isNL2CMDEnabled"
           :class="{
@@ -586,7 +582,8 @@ const handleQuickCommandExecute = (command: string) => {
             'opacity-50': !isNL2CMDEnabled,
           }"
         >
-          <i class="fas fa-magic text-base"></i>
+          <i v-if="!isAIActive" class="fas fa-magic text-base"></i>
+          <i v-else class="fas fa-times text-base"></i>
         </button>
         <!-- Search Toggle Button -->
         <button
@@ -594,6 +591,7 @@ const handleQuickCommandExecute = (command: string) => {
           @click="toggleSearch"
           class="flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
           :title="isSearching ? t('commandInputBar.closeSearch') : t('commandInputBar.openSearch')"
+          :class="{ 'bg-primary/10 text-primary border-primary/50': isSearching }"
         >
           <i v-if="!isSearching" class="fas fa-search text-base"></i>
           <i v-else class="fas fa-times text-base"></i>
