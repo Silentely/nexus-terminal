@@ -464,7 +464,16 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
           errorMessage = '请求的 API 端点或模型不存在，请检查 Base URL 和模型名称';
           break;
         case 429:
+          console.warn('[NL2CMD] Upstream 429 Error Details:', {
+            url: error.config?.url,
+            baseURL: error.config?.baseURL,
+            status,
+            data,
+          });
           errorMessage = 'API 请求频率超限或配额已耗尽，请稍后再试';
+          if (data && typeof data === 'object' && (data as any).error?.message) {
+            errorMessage += `: ${(data as any).error.message}`;
+          }
           break;
         case 500:
         case 502:
