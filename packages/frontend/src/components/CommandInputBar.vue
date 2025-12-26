@@ -650,14 +650,14 @@ const handleQuickCommandExecute = (command: string) => {
   transform: translateX(-50%);
   width: 500px;
   max-width: 90%;
-  z-index: 2000; /* High z-index */
+  z-index: 3000; /* Highest z-index */
 }
 
 .nl2cmd-content {
-  background: var(--bg-secondary); /* Ensure this maps to a solid color */
-  border: 1px solid var(--border-color);
+  background: #1f2937; /* Solid Gray 800 */
+  border: 1px solid #374151; /* Gray 700 */
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -668,7 +668,7 @@ const handleQuickCommandExecute = (command: string) => {
   align-items: flex-start;
   padding: 12px;
   gap: 10px;
-  background: var(--bg-primary); /* Ensure contrast */
+  background: #111827; /* Gray 900 */
 }
 
 .nl2cmd-icon-wrapper {
@@ -682,7 +682,7 @@ const handleQuickCommandExecute = (command: string) => {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: #f9fafb; /* Gray 50 */
   font-size: 14px;
   line-height: 1.5;
   padding: 2px 0;
@@ -694,7 +694,7 @@ const handleQuickCommandExecute = (command: string) => {
 }
 
 .nl2cmd-input::placeholder {
-  color: var(--text-secondary);
+  color: #9ca3af; /* Gray 400 */
   opacity: 0.7;
 }
 
@@ -705,10 +705,10 @@ const handleQuickCommandExecute = (command: string) => {
 }
 
 .nl2cmd-action-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: #374151; /* Gray 700 */
+  border: 1px solid #4b5563; /* Gray 600 */
   border-radius: 4px;
-  color: var(--text-secondary);
+  color: #d1d5db; /* Gray 300 */
   width: 24px;
   height: 24px;
   display: flex;
@@ -719,28 +719,29 @@ const handleQuickCommandExecute = (command: string) => {
 }
 
 .nl2cmd-action-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+  background: #4b5563; /* Gray 600 */
+  color: #ffffff;
 }
 
 .nl2cmd-hint-bar {
   padding: 6px 12px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
+  background: #1f2937; /* Gray 800 */
+  border-top: 1px solid #374151; /* Gray 700 */
   font-size: 11px;
-  color: var(--text-tertiary);
+  color: #9ca3af; /* Gray 400 */
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .nl2cmd-hint-bar .keys kbd {
-  background: var(--bg-tertiary);
+  background: #374151; /* Gray 700 */
   padding: 1px 4px;
   border-radius: 3px;
   font-family: monospace;
   margin-left: 4px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #4b5563; /* Gray 600 */
+  color: #e5e7eb; /* Gray 200 */
 }
 
 .animate-spin {
