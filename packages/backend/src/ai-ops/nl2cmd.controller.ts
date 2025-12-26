@@ -193,10 +193,19 @@ export const testAIConnection = async (req: Request, res: Response): Promise<voi
   }
 
   try {
+    // 如果 apiKey 是 masked 的（包含...），则使用已保存的 key
+    let finalApiKey = apiKey;
+    if (apiKey && apiKey.includes('...')) {
+      const existingSettings = await NL2CMDService.getAISettings();
+      if (existingSettings && existingSettings.apiKey) {
+        finalApiKey = existingSettings.apiKey;
+      }
+    }
+
     const config: AIProviderConfig = {
       provider,
       baseUrl,
-      apiKey,
+      apiKey: finalApiKey,
       model,
       openaiEndpoint: provider === 'openai' ? openaiEndpoint || 'chat/completions' : undefined,
     };

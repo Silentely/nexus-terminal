@@ -95,7 +95,13 @@
             <span v-else>👁️</span>
           </button>
         </div>
-        <p class="text-xs text-muted-foreground mt-1">您的 API Key 将被安全加密存储</p>
+        <p
+          v-if="localSettings.apiKey && localSettings.apiKey.includes('...')"
+          class="text-xs text-warning mt-1"
+        >
+          为确保安全，已保存的 Key 仅显示部分内容。如需修改请直接输入新 Key。
+        </p>
+        <p v-else class="text-xs text-muted-foreground mt-1">您的 API Key 将被安全加密存储</p>
       </div>
 
       <!-- Model -->
@@ -219,7 +225,7 @@ function setStatus(message: string, isSuccess: boolean) {
   statusSuccess.value = isSuccess;
   setTimeout(() => {
     statusMessage.value = '';
-  }, 3000);
+  }, 5000);
 }
 
 // 初始化：加载配置
