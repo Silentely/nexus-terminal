@@ -34,6 +34,12 @@ export async function getAISettings(): Promise<AISettings | null> {
       return null;
     }
     const config = JSON.parse(configJson) as AISettings;
+
+    // 确保 enabled 是 boolean 类型
+    if (config) {
+      config.enabled = !!config.enabled;
+    }
+
     // 解密 API Key
     if (config.apiKey) {
       try {

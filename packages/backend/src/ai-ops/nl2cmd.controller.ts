@@ -141,7 +141,7 @@ export const saveAISettings = async (req: Request, res: Response): Promise<void>
     }
 
     const settings: AISettings = {
-      enabled,
+      enabled: !!enabled,
       provider,
       baseUrl,
       apiKey: finalApiKey || '',
