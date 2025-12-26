@@ -686,67 +686,35 @@ watchEffect(() => {
     <transition name="nl2cmd-fade">
       <div v-if="nl2cmdVisible" class="nl2cmd-overlay" @click.self="closeNL2CMDPanel">
         <div class="nl2cmd-content">
-          <div class="nl2cmd-header">
-            <h3 class="nl2cmd-title">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="nl2cmd-icon"
-              >
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                <line x1="12" x2="12" y1="19" y2="22"></line>
-              </svg>
-              自然语言指令生成
-            </h3>
-            <button class="nl2cmd-close" @click="closeNL2CMDPanel" title="关闭 (Esc)">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="18" x2="6" y1="6" y2="18"></line>
-                <line x1="6" x2="18" y1="6" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div class="nl2cmd-body">
-            <label class="nl2cmd-label">请输入自然语言描述：</label>
+          <div class="nl2cmd-input-container">
+            <div class="nl2cmd-icon-wrapper">
+              <span v-if="nl2cmdLoading" class="animate-spin">⏳</span>
+              <span v-else>✨</span>
+            </div>
             <textarea
               ref="nl2cmdInputRef"
               v-model="nl2cmdQuery"
-              class="nl2cmd-textarea"
-              placeholder="例如：查找当前目录下大于 100M 的文件并按大小排序"
-              rows="3"
+              class="nl2cmd-input"
+              placeholder="AI 助手：描述您想要执行的操作..."
+              rows="1"
               @keydown="handleNL2CMDTextareaKeydown"
+              @input="
+                (e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                }
+              "
             ></textarea>
-            <div class="nl2cmd-hint">
-              提示：按 <kbd>Ctrl+Enter</kbd> 生成命令，<kbd>Esc</kbd> 关闭
+            <div class="nl2cmd-actions">
+              <button class="nl2cmd-action-btn" @click="submitNL2CMD" title="生成命令 (Ctrl+Enter)">
+                ↩
+              </button>
             </div>
           </div>
-          <div class="nl2cmd-footer">
-            <button
-              class="nl2cmd-btn nl2cmd-btn-primary"
-              @click="submitNL2CMD"
-              :disabled="nl2cmdLoading"
-            >
-              <span v-if="!nl2cmdLoading">生成命令</span>
-              <span v-else>生成中...</span>
-            </button>
-            <button class="nl2cmd-btn nl2cmd-btn-secondary" @click="closeNL2CMDPanel">取消</button>
+          <div class="nl2cmd-hint-bar">
+            <span>使用自然语言描述操作，AI 将自动生成命令</span>
+            <span class="keys"> <kbd>Esc</kbd> 关闭 </span>
           </div>
         </div>
       </div>
@@ -773,37 +741,38 @@ watchEffect(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
-  color: #fff;
-  font-size: 13px;
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  opacity: 0.6;
 }
 
 .nl2cmd-trigger:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  opacity: 1;
+  background: var(--bg-hover);
 }
 
 .nl2cmd-trigger:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
 .trigger-icon {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .trigger-shortcut {
-  padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 4px;
+  background: var(--bg-tertiary);
   border-radius: 3px;
-  font-size: 11px;
+  font-size: 10px;
   font-family: monospace;
+  opacity: 0.7;
 }
 
 .terminal-inner-container {
@@ -842,171 +811,131 @@ watchEffect(() => {
   text-shadow: var(--terminal-shadow);
 }
 
-/* NL2CMD Panel Styles */
+/* NL2CMD Panel Styles - Compact Spotlight Style */
 .nl2cmd-fade-enter-active,
 .nl2cmd-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .nl2cmd-fade-enter-from,
 .nl2cmd-fade-leave-to {
   opacity: 0;
+  transform: translateY(-10px);
 }
 
 .nl2cmd-overlay {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 10%; /* Show near top */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  max-width: 90%;
   z-index: 1000;
-  padding: 20px;
 }
 
 .nl2cmd-content {
-  background: #1e1e1e;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  width: 100%;
-  max-width: 600px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.nl2cmd-header {
+.nl2cmd-input-container {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.nl2cmd-title {
-  display: flex;
-  align-items: center;
+  align-items: flex-start;
+  padding: 12px;
   gap: 10px;
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
+  background: var(--bg-primary);
 }
 
-.nl2cmd-icon {
-  flex-shrink: 0;
+.nl2cmd-icon-wrapper {
+  padding-top: 2px;
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
 }
 
-.nl2cmd-close {
+.nl2cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 2px 0;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  min-height: 24px;
+  max-height: 120px;
+}
+
+.nl2cmd-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.nl2cmd-actions {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0;
+}
+
+.nl2cmd-action-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
-  background: transparent;
-  border: none;
-  color: #fff;
-  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.2s;
 }
 
-.nl2cmd-close:hover {
-  background: rgba(255, 255, 255, 0.2);
+.nl2cmd-action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
-.nl2cmd-body {
-  padding: 20px;
-}
-
-.nl2cmd-label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #ddd;
-}
-
-.nl2cmd-textarea {
-  width: 100%;
-  padding: 12px;
-  background: #2a2a2a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  color: #fff;
-  font-size: 14px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
-  resize: vertical;
-  transition: border-color 0.2s ease;
-}
-
-.nl2cmd-textarea:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.nl2cmd-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.nl2cmd-hint {
-  margin-top: 10px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.nl2cmd-hint kbd {
-  display: inline-block;
-  padding: 2px 6px;
-  background: #2a2a2a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  font-family: monospace;
+.nl2cmd-hint-bar {
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
   font-size: 11px;
-  color: #fff;
-}
-
-.nl2cmd-footer {
+  color: var(--text-tertiary);
   display: flex;
-  gap: 10px;
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: #1a1a1a;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.nl2cmd-btn {
-  flex: 1;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.nl2cmd-hint-bar .keys kbd {
+  background: var(--bg-tertiary);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  margin-left: 4px;
+  border: 1px solid var(--border-color);
 }
 
-.nl2cmd-btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+.animate-spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
 }
 
-.nl2cmd-btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.nl2cmd-btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.nl2cmd-btn-secondary {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ddd;
-}
-
-.nl2cmd-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

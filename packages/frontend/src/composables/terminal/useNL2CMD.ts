@@ -89,7 +89,7 @@ export function useNL2CMD() {
         currentPath: remoteSystemInfo.value.currentPath,
       };
 
-      const response = await apiClient.post<NL2CMDResponse>('/api/v1/ai/nl2cmd', request);
+      const response = await apiClient.post<NL2CMDResponse>('/ai/nl2cmd', request);
 
       if (response.data.success && response.data.command) {
         const command = response.data.command;
