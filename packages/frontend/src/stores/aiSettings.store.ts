@@ -8,17 +8,20 @@ import { ref } from 'vue';
 import type { AISettings, AISettingsResponse, AITestResponse } from '../types/nl2cmd.types';
 import apiClient from '../utils/apiClient';
 
+// 默认 AI 设置常量
+const DEFAULT_AI_SETTINGS: AISettings = {
+  enabled: false,
+  provider: 'openai',
+  baseUrl: 'https://api.openai.com',
+  apiKey: '',
+  model: 'gpt-4o-mini',
+  openaiEndpoint: 'chat/completions',
+  rateLimitEnabled: true,
+};
+
 export const useAISettingsStore = defineStore('aiSettings', () => {
   // State
-  const settings = ref<AISettings>({
-    enabled: false,
-    provider: 'openai',
-    baseUrl: 'https://api.openai.com',
-    apiKey: '',
-    model: 'gpt-4o-mini',
-    openaiEndpoint: 'chat/completions',
-    rateLimitEnabled: true,
-  });
+  const settings = ref<AISettings>({ ...DEFAULT_AI_SETTINGS });
 
   const isLoading = ref(false);
   const isTesting = ref(false);
@@ -98,15 +101,7 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
    * 重置配置为默认值
    */
   function resetSettings(): void {
-    settings.value = {
-      enabled: false,
-      provider: 'openai',
-      baseUrl: 'https://api.openai.com',
-      apiKey: '',
-      model: 'gpt-4o-mini',
-      openaiEndpoint: 'chat/completions',
-      rateLimitEnabled: true,
-    };
+    settings.value = { ...DEFAULT_AI_SETTINGS };
   }
 
   return {

@@ -116,7 +116,7 @@ describe('AI Settings Store', () => {
           apiKey: 'key',
           model: 'model',
         })
-      ).rejects.toThrow('保存配置失败');
+      ).rejects.toThrow('保存失败');
     });
   });
 

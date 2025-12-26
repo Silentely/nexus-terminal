@@ -146,7 +146,7 @@ export interface ClaudeResponse {
     text: string;
   }>;
   model: string;
-  stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use' | 'refusal' | string;
+  stop_reason: 'end_turn' | 'max_tokens' | 'stop_sequence' | string;
   stop_sequence?: string; // 触发停止的序列
   usage: {
     input_tokens: number;

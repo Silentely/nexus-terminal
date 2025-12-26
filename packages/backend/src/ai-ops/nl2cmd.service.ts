@@ -194,7 +194,7 @@ async function callOpenAIChatCompletions(
       },
     ],
     temperature: 0.3,
-    max_tokens: 500,
+    max_completion_tokens: 500,
   };
 
   const response = await client.post<OpenAIChatResponse>('/v1/chat/completions', requestBody);
@@ -230,6 +230,12 @@ async function callOpenAIResponses(config: AIProviderConfig, prompt: string): Pr
   };
 
   const response = await client.post<OpenAIResponsesResponse>('/v1/responses', requestBody);
+
+  // 安全检查：确保响应结构正确
+  if (!response.data || !response.data.response) {
+    throw new Error('OpenAI Responses API 返回空响应');
+  }
+
   const content = response.data.response || '';
   return content.trim();
 }
@@ -310,11 +316,6 @@ async function callClaude(config: AIProviderConfig, prompt: string): Promise<str
   const contentArray = response.data?.content;
   if (!contentArray || contentArray.length === 0) {
     throw new Error('Claude API 返回空响应');
-  }
-
-  // 检查是否被拒绝
-  if (response.data.stop_reason === 'refusal') {
-    throw new Error('Claude 拒绝生成该内容');
   }
 
   const content = contentArray[0]?.text || '';
