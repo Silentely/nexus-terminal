@@ -5,19 +5,24 @@
     </h2>
     <div class="p-6 space-y-6">
       <!-- 启用开关 -->
-      <div class="flex items-center justify-between">
-        <div>
-          <label class="text-sm font-medium text-foreground">启用 AI 助手</label>
-          <p class="text-xs text-muted-foreground mt-1">
-            启用后可在终端使用 Ctrl+I 快捷键调用 AI 生成命令
-          </p>
+      <div>
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="enableAI"
+            v-model="localSettings.enabled"
+            class="h-4 w-4 rounded border-border text-primary focus:ring-primary mr-2 cursor-pointer"
+          />
+          <label
+            for="enableAI"
+            class="text-sm font-medium text-foreground cursor-pointer select-none"
+          >
+            启用 AI 助手
+          </label>
         </div>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" v-model="localSettings.enabled" class="sr-only peer" />
-          <div
-            class="w-11 h-6 bg-input peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-          ></div>
-        </label>
+        <p class="text-xs text-muted-foreground mt-1 ml-6">
+          启用后可在终端使用 Ctrl+I 快捷键调用 AI 生成命令
+        </p>
       </div>
 
       <hr class="border-border/50" />
@@ -120,19 +125,24 @@
       <hr class="border-border/50" />
 
       <!-- 速率限制开关 -->
-      <div class="flex items-center justify-between">
-        <div>
-          <label class="text-sm font-medium text-foreground">启用速率限制</label>
-          <p class="text-xs text-muted-foreground mt-1">
-            限制每分钟最多 10 次请求，防止 API 配额快速耗尽
-          </p>
+      <div>
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="rateLimit"
+            v-model="localSettings.rateLimitEnabled"
+            class="h-4 w-4 rounded border-border text-primary focus:ring-primary mr-2 cursor-pointer"
+          />
+          <label
+            for="rateLimit"
+            class="text-sm font-medium text-foreground cursor-pointer select-none"
+          >
+            启用速率限制
+          </label>
         </div>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" v-model="localSettings.rateLimitEnabled" class="sr-only peer" />
-          <div
-            class="w-11 h-6 bg-input peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
-          ></div>
-        </label>
+        <p class="text-xs text-muted-foreground mt-1 ml-6">
+          限制每分钟最多 10 次请求，防止 API 配额快速耗尽
+        </p>
       </div>
 
       <!-- 操作按钮 -->
