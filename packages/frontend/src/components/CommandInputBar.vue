@@ -69,46 +69,67 @@ const showSuspendedSshSessionsModal = ref(false); // +++ Add state for suspended
 // +++ NL2CMD Setup +++
 const nl2cmd = useNL2CMD();
 const {
-  isVisible: nl2cmdVisible,
   query: nl2cmdQuery,
   isLoading: nl2cmdLoading,
   isAIEnabled: isNL2CMDEnabled,
-  show: showNL2CMD,
-  hide: hideNL2CMD,
   generateCommand: generateNL2CMD,
 } = nl2cmd;
-const nl2cmdInputRef = ref<HTMLTextAreaElement | null>(null);
 
-const openNL2CMDPanel = () => {
-  showNL2CMD();
-  nextTick(() => {
-    nl2cmdInputRef.value?.focus();
-  });
-};
+// Local state for AI inline mode
+const isAIActive = ref(false);
+const nl2cmdInputRef = ref<HTMLInputElement | null>(null);
 
-const closeNL2CMDPanel = () => {
-  hideNL2CMD();
-};
+const toggleAI = () => {
+  if (!isNL2CMDEnabled.value) {
+    // Show warning if disabled (using existing mechanism or ElMessage if available,
+    // but avoiding import if not used elsewhere. useNL2CMD has show() which checks enable state)
+    nl2cmd.show(); // This triggers the warning in useNL2CMD if disabled
+    return;
+  }
 
-const submitNL2CMD = async () => {
-  const command = await generateNL2CMD();
-  if (command && activeSessionId.value) {
-    // Populate the command input bar instead of executing immediately
-    updateSessionCommandInput(activeSessionId.value, command);
-    // Optionally focus the input bar
+  isAIActive.value = !isAIActive.value;
+  if (isAIActive.value) {
+    nl2cmdQuery.value = ''; // Reset query on open
     nextTick(() => {
-      commandInputRef.value?.focus();
+      nl2cmdInputRef.value?.focus();
     });
   }
 };
 
-const handleNL2CMDTextareaKeydown = async (event: KeyboardEvent) => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+const submitNL2CMD = async () => {
+  if (!nl2cmdQuery.value.trim()) return;
+
+  const command = await generateNL2CMD();
+  if (command && activeSessionId.value) {
+    // Populate the command input bar
+    updateSessionCommandInput(activeSessionId.value, command);
+    // Focus the command input bar
+    nextTick(() => {
+      commandInputRef.value?.focus();
+    });
+    // Optional: Close AI input after successful generation?
+    // User said "click magic wand to retract", implies manual.
+    // But auto-close is often better. I'll keep it manual as requested for now
+    // or maybe close it to show the result clearly.
+    // Let's close it to avoid clutter, user can re-open if needed.
+    // Actually user said "click ... to retract", so manual is key.
+    // I will leave it open so they can refine if needed, or close manually.
+    // Wait, if it populates the *other* input, having two inputs might be confusing.
+    // I'll close it for better UX, user can toggle if they want another command.
+    isAIActive.value = false;
+  }
+};
+
+const handleNL2CMDKeydown = async (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
     event.preventDefault();
     await submitNL2CMD();
   } else if (event.key === 'Escape') {
     event.preventDefault();
-    closeNL2CMDPanel();
+    isAIActive.value = false;
+    nextTick(() => {
+      commandInputRef.value?.focus();
+    });
   }
 };
 
@@ -450,17 +471,19 @@ const handleQuickCommandExecute = (command: string) => {
         <i class="fas fa-keyboard text-base"></i>
         <!-- Removed text-primary -->
       </button>
-      <!-- Command Input (Hide on mobile when searching) -->
+      <!-- Command Input (Hide on mobile when searching or AI active) -->
       <input
-        v-if="!props.isMobile || !isSearching"
+        v-if="!props.isMobile || (!isSearching && !isAIActive)"
         type="text"
         v-model="currentSessionCommandInput"
         :placeholder="t('commandInputBar.placeholder')"
         class="flex-grow min-w-0 px-4 py-1.5 border border-border/50 rounded-lg bg-input text-foreground text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 ease-in-out"
         :class="{
-          'basis-3/4': !props.isMobile && isSearching, // Desktop searching: 3/4 width
-          'basis-full': !props.isMobile && !isSearching, // Desktop non-searching: full width
-          'w-0': props.isMobile, // Mobile non-searching: adjust width to fit
+          'basis-3/4': !props.isMobile && isSearching && !isAIActive,
+          'basis-1/2': !props.isMobile && isAIActive && !isSearching,
+          'basis-1/3': !props.isMobile && isAIActive && isSearching,
+          'basis-full': !props.isMobile && !isSearching && !isAIActive,
+          'w-0': props.isMobile,
         }"
         ref="commandInputRef"
         data-focus-id="commandInput"
@@ -468,14 +491,47 @@ const handleQuickCommandExecute = (command: string) => {
         @blur="handleCommandInputBlur"
       />
 
-      <!-- Search Input (Show when searching, adjust width on mobile) -->
+      <!-- AI Assistant Input (Show when active) -->
+      <div
+        v-if="isAIActive"
+        class="flex-grow min-w-0 relative flex items-center transition-all duration-300 ease-in-out"
+        :class="{
+          'basis-1/2': !props.isMobile && !isSearching,
+          'basis-1/3': !props.isMobile && isSearching,
+          'w-full': props.isMobile,
+        }"
+      >
+        <input
+          type="text"
+          v-model="nl2cmdQuery"
+          placeholder="AI 助手：描述操作..."
+          class="w-full px-4 py-1.5 pr-10 border border-border/50 rounded-lg bg-input text-foreground text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+          ref="nl2cmdInputRef"
+          @keydown="handleNL2CMDKeydown"
+        />
+        <button
+          @click="submitNL2CMD"
+          :disabled="nl2cmdLoading"
+          class="absolute right-1 top-1/2 transform -translate-y-1/2 w-7 h-7 flex items-center justify-center text-text-secondary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title="生成命令 (Enter)"
+        >
+          <i v-if="!nl2cmdLoading" class="fas fa-paper-plane text-xs"></i>
+          <i v-else class="fas fa-spinner fa-spin text-xs"></i>
+        </button>
+      </div>
+
+      <!-- Search Input (Show when searching) -->
       <input
         v-if="isSearching"
         type="text"
         v-model="searchTerm"
         :placeholder="t('commandInputBar.searchPlaceholder')"
         class="flex-grow min-w-0 px-4 py-1.5 border border-border/50 rounded-lg bg-input text-foreground text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 ease-in-out"
-        :class="{ 'basis-1/4': !props.isMobile, 'w-0': props.isMobile }"
+        :class="{
+          'basis-1/4': !props.isMobile && !isAIActive,
+          'basis-1/3': !props.isMobile && isAIActive,
+          'w-full': props.isMobile,
+        }"
         data-focus-id="terminalSearch"
         @keydown.enter.prevent="findNext"
         @keydown.shift.enter.prevent="findPrevious"
@@ -515,11 +571,20 @@ const handleQuickCommandExecute = (command: string) => {
         <!-- AI Assistant Toggle Button -->
         <button
           v-if="!props.isMobile"
-          @click="openNL2CMDPanel"
+          @click="toggleAI"
           class="flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
-          :title="isNL2CMDEnabled ? 'AI 助手 (Ctrl+I)' : '请在设置中启用 AI 助手'"
+          :title="
+            isNL2CMDEnabled
+              ? isAIActive
+                ? '关闭 AI 助手'
+                : 'AI 助手 (Ctrl+I)'
+              : '请在设置中启用 AI 助手'
+          "
           :disabled="!isNL2CMDEnabled"
-          :class="{ 'opacity-50': !isNL2CMDEnabled }"
+          :class="{
+            'bg-primary/10 text-primary border-primary/50': isAIActive,
+            'opacity-50': !isNL2CMDEnabled,
+          }"
         >
           <i class="fas fa-magic text-base"></i>
         </button>
@@ -584,177 +649,8 @@ const handleQuickCommandExecute = (command: string) => {
     @close="closeSuspendedSshSessionsModal"
   />
   <!-- File Manager Modal is now handled by a listener for 'fileManager:openModalRequest' event -->
-
-  <!-- +++ AI Assistant Panel +++ -->
-  <Teleport to="body">
-    <transition name="nl2cmd-fade">
-      <div v-if="nl2cmdVisible" class="nl2cmd-overlay" @click.self="closeNL2CMDPanel">
-        <div class="nl2cmd-content">
-          <div class="nl2cmd-input-container">
-            <div class="nl2cmd-icon-wrapper">
-              <span v-if="nl2cmdLoading" class="animate-spin">⏳</span>
-              <span v-else>✨</span>
-            </div>
-            <textarea
-              ref="nl2cmdInputRef"
-              v-model="nl2cmdQuery"
-              class="nl2cmd-input"
-              placeholder="AI 助手：描述您想要执行的操作..."
-              rows="1"
-              @keydown="handleNL2CMDTextareaKeydown"
-              @input="
-                (e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-                }
-              "
-            ></textarea>
-            <div class="nl2cmd-actions">
-              <button class="nl2cmd-action-btn" @click="submitNL2CMD" title="生成命令 (Ctrl+Enter)">
-                ↩
-              </button>
-            </div>
-          </div>
-          <div class="nl2cmd-hint-bar">
-            <span>使用自然语言描述操作，AI 将自动生成命令</span>
-            <span class="keys"> <kbd>Esc</kbd> 关闭 </span>
-          </div>
-        </div>
-      </div>
-    </transition>
-  </Teleport>
 </template>
 
 <style scoped>
 /* Scoped styles removed for Tailwind CSS refactoring */
-
-/* NL2CMD Panel Styles - Compact Spotlight Style */
-.nl2cmd-fade-enter-active,
-.nl2cmd-fade-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.nl2cmd-fade-enter-from,
-.nl2cmd-fade-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.nl2cmd-overlay {
-  position: absolute;
-  bottom: 80px; /* Show near bottom, above command bar */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
-  max-width: 90%;
-  z-index: 3000; /* Highest z-index */
-}
-
-.nl2cmd-content {
-  background: #1f2937; /* Solid Gray 800 */
-  border: 1px solid #374151; /* Gray 700 */
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.nl2cmd-input-container {
-  display: flex;
-  align-items: flex-start;
-  padding: 12px;
-  gap: 10px;
-  background: #111827; /* Gray 900 */
-}
-
-.nl2cmd-icon-wrapper {
-  padding-top: 2px;
-  font-size: 18px;
-  width: 24px;
-  text-align: center;
-}
-
-.nl2cmd-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: #f9fafb; /* Gray 50 */
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 2px 0;
-  resize: none;
-  outline: none;
-  font-family: inherit;
-  min-height: 24px;
-  max-height: 120px;
-}
-
-.nl2cmd-input::placeholder {
-  color: #9ca3af; /* Gray 400 */
-  opacity: 0.7;
-}
-
-.nl2cmd-actions {
-  display: flex;
-  align-items: flex-start;
-  padding-top: 0;
-}
-
-.nl2cmd-action-btn {
-  background: #374151; /* Gray 700 */
-  border: 1px solid #4b5563; /* Gray 600 */
-  border-radius: 4px;
-  color: #d1d5db; /* Gray 300 */
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nl2cmd-action-btn:hover {
-  background: #4b5563; /* Gray 600 */
-  color: #ffffff;
-}
-
-.nl2cmd-hint-bar {
-  padding: 6px 12px;
-  background: #1f2937; /* Gray 800 */
-  border-top: 1px solid #374151; /* Gray 700 */
-  font-size: 11px;
-  color: #9ca3af; /* Gray 400 */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nl2cmd-hint-bar .keys kbd {
-  background: #374151; /* Gray 700 */
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-family: monospace;
-  margin-left: 4px;
-  border: 1px solid #4b5563; /* Gray 600 */
-  color: #e5e7eb; /* Gray 200 */
-}
-
-.animate-spin {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
 </style>
