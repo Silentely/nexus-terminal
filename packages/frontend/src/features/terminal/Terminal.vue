@@ -19,7 +19,6 @@ import {
 // Import extracted composables
 import { useTerminalFit } from '../../composables/terminal/useTerminalFit';
 import { useTerminalSocket } from '../../composables/terminal/useTerminalSocket';
-import { useNL2CMD } from '../../composables/terminal/useNL2CMD';
 import { OutputEnhancerAddon } from './addons/output-enhancer';
 
 // 定义 props 和 emits
@@ -68,63 +67,6 @@ const { fitAddon, fitAndEmitResizeNow, setupResizeObserver } = useTerminalFit(
 );
 
 const { setupInputHandler } = useTerminalSocket(terminalInstance, props.sessionId, streamRef);
-
-// NL2CMD (Natural Language to Command)
-const nl2cmd = useNL2CMD();
-const {
-  isVisible: nl2cmdVisible,
-  query: nl2cmdQuery,
-  isLoading: nl2cmdLoading,
-  isAIEnabled: isNL2CMDEnabled,
-  remoteSystemInfo: nl2cmdRemoteSystemInfo,
-  show: showNL2CMD,
-  hide: hideNL2CMD,
-  generateCommand: generateNL2CMD,
-  setRemoteSystemInfo: setNL2CMDRemoteSystemInfo,
-} = nl2cmd;
-const nl2cmdInputRef = ref<HTMLTextAreaElement | null>(null);
-
-const openNL2CMDPanel = () => {
-  showNL2CMD();
-  nextTick(() => {
-    nl2cmdInputRef.value?.focus();
-  });
-};
-
-const closeNL2CMDPanel = () => {
-  hideNL2CMD();
-};
-
-const submitNL2CMD = async () => {
-  const command = await generateNL2CMD();
-  if (command) {
-    emitWorkspaceEvent('terminal:input', {
-      sessionId: props.sessionId,
-      data: command,
-    });
-  }
-};
-
-const handleNL2CMDTextareaKeydown = async (event: KeyboardEvent) => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-    event.preventDefault();
-    await submitNL2CMD();
-  } else if (event.key === 'Escape') {
-    event.preventDefault();
-    closeNL2CMDPanel();
-  }
-};
-
-watch(
-  () => nl2cmdVisible.value,
-  (visible) => {
-    if (visible) {
-      nextTick(() => {
-        nl2cmdInputRef.value?.focus();
-      });
-    }
-  }
-);
 
 let initialPinchDistance = 0;
 let currentFontSizeOnPinchStart = 0;
@@ -353,15 +295,6 @@ onMounted(() => {
       searchAddon: searchAddon,
     });
 
-    // Initialize NL2CMD remote system info
-    // SSH connections typically target Linux servers, default to Linux/bash
-    // Future enhancement: detect OS from SSH banner or uname command
-    setNL2CMDRemoteSystemInfo({
-      osType: 'Linux',
-      shellType: 'bash',
-      currentPath: '~',
-    });
-
     // --- Selection & Copy ---
     let currentSelection = '';
     const handleSelectionChange = () => {
@@ -485,11 +418,6 @@ onMounted(() => {
               console.log('[Terminal] No folded content to expand');
             }
           }
-        } else if (event.ctrlKey && !event.shiftKey && event.code === 'KeyI') {
-          // Ctrl+I: 唤起 NL2CMD (Natural Language to Command)
-          event.preventDefault();
-          event.stopPropagation();
-          openNL2CMDPanel();
         }
       });
     }
@@ -667,58 +595,9 @@ watchEffect(() => {
 
 <template>
   <div ref="terminalOuterWrapperRef" class="terminal-outer-wrapper">
-    <div class="terminal-toolbar">
-      <button
-        type="button"
-        class="nl2cmd-trigger"
-        @click="openNL2CMDPanel"
-        :disabled="!isNL2CMDEnabled"
-        :title="isNL2CMDEnabled ? 'Ctrl+I 唤起 AI 指令生成' : '请在设置中启用 AI 助手'"
-      >
-        <span class="trigger-icon">✨</span>
-        <span>AI 命令</span>
-        <span class="trigger-shortcut">Ctrl+I</span>
-      </button>
-    </div>
+    <div class="terminal-toolbar"></div>
 
     <div ref="terminalRef" class="terminal-inner-container"></div>
-
-    <transition name="nl2cmd-fade">
-      <div v-if="nl2cmdVisible" class="nl2cmd-overlay" @click.self="closeNL2CMDPanel">
-        <div class="nl2cmd-content">
-          <div class="nl2cmd-input-container">
-            <div class="nl2cmd-icon-wrapper">
-              <span v-if="nl2cmdLoading" class="animate-spin">⏳</span>
-              <span v-else>✨</span>
-            </div>
-            <textarea
-              ref="nl2cmdInputRef"
-              v-model="nl2cmdQuery"
-              class="nl2cmd-input"
-              placeholder="AI 助手：描述您想要执行的操作..."
-              rows="1"
-              @keydown="handleNL2CMDTextareaKeydown"
-              @input="
-                (e) => {
-                  const target = e.target as HTMLTextAreaElement;
-                  target.style.height = 'auto';
-                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-                }
-              "
-            ></textarea>
-            <div class="nl2cmd-actions">
-              <button class="nl2cmd-action-btn" @click="submitNL2CMD" title="生成命令 (Ctrl+Enter)">
-                ↩
-              </button>
-            </div>
-          </div>
-          <div class="nl2cmd-hint-bar">
-            <span>使用自然语言描述操作，AI 将自动生成命令</span>
-            <span class="keys"> <kbd>Esc</kbd> 关闭 </span>
-          </div>
-        </div>
-      </div>
-    </transition>
   </div>
 </template>
 
@@ -809,133 +688,5 @@ watchEffect(() => {
 .terminal-inner-container.has-text-shadow :deep(.xterm-rows div > span),
 .terminal-inner-container.has-text-shadow :deep(.xterm-rows div) {
   text-shadow: var(--terminal-shadow);
-}
-
-/* NL2CMD Panel Styles - Compact Spotlight Style */
-.nl2cmd-fade-enter-active,
-.nl2cmd-fade-leave-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.nl2cmd-fade-enter-from,
-.nl2cmd-fade-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.nl2cmd-overlay {
-  position: absolute;
-  top: 10%; /* Show near top */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 500px;
-  max-width: 90%;
-  z-index: 1000;
-}
-
-.nl2cmd-content {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.nl2cmd-input-container {
-  display: flex;
-  align-items: flex-start;
-  padding: 12px;
-  gap: 10px;
-  background: var(--bg-primary);
-}
-
-.nl2cmd-icon-wrapper {
-  padding-top: 2px;
-  font-size: 18px;
-  width: 24px;
-  text-align: center;
-}
-
-.nl2cmd-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-size: 14px;
-  line-height: 1.5;
-  padding: 2px 0;
-  resize: none;
-  outline: none;
-  font-family: inherit;
-  min-height: 24px;
-  max-height: 120px;
-}
-
-.nl2cmd-input::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.7;
-}
-
-.nl2cmd-actions {
-  display: flex;
-  align-items: flex-start;
-  padding-top: 0;
-}
-
-.nl2cmd-action-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  color: var(--text-secondary);
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nl2cmd-action-btn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.nl2cmd-hint-bar {
-  padding: 6px 12px;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  font-size: 11px;
-  color: var(--text-tertiary);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.nl2cmd-hint-bar .keys kbd {
-  background: var(--bg-tertiary);
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-family: monospace;
-  margin-left: 4px;
-  border: 1px solid var(--border-color);
-}
-
-.animate-spin {
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 </style>

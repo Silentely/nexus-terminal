@@ -20,6 +20,7 @@ import QuickCommandsModal from './QuickCommandsModal.vue';
 import SuspendedSshSessionsModal from './SuspendedSshSessionsModal.vue';
 import { useFileEditorStore } from '../stores/fileEditor.store';
 import { useWorkspaceEventEmitter } from '../composables/workspaceEvents';
+import { useNL2CMD } from '../composables/terminal/useNL2CMD'; // +++ Import NL2CMD +++
 
 defineOptions({ inheritAttrs: false });
 
@@ -64,6 +65,52 @@ const showSuspendedSshSessionsModal = ref(false); // +++ Add state for suspended
 // *** 移除本地的搜索结果 ref ***
 // const searchResultCount = ref(0);
 // const currentSearchResultIndex = ref(0);
+
+// +++ NL2CMD Setup +++
+const nl2cmd = useNL2CMD();
+const {
+  isVisible: nl2cmdVisible,
+  query: nl2cmdQuery,
+  isLoading: nl2cmdLoading,
+  isAIEnabled: isNL2CMDEnabled,
+  show: showNL2CMD,
+  hide: hideNL2CMD,
+  generateCommand: generateNL2CMD,
+} = nl2cmd;
+const nl2cmdInputRef = ref<HTMLTextAreaElement | null>(null);
+
+const openNL2CMDPanel = () => {
+  showNL2CMD();
+  nextTick(() => {
+    nl2cmdInputRef.value?.focus();
+  });
+};
+
+const closeNL2CMDPanel = () => {
+  hideNL2CMD();
+};
+
+const submitNL2CMD = async () => {
+  const command = await generateNL2CMD();
+  if (command && activeSessionId.value) {
+    // Populate the command input bar instead of executing immediately
+    updateSessionCommandInput(activeSessionId.value, command);
+    // Optionally focus the input bar
+    nextTick(() => {
+      commandInputRef.value?.focus();
+    });
+  }
+};
+
+const handleNL2CMDTextareaKeydown = async (event: KeyboardEvent) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    event.preventDefault();
+    await submitNL2CMD();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    closeNL2CMDPanel();
+  }
+};
 
 // +++ 计算属性，用于获取和设置当前活动会话的命令输入 +++
 const currentSessionCommandInput = computed({
@@ -465,6 +512,17 @@ const handleQuickCommandExecute = (command: string) => {
             :class="{ 'opacity-50': !props.isVirtualKeyboardVisible }"
           ></i>
         </button>
+        <!-- AI Assistant Toggle Button -->
+        <button
+          v-if="!props.isMobile"
+          @click="openNL2CMDPanel"
+          class="flex items-center justify-center w-8 h-8 border border-border/50 rounded-lg text-text-secondary transition-colors duration-200 hover:bg-border hover:text-foreground"
+          :title="isNL2CMDEnabled ? 'AI 助手 (Ctrl+I)' : '请在设置中启用 AI 助手'"
+          :disabled="!isNL2CMDEnabled"
+          :class="{ 'opacity-50': !isNL2CMDEnabled }"
+        >
+          <i class="fas fa-magic text-base"></i>
+        </button>
         <!-- Search Toggle Button -->
         <button
           v-if="!props.isMobile"
@@ -526,8 +584,176 @@ const handleQuickCommandExecute = (command: string) => {
     @close="closeSuspendedSshSessionsModal"
   />
   <!-- File Manager Modal is now handled by a listener for 'fileManager:openModalRequest' event -->
+
+  <!-- +++ AI Assistant Panel +++ -->
+  <Teleport to="body">
+    <transition name="nl2cmd-fade">
+      <div v-if="nl2cmdVisible" class="nl2cmd-overlay" @click.self="closeNL2CMDPanel">
+        <div class="nl2cmd-content">
+          <div class="nl2cmd-input-container">
+            <div class="nl2cmd-icon-wrapper">
+              <span v-if="nl2cmdLoading" class="animate-spin">⏳</span>
+              <span v-else>✨</span>
+            </div>
+            <textarea
+              ref="nl2cmdInputRef"
+              v-model="nl2cmdQuery"
+              class="nl2cmd-input"
+              placeholder="AI 助手：描述您想要执行的操作..."
+              rows="1"
+              @keydown="handleNL2CMDTextareaKeydown"
+              @input="
+                (e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                }
+              "
+            ></textarea>
+            <div class="nl2cmd-actions">
+              <button class="nl2cmd-action-btn" @click="submitNL2CMD" title="生成命令 (Ctrl+Enter)">
+                ↩
+              </button>
+            </div>
+          </div>
+          <div class="nl2cmd-hint-bar">
+            <span>使用自然语言描述操作，AI 将自动生成命令</span>
+            <span class="keys"> <kbd>Esc</kbd> 关闭 </span>
+          </div>
+        </div>
+      </div>
+    </transition>
+  </Teleport>
 </template>
 
 <style scoped>
 /* Scoped styles removed for Tailwind CSS refactoring */
+
+/* NL2CMD Panel Styles - Compact Spotlight Style */
+.nl2cmd-fade-enter-active,
+.nl2cmd-fade-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nl2cmd-fade-enter-from,
+.nl2cmd-fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.nl2cmd-overlay {
+  position: absolute;
+  bottom: 80px; /* Show near bottom, above command bar */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  max-width: 90%;
+  z-index: 2000; /* High z-index */
+}
+
+.nl2cmd-content {
+  background: var(--bg-secondary); /* Ensure this maps to a solid color */
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.nl2cmd-input-container {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  gap: 10px;
+  background: var(--bg-primary); /* Ensure contrast */
+}
+
+.nl2cmd-icon-wrapper {
+  padding-top: 2px;
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+
+.nl2cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 2px 0;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  min-height: 24px;
+  max-height: 120px;
+}
+
+.nl2cmd-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.nl2cmd-actions {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0;
+}
+
+.nl2cmd-action-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nl2cmd-action-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nl2cmd-hint-bar {
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nl2cmd-hint-bar .keys kbd {
+  background: var(--bg-tertiary);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+  margin-left: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.animate-spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>
