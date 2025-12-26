@@ -12,7 +12,13 @@
             启用后可在终端使用 Ctrl+I 快捷键调用 AI 生成命令
           </p>
         </div>
-        <el-switch v-model="localSettings.enabled" />
+        <!-- 使用原生 Checkbox 替代 el-switch，或者使用一个简单的 Toggle 组件 -->
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" v-model="localSettings.enabled" class="sr-only peer" />
+          <div
+            class="w-11 h-6 bg-input peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+          ></div>
+        </label>
       </div>
 
       <hr class="border-border/50" />
@@ -20,33 +26,50 @@
       <!-- Provider 选择 -->
       <div>
         <label class="text-sm font-medium text-foreground">AI Provider</label>
-        <el-select
-          v-model="localSettings.provider"
-          class="w-full mt-2"
-          @change="handleProviderChange"
-        >
-          <el-option label="OpenAI" value="openai" />
-          <el-option label="Google Gemini" value="gemini" />
-          <el-option label="Anthropic Claude" value="claude" />
-        </el-select>
+        <div class="relative mt-2">
+          <select
+            v-model="localSettings.provider"
+            @change="handleProviderChange"
+            class="w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none bg-no-repeat bg-right pr-8"
+            style="
+              background-image: url(&quot;data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e&quot;);
+              background-position: right 0.75rem center;
+              background-size: 16px 12px;
+            "
+          >
+            <option value="openai">OpenAI</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="claude">Anthropic Claude</option>
+          </select>
+        </div>
       </div>
 
       <!-- OpenAI Endpoint 选择（仅 OpenAI 可见） -->
       <div v-if="localSettings.provider === 'openai'">
         <label class="text-sm font-medium text-foreground">OpenAI API Endpoint</label>
-        <el-select v-model="localSettings.openaiEndpoint" class="w-full mt-2">
-          <el-option label="Chat Completions (/v1/chat/completions)" value="chat/completions" />
-          <el-option label="Responses (/v1/responses)" value="responses" />
-        </el-select>
+        <div class="relative mt-2">
+          <select
+            v-model="localSettings.openaiEndpoint"
+            class="w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none bg-no-repeat bg-right pr-8"
+            style="
+              background-image: url(&quot;data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236c757d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e&quot;);
+              background-position: right 0.75rem center;
+              background-size: 16px 12px;
+            "
+          >
+            <option value="chat/completions">Chat Completions (/v1/chat/completions)</option>
+            <option value="responses">Responses (/v1/responses)</option>
+          </select>
+        </div>
         <p class="text-xs text-muted-foreground mt-1">选择使用的 OpenAI API 端点类型</p>
       </div>
 
       <!-- Base URL -->
       <div>
         <label class="text-sm font-medium text-foreground">Base URL</label>
-        <el-input
+        <input
           v-model="localSettings.baseUrl"
-          class="mt-2"
+          class="w-full mt-2 px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground"
           placeholder="https://api.openai.com"
         />
         <p class="text-xs text-muted-foreground mt-1">
@@ -57,20 +80,33 @@
       <!-- API Key -->
       <div>
         <label class="text-sm font-medium text-foreground">API Key</label>
-        <el-input
-          v-model="localSettings.apiKey"
-          type="password"
-          class="mt-2"
-          placeholder="sk-..."
-          show-password
-        />
+        <div class="relative mt-2">
+          <input
+            v-model="localSettings.apiKey"
+            :type="showPassword ? 'text' : 'password'"
+            class="w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground pr-10"
+            placeholder="sk-..."
+          />
+          <button
+            type="button"
+            @click="showPassword = !showPassword"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            <span v-if="showPassword">🙈</span>
+            <span v-else>👁️</span>
+          </button>
+        </div>
         <p class="text-xs text-muted-foreground mt-1">您的 API Key 将被安全加密存储</p>
       </div>
 
       <!-- Model -->
       <div>
         <label class="text-sm font-medium text-foreground">模型</label>
-        <el-input v-model="localSettings.model" class="mt-2" :placeholder="getModelPlaceholder()" />
+        <input
+          v-model="localSettings.model"
+          class="w-full mt-2 px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-muted-foreground"
+          :placeholder="getModelPlaceholder()"
+        />
         <p class="text-xs text-muted-foreground mt-1">
           {{ getModelHint() }}
         </p>
@@ -86,16 +122,42 @@
             限制每分钟最多 10 次请求，防止 API 配额快速耗尽
           </p>
         </div>
-        <el-switch v-model="localSettings.rateLimitEnabled" />
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" v-model="localSettings.rateLimitEnabled" class="sr-only peer" />
+          <div
+            class="w-11 h-6 bg-input peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"
+          ></div>
+        </label>
       </div>
 
       <!-- 操作按钮 -->
       <div class="flex items-center space-x-3 pt-4">
-        <el-button type="primary" @click="handleSave" :loading="aiSettingsStore.isLoading">
-          保存配置
-        </el-button>
-        <el-button @click="handleTest" :loading="aiSettingsStore.isTesting"> 测试连接 </el-button>
-        <el-button @click="handleReset" :disabled="aiSettingsStore.isLoading"> 重置 </el-button>
+        <button
+          type="button"
+          @click="handleSave"
+          :disabled="aiSettingsStore.isLoading"
+          class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ aiSettingsStore.isLoading ? '保存中...' : '保存配置' }}
+        </button>
+
+        <button
+          type="button"
+          @click="handleTest"
+          :disabled="aiSettingsStore.isTesting"
+          class="px-4 py-2 bg-background border border-border text-foreground rounded-md shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ aiSettingsStore.isTesting ? '测试中...' : '测试连接' }}
+        </button>
+
+        <button
+          type="button"
+          @click="handleReset"
+          :disabled="aiSettingsStore.isLoading"
+          class="px-4 py-2 bg-background border border-border text-foreground rounded-md shadow-sm hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          重置
+        </button>
       </div>
 
       <!-- 提示信息 -->
@@ -135,6 +197,8 @@ const localSettings = ref<AISettings>({
   openaiEndpoint: 'chat/completions',
   rateLimitEnabled: true,
 });
+
+const showPassword = ref(false);
 
 // 初始化：加载配置
 onMounted(async () => {

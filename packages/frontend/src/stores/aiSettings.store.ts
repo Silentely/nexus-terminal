@@ -35,7 +35,7 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
   async function loadSettings(): Promise<void> {
     isLoading.value = true;
     try {
-      const response = await apiClient.get<AISettingsResponse>('/api/v1/ai/settings');
+      const response = await apiClient.get<AISettingsResponse>('/ai/settings');
       if (response.data.success && response.data.settings) {
         settings.value = response.data.settings;
         hasLoaded.value = true;
@@ -55,7 +55,7 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
   async function saveSettings(newSettings: AISettings): Promise<void> {
     isLoading.value = true;
     try {
-      const response = await apiClient.post('/api/v1/ai/settings', newSettings);
+      const response = await apiClient.post('/ai/settings', newSettings);
       if (response.data.success) {
         settings.value = newSettings;
       } else {
@@ -75,7 +75,7 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
   async function testConnection(testSettings: AISettings): Promise<boolean> {
     isTesting.value = true;
     try {
-      const response = await apiClient.post<AITestResponse>('/api/v1/ai/test', testSettings);
+      const response = await apiClient.post<AITestResponse>('/ai/test', testSettings);
       return response.data.success;
     } catch (error) {
       console.error('[AI Settings Store] 测试连接失败:', error);
