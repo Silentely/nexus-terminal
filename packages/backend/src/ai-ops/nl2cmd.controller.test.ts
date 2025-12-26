@@ -28,6 +28,7 @@ function createMockResponse(): Response {
   const res: Partial<Response> = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
+    setHeader: vi.fn().mockReturnThis(),
   };
   return res as Response;
 }
@@ -84,12 +85,15 @@ describe('NL2CMD Controller', () => {
 
       await NL2CMDController.generateCommand(req, res);
 
-      expect(NL2CMDService.generateCommand).toHaveBeenCalledWith({
-        query: '列出当前目录的文件',
-        osType: 'Linux',
-        shellType: 'bash',
-        currentPath: undefined,
-      });
+      expect(NL2CMDService.generateCommand).toHaveBeenCalledWith(
+        {
+          query: '列出当前目录的文件',
+          osType: 'Linux',
+          shellType: 'bash',
+          currentPath: undefined,
+        },
+        { traceId: expect.any(String) }
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockResult);
     });

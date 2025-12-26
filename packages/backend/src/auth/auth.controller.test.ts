@@ -91,6 +91,7 @@ describe('Auth Controller - Security Fixes', () => {
     // 创建模拟的 session 对象
     mockSession = {
       regenerate: vi.fn((callback: (err?: Error) => void) => callback()),
+      save: vi.fn((callback: (err?: Error) => void) => callback()),
       userId: undefined,
       username: undefined,
       requiresTwoFactor: undefined,

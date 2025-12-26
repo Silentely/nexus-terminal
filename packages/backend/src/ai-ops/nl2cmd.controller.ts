@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import * as NL2CMDService from './nl2cmd.service';
 import { NL2CMDRequest, AIProviderConfig, AISettings } from './nl2cmd.types';
 
@@ -13,6 +14,29 @@ import { NL2CMDRequest, AIProviderConfig, AISettings } from './nl2cmd.types';
 function getUserId(req: Request): number | null {
   return (req.session as any)?.userId ?? null;
 }
+
+const createTraceId = (): string => crypto.randomBytes(8).toString('hex');
+
+const parseIntOr = (value: unknown, fallback: number): number => {
+  if (typeof value !== 'string') return fallback;
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const NL2CMD_TIMING_LOG_ENABLED = process.env.NL2CMD_TIMING_LOG === '1';
+
+const NL2CMD_SLOW_THRESHOLD_MS = parseIntOr(process.env.NL2CMD_SLOW_THRESHOLD_MS, 3000);
+
+const shouldLogTiming = (totalMs: number): boolean =>
+  NL2CMD_TIMING_LOG_ENABLED || totalMs >= NL2CMD_SLOW_THRESHOLD_MS;
+
+const safeBaseUrlForLog = (baseUrl: string): string => {
+  try {
+    return new URL(baseUrl).host;
+  } catch {
+    return baseUrl;
+  }
+};
 
 /**
  * 生成命令
@@ -26,6 +50,9 @@ export const generateCommand = async (req: Request, res: Response): Promise<void
   }
 
   const { query, osType, shellType, currentPath } = req.body;
+  const traceId = createTraceId();
+  const start = Date.now();
+  res.setHeader('x-request-id', traceId);
 
   // 参数验证
   if (!query || typeof query !== 'string' || query.trim().length === 0) {
@@ -46,10 +73,26 @@ export const generateCommand = async (req: Request, res: Response): Promise<void
       currentPath,
     };
 
-    const response = await NL2CMDService.generateCommand(request);
+    const response = await NL2CMDService.generateCommand(request, { traceId });
     res.status(200).json(response);
+
+    const durationMs = Date.now() - start;
+    if (shouldLogTiming(durationMs)) {
+      console.info('[NL2CMD HTTP] /nl2cmd', {
+        traceId,
+        ok: response.success,
+        durationMs,
+        queryLen: request.query.length,
+        osType: request.osType,
+        shellType: request.shellType,
+      });
+    }
   } catch (error: any) {
     console.error('[NL2CMD Controller] 生成命令失败:', error);
+    const durationMs = Date.now() - start;
+    if (shouldLogTiming(durationMs)) {
+      console.warn('[NL2CMD HTTP] /nl2cmd failed', { traceId, durationMs });
+    }
     res.status(500).json({ success: false, error: '生成命令失败' });
   }
 };
@@ -170,6 +213,9 @@ export const testAIConnection = async (req: Request, res: Response): Promise<voi
   }
 
   const { provider, baseUrl, apiKey, model, openaiEndpoint } = req.body;
+  const traceId = createTraceId();
+  const start = Date.now();
+  res.setHeader('x-request-id', traceId);
 
   // 参数验证
   if (!['openai', 'gemini', 'claude'].includes(provider)) {
@@ -210,15 +256,31 @@ export const testAIConnection = async (req: Request, res: Response): Promise<voi
       openaiEndpoint: provider === 'openai' ? openaiEndpoint || 'chat/completions' : undefined,
     };
 
-    const success = await NL2CMDService.testAIConnection(config);
+    const success = await NL2CMDService.testAIConnection(config, { traceId });
 
     if (success) {
       res.status(200).json({ success: true, message: '连接测试成功' });
     } else {
       res.status(400).json({ success: false, message: '连接测试失败' });
     }
+
+    const durationMs = Date.now() - start;
+    if (shouldLogTiming(durationMs)) {
+      console.info('[NL2CMD HTTP] /test', {
+        traceId,
+        ok: success,
+        durationMs,
+        provider,
+        model,
+        baseUrl: safeBaseUrlForLog(baseUrl),
+      });
+    }
   } catch (error: any) {
     console.error('[NL2CMD Controller] 测试连接失败:', error);
+    const durationMs = Date.now() - start;
+    if (shouldLogTiming(durationMs)) {
+      console.warn('[NL2CMD HTTP] /test failed', { traceId, durationMs });
+    }
     res.status(500).json({ success: false, message: '连接测试失败' });
   }
 };

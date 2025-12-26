@@ -4,7 +4,7 @@
  */
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import apiClient from '../utils/apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from '../utils/apiClient';
 import type {
   AISession,
   AIMessage,
@@ -60,11 +60,15 @@ export const useAIStore = defineStore('ai', () => {
     messages.value.push(userMsg);
 
     try {
-      const response = await apiClient.post<AIQueryResponse>('/ai/query', {
-        query,
-        ...(currentSessionId.value && { sessionId: currentSessionId.value }),
-        context,
-      });
+      const response = await apiClient.post<AIQueryResponse>(
+        '/ai/query',
+        {
+          query,
+          ...(currentSessionId.value && { sessionId: currentSessionId.value }),
+          context,
+        },
+        { timeout: AI_REQUEST_TIMEOUT_MS }
+      );
 
       if (response.data.success) {
         // 更新会话 ID

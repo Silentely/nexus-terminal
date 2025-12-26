@@ -6,14 +6,18 @@ import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
 import { createWebSocketConnectionManager } from './useWebSocketConnection';
 
 // Mock vue-i18n
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string, params?: Record<string, any>) => {
-      if (params) return `${key}:${JSON.stringify(params)}`;
-      return key;
-    },
-  }),
-}));
+vi.mock('vue-i18n', async () => {
+  const actual = await vi.importActual<any>('vue-i18n');
+  return {
+    ...actual,
+    useI18n: () => ({
+      t: (key: string, params?: Record<string, any>) => {
+        if (params) return `${key}:${JSON.stringify(params)}`;
+        return key;
+      },
+    }),
+  };
+});
 
 // Mock CloseEvent (Node.js 环境可能没有)
 class MockCloseEvent extends Event {
@@ -89,6 +93,10 @@ const OriginalWebSocket = global.WebSocket;
 describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
   let mockT: (key: string, params?: Record<string, any>) => string;
   let createdWebSockets: MockWebSocket[];
+  const createManager = (options?: {
+    isResumeFlow?: boolean;
+    getIsMarkedForSuspend?: () => boolean;
+  }) => createWebSocketConnectionManager('session-1', '1', mockT, options);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -127,7 +135,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('初始状态', () => {
     it('应返回正确的初始状态', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       expect(manager.isConnected.value).toBe(false);
       expect(manager.isSftpReady.value).toBe(false);
@@ -136,7 +144,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('应暴露所需的方法', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       expect(typeof manager.connect).toBe('function');
       expect(typeof manager.disconnect).toBe('function');
@@ -147,7 +155,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('connect', () => {
     it('应创建 WebSocket 连接', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
 
@@ -157,7 +165,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
     it('HTTPS 页面应自动升级为 wss 协议', () => {
       (window as any).location.protocol = 'https:';
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
 
@@ -165,7 +173,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('连接成功后应发送 ssh:connect 消息', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -174,13 +182,13 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
       expect(ws.send).toHaveBeenCalledWith(
         JSON.stringify({
           type: 'ssh:connect',
-          payload: { connectionId: 'conn-1' },
+          payload: { connectionId: 1 },
         })
       );
     });
 
     it('恢复流程模式下不应发送 ssh:connect', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT, {
+      const manager = createManager({
         isResumeFlow: true,
       });
 
@@ -193,7 +201,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('已连接时不应创建新连接', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -210,7 +218,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('消息处理', () => {
     it('ssh:connected 应更新连接状态', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -225,7 +233,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('ssh:disconnected 应更新连接状态', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -241,7 +249,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('ssh:error 应更新为错误状态', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -255,7 +263,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('sftp_ready 应更新 SFTP 状态', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -270,7 +278,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('未知消息类型应被忽略', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       manager.onMessage('unknown:type', handler);
@@ -286,7 +294,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('onMessage 消息处理器', () => {
     it('应注册消息处理器', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       manager.onMessage('ssh:connected', handler);
@@ -299,7 +307,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('应返回注销函数', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       const unregister = manager.onMessage('ssh:connected', handler);
@@ -316,7 +324,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('应支持同一类型的多个处理器', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler1 = vi.fn();
       const handler2 = vi.fn();
 
@@ -333,7 +341,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('处理器抛出错误不应影响其他处理器', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const errorHandler = vi.fn(() => {
         throw new Error('Test error');
       });
@@ -354,7 +362,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('sendMessage', () => {
     it('连接打开时应发送消息', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -368,7 +376,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('连接未打开时不应发送消息', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -385,7 +393,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('disconnect', () => {
     it('应关闭 WebSocket 连接', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -401,7 +409,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('断开后不应触发自动重连', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -419,7 +427,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('自动重连', () => {
     it('连接错误后应自动重连', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws = createdWebSockets[0];
@@ -434,7 +442,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('应使用指数退避延迟', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       let ws = createdWebSockets[0];
@@ -460,7 +468,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('达到最大重试次数后应停止重连', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
 
@@ -487,7 +495,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
     it('标记为挂起时不应重连', () => {
       const getIsMarkedForSuspend = vi.fn(() => true);
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT, {
+      const manager = createManager({
         getIsMarkedForSuspend,
       });
 
@@ -506,7 +514,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('内部事件分发', () => {
     it('连接打开时应分发 internal:opened 事件', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       manager.onMessage('internal:opened', handler);
@@ -518,7 +526,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('连接关闭时应分发 internal:closed 事件', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       manager.onMessage('internal:closed', handler);
@@ -534,7 +542,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('连接错误时应分发 internal:error 事件', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       manager.onMessage('internal:error', handler);
@@ -548,7 +556,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('Payload 验证', () => {
     it('应验证 terminal:data 的 payload', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       manager.onMessage('terminal:data', handler);
@@ -570,7 +578,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     });
 
     it('应验证 terminal:resize 的 payload', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
       const handler = vi.fn();
 
       manager.onMessage('terminal:resize', handler);
@@ -594,7 +602,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
   describe('状态不一致处理', () => {
     it('检测到状态不一致时应关闭旧连接', () => {
-      const manager = createWebSocketConnectionManager('session-1', 'conn-1', mockT);
+      const manager = createManager();
 
       manager.connect('ws://localhost:3001');
       const ws1 = createdWebSockets[0];

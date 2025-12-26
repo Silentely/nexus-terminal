@@ -6,11 +6,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useNL2CMD } from './useNL2CMD';
 import { useAISettingsStore } from '../../stores/aiSettings.store';
-import apiClient from '../../utils/apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from '../../utils/apiClient';
 import { ElMessage } from 'element-plus';
 
 // Mock 依赖
 vi.mock('../../utils/apiClient', () => ({
+  AI_REQUEST_TIMEOUT_MS: 60_000,
   default: {
     post: vi.fn(),
   },
@@ -146,12 +147,16 @@ describe('useNL2CMD', () => {
 
       await generateCommand();
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/ai/nl2cmd', {
-        query: '列出当前目录的文件',
-        osType: 'Ubuntu',
-        shellType: 'bash',
-        currentPath: '/home/user',
-      });
+      expect(apiClient.post).toHaveBeenCalledWith(
+        '/ai/nl2cmd',
+        {
+          query: '列出当前目录的文件',
+          osType: 'Ubuntu',
+          shellType: 'bash',
+          currentPath: '/home/user',
+        },
+        { timeout: AI_REQUEST_TIMEOUT_MS }
+      );
     });
 
     it('应该在生成成功时返回命令', async () => {

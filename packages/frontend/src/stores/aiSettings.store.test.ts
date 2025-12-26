@@ -5,10 +5,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 import { useAISettingsStore } from './aiSettings.store';
-import apiClient from '../utils/apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from '../utils/apiClient';
 
 // Mock apiClient
 vi.mock('../utils/apiClient', () => ({
+  AI_REQUEST_TIMEOUT_MS: 60_000,
   default: {
     get: vi.fn(),
     post: vi.fn(),
@@ -64,7 +65,7 @@ describe('AI Settings Store', () => {
       const store = useAISettingsStore();
       await store.loadSettings();
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/v1/ai/settings');
+      expect(apiClient.get).toHaveBeenCalledWith('/ai/settings');
       expect(store.settings.enabled).toBe(true);
       expect(store.settings.provider).toBe('gemini');
       expect(store.hasLoaded).toBe(true);
@@ -97,7 +98,7 @@ describe('AI Settings Store', () => {
 
       await store.saveSettings(newSettings);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/ai/settings', newSettings);
+      expect(apiClient.post).toHaveBeenCalledWith('/ai/settings', newSettings);
       expect(store.settings.provider).toBe('claude');
     });
 
@@ -136,7 +137,9 @@ describe('AI Settings Store', () => {
       });
 
       expect(result).toBe(true);
-      expect(apiClient.post).toHaveBeenCalledWith('/api/v1/ai/test', expect.any(Object));
+      expect(apiClient.post).toHaveBeenCalledWith('/ai/test', expect.any(Object), {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      });
     });
 
     it('应该返回 false 当连接失败', async () => {

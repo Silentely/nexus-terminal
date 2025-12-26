@@ -4,6 +4,7 @@
  */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import crypto from 'crypto';
 import {
   AIProvider,
   AIProviderConfig,
@@ -23,6 +24,31 @@ import { settingsRepository } from '../settings/settings.repository';
 import { encrypt, decrypt } from '../utils/crypto';
 
 const AI_SETTINGS_KEY = 'aiProviderConfig';
+
+type NL2CMDTraceOptions = {
+  traceId?: string;
+};
+
+const NL2CMD_TIMING_LOG_ENABLED = process.env.NL2CMD_TIMING_LOG === '1';
+
+const parseIntOr = (value: unknown, fallback: number): number => {
+  if (typeof value !== 'string') return fallback;
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const NL2CMD_SLOW_THRESHOLD_MS = parseIntOr(process.env.NL2CMD_SLOW_THRESHOLD_MS, 3000);
+
+const shouldLogTiming = (totalMs: number): boolean =>
+  NL2CMD_TIMING_LOG_ENABLED || totalMs >= NL2CMD_SLOW_THRESHOLD_MS;
+
+const safeBaseUrlForLog = (baseUrl: string): string => {
+  try {
+    return new URL(baseUrl).host;
+  } catch {
+    return baseUrl;
+  }
+};
 
 /**
  * 获取 AI Provider 配置
@@ -359,11 +385,28 @@ function cleanCommandOutput(output: string): string {
 /**
  * 生成命令（主函数）
  */
-export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDResponse> {
+export async function generateCommand(
+  request: NL2CMDRequest,
+  options?: NL2CMDTraceOptions
+): Promise<NL2CMDResponse> {
+  const traceId = options?.traceId || crypto.randomBytes(8).toString('hex');
+  const totalStart = Date.now();
+
   try {
     // 获取 AI 配置
+    const settingsStart = Date.now();
     const settings = await getAISettings();
+    const settingsMs = Date.now() - settingsStart;
+
     if (!settings || !settings.enabled) {
+      const totalMs = Date.now() - totalStart;
+      if (shouldLogTiming(totalMs)) {
+        console.info('[NL2CMD Timing] Disabled', {
+          traceId,
+          totalMs,
+          settingsMs,
+        });
+      }
       return {
         success: false,
         error: 'AI 功能未启用或未配置',
@@ -380,7 +423,9 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
     };
 
     // 构建 Prompt
+    const promptStart = Date.now();
     const prompt = buildNL2CMDPrompt(request);
+    const promptMs = Date.now() - promptStart;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[NL2CMD Debug] Request:', {
@@ -391,6 +436,7 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
     }
 
     // 根据不同 Provider 调用对应的 API
+    const providerStart = Date.now();
     let rawCommand: string;
     switch (config.provider) {
       case 'openai':
@@ -407,21 +453,52 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
         rawCommand = await callClaude(config, prompt);
         break;
       default:
+        {
+          const totalMs = Date.now() - totalStart;
+          if (shouldLogTiming(totalMs)) {
+            console.info('[NL2CMD Timing] Unsupported provider', {
+              traceId,
+              totalMs,
+              settingsMs,
+              promptMs,
+              providerMs: Date.now() - providerStart,
+              provider: config.provider,
+            });
+          }
+        }
         return {
           success: false,
           error: '不支持的 AI Provider',
         };
     }
+    const providerMs = Date.now() - providerStart;
 
     if (process.env.NODE_ENV === 'development') {
       console.log('[NL2CMD Debug] Raw AI Output:', rawCommand);
     }
 
     // 清理命令输出
+    const cleanStart = Date.now();
     const command = cleanCommandOutput(rawCommand);
+    const cleanMs = Date.now() - cleanStart;
 
     if (!command) {
       console.warn('[NL2CMD] Warning: AI returned empty command. Raw output:', rawCommand);
+      const totalMs = Date.now() - totalStart;
+      if (shouldLogTiming(totalMs)) {
+        console.info('[NL2CMD Timing] Empty command', {
+          traceId,
+          totalMs,
+          settingsMs,
+          promptMs,
+          providerMs,
+          cleanMs,
+          provider: config.provider,
+          model: config.model,
+          baseUrl: safeBaseUrlForLog(config.baseUrl),
+          queryLen: request.query.length,
+        });
+      }
       return {
         success: false,
         error: 'AI 未能生成有效命令，请尝试更详细的描述',
@@ -435,12 +512,41 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
     // 检测危险命令
     const warning = detectDangerousCommand(command);
 
+    const totalMs = Date.now() - totalStart;
+    if (shouldLogTiming(totalMs)) {
+      console.info('[NL2CMD Timing] Success', {
+        traceId,
+        totalMs,
+        settingsMs,
+        promptMs,
+        providerMs,
+        cleanMs,
+        provider: config.provider,
+        model: config.model,
+        openaiEndpoint: config.provider === 'openai' ? config.openaiEndpoint : undefined,
+        baseUrl: safeBaseUrlForLog(config.baseUrl),
+        queryLen: request.query.length,
+        hasWarning: Boolean(warning),
+        commandLen: command.length,
+      });
+    }
+
     return {
       success: true,
       command,
       warning,
     };
   } catch (error: any) {
+    const totalMs = Date.now() - totalStart;
+    if (shouldLogTiming(totalMs)) {
+      console.warn('[NL2CMD Timing] Failed', {
+        traceId,
+        totalMs,
+        queryLen: request.query.length,
+        errorName: error?.name,
+        errorCode: (error as AxiosError | undefined)?.code,
+      });
+    }
     console.error('[NL2CMD] 生成命令失败:', error);
 
     // 提供更友好的错误信息
@@ -448,6 +554,13 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
     if (axios.isAxiosError(error)) {
       const status = error.response?.status;
       const data = error.response?.data;
+      const timeoutMs =
+        typeof error.config?.timeout === 'number' ? error.config.timeout : undefined;
+
+      if (error.code === 'ECONNABORTED' && timeoutMs) {
+        errorMessage = `AI 服务响应超时（${timeoutMs}ms），请稍后重试或检查网络/Base URL 配置`;
+        return { success: false, error: errorMessage };
+      }
 
       // 根据状态码提供更具体的错误提示
       switch (status) {
@@ -508,7 +621,13 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
 /**
  * 测试 AI Provider 连接
  */
-export async function testAIConnection(config: AIProviderConfig): Promise<boolean> {
+export async function testAIConnection(
+  config: AIProviderConfig,
+  options?: NL2CMDTraceOptions
+): Promise<boolean> {
+  const traceId = options?.traceId || crypto.randomBytes(8).toString('hex');
+  const totalStart = Date.now();
+
   try {
     const testRequest: NL2CMDRequest = {
       query: '列出当前目录的文件',
@@ -519,6 +638,7 @@ export async function testAIConnection(config: AIProviderConfig): Promise<boolea
     const prompt = buildNL2CMDPrompt(testRequest);
 
     // 根据不同 Provider 测试连接
+    const providerStart = Date.now();
     switch (config.provider) {
       case 'openai':
         if (config.openaiEndpoint === 'responses') {
@@ -537,8 +657,33 @@ export async function testAIConnection(config: AIProviderConfig): Promise<boolea
         return false;
     }
 
+    const totalMs = Date.now() - totalStart;
+    if (shouldLogTiming(totalMs)) {
+      console.info('[NL2CMD Timing] Test success', {
+        traceId,
+        totalMs,
+        providerMs: Date.now() - providerStart,
+        provider: config.provider,
+        model: config.model,
+        openaiEndpoint: config.provider === 'openai' ? config.openaiEndpoint : undefined,
+        baseUrl: safeBaseUrlForLog(config.baseUrl),
+      });
+    }
+
     return true;
   } catch (error) {
+    const totalMs = Date.now() - totalStart;
+    if (shouldLogTiming(totalMs)) {
+      console.warn('[NL2CMD Timing] Test failed', {
+        traceId,
+        totalMs,
+        provider: config.provider,
+        model: config.model,
+        baseUrl: safeBaseUrlForLog(config.baseUrl),
+        errorName: (error as any)?.name,
+        errorCode: (error as AxiosError | undefined)?.code,
+      });
+    }
     console.error('[NL2CMD] 测试连接失败:', error);
     return false;
   }

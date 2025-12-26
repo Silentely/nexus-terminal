@@ -5,7 +5,7 @@
 
 import { ref, computed, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
-import apiClient from '../../utils/apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from '../../utils/apiClient';
 import type { NL2CMDRequest, NL2CMDResponse } from '../../types/nl2cmd.types';
 import { useAISettingsStore } from '../../stores/aiSettings.store';
 
@@ -93,7 +93,9 @@ export function useNL2CMD() {
         console.log('[NL2CMD Debug] Request:', request);
       }
 
-      const response = await apiClient.post<NL2CMDResponse>('/ai/nl2cmd', request);
+      const response = await apiClient.post<NL2CMDResponse>('/ai/nl2cmd', request, {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      });
 
       if (import.meta.env.DEV) {
         console.log('[NL2CMD Debug] Response:', response.data);

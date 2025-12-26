@@ -43,6 +43,10 @@ export interface EnvironmentConfig {
   LOG_LEVEL?: 'error' | 'warn' | 'info' | 'debug';
   LOG_TZ?: string;
   TZ?: string;
+
+  // AI/NL2CMD 调试配置
+  NL2CMD_TIMING_LOG?: '0' | '1';
+  NL2CMD_SLOW_THRESHOLD_MS?: number;
 }
 
 interface EnvVarSchema {
@@ -235,6 +239,24 @@ const ENV_SCHEMA: Record<keyof EnvironmentConfig, EnvVarSchema> = {
     required: false,
     type: 'string',
     default: 'UTC',
+  },
+
+  // AI/NL2CMD 调试配置
+  NL2CMD_TIMING_LOG: {
+    required: false,
+    type: 'enum',
+    enum: ['0', '1'],
+    default: '0',
+  },
+  NL2CMD_SLOW_THRESHOLD_MS: {
+    required: false,
+    type: 'number',
+    default: 3000,
+    validator: (value: string) => {
+      const ms = parseInt(value, 10);
+      return ms >= 0 && ms <= 300000;
+    },
+    errorMessage: 'NL2CMD_SLOW_THRESHOLD_MS 必须在 0-300000 毫秒之间',
   },
 };
 

@@ -6,7 +6,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { AISettings, AISettingsResponse, AITestResponse } from '../types/nl2cmd.types';
-import apiClient from '../utils/apiClient';
+import apiClient, { AI_REQUEST_TIMEOUT_MS } from '../utils/apiClient';
 
 // 默认 AI 设置常量
 const DEFAULT_AI_SETTINGS: AISettings = {
@@ -75,7 +75,9 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
   async function testConnection(testSettings: AISettings): Promise<boolean> {
     isTesting.value = true;
     try {
-      const response = await apiClient.post<AITestResponse>('/ai/test', testSettings);
+      const response = await apiClient.post<AITestResponse>('/ai/test', testSettings, {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      });
       return response.data.success;
     } catch (error) {
       console.error('[AI Settings Store] 测试连接失败:', error);

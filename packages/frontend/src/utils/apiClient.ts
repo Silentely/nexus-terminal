@@ -1,11 +1,13 @@
 import axios from 'axios';
-import router from '../router';
 import { useAuthStore } from '../stores/auth.store';
+
+export const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
+export const AI_REQUEST_TIMEOUT_MS = 60_000;
 
 // 创建 axios 实例
 const apiClient = axios.create({
   baseURL: '/api/v1', // 设置基础URL
-  timeout: 10000, // 设置请求超时时间
+  timeout: DEFAULT_REQUEST_TIMEOUT_MS, // 设置请求超时时间
   withCredentials: true, // 允许携带 cookie
 });
 

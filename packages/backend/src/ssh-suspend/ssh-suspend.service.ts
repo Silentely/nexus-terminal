@@ -36,8 +36,13 @@ export class SshSuspendService extends EventEmitter {
    * 这些会话在后端重启后仍可被用户查看和清理。
    */
   private async loadPersistedSessions(): Promise<void> {
-    console.log('[SshSuspendService INFO] Loading persisted disconnected sessions from disk...');
-    const metadataIds = await this.logStorageService.listMetadataFiles();
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    if (!isTestEnv) {
+      console.log('[SshSuspendService INFO] Loading persisted disconnected sessions from disk...');
+    }
+
+    const metadataIdsRaw = await this.logStorageService.listMetadataFiles();
+    const metadataIds = Array.isArray(metadataIdsRaw) ? metadataIdsRaw : [];
 
     for (const suspendSessionId of metadataIds) {
       const metadata = await this.logStorageService.readMetadata(suspendSessionId);
@@ -87,9 +92,11 @@ export class SshSuspendService extends EventEmitter {
       );
     }
 
-    console.log(
-      `[SshSuspendService INFO] Finished loading persisted sessions. Total loaded: ${metadataIds.length}`
-    );
+    if (!isTestEnv) {
+      console.log(
+        `[SshSuspendService INFO] Finished loading persisted sessions. Total loaded: ${metadataIds.length}`
+      );
+    }
   }
 
   /**
@@ -555,14 +562,9 @@ export class SshSuspendService extends EventEmitter {
       };
       try {
         await this.logStorageService.writeMetadata(suspendSessionId, metadata);
-        console.log(
-          `[用户: ${userId}] 挂起会话 ${suspendSessionId} 的元数据文件已同步更新。`
-        );
+        console.log(`[用户: ${userId}] 挂起会话 ${suspendSessionId} 的元数据文件已同步更新。`);
       } catch (error) {
-        console.error(
-          `[用户: ${userId}] 更新会话 ${suspendSessionId} 元数据文件失败:`,
-          error
-        );
+        console.error(`[用户: ${userId}] 更新会话 ${suspendSessionId} 元数据文件失败:`, error);
         // 内存已更新，元数据文件更新失败不影响返回值
       }
     }

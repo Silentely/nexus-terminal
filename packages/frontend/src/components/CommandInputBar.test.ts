@@ -9,9 +9,13 @@ import { ref, computed } from 'vue';
 import CommandInputBar from './CommandInputBar.vue';
 
 // Mock vue-i18n
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key: string, fallback?: string) => fallback || key }),
-}));
+vi.mock('vue-i18n', async () => {
+  const actual = await vi.importActual<any>('vue-i18n');
+  return {
+    ...actual,
+    useI18n: () => ({ t: (key: string, fallback?: string) => fallback || key }),
+  };
+});
 
 // Mock workspace event emitter
 const mockEmitWorkspaceEvent = vi.fn();
