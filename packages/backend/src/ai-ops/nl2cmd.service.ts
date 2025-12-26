@@ -420,6 +420,14 @@ export async function generateCommand(request: NL2CMDRequest): Promise<NL2CMDRes
     // 清理命令输出
     const command = cleanCommandOutput(rawCommand);
 
+    if (!command) {
+      console.warn('[NL2CMD] Warning: AI returned empty command. Raw output:', rawCommand);
+      return {
+        success: false,
+        error: 'AI 未能生成有效命令，请尝试更详细的描述',
+      };
+    }
+
     if (process.env.NODE_ENV === 'development') {
       console.log('[NL2CMD Debug] Cleaned Command:', command);
     }
