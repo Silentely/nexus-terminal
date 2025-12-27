@@ -42,26 +42,26 @@ http://localhost:18111/api-docs
 
 所有 API 按功能分组：
 
-| 标签                | 描述                     |
-| ------------------- | ------------------------ |
-| `auth`              | 用户认证与授权           |
-| `connections`       | SSH/RDP/VNC 连接管理     |
-| `sftp`              | SFTP 文件操作            |
-| `batch`             | 批量命令执行             |
-| `ai-ops`            | AI 智能运维分析          |
-| `tags`              | 连接标签管理             |
-| `proxies`           | 代理配置管理             |
-| `settings`          | 系统设置                 |
-| `notifications`     | 通知渠道配置             |
-| `audit`             | 审计日志查询             |
-| `command-history`   | 命令历史记录             |
-| `quick-commands`    | 快捷指令管理             |
-| `terminal-themes`   | 终端主题配置             |
-| `appearance`        | 外观设置                 |
-| `ssh-keys`          | SSH 密钥管理             |
-| `transfers`         | 文件传输状态             |
-| `path-history`      | 路径浏览历史             |
-| `favorite-paths`    | 收藏路径管理             |
+| 标签              | 描述                 |
+| ----------------- | -------------------- |
+| `auth`            | 用户认证与授权       |
+| `connections`     | SSH/RDP/VNC 连接管理 |
+| `sftp`            | SFTP 文件操作        |
+| `batch`           | 批量命令执行         |
+| `ai-ops`          | AI 智能运维分析      |
+| `tags`            | 连接标签管理         |
+| `proxies`         | 代理配置管理         |
+| `settings`        | 系统设置             |
+| `notifications`   | 通知渠道配置         |
+| `audit`           | 审计日志查询         |
+| `command-history` | 命令历史记录         |
+| `quick-commands`  | 快捷指令管理         |
+| `terminal-themes` | 终端主题配置         |
+| `appearance`      | 外观设置             |
+| `ssh-keys`        | SSH 密钥管理         |
+| `transfers`       | 文件传输状态         |
+| `path-history`    | 路径浏览历史         |
+| `favorite-paths`  | 收藏路径管理         |
 
 ## 使用步骤
 
@@ -218,16 +218,16 @@ router.post('/example', exampleController);
 
 ### 常见错误代码
 
-| 代码                      | HTTP 状态码 | 说明                 |
-| ------------------------- | ----------- | -------------------- |
-| `BAD_REQUEST`             | 400         | 请求参数错误         |
-| `UNAUTHORIZED`            | 401         | 未登录或认证失败     |
-| `FORBIDDEN`               | 403         | 无权访问             |
-| `NOT_FOUND`               | 404         | 资源不存在           |
-| `VALIDATION_ERROR`        | 422         | 数据验证失败         |
-| `INTERNAL_SERVER_ERROR`   | 500         | 服务器内部错误       |
-| `DATABASE_ERROR`          | 500         | 数据库操作失败       |
-| `SERVICE_UNAVAILABLE`     | 503         | 服务暂时不可用       |
+| 代码                    | HTTP 状态码 | 说明             |
+| ----------------------- | ----------- | ---------------- |
+| `BAD_REQUEST`           | 400         | 请求参数错误     |
+| `UNAUTHORIZED`          | 401         | 未登录或认证失败 |
+| `FORBIDDEN`             | 403         | 无权访问         |
+| `NOT_FOUND`             | 404         | 资源不存在       |
+| `VALIDATION_ERROR`      | 422         | 数据验证失败     |
+| `INTERNAL_SERVER_ERROR` | 500         | 服务器内部错误   |
+| `DATABASE_ERROR`        | 500         | 数据库操作失败   |
+| `SERVICE_UNAVAILABLE`   | 503         | 服务暂时不可用   |
 
 ## 配置文件
 
@@ -250,10 +250,13 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger.config';
 
 app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: '星枢终端 API 文档',
-}));
+app.get(
+  '/api-docs',
+  swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: '星枢终端 API 文档',
+  })
+);
 ```
 
 ## 技术栈

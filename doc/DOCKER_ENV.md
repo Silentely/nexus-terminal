@@ -40,6 +40,14 @@
 | `REMOTE_GATEWAY_WS_URL_LOCAL`    | `ws://localhost:8080`        | 本地开发时远程网关 WebSocket 地址    |
 | `REMOTE_GATEWAY_WS_URL_DOCKER`   | `ws://remote-gateway:8080`   | Docker 部署时远程网关 WebSocket 地址 |
 
+### Remote Gateway API 鉴权（推荐）
+
+> ✅ 建议为远程网关 API 配置共享令牌，避免 token 生成接口在端口被误暴露时可被滥用。
+
+| 变量名                     | 默认值 | 描述                                                                        |
+| -------------------------- | ------ | --------------------------------------------------------------------------- |
+| `REMOTE_GATEWAY_API_TOKEN` | -      | 共享令牌：backend 请求 Remote Gateway API 时会携带 `X-Remote-Gateway-Token` |
+
 ### 安全相关（自动生成）
 
 > ⚠️ 以下变量首次启动时会自动生成到挂载卷 `./data/.env`（容器内路径为 `/app/data/.env`），**不要手动配置**
@@ -129,6 +137,9 @@ REMOTE_GATEWAY_API_BASE_LOCAL=http://localhost:9090
 REMOTE_GATEWAY_API_BASE_DOCKER=http://remote-gateway:9090
 REMOTE_GATEWAY_WS_URL_LOCAL=ws://localhost:8080
 REMOTE_GATEWAY_WS_URL_DOCKER=ws://remote-gateway:8080
+
+# Remote Gateway API 访问令牌（可选但强烈推荐；需与 docker-compose.yml 的 remote-gateway 一致）
+REMOTE_GATEWAY_API_TOKEN=
 ```
 
 ## Rate Limit（后端限流）

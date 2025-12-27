@@ -506,10 +506,7 @@
             </button>
             <p
               v-if="terminalOutputEnhancerMessage"
-              :class="[
-                'text-sm',
-                terminalOutputEnhancerSuccess ? 'text-success' : 'text-error',
-              ]"
+              :class="['text-sm', terminalOutputEnhancerSuccess ? 'text-success' : 'text-error']"
             >
               {{ terminalOutputEnhancerMessage }}
             </p>

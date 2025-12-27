@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
 import crypto from 'crypto';
+import http, { type Server } from 'http';
+import { createRemoteGatewayApiApp } from '../src/api';
 
 // 测试常量
 const ENCRYPTION_KEY = Buffer.alloc(32, 'test-encryption-key');
@@ -7,6 +9,8 @@ const GUACD_HOST = 'localhost';
 const GUACD_PORT = 4822;
 
 describe('Remote Gateway 服务器测试', () => {
+  const API_TOKEN = 'test-api-token';
+
   describe('服务器配置', () => {
     it('应该使用正确的默认配置', () => {
       const config = {
@@ -40,162 +44,195 @@ describe('Remote Gateway 服务器测试', () => {
   });
 
   describe('Token 加密解密', () => {
-    const encryptToken = (data: string, key: Buffer): string => {
-      const iv = crypto.randomBytes(16);
-      const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-      let encrypted = cipher.update(data, 'utf8', 'base64');
-      encrypted += cipher.final('base64');
-      return `${iv.toString('base64')}$${encrypted}`;
-    };
-
     const decryptToken = (token: string, key: Buffer): string => {
-      const [ivBase64, encryptedData] = token.split('$');
-      const iv = Buffer.from(ivBase64, 'base64');
+      const jsonString = Buffer.from(token, 'base64').toString('utf8');
+      const parsed = JSON.parse(jsonString) as { iv: string; value: string };
+
+      const iv = Buffer.from(parsed.iv, 'base64');
       const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-      let decrypted = decipher.update(encryptedData, 'base64', 'utf8');
+      let decrypted = decipher.update(parsed.value, 'base64', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;
     };
 
-    it('应该能够加密和解密 RDP 连接参数', () => {
-      const connectionParams = {
-        connection: {
-          type: 'rdp',
-          settings: {
-            hostname: '192.168.1.100',
-            port: '3389',
-            username: 'Administrator',
-            password: 'secret123',
-            security: 'any',
-            'ignore-cert': 'true',
-          },
-        },
-      };
-
-      const originalData = JSON.stringify(connectionParams);
-      const encryptedToken = encryptToken(originalData, ENCRYPTION_KEY);
-      const decryptedData = decryptToken(encryptedToken, ENCRYPTION_KEY);
-
-      expect(decryptedData).toBe(originalData);
-      expect(JSON.parse(decryptedData)).toEqual(connectionParams);
-    });
-
-    it('应该能够加密和解密 VNC 连接参数', () => {
-      const connectionParams = {
-        connection: {
-          type: 'vnc',
-          settings: {
-            hostname: '192.168.1.101',
-            port: '5900',
-            password: 'vncpass',
-          },
-        },
-      };
-
-      const originalData = JSON.stringify(connectionParams);
-      const encryptedToken = encryptToken(originalData, ENCRYPTION_KEY);
-      const decryptedData = decryptToken(encryptedToken, ENCRYPTION_KEY);
-
-      expect(JSON.parse(decryptedData)).toEqual(connectionParams);
-    });
-
-    it('应该使用不同的 IV 生成不同的密文', () => {
-      const data = 'test-data';
-
-      const token1 = encryptToken(data, ENCRYPTION_KEY);
-      const token2 = encryptToken(data, ENCRYPTION_KEY);
-
-      expect(token1).not.toBe(token2);
-
-      // 但解密后应该相同
-      expect(decryptToken(token1, ENCRYPTION_KEY)).toBe(data);
-      expect(decryptToken(token2, ENCRYPTION_KEY)).toBe(data);
-    });
-
     it('应该拒绝无效的 token 格式', () => {
-      expect(() => {
-        decryptToken('invalid-token-without-separator', ENCRYPTION_KEY);
-      }).toThrow();
-    });
-
-    it('应该拒绝使用错误密钥解密', () => {
-      const data = 'test-data';
-      const encryptedToken = encryptToken(data, ENCRYPTION_KEY);
-      const wrongKey = Buffer.alloc(32, 'wrong-key');
-
-      expect(() => {
-        decryptToken(encryptedToken, wrongKey);
-      }).toThrow();
+      expect(() => decryptToken('invalid-token', ENCRYPTION_KEY)).toThrow();
     });
   });
 
-  describe('API 端点', () => {
-    describe('POST /api/remote-desktop/token', () => {
-      it('应该为有效的 RDP 请求生成 token', () => {
-        const requestBody = {
+  describe('API 端点（真实 HTTP 集成测试）', () => {
+    let server: Server | undefined;
+    let baseUrl: string | undefined;
+
+    const startServer = async (): Promise<string> => {
+      const app = createRemoteGatewayApiApp({
+        encryptionKeyBuffer: ENCRYPTION_KEY,
+        allowedOrigins: ['http://localhost:5173', 'http://localhost:3000'],
+        corsAllowAll: true,
+        apiToken: API_TOKEN,
+      });
+
+      server = http.createServer(app);
+      await new Promise<void>((resolve) => {
+        server!.listen(0, '127.0.0.1', () => resolve());
+      });
+
+      const address = server.address();
+      if (!address || typeof address === 'string') {
+        throw new Error('Failed to bind an ephemeral port for test server');
+      }
+      return `http://127.0.0.1:${address.port}`;
+    };
+
+    const stopServer = async (): Promise<void> => {
+      if (!server) return;
+      await new Promise<void>((resolve, reject) => {
+        server!.close((err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+      server = undefined;
+    };
+
+    const decryptToken = (token: string, key: Buffer): string => {
+      const jsonString = Buffer.from(token, 'base64').toString('utf8');
+      const parsed = JSON.parse(jsonString) as { iv: string; value: string };
+      const iv = Buffer.from(parsed.iv, 'base64');
+      const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+      let decrypted = decipher.update(parsed.value, 'base64', 'utf8');
+      decrypted += decipher.final('utf8');
+      return decrypted;
+    };
+
+    beforeEach(async () => {
+      baseUrl = await startServer();
+    });
+
+    afterEach(async () => {
+      await stopServer();
+      baseUrl = undefined;
+    });
+
+    it('当配置 REMOTE_GATEWAY_API_TOKEN 时，缺少 token header 应返回 401', async () => {
+      const resp = await fetch(`${baseUrl}/api/remote-desktop/token`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          protocol: 'rdp',
+          connectionConfig: { hostname: '192.168.1.100', port: 3389, username: 'u', password: 'p' },
+        }),
+      });
+
+      expect(resp.status).toBe(401);
+      const body = await resp.json();
+      expect(body).toEqual({ error: 'Unauthorized' });
+    });
+
+    it('应返回 400：缺少必需参数', async () => {
+      const resp = await fetch(`${baseUrl}/api/remote-desktop/token`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-remote-gateway-token': API_TOKEN,
+        },
+        body: JSON.stringify({}),
+      });
+
+      expect(resp.status).toBe(400);
+      const body = await resp.json();
+      expect(body).toEqual({ error: '缺少必需的参数 (protocol, connectionConfig)' });
+    });
+
+    it('应返回 400：无效协议', async () => {
+      const resp = await fetch(`${baseUrl}/api/remote-desktop/token`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-remote-gateway-token': API_TOKEN,
+        },
+        body: JSON.stringify({
+          protocol: 'ssh',
+          connectionConfig: { hostname: 'example.com', port: 22 },
+        }),
+      });
+
+      expect(resp.status).toBe(400);
+      const body = await resp.json();
+      expect(body).toEqual({ error: '无效的协议类型。支持 "rdp" 或 "vnc"。' });
+    });
+
+    it('应为 RDP 请求返回可解密的 token（验证 payload 内容）', async () => {
+      const resp = await fetch(`${baseUrl}/api/remote-desktop/token`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-remote-gateway-token': API_TOKEN,
+        },
+        body: JSON.stringify({
           protocol: 'rdp',
           connectionConfig: {
             hostname: '192.168.1.100',
-            port: '3389',
+            port: 3389,
             username: 'Administrator',
             password: 'secret',
-            width: '1920',
-            height: '1080',
-            dpi: '96',
+            width: 1920,
+            height: 1080,
+            dpi: 96,
+            security: 'any',
+            ignoreCert: true,
           },
-        };
-
-        // 验证请求结构
-        expect(requestBody.protocol).toBe('rdp');
-        expect(requestBody.connectionConfig.hostname).toBeDefined();
-        expect(requestBody.connectionConfig.port).toBeDefined();
+        }),
       });
 
-      it('应该为有效的 VNC 请求生成 token', () => {
-        const requestBody = {
+      expect(resp.status).toBe(200);
+      const body = (await resp.json()) as { token: string };
+      expect(typeof body.token).toBe('string');
+
+      const plaintext = decryptToken(body.token, ENCRYPTION_KEY);
+      const parsed = JSON.parse(plaintext) as any;
+
+      expect(parsed.connection.type).toBe('rdp');
+      expect(parsed.connection.settings.hostname).toBe('192.168.1.100');
+      expect(parsed.connection.settings.port).toBe('3389');
+      expect(parsed.connection.settings.username).toBe('Administrator');
+      expect(parsed.connection.settings.password).toBe('secret');
+      expect(parsed.connection.settings.width).toBe('1920');
+      expect(parsed.connection.settings.height).toBe('1080');
+      expect(parsed.connection.settings.dpi).toBe('96');
+      expect(parsed.connection.settings.security).toBe('any');
+      expect(parsed.connection.settings['ignore-cert']).toBe('true');
+    });
+
+    it('应为 VNC 请求返回可解密的 token（验证默认分辨率）', async () => {
+      const resp = await fetch(`${baseUrl}/api/remote-desktop/token`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-remote-gateway-token': API_TOKEN,
+        },
+        body: JSON.stringify({
           protocol: 'vnc',
           connectionConfig: {
             hostname: '192.168.1.101',
             port: '5900',
             password: 'vncpass',
-            width: '1024',
-            height: '768',
           },
-        };
-
-        expect(requestBody.protocol).toBe('vnc');
-        expect(requestBody.connectionConfig.hostname).toBeDefined();
+        }),
       });
 
-      it('应该拒绝无效的协议类型', () => {
-        const requestBody = {
-          protocol: 'ssh', // 无效协议
-          connectionConfig: {},
-        };
+      expect(resp.status).toBe(200);
+      const body = (await resp.json()) as { token: string };
 
-        const isValidProtocol = (protocol: string): boolean => {
-          return ['rdp', 'vnc'].includes(protocol);
-        };
+      const plaintext = decryptToken(body.token, ENCRYPTION_KEY);
+      const parsed = JSON.parse(plaintext) as any;
 
-        expect(isValidProtocol(requestBody.protocol)).toBe(false);
-        expect(isValidProtocol('rdp')).toBe(true);
-        expect(isValidProtocol('vnc')).toBe(true);
-      });
-    });
-
-    describe('健康检查', () => {
-      it('应该返回服务健康状态', () => {
-        const healthResponse = {
-          status: 'healthy',
-          guacdHost: GUACD_HOST,
-          guacdPort: GUACD_PORT,
-          timestamp: new Date().toISOString(),
-        };
-
-        expect(healthResponse.status).toBe('healthy');
-        expect(healthResponse.guacdHost).toBe('localhost');
-        expect(healthResponse.guacdPort).toBe(4822);
-      });
+      expect(parsed.connection.type).toBe('vnc');
+      expect(parsed.connection.settings.hostname).toBe('192.168.1.101');
+      expect(parsed.connection.settings.port).toBe('5900');
+      expect(parsed.connection.settings.password).toBe('vncpass');
+      expect(parsed.connection.settings.width).toBe('1024');
+      expect(parsed.connection.settings.height).toBe('768');
     });
   });
 

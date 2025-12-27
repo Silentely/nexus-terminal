@@ -1,9 +1,8 @@
-// @ts-ignore - Still need this for the import as no types exist
+// @ts-expect-error - Still need this for the import as no types exist
 import GuacamoleLite from 'guacamole-lite';
-import express, { Request, Response } from 'express';
 import http from 'http';
 import crypto from 'crypto';
-import cors from 'cors';
+import { createRemoteGatewayApiApp } from './api';
 
 // --- 配置 ---
 const REMOTE_GATEWAY_WS_PORT = process.env.REMOTE_GATEWAY_WS_PORT || 8080; // 统一端口，或按需分开
@@ -17,16 +16,16 @@ const MAIN_BACKEND_URL = process.env.MAIN_BACKEND_URL || 'http://localhost:3000'
 const CORS_ALLOWED_ORIGINS = process.env.CORS_ALLOWED_ORIGINS || '';
 const CORS_ALLOW_ALL = process.env.CORS_ALLOW_ALL === 'true'; // 开发模式可设置为 true
 
+// Remote Gateway API 访问令牌（可选但强烈推荐）
+// 若设置 REMOTE_GATEWAY_API_TOKEN，则 /api/remote-desktop/token 必须携带请求头：
+//   X-Remote-Gateway-Token: <REMOTE_GATEWAY_API_TOKEN>
+const REMOTE_GATEWAY_API_TOKEN = (process.env.REMOTE_GATEWAY_API_TOKEN || '').trim();
+
 // --- 启动时生成内存加密密钥 ---
 console.log('[Remote Gateway] 正在为此会话生成新的内存加密密钥...');
 const ENCRYPTION_KEY_STRING = crypto.randomBytes(32).toString('hex');
 const ENCRYPTION_KEY_BUFFER = Buffer.from(ENCRYPTION_KEY_STRING, 'hex');
 console.log('[Remote Gateway] 内存加密密钥已生成。');
-
-// --- Express 应用设置 ---
-const app = express();
-app.use(express.json()); // 用于解析请求体中的 JSON
-const apiServer = http.createServer(app);
 
 // 构建 CORS 允许的来源列表
 const allowedOrigins: string[] = [FRONTEND_URL, MAIN_BACKEND_URL];
@@ -39,19 +38,26 @@ if (CORS_ALLOWED_ORIGINS) {
   allowedOrigins.push(...additionalOrigins);
 }
 
-// CORS 配置
 if (CORS_ALLOW_ALL) {
   console.log(`[Remote Gateway] ⚠️ CORS 允许所有来源（开发模式）`);
-  app.use(cors({ origin: true, credentials: true }));
 } else {
   console.log(`[Remote Gateway] CORS 允许的来源: ${allowedOrigins.join(', ')}`);
-  app.use(
-    cors({
-      origin: allowedOrigins,
-      credentials: true,
-    })
+}
+
+if (process.env.NODE_ENV === 'production' && !REMOTE_GATEWAY_API_TOKEN) {
+  console.warn(
+    '[Remote Gateway] ⚠️ REMOTE_GATEWAY_API_TOKEN 未设置：/api/remote-desktop/token 将不会进行额外鉴权（建议在生产环境配置共享令牌）'
   );
 }
+
+const app = createRemoteGatewayApiApp({
+  encryptionKeyBuffer: ENCRYPTION_KEY_BUFFER,
+  allowedOrigins,
+  corsAllowAll: CORS_ALLOW_ALL,
+  apiToken: REMOTE_GATEWAY_API_TOKEN,
+});
+
+const apiServer = http.createServer(app);
 
 const guacdOptions = {
   host: GUACD_HOST,
@@ -105,93 +111,6 @@ try {
   console.error(`[Remote Gateway] 初始化 GuacamoleLite 失败:`, error);
   process.exit(1);
 }
-
-const encryptToken = (data: string, keyBuffer: Buffer): string => {
-  try {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, iv);
-    let encrypted = cipher.update(data, 'utf8', 'base64');
-    encrypted += cipher.final('base64');
-    const output = {
-      iv: iv.toString('base64'),
-      value: encrypted,
-    };
-    const jsonString = JSON.stringify(output);
-    return Buffer.from(jsonString).toString('base64');
-  } catch (e) {
-    console.error('[Remote Gateway] 令牌加密失败:', e);
-    throw new Error('令牌加密失败。');
-  }
-};
-
-app.post('/api/remote-desktop/token', (req: Request, res: Response): void => {
-  const { protocol, connectionConfig } = req.body;
-
-  if (!protocol || !connectionConfig) {
-    res.status(400).json({ error: '缺少必需的参数 (protocol, connectionConfig)' });
-    return;
-  }
-
-  if (protocol !== 'rdp' && protocol !== 'vnc') {
-    res.status(400).json({ error: '无效的协议类型。支持 "rdp" 或 "vnc"。' });
-    return;
-  }
-
-  const { hostname, port, username, password, width, height, dpi, security, ignoreCert } =
-    connectionConfig;
-
-  if (!hostname || !port) {
-    res.status(400).json({ error: '缺少必需的连接参数 (hostname, port)' });
-    return;
-  }
-
-  const settings: any = {
-    hostname: hostname as string,
-    port: port as string,
-    width: String(width || '1024'),
-    height: String(height || '768'),
-  };
-
-  if (protocol === 'rdp') {
-    if (typeof username === 'undefined' || typeof password === 'undefined') {
-      res.status(400).json({ error: 'RDP 连接缺少 username 或 password' });
-      return;
-    }
-    settings.username = username as string;
-    settings.password = password as string;
-    settings.security = security || 'any'; // RDP 特有，使用默认值 'any'
-    settings['ignore-cert'] = String(ignoreCert || 'true'); // RDP 特有
-    settings.dpi = String(dpi || '96'); // RDP 特有
-  } else if (protocol === 'vnc') {
-    if (typeof password === 'undefined') {
-      res.status(400).json({ error: 'VNC 连接缺少 password' });
-      return;
-    }
-    settings.password = password as string;
-    if (username) {
-      // VNC 可选 username
-      settings.username = username as string;
-    }
-    // VNC 特有的其他参数可以根据需要从 connectionConfig 中获取并添加
-    // 例如: settings['enable-audio'] = connectionConfig.enableAudio || 'false';
-  }
-
-  const connectionParams = {
-    connection: {
-      type: protocol, // 'rdp' or 'vnc'
-      settings,
-    },
-  };
-
-  try {
-    const tokenData = JSON.stringify(connectionParams);
-    const encryptedToken = encryptToken(tokenData, ENCRYPTION_KEY_BUFFER);
-    res.json({ token: encryptedToken });
-  } catch (error) {
-    console.error('[Remote Gateway] /api/remote-desktop/token 接口出错:', error);
-    res.status(500).json({ error: '生成令牌失败' });
-  }
-});
 
 apiServer.listen(REMOTE_GATEWAY_API_PORT, () => {
   console.log(`[Remote Gateway] API 服务器正在监听端口 ${REMOTE_GATEWAY_API_PORT}`);

@@ -226,8 +226,10 @@ npm run build
 # 单元测试
 npm test                          # 运行所有单元测试
 npm run test:backend              # 运行后端测试
+npm run test:remote-gateway       # 运行远程网关测试
 npm run test:frontend             # 运行前端测试
 npm run test:watch:backend        # 后端监视模式
+npm run test:watch:remote-gateway # 远程网关监视模式
 npm run test:watch:frontend       # 前端监视模式
 npm run test:coverage             # 生成覆盖率报告
 

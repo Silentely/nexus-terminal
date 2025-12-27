@@ -3,6 +3,7 @@
 ## 概述
 
 本项目已实施标准化的错误处理系统,用于：
+
 - ✅ 避免泄露敏感技术细节
 - ✅ 统一错误响应格式
 - ✅ 简化 Controller 层代码
@@ -14,24 +15,24 @@
 
 ```typescript
 export enum ErrorCode {
-  BAD_REQUEST = 'BAD_REQUEST',         // 400
-  UNAUTHORIZED = 'UNAUTHORIZED',       // 401
-  FORBIDDEN = 'FORBIDDEN',             // 403
-  NOT_FOUND = 'NOT_FOUND',             // 404
+  BAD_REQUEST = 'BAD_REQUEST', // 400
+  UNAUTHORIZED = 'UNAUTHORIZED', // 401
+  FORBIDDEN = 'FORBIDDEN', // 403
+  NOT_FOUND = 'NOT_FOUND', // 404
   VALIDATION_ERROR = 'VALIDATION_ERROR', // 422
   INTERNAL_SERVER_ERROR = 'INTERNAL_SERVER_ERROR', // 500
-  DATABASE_ERROR = 'DATABASE_ERROR',   // 500
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE' // 503
+  DATABASE_ERROR = 'DATABASE_ERROR', // 500
+  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE', // 503
 }
 
 export interface ErrorResponse {
   success: false;
   error: {
     code: ErrorCode;
-    message: string;        // 用户友好的错误消息
-    details?: string;       // 仅开发环境返回
-    requestId?: string;     // 请求追踪 ID
-    timestamp: string;      // ISO 8601 时间戳
+    message: string; // 用户友好的错误消息
+    details?: string; // 仅开发环境返回
+    requestId?: string; // 请求追踪 ID
+    timestamp: string; // ISO 8601 时间戳
   };
 }
 ```
@@ -73,10 +74,13 @@ throw new AppError(
 import { asyncHandler } from '../utils/asyncHandler';
 
 // 可选使用（Express 5.x 已内置支持）
-router.get('/example', asyncHandler(async (req, res, next) => {
-  const data = await someAsyncOperation();
-  res.json(data);
-}));
+router.get(
+  '/example',
+  asyncHandler(async (req, res, next) => {
+    const data = await someAsyncOperation();
+    res.json(data);
+  })
+);
 ```
 
 ## 使用示例
@@ -117,11 +121,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ErrorFactory } from '../utils/AppError';
 
 // 新代码 - 安全、简洁、标准化
-export const getUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const getUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.params.id;
 
@@ -183,7 +183,7 @@ export const createTask = async (
     res.status(201).json({
       success: true,
       message: '任务创建成功',
-      task
+      task,
     });
   } catch (error) {
     next(error); // 传递给全局错误处理中间件
@@ -264,7 +264,9 @@ export const findUserById = async (id: number) => {
 {
   "success": true,
   "message": "操作成功",
-  "data": { /* ... */ }
+  "data": {
+    /* ... */
+  }
 }
 ```
 
@@ -335,15 +337,19 @@ Error: 数据库操作失败
 ## 常见问题
 
 ### Q: 是否需要使用 `asyncHandler`？
+
 A: Express 5.x 原生支持异步路由处理器，通常不需要。但如果遇到异步错误未被捕获的情况，可以使用 `asyncHandler` 包装。
 
 ### Q: Service 层抛出的 Error 会被正确处理吗？
+
 A: 会！错误处理中间件会自动将普通 Error 转换为标准化的错误响应（状态码 500）。
 
 ### Q: 如何在 WebSocket 中使用标准化错误？
+
 A: WebSocket 无法使用 Express 中间件。请直接使用 `ErrorFactory` 创建错误对象，然后通过 WebSocket 发送 JSON 响应。
 
 ### Q: 如何自定义错误代码？
+
 A: 在 `types/error.types.ts` 的 `ErrorCode` 枚举中添加新代码，然后在 `ErrorFactory` 中添加相应的工厂方法。
 
 ## 相关文件

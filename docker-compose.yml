@@ -34,6 +34,9 @@ services:
       FRONTEND_URL: http://frontend
       MAIN_BACKEND_URL: http://backend:3001
       NODE_ENV: production
+      # Remote Gateway API 访问令牌（可选但强烈推荐）
+      # 若配置，则 backend（.env）与 remote-gateway 必须使用相同值
+      REMOTE_GATEWAY_API_TOKEN: ${REMOTE_GATEWAY_API_TOKEN}
       # CORS 配置（可选）
       # 如需允许其他域名访问，请配置以下变量（逗号分隔多个域名）
       # CORS_ALLOWED_ORIGINS: https://yourdomain.com,https://www.yourdomain.com

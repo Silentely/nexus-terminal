@@ -20,6 +20,8 @@ interface TokenResponse {
   token: string;
 }
 
+const REMOTE_GATEWAY_API_TOKEN = (process.env.REMOTE_GATEWAY_API_TOKEN || '').trim();
+
 /**
  * 从统一远程桌面网关服务获取 Guacamole 令牌
  * @param protocol 'rdp' 或 'vnc'
@@ -89,8 +91,13 @@ export const getRemoteDesktopToken = async (
   );
 
   try {
+    const headers = REMOTE_GATEWAY_API_TOKEN
+      ? { 'X-Remote-Gateway-Token': REMOTE_GATEWAY_API_TOKEN }
+      : undefined;
+
     const response = await axios.post<TokenResponse>(tokenUrl, requestBody, {
       timeout: 10000, // 10 秒超时
+      headers,
     });
 
     if (response.status !== 200 || !response.data?.token) {

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "nodemon --exec \"ts-node --files src/server.ts\""
@@ -17,9 +19,11 @@
     "@types/express": "^5.0.1",
     "@types/node": "^22.15.2",
     "@types/ws": "^8.18.1",
+    "@vitest/coverage-v8": "^2.1.9",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.9"
   },
   "dependencies": {
     "cors": "^2.8.5",
