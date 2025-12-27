@@ -52,8 +52,8 @@ export interface OpenAIChatRequest {
     content: string;
   }>;
   temperature?: number;
-  max_tokens?: number; // 传统模型使用
-  max_completion_tokens?: number; // 新模型（如 o1 系列）使用
+  max_tokens?: number;
+  max_completion_tokens?: number;
   stream?: boolean; // 流式响应开关
 }
 
@@ -83,6 +83,7 @@ export interface OpenAIResponsesRequest {
   model: string;
   input: string;
   temperature?: number;
+  max_output_tokens?: number;
   max_tokens?: number;
 }
 

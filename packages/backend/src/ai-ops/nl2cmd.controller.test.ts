@@ -13,6 +13,7 @@ vi.mock('./nl2cmd.service', () => ({
   getAISettings: vi.fn(),
   saveAISettings: vi.fn(),
   testAIConnection: vi.fn(),
+  clearAxiosClientCache: vi.fn(),
 }));
 
 // 创建 mock 请求和响应对象
@@ -92,7 +93,7 @@ describe('NL2CMD Controller', () => {
           shellType: 'bash',
           currentPath: undefined,
         },
-        { traceId: expect.any(String) }
+        expect.any(String)
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockResult);
@@ -119,6 +120,7 @@ describe('NL2CMD Controller', () => {
           model: 'gpt-4o-mini',
           openaiEndpoint: 'chat/completions',
           rateLimitEnabled: true,
+          streamingEnabled: false,
         },
       });
     });

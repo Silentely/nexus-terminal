@@ -181,6 +181,121 @@ describe('NL2CMD Service', () => {
         shellType: 'bash',
       });
 
+      expect(mockPost).toHaveBeenCalledTimes(1);
+      const [url, requestBody] = mockPost.mock.calls[0] as [string, Record<string, unknown>];
+      expect(url).toBe('/v1/chat/completions');
+      expect(requestBody).toEqual(
+        expect.objectContaining({
+          model: 'gpt-4o-mini',
+          max_completion_tokens: expect.any(Number),
+        })
+      );
+      expect((requestBody as { max_tokens?: unknown }).max_tokens).toBeUndefined();
+
+      expect(result.success).toBe(true);
+      expect(result.command).toBe('ls -la');
+    });
+
+    it('OpenAI Chat Completions 应该在不支持 max_completion_tokens 时回退到 max_tokens', async () => {
+      const { generateCommand } = await import('./nl2cmd.service');
+      const mockSettings = {
+        enabled: true,
+        provider: 'openai',
+        baseUrl: 'https://api.openai.com',
+        apiKey: 'encrypted_sk-test',
+        model: 'gpt-4o-mini',
+        openaiEndpoint: 'chat/completions',
+        streamingEnabled: false,
+      };
+      vi.mocked(settingsRepository.getSetting).mockResolvedValue(JSON.stringify(mockSettings));
+
+      mockPost
+        .mockRejectedValueOnce({
+          response: {
+            status: 400,
+            data: {
+              error: { message: 'Unrecognized request argument supplied: max_completion_tokens' },
+            },
+          },
+          isAxiosError: true,
+          code: undefined,
+          config: { timeout: 30000 },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            choices: [{ message: { content: 'ls -la' } }],
+          },
+        });
+      mockIsAxiosError.mockReturnValue(true);
+
+      const result = await generateCommand({
+        query: '列出当前目录的详细信息',
+        osType: 'Linux',
+        shellType: 'bash',
+      });
+
+      expect(mockPost).toHaveBeenCalledTimes(2);
+      const [firstUrl, firstBody] = mockPost.mock.calls[0] as [string, Record<string, unknown>];
+      const [secondUrl, secondBody] = mockPost.mock.calls[1] as [string, Record<string, unknown>];
+
+      expect(firstUrl).toBe('/v1/chat/completions');
+      expect(firstBody).toEqual(
+        expect.objectContaining({
+          max_completion_tokens: expect.any(Number),
+        })
+      );
+      expect((firstBody as { max_tokens?: unknown }).max_tokens).toBeUndefined();
+
+      expect(secondUrl).toBe('/v1/chat/completions');
+      expect(secondBody).toEqual(
+        expect.objectContaining({
+          max_tokens: expect.any(Number),
+        })
+      );
+      expect(
+        (secondBody as { max_completion_tokens?: unknown }).max_completion_tokens
+      ).toBeUndefined();
+
+      expect(result.success).toBe(true);
+      expect(result.command).toBe('ls -la');
+    });
+
+    it('OpenAI Responses 应该使用 max_output_tokens', async () => {
+      const { generateCommand } = await import('./nl2cmd.service');
+      const mockSettings = {
+        enabled: true,
+        provider: 'openai',
+        baseUrl: 'https://api.openai.com',
+        apiKey: 'encrypted_sk-test',
+        model: 'gpt-4o-mini',
+        openaiEndpoint: 'responses',
+        streamingEnabled: false,
+      };
+      vi.mocked(settingsRepository.getSetting).mockResolvedValue(JSON.stringify(mockSettings));
+
+      mockPost.mockResolvedValue({
+        data: {
+          response: 'ls -la',
+        },
+      });
+
+      const result = await generateCommand({
+        query: '列出当前目录的详细信息',
+        osType: 'Linux',
+        shellType: 'bash',
+      });
+
+      expect(mockPost).toHaveBeenCalledTimes(1);
+      const [url, requestBody] = mockPost.mock.calls[0] as [string, Record<string, unknown>];
+      expect(url).toBe('/v1/responses');
+      expect(requestBody).toEqual(
+        expect.objectContaining({
+          model: 'gpt-4o-mini',
+          max_output_tokens: expect.any(Number),
+        })
+      );
+      expect((requestBody as { max_tokens?: unknown }).max_tokens).toBeUndefined();
+
       expect(result.success).toBe(true);
       expect(result.command).toBe('ls -la');
     });

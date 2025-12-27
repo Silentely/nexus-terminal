@@ -223,6 +223,7 @@ async function callOpenAIChatCompletions(
       },
     ],
     temperature: NL2CMD_CONFIG.TEMPERATURE,
+    // OpenAI 官方：Chat Completions 推荐使用 max_completion_tokens（max_tokens 已标记 deprecated）
     max_completion_tokens: NL2CMD_CONFIG.MAX_OUTPUT_TOKENS,
   };
 
@@ -230,22 +231,43 @@ async function callOpenAIChatCompletions(
     requestBody.stream = true;
   }
 
-  // 流式响应需要设置 responseType
-  if (stream) {
-    const streamResponse = await client.post('/v1/chat/completions', requestBody, {
-      responseType: 'stream',
-    });
-    return await parseStreamResponse(streamResponse.data);
-  }
+  const postChatCompletions = async (body: OpenAIChatRequest): Promise<string> => {
+    // 流式响应需要设置 responseType
+    if (stream) {
+      const streamResponse = await client.post('/v1/chat/completions', body, {
+        responseType: 'stream',
+      });
+      return await parseStreamResponse(streamResponse.data);
+    }
 
-  const response = await client.post<OpenAIChatResponse>('/v1/chat/completions', requestBody);
-  const choices = response.data?.choices;
-  if (!choices || choices.length === 0) {
-    throw new Error('OpenAI API 返回空响应');
-  }
+    const response = await client.post<OpenAIChatResponse>('/v1/chat/completions', body);
+    const choices = response.data?.choices;
+    if (!choices || choices.length === 0) {
+      throw new Error('OpenAI API 返回空响应');
+    }
 
-  const content = choices[0]?.message?.content || '';
-  return content.trim();
+    const content = choices[0]?.message?.content || '';
+    return content.trim();
+  };
+
+  try {
+    return await postChatCompletions(requestBody);
+  } catch (error) {
+    // 兼容：部分 OpenAI-compatible 端点仍只接受 max_tokens
+    if (
+      axios.isAxiosError(error) &&
+      isUnrecognizedRequestArgument(error, 'max_completion_tokens') &&
+      requestBody.max_completion_tokens !== undefined
+    ) {
+      const fallbackBody: OpenAIChatRequest = {
+        ...requestBody,
+        max_tokens: requestBody.max_completion_tokens,
+      };
+      delete (fallbackBody as { max_completion_tokens?: number }).max_completion_tokens;
+      return await postChatCompletions(fallbackBody);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -318,17 +340,65 @@ async function callOpenAIResponses(config: AIProviderConfig, prompt: string): Pr
     model: config.model,
     input: prompt,
     temperature: NL2CMD_CONFIG.TEMPERATURE,
-    max_tokens: NL2CMD_CONFIG.MAX_OUTPUT_TOKENS,
+    max_output_tokens: NL2CMD_CONFIG.MAX_OUTPUT_TOKENS,
   };
 
-  const response = await client.post<OpenAIResponsesResponse>('/v1/responses', requestBody);
+  const postResponses = async (body: OpenAIResponsesRequest): Promise<OpenAIResponsesResponse> => {
+    const response = await client.post<OpenAIResponsesResponse>('/v1/responses', body);
+    return response.data;
+  };
 
-  if (!response.data || !response.data.response) {
+  let data: OpenAIResponsesResponse;
+  try {
+    data = await postResponses(requestBody);
+  } catch (error) {
+    // 兼容：部分 OpenAI-compatible 端点仍沿用 max_tokens
+    if (
+      axios.isAxiosError(error) &&
+      isUnrecognizedRequestArgument(error, 'max_output_tokens') &&
+      requestBody.max_output_tokens !== undefined
+    ) {
+      const fallbackBody: OpenAIResponsesRequest = {
+        ...requestBody,
+        max_tokens: requestBody.max_output_tokens,
+      };
+      delete (fallbackBody as { max_output_tokens?: number }).max_output_tokens;
+      data = await postResponses(fallbackBody);
+    } else {
+      throw error;
+    }
+  }
+
+  if (!data || !data.response) {
     throw new Error('OpenAI Responses API 返回空响应');
   }
 
-  const content = response.data.response || '';
+  const content = data.response || '';
   return content.trim();
+}
+
+function isUnrecognizedRequestArgument(error: AxiosError, argumentName: string): boolean {
+  if (error.response?.status !== 400) return false;
+  const data = error.response?.data as unknown;
+
+  const message =
+    (typeof data === 'object' && data !== null && 'error' in data
+      ? (data as any).error?.message
+      : undefined) ??
+    (typeof data === 'object' && data !== null && 'message' in data
+      ? (data as any).message
+      : undefined) ??
+    (typeof data === 'string' ? data : undefined);
+
+  if (typeof message !== 'string') return false;
+
+  return (
+    message.includes(`Unrecognized request argument supplied: ${argumentName}`) ||
+    message.includes(`Unrecognized request argument: ${argumentName}`) ||
+    message.includes(`Unrecognized request argument supplied: '${argumentName}'`) ||
+    (/unknown (parameter|field)/i.test(message) && message.includes(argumentName)) ||
+    (/unexpected (parameter|field)/i.test(message) && message.includes(argumentName))
+  );
 }
 
 /**
