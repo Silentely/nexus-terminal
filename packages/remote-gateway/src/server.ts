@@ -1,4 +1,3 @@
-// @ts-expect-error - Still need this for the import as no types exist
 import GuacamoleLite from 'guacamole-lite';
 import http from 'http';
 import crypto from 'crypto';
