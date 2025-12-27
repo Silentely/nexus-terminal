@@ -23,8 +23,8 @@ COPY packages/frontend/public ./packages/frontend/public/
 # 覆盖 VERSION，确保与根版本一致，避免老版本遗留
 COPY VERSION ./packages/frontend/public/VERSION
 
-# Copy the root .env file into the builder stage so Vite can read it during build
-COPY .env ./.env
+# 不要在镜像构建阶段 COPY 本地 .env：CI checkout 通常不会包含该文件。
+# 如需注入前端构建时变量，请使用 VITE_* 环境变量或 build-arg（并确保不把敏感信息烘焙进镜像）。
 
 RUN npm run build --workspace=@nexus-terminal/frontend
 

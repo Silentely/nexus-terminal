@@ -35,6 +35,23 @@
 
       <!-- Settings Content based on activeTab -->
       <div v-else class="space-y-6">
+        <!-- Non-blocking CAPTCHA load error (e.g., 429 rate limit) -->
+        <div
+          v-if="captchaError"
+          class="p-4 border-l-4 border-error bg-error/10 text-error rounded flex items-start justify-between gap-4"
+        >
+          <div class="min-w-0 break-words">
+            {{ captchaError }}
+          </div>
+          <button
+            type="button"
+            class="shrink-0 px-3 py-1.5 bg-error text-white rounded-md shadow-sm hover:bg-error/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-error transition duration-150 ease-in-out text-sm font-medium"
+            @click="retryLoadCaptchaSettings"
+          >
+            {{ $t('common.retry', '重试') }}
+          </button>
+        </div>
+
         <!-- AI Settings Tab -->
         <div v-if="activeTab === 'ai'">
           <AISettingsSection />
@@ -177,8 +194,13 @@ const {
   settings,
   isLoading: settingsLoading,
   error: settingsError,
+  captchaError,
   language: storeLanguage,
 } = storeToRefs(settingsStore);
+
+const retryLoadCaptchaSettings = async () => {
+  await settingsStore.loadCaptchaSettings();
+};
 
 onMounted(async () => {
   // await fetchIpBlacklist(); // REMOVED - Handled by useIpBlacklist.ts onMounted

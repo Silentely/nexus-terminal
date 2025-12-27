@@ -82,9 +82,30 @@ export const useSettingsStore = defineStore('settings', () => {
   const captchaSettings = ref<CaptchaSettings | null>(null); //  CAPTCHA 设置状态
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const captchaError = ref<string | null>(null);
   // 移除外观相关状态: isStyleCustomizerVisible, currentUiTheme, currentXtermTheme
 
   // --- Actions ---
+
+  const getApiErrorMessage = (err: any, fallback: string): string => {
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+
+    if (typeof data === 'string' && data.trim()) {
+      return data.trim();
+    }
+
+    const messageFromObject = data?.message || data?.error?.message;
+    if (typeof messageFromObject === 'string' && messageFromObject.trim()) {
+      return messageFromObject.trim();
+    }
+
+    if (status === 429) {
+      return '请求过于频繁，请稍后再试';
+    }
+
+    return err?.message || fallback;
+  };
 
   /**
    * Fetches general settings from the backend and updates the store state.
@@ -793,7 +814,7 @@ export const useSettingsStore = defineStore('settings', () => {
     // if (captchaSettings.value !== null && !force) return;
 
     isLoading.value = true;
-    error.value = null;
+    captchaError.value = null;
     try {
       console.log('[SettingsStore] 加载 CAPTCHA 设置...');
       // Use the correct endpoint defined in the backend routes
@@ -806,7 +827,7 @@ export const useSettingsStore = defineStore('settings', () => {
       }); // Mask secrets
     } catch (err: any) {
       console.error('加载 CAPTCHA 设置失败:', err);
-      error.value = err.response?.data?.message || err.message || '加载 CAPTCHA 设置失败';
+      captchaError.value = getApiErrorMessage(err, '加载 CAPTCHA 设置失败');
       captchaSettings.value = null; // Reset on error
     } finally {
       isLoading.value = false;
@@ -819,7 +840,7 @@ export const useSettingsStore = defineStore('settings', () => {
    */
   async function updateCaptchaSettings(updates: UpdateCaptchaSettingsDto) {
     isLoading.value = true;
-    error.value = null;
+    captchaError.value = null;
     try {
       console.log('[SettingsStore] 更新 CAPTCHA 设置:', {
         ...updates,
@@ -846,8 +867,8 @@ export const useSettingsStore = defineStore('settings', () => {
       // -----------------------------------------
     } catch (err: any) {
       console.error('更新 CAPTCHA 设置失败:', err);
-      error.value = err.response?.data?.message || err.message || '更新 CAPTCHA 设置失败';
-      throw error; // Re-throw to allow component to handle UI feedback
+      captchaError.value = getApiErrorMessage(err, '更新 CAPTCHA 设置失败');
+      throw new Error(captchaError.value); // Re-throw to allow component to handle UI feedback
     } finally {
       isLoading.value = false;
     }
@@ -1051,6 +1072,7 @@ export const useSettingsStore = defineStore('settings', () => {
     fileManagerColWidthsObject, // +++ 暴露文件管理器列宽 getter +++
     // CAPTCHA related exports
     captchaSettings, // Expose the full (but reactive) object for the settings page v-model
+    captchaError,
     isCaptchaEnabled,
     captchaProvider,
     hcaptchaSiteKey,

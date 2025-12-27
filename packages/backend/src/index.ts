@@ -251,13 +251,46 @@ app.use(
 // 3. Rate Limiting - 限流配置
 // 认证相关端点的精细化限流已在 auth.routes.ts 中配置（见 src/config/rate-limit.config.ts）
 
+const parsePositiveIntEnv = (raw: string | undefined, fallback: number): number => {
+  if (!raw) return fallback;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const getRateLimitKey = (req: Request) => {
+  // 优先按登录用户限流，避免在 Cloudflare/Nginx 等代理场景下多个用户共享同一出口 IP 造成误伤。
+  if (req.session?.userId) return `uid:${req.session.userId}`;
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+};
+
 // 一般 API 宽松限流
+const apiLimiterWindowMs = parsePositiveIntEnv(
+  process.env.API_RATE_LIMIT_WINDOW_MS,
+  15 * 60 * 1000
+);
+const apiLimiterMax = parsePositiveIntEnv(process.env.API_RATE_LIMIT_MAX, 300);
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 分钟
-  max: 100, // 最多 100 次请求
+  windowMs: apiLimiterWindowMs,
+  max: apiLimiterMax,
   message: '请求过于频繁，请稍后再试',
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: getRateLimitKey,
+});
+
+// 设置相关接口限流（相对更宽松，避免设置页初始化触发多接口请求导致 429）
+const settingsLimiterWindowMs = parsePositiveIntEnv(
+  process.env.SETTINGS_RATE_LIMIT_WINDOW_MS,
+  15 * 60 * 1000
+);
+const settingsLimiterMax = parsePositiveIntEnv(process.env.SETTINGS_RATE_LIMIT_MAX, 500);
+const settingsLimiter = rateLimit({
+  windowMs: settingsLimiterWindowMs,
+  max: settingsLimiterMax,
+  message: '请求过于频繁，请稍后再试',
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: getRateLimitKey,
 });
 
 // --- 其他中间件 ---
@@ -374,7 +407,7 @@ const startServer = () => {
   app.use('/api/v1/sftp', apiLimiter, sftpRouter);
   app.use('/api/v1/proxies', apiLimiter, proxyRoutes);
   app.use('/api/v1/tags', apiLimiter, tagsRouter);
-  app.use('/api/v1/settings', apiLimiter, settingsRoutes);
+  app.use('/api/v1/settings', settingsLimiter, settingsRoutes);
   app.use('/api/v1/notifications', apiLimiter, notificationRoutes);
   app.use('/api/v1/audit-logs', apiLimiter, auditRoutes);
   app.use('/api/v1/command-history', apiLimiter, commandHistoryRoutes);

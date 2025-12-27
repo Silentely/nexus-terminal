@@ -131,6 +131,22 @@ REMOTE_GATEWAY_WS_URL_LOCAL=ws://localhost:8080
 REMOTE_GATEWAY_WS_URL_DOCKER=ws://remote-gateway:8080
 ```
 
+## Rate Limit（后端限流）
+
+后端使用 `express-rate-limit` 进行基础限流。默认值已经相对宽松，但在反向代理/Cloudflare 场景或前端多接口并发加载时，仍可能触发 `429`。
+
+可通过以下环境变量调节（单位：毫秒 ms；仅支持正整数，缺省或非法会回退默认值）：
+
+```env
+# 通用 API（除 auth/AI 等特殊路由外）
+API_RATE_LIMIT_WINDOW_MS=900000
+API_RATE_LIMIT_MAX=300
+
+# Settings API（/api/v1/settings/*）
+SETTINGS_RATE_LIMIT_WINDOW_MS=900000
+SETTINGS_RATE_LIMIT_MAX=500
+```
+
 ### docker-compose.yml 完整配置
 
 ```yaml

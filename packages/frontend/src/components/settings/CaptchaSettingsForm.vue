@@ -2,10 +2,25 @@
   <div class="settings-section-content">
     <h3 class="text-base font-semibold text-foreground mb-3">{{ $t('settings.captcha.title') }}</h3>
     <p class="text-sm text-text-secondary mb-4">{{ $t('settings.captcha.description') }}</p>
-    <div v-if="!captchaSettings" class="p-4 text-center text-text-secondary italic">
+    <div
+      v-if="captchaError"
+      class="p-4 mb-4 border-l-4 border-error bg-error/10 text-error rounded flex items-start justify-between gap-4"
+    >
+      <div class="min-w-0 break-words">
+        {{ captchaError }}
+      </div>
+      <button
+        type="button"
+        class="shrink-0 px-3 py-1.5 bg-error text-white rounded-md shadow-sm hover:bg-error/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-error transition duration-150 ease-in-out text-sm font-medium"
+        @click="retryLoadCaptchaSettings"
+      >
+        {{ $t('common.retry', '重试') }}
+      </button>
+    </div>
+    <div v-else-if="!captchaSettings" class="p-4 text-center text-text-secondary italic">
       {{ $t('common.loading') }}
     </div>
-    <form v-else @submit.prevent="handleUpdateCaptchaSettings" class="space-y-4">
+    <form v-if="captchaSettings" @submit.prevent="handleUpdateCaptchaSettings" class="space-y-4">
       <!-- Enable Switch -->
       <div class="flex items-center">
         <input
@@ -162,10 +177,14 @@ import { useCaptchaSettings } from '../../composables/settings/useCaptchaSetting
 
 // const { t } = useI18n(); // $t is globally available in template
 const settingsStore = useSettingsStore();
-const { captchaSettings } = storeToRefs(settingsStore); // To make v-if="!captchaSettings" reactive
+const { captchaSettings, captchaError } = storeToRefs(settingsStore); // To make v-if="!captchaSettings" reactive
 
 const { captchaForm, captchaLoading, captchaMessage, captchaSuccess, handleUpdateCaptchaSettings } =
   useCaptchaSettings();
+
+const retryLoadCaptchaSettings = async () => {
+  await settingsStore.loadCaptchaSettings();
+};
 
 // onMounted in parent SettingsView.vue loads captchaSettings via settingsStore.loadCaptchaSettings()
 </script>
