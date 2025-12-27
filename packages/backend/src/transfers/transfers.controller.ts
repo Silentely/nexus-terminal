@@ -26,7 +26,9 @@ export class TransfersController {
 
       const parseResult = initiateTransferPayloadSchema.safeParse(req.body);
       if (!parseResult.success) {
-        const errorMessages = parseResult.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ');
+        const errorMessages = parseResult.error.issues
+          .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+          .join('; ');
         res.status(400).json({ message: `请求参数验证失败: ${errorMessages}` });
         return;
       }

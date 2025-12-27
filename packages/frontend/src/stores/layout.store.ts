@@ -194,7 +194,7 @@ function validateLayoutNode(
 
   // 验证 size（可选，但如果存在必须是有效数字）
   if (node.size !== undefined && node.size !== null) {
-    if (typeof node.size !== 'number' || isNaN(node.size) || node.size < 0) {
+    if (typeof node.size !== 'number' || Number.isNaN(node.size) || node.size < 0) {
       return { valid: false, error: `节点 size 必须是非负数，收到: ${node.size}` };
     }
   }
@@ -233,10 +233,7 @@ function validateLayoutNode(
 }
 
 // 验证整个布局树
-function validateLayoutTree(
-  tree: any,
-  allPanes: PaneName[]
-): { valid: boolean; error?: string } {
+function validateLayoutTree(tree: any, allPanes: PaneName[]): { valid: boolean; error?: string } {
   if (tree === null) {
     return { valid: true }; // null 是有效值（空布局）
   }

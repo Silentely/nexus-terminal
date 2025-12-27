@@ -100,7 +100,10 @@ class NotificationProcessorService extends EventEmitter {
           userLang = langSetting;
         }
       } catch (error) {
-        console.error(`[NotificationProcessor] 获取语言设置时出错，使用默认 (${defaultLng}):`, error);
+        console.error(
+          `[NotificationProcessor] 获取语言设置时出错，使用默认 (${defaultLng}):`,
+          error
+        );
       }
 
       // 1. 翻译事件名称

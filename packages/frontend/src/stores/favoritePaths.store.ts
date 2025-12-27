@@ -163,9 +163,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', {
     },
     async updateFavoritePath(
       id: number,
-      updatedPathData: Partial<
-        Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>
-      >,
+      updatedPathData: Partial<Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>>,
       t: (key: string, defaultMessage: string) => string
     ) {
       this.isLoading = true;

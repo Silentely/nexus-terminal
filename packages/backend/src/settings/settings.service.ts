@@ -39,7 +39,8 @@ const VALID_FOCUS_INPUT_IDS = [
 ] as const;
 
 // 快捷键格式验证：支持 Ctrl/Alt/Shift/Meta + 字母/数字/功能键
-const SHORTCUT_PATTERN = /^((Ctrl|Alt|Shift|Meta)\+)*([A-Za-z0-9]|F[1-9]|F1[0-2]|Escape|Enter|Tab|Space|ArrowUp|ArrowDown|ArrowLeft|ArrowRight)$/i;
+const SHORTCUT_PATTERN =
+  /^((Ctrl|Alt|Shift|Meta)\+)*([A-Za-z0-9]|F[1-9]|F1[0-2]|Escape|Enter|Tab|Space|ArrowUp|ArrowDown|ArrowLeft|ArrowRight)$/i;
 
 const FOCUS_SEQUENCE_KEY = 'focusSwitcherSequence'; // 设置键保持不变
 const NAV_BAR_VISIBLE_KEY = 'navBarVisible'; // 导航栏可见性设置键

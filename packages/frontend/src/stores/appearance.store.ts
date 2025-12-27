@@ -95,9 +95,9 @@ export const useAppearanceStore = defineStore('appearance', () => {
     if (activeId === null || activeId === undefined || allTerminalThemes.value.length === 0) {
       // 如果没有激活 ID 或列表为空，查找默认主题
       // 优先使用 isSystemDefault 标识，回退到名称匹配
-      const defaultTheme = allTerminalThemes.value.find(
-        (t) => t.isSystemDefault === true
-      ) || allTerminalThemes.value.find((t) => t.name === '默认');
+      const defaultTheme =
+        allTerminalThemes.value.find((t) => t.isSystemDefault === true) ||
+        allTerminalThemes.value.find((t) => t.name === '默认');
       return defaultTheme ? defaultTheme.themeData : defaultXtermTheme;
     }
     // 根据数字 ID 查找 (需要将 theme._id 转回数字比较)
@@ -116,9 +116,9 @@ export const useAppearanceStore = defineStore('appearance', () => {
     const activeId = activeTerminalThemeId.value;
     if (activeId === null || activeId === undefined || allTerminalThemes.value.length === 0) {
       // 优先使用 isSystemDefault 标识，回退到名称匹配
-      const defaultPresetTheme = allTerminalThemes.value.find(
-        (t) => t.isSystemDefault === true
-      ) || allTerminalThemes.value.find((t) => t.name === '默认');
+      const defaultPresetTheme =
+        allTerminalThemes.value.find((t) => t.isSystemDefault === true) ||
+        allTerminalThemes.value.find((t) => t.name === '默认');
       return defaultPresetTheme ? defaultPresetTheme.themeData : defaultXtermTheme;
     }
     const activeSetTheme = allTerminalThemes.value.find(
