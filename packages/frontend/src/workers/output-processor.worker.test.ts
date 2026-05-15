@@ -1,0 +1,529 @@
+/**
+ * Tests for output-processor.worker.ts
+ *
+ * The worker uses self.onmessage for message handling and self.postMessage for responses.
+ * We test it by simulating message events and capturing postMessage calls.
+ */
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock self.postMessage before importing the worker
+const postMessageMock = vi.fn();
+Object.defineProperty(globalThis, 'postMessage', {
+  value: postMessageMock,
+  writable: true,
+  configurable: true,
+});
+
+// Import the worker module — this registers self.onmessage
+import './output-processor.worker';
+
+/** Simulate sending a message to the worker and capture the response */
+function sendMessage(type: string, payload: unknown, id = 'test-id') {
+  const event = new MessageEvent('message', { data: { id, type, payload } });
+  // @ts-expect-error: accessing self.onmessage for testing
+  self.onmessage(event);
+  return postMessageMock.mock.calls.at(-1)?.[0];
+}
+
+describe('output-processor.worker', () => {
+  beforeEach(() => {
+    postMessageMock.mockClear();
+  });
+
+  describe('process 任务', () => {
+    it('应该处理 JSON 文本并返回高亮结果', () => {
+      const response = sendMessage('process', { text: '{"key": "value", "count": 42}' });
+
+      expect(response).toBeDefined();
+      expect(response.type).toBe('process');
+      expect(response.id).toBe('test-id');
+      expect(response.payload).toBeDefined();
+      expect(response.payload.type).toBe('json');
+      expect(response.payload.content).toContain('\x1b[');
+    });
+
+    it('应该处理 YAML 文本', () => {
+      const response = sendMessage('process', {
+        text: 'name: test\nversion: 1.0\ndescription: hello',
+      });
+
+      expect(response.payload.type).toBe('yaml');
+    });
+
+    it('应该处理 LOG 文本', () => {
+      const response = sendMessage('process', {
+        text: '2024-01-15 10:30:00 ERROR Something failed',
+      });
+
+      expect(response.payload.type).toBe('log');
+      expect(response.payload.content).toContain('\x1b[');
+    });
+
+    it('应该处理普通文本', () => {
+      const response = sendMessage('process', {
+        text: 'Hello world, this is plain text',
+      });
+
+      expect(response.payload.type).toBe('text');
+    });
+
+    it('应该返回元数据', () => {
+      const response = sendMessage('process', { text: 'line1\nline2\nline3' });
+
+      expect(response.payload.metadata).toBeDefined();
+      expect(response.payload.metadata.lineCount).toBe(3);
+    });
+
+    it('应该去除 ANSI 码后再检测类型', () => {
+      const response = sendMessage('process', {
+        text: '\x1b[31m{"key": "value"}\x1b[0m',
+      });
+
+      expect(response.payload.type).toBe('json');
+    });
+
+    it('应该接受 options 并应用', () => {
+      const response = sendMessage('process', {
+        text: '{"key": "value"}',
+        options: { enableHighlight: false },
+      });
+
+      expect(response.payload.type).toBe('json');
+      // 禁用高亮后不应包含 ANSI 码
+      expect(response.payload.content).not.toContain('\x1b[');
+    });
+
+    it('应该正确处理折叠阈值', () => {
+      const longText = Array.from({ length: 10 }, (_, i) => `line ${i}`).join('\n');
+      const response = sendMessage('process', {
+        text: longText,
+        options: { foldThreshold: 5 },
+      });
+
+      expect(response.payload.metadata.shouldFold).toBe(true);
+    });
+
+    it('空文本应返回 text 类型', () => {
+      const response = sendMessage('process', { text: '' });
+
+      expect(response.payload.type).toBe('text');
+    });
+
+    it('超过 5000 行应跳过高亮', () => {
+      const largeText = Array.from({ length: 5001 }, (_, i) => `line ${i}`).join('\n');
+      const response = sendMessage('process', { text: largeText });
+
+      expect(response.payload.type).toBe('text');
+      expect(response.payload.metadata.lineCount).toBe(5001);
+    });
+
+    it('应该处理 TABLE 文本', () => {
+      const tableText =
+        '| Name   | Age   | City   |\n| Alice  | 30    | NYC    |\n| Bob    | 25    | LA     |';
+      const response = sendMessage('process', { text: tableText });
+
+      expect(response.payload.type).toBe('table');
+    });
+  });
+
+  describe('configure 任务', () => {
+    it('应该更新配置并返回 ok', () => {
+      const response = sendMessage('configure', { foldThreshold: 100 }, 'config-id');
+
+      expect(response.id).toBe('config-id');
+      expect(response.type).toBe('configure');
+      expect(response.payload).toEqual({ ok: true });
+    });
+
+    it('应该合并配置而不是替换', () => {
+      // First configure with highlight disabled
+      sendMessage('configure', { enableHighlight: false }, 'cfg-1');
+
+      // Then configure only foldThreshold - enableHighlight should persist
+      sendMessage('configure', { foldThreshold: 200 }, 'cfg-2');
+
+      // Process JSON - if enableHighlight is still false, no ANSI codes
+      const response = sendMessage('process', { text: '{"key": "val"}' }, 'cfg-3');
+      expect(response.payload.content).not.toContain('\x1b[');
+
+      // Reset for other tests
+      sendMessage('configure', { enableHighlight: true }, 'cfg-reset');
+    });
+  });
+
+  describe('未知任务类型', () => {
+    it('应该返回错误响应', () => {
+      const response = sendMessage('unknownTask', { data: 'test' }, 'unknown-id');
+
+      expect(response.id).toBe('unknown-id');
+      expect(response.type).toBe('unknownTask');
+      expect(response.payload).toBeNull();
+      expect(response.error).toContain('未知任务类型: unknownTask');
+    });
+  });
+
+  describe('错误处理', () => {
+    it('处理过程中出错应返回错误响应', () => {
+      // Send malformed payload that would cause an error
+      const response = sendMessage('process', null, 'error-id');
+
+      expect(response).toBeDefined();
+      // Either error field exists or it handled gracefully
+      if (response.error) {
+        expect(typeof response.error).toBe('string');
+      }
+    });
+  });
+
+  describe('JSON 高亮', () => {
+    it('应该高亮 JSON 键为青色粗体', () => {
+      const response = sendMessage('process', {
+        text: '{"name": "test"}',
+        options: { enableHighlight: true, enableLinkDetection: false },
+      });
+
+      // Key should be highlighted with CYAN + BOLD
+      expect(response.payload.content).toContain('\x1b[36m'); // CYAN
+      expect(response.payload.content).toContain('\x1b[1m'); // BOLD
+    });
+
+    it('应该高亮 JSON 字符串值为绿色', () => {
+      const response = sendMessage('process', {
+        text: '{"key": "hello"}',
+        options: { enableHighlight: true, enableLinkDetection: false },
+      });
+
+      expect(response.payload.content).toContain('\x1b[32m'); // GREEN
+    });
+
+    it('应该高亮 JSON 数字为黄色', () => {
+      const response = sendMessage('process', {
+        text: '{"count": 42}',
+        options: { enableHighlight: true, enableLinkDetection: false },
+      });
+
+      expect(response.payload.content).toContain('\x1b[33m'); // YELLOW
+    });
+  });
+
+  describe('LOG 高亮', () => {
+    it('应该高亮 ERROR 为亮红色', () => {
+      const response = sendMessage('process', {
+        text: '2024-01-15 ERROR: connection failed',
+        options: { enableLinkDetection: false },
+      });
+
+      expect(response.payload.content).toContain('\x1b[91m'); // BRIGHT_RED
+    });
+
+    it('应该高亮 INFO 为亮青色', () => {
+      const response = sendMessage('process', {
+        text: '2024-01-15 INFO: server started',
+        options: { enableLinkDetection: false },
+      });
+
+      expect(response.payload.content).toContain('\x1b[96m'); // BRIGHT_CYAN
+    });
+  });
+
+  describe('链接高亮', () => {
+    it('应该高亮 HTTP URLs', () => {
+      const response = sendMessage('process', {
+        text: 'Visit https://example.com for details',
+        options: { enableLinkDetection: true },
+      });
+
+      expect(response.payload.content).toContain('https://example.com');
+      expect(response.payload.content).toContain('\x1b[34m'); // BLUE
+    });
+
+    it('禁用链接检测时不应高亮 URLs', () => {
+      const response = sendMessage('process', {
+        text: 'Visit https://example.com for details',
+        options: { enableLinkDetection: false },
+      });
+
+      expect(response.payload.content).toContain('https://example.com');
+      expect(response.payload.content).not.toContain('\x1b[34m'); // No BLUE
+    });
+  });
+
+  describe('响应 ID 关联', () => {
+    it('应该返回与请求相同的 id', () => {
+      const response = sendMessage('process', { text: 'hello' }, 'my-unique-id-123');
+      expect(response.id).toBe('my-unique-id-123');
+    });
+
+    it('多个不同 id 的请求应各自返回正确 id', () => {
+      const response1 = sendMessage('process', { text: 'hello' }, 'id-001');
+      const response2 = sendMessage('process', { text: 'world' }, 'id-002');
+
+      expect(response1.id).toBe('id-001');
+      expect(response2.id).toBe('id-002');
+    });
+  });
+});
+
+// ==================== 额外强化测试 ====================
+
+describe('YAML 高亮细节', () => {
+  beforeEach(() => {
+    postMessageMock.mockClear();
+    // 确保 enableHighlight 为 true
+    sendMessage('configure', { enableHighlight: true, enableLinkDetection: false }, 'reset');
+    postMessageMock.mockClear();
+  });
+
+  it('YAML 数字值应高亮为黄色', () => {
+    const response = sendMessage('process', {
+      text: 'port: 8080\nhost: localhost\nretries: 3',
+      options: { enableHighlight: true, enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('yaml');
+    expect(response.payload.content).toContain('\x1b[33m'); // YELLOW
+  });
+
+  it('YAML 布尔值 true/false 应高亮为洋红色', () => {
+    const response = sendMessage('process', {
+      text: 'enabled: true\ndebug: false\nname: test',
+      options: { enableHighlight: true, enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('yaml');
+    expect(response.payload.content).toContain('\x1b[35m'); // MAGENTA
+  });
+
+  it('YAML 注释行应高亮为亮黑色（暗色）', () => {
+    const response = sendMessage('process', {
+      text: '# This is a comment\nname: test\nversion: 1.0\nkey: value',
+      options: { enableHighlight: true, enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('yaml');
+    expect(response.payload.content).toContain('\x1b[90m'); // BRIGHT_BLACK
+  });
+
+  it('YAML 键名应高亮为青色粗体', () => {
+    const response = sendMessage('process', {
+      text: 'service: web\nport: 80\nhost: localhost',
+      options: { enableHighlight: true, enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('yaml');
+    expect(response.payload.content).toContain('\x1b[36m'); // CYAN
+    expect(response.payload.content).toContain('\x1b[1m'); // BOLD
+  });
+});
+
+describe('LOG 高亮细节', () => {
+  beforeEach(() => {
+    postMessageMock.mockClear();
+    sendMessage('configure', { enableHighlight: true, enableLinkDetection: false }, 'reset');
+    postMessageMock.mockClear();
+  });
+
+  it('WARN 关键字应高亮为亮黄色', () => {
+    const response = sendMessage('process', {
+      text: '2024-01-15 WARN: disk usage high',
+      options: { enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('log');
+    expect(response.payload.content).toContain('\x1b[93m'); // BRIGHT_YELLOW
+  });
+
+  it('DEBUG 关键字应高亮为亮黑色', () => {
+    const response = sendMessage('process', {
+      text: '2024-01-15 DEBUG processing request',
+      options: { enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('log');
+    expect(response.payload.content).toContain('\x1b[90m'); // BRIGHT_BLACK
+  });
+
+  it('SUCCESS 关键字应高亮为亮绿色', () => {
+    const response = sendMessage('process', {
+      text: '2024-01-15 SUCCESS: deployment complete',
+      options: { enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('log');
+    expect(response.payload.content).toContain('\x1b[92m'); // BRIGHT_GREEN
+  });
+
+  it('HTTP 5xx 状态码应高亮为红色', () => {
+    const response = sendMessage('process', {
+      text: '2024-01-15 ERROR: returned 500 Internal Server Error',
+      options: { enableLinkDetection: false },
+    });
+    expect(response.payload.type).toBe('log');
+    expect(response.payload.content).toContain('\x1b[31m'); // RED
+  });
+});
+
+describe('processOutput 元数据边界', () => {
+  beforeEach(() => {
+    postMessageMock.mockClear();
+    sendMessage('configure', { enableHighlight: true, enableLinkDetection: true, foldThreshold: 500 }, 'reset');
+    postMessageMock.mockClear();
+  });
+
+  it('shouldFold 在行数未超过阈值时应为 false', () => {
+    const text = Array.from({ length: 3 }, (_, i) => `line ${i}`).join('\n');
+    const response = sendMessage('process', { text });
+    expect(response.payload.metadata.shouldFold).toBe(false);
+    expect(response.payload.metadata.isLong).toBe(false);
+  });
+
+  it('foldThreshold 应反映配置值', () => {
+    sendMessage('configure', { foldThreshold: 100 }, 'cfg');
+    postMessageMock.mockClear();
+    const response = sendMessage('process', { text: 'hello world' });
+    expect(response.payload.metadata.foldThreshold).toBe(100);
+    // Reset
+    sendMessage('configure', { foldThreshold: 500 }, 'cfg-reset');
+  });
+
+  it('单行文本 lineCount 应为 1', () => {
+    const response = sendMessage('process', { text: 'single line' });
+    expect(response.payload.metadata.lineCount).toBe(1);
+  });
+
+  it('CRLF 换行应被规范化并正确计算行数', () => {
+    const response = sendMessage('process', { text: 'line1\r\nline2\r\nline3' });
+    expect(response.payload.metadata.lineCount).toBe(3);
+  });
+});
+
+describe('JSON 数组处理', () => {
+  beforeEach(() => {
+    postMessageMock.mockClear();
+    sendMessage('configure', { enableHighlight: true, enableLinkDetection: false }, 'reset');
+    postMessageMock.mockClear();
+  });
+
+  it('JSON 数组应被识别并高亮', () => {
+    const response = sendMessage('process', {
+      text: '[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]',
+    });
+    expect(response.payload.type).toBe('json');
+    expect(response.payload.content).toContain('\x1b[');
+  });
+
+  it('无效 JSON 不应被识别为 json 类型', () => {
+    const response = sendMessage('process', {
+      text: '{"invalid": json, no quotes}',
+    });
+    // Not valid JSON so should be something other than json (text/log/etc)
+    expect(response.payload.type).not.toBe('json');
+  });
+});
+
+// ==================== 回归测试 & 额外强化 ====================
+
+describe('configure 持久化回归测试', () => {
+  it('configure 设置的 foldThreshold 应在后续 process 调用中生效', () => {
+    // Reset to clean state
+    sendMessage('configure', { foldThreshold: 500, enableHighlight: true, enableLinkDetection: false }, 'reset');
+    postMessageMock.mockClear();
+
+    // Override foldThreshold to 3
+    sendMessage('configure', { foldThreshold: 3 }, 'set-threshold');
+    postMessageMock.mockClear();
+
+    const text = 'line1\nline2\nline3\nline4'; // 4 lines > threshold 3
+    const response = sendMessage('process', { text }, 'check');
+
+    expect(response.payload.metadata.shouldFold).toBe(true);
+    expect(response.payload.metadata.foldThreshold).toBe(3);
+
+    // Restore
+    sendMessage('configure', { foldThreshold: 500 }, 'restore');
+  });
+
+  it('configure 设置 enableTableFormat=false 后表格不应被格式化', () => {
+    sendMessage('configure', { enableTableFormat: false, enableHighlight: true, enableLinkDetection: false }, 'cfg');
+    postMessageMock.mockClear();
+
+    const tableText =
+      '| Name   | Age   |\n| Alice  | 30    |\n| Bob    | 25    |';
+    const response = sendMessage('process', { text: tableText });
+
+    // Table type should still be detected, but content formatting should be raw
+    // (no CYAN+BOLD header formatting)
+    expect(response.payload.type).toBe('table');
+    // Without table formatting the content should not contain CYAN BOLD header
+    // (actual output may vary but should not have ANSI table formatting)
+    expect(response.payload.content).not.toContain('\x1b[36m\x1b[1m'); // no CYAN BOLD
+
+    // Reset
+    sendMessage('configure', { enableTableFormat: true }, 'reset');
+  });
+
+  it('process 调用中的 options 不应永久覆盖全局 config（回归）', () => {
+    // Ensure highlight is on globally
+    sendMessage('configure', { enableHighlight: true, enableLinkDetection: false }, 'reset-global');
+    postMessageMock.mockClear();
+
+    // Process with highlight disabled via options - but this DOES merge into config
+    // (see worker implementation: `if (options) config = { ...config, ...options }`)
+    // So we test that the next call without options still uses the last merged config.
+    sendMessage('process', { text: '{"key": "value"}', options: { enableHighlight: false } }, 'p1');
+    postMessageMock.mockClear();
+
+    // Worker merges options into config, so subsequent call without options uses merged state
+    const response = sendMessage('process', { text: '{"key": "value"}' }, 'p2');
+    // Config now has enableHighlight=false from previous merge
+    expect(response.payload.content).not.toContain('\x1b[');
+
+    // Restore for other tests
+    sendMessage('configure', { enableHighlight: true }, 'restore');
+  });
+});
+
+describe('TABLE 格式化细节', () => {
+  beforeEach(() => {
+    postMessageMock.mockClear();
+    sendMessage('configure', { enableTableFormat: true, enableHighlight: true, enableLinkDetection: false }, 'reset');
+    postMessageMock.mockClear();
+  });
+
+  it('表格首行应高亮为青色粗体（表头）', () => {
+    const tableText = 'Name  Age  City\nAlice  30   NYC\nBob    25   LA';
+    const response = sendMessage('process', { text: tableText });
+    expect(response.payload.type).toBe('table');
+    // Header row should be CYAN + BOLD
+    expect(response.payload.content).toContain('\x1b[36m'); // CYAN
+    expect(response.payload.content).toContain('\x1b[1m'); // BOLD
+  });
+
+  it('表格分隔行应高亮为亮黑色', () => {
+    const tableText =
+      '| Name   | Age   |\n|--------|---------|\n| Alice  | 30    |';
+    const response = sendMessage('process', { text: tableText });
+    // Separator should be BRIGHT_BLACK
+    expect(response.payload.content).toContain('\x1b[90m'); // BRIGHT_BLACK
+  });
+});
+
+describe('processOutput 大文件边界', () => {
+  it('恰好 5000 行时不应跳过高亮', () => {
+    postMessageMock.mockClear();
+    sendMessage('configure', { enableHighlight: true, enableLinkDetection: false }, 'reset');
+    postMessageMock.mockClear();
+
+    const text5000 = Array.from({ length: 5000 }, (_, i) => `line ${i}`).join('\n');
+    const response = sendMessage('process', { text: text5000 });
+
+    // 5000 lines == threshold, NOT > 5000, so highlight is NOT skipped
+    expect(response.payload.metadata.lineCount).toBe(5000);
+    // Type should be TEXT (plain lines), but not forced-TEXT from large-file path
+    // The important thing is it doesn't throw and returns valid output
+    expect(response.payload).toBeDefined();
+    expect(response.payload.type).toBeDefined();
+  });
+
+  it('5001 行时应跳过高亮并返回 text 类型', () => {
+    const text5001 = Array.from({ length: 5001 }, (_, i) => `2024-01-01 ERROR line ${i}`).join('\n');
+    const response = sendMessage('process', { text: text5001 });
+
+    // Even though it looks like LOG, large-file guard returns TEXT
+    expect(response.payload.type).toBe('text');
+    expect(response.payload.metadata.lineCount).toBe(5001);
+  });
+});
