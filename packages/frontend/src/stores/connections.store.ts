@@ -37,7 +37,14 @@ export const useConnectionsStore = defineStore('connections', () => {
   const isLoading = ref(false);
   const error = ref<string | null>(null);
 
-  // --- Actions ---
+  /**
+   * Fetches the list of connections from the server and synchronizes the store and cache.
+   *
+   * Reads cached connections first; if cached data exists it is applied immediately. Always attempts
+   * to retrieve fresh data from the API and updates the store and cache only when the fresh data
+   * differs from current data. Updates `isLoading` and `error` reactive state and logs failures;
+   * logs a warning when the request is unauthorized.
+   */
   async function fetchConnections() {
     const cacheOptions = CACHE_CONFIG[CACHE_KEYS.CONNECTIONS];
     error.value = null;
@@ -71,6 +78,14 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Create a new connection record on the server and refresh the local connections list.
+   *
+   * Invalidates the cached connections and reloads the current list on success.
+   *
+   * @param newConnectionData - Properties for the new connection. Includes identification (name, type), network details (host, port, username), authentication details (`auth_method` with optional `password`, `private_key`, or `passphrase`), optional VNC password (`vncPassword`), optional proxy/jump configuration (`proxy_id`, `proxy_type`, `jump_chain`), and optional tag IDs (`tag_ids`).
+   * @returns `true` if the connection was created and the local list refreshed, `false` otherwise.
+   */
   async function addConnection(newConnectionData: {
     name: string;
     type: 'SSH' | 'RDP' | 'VNC';
@@ -109,6 +124,13 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Updates an existing connection record on the server and refreshes the local connections list.
+   *
+   * @param connectionId - ID of the connection to update
+   * @param updatedData - Partial connection fields to apply; may include connection properties such as `name`, `type` (`'SSH' | 'RDP' | 'VNC'`), authentication fields (`password`, `private_key`, `passphrase`, `vncPassword`), proxy/jump settings (`proxy_id`, `proxy_type`, `jump_chain`), and `tag_ids`
+   * @returns `true` if the update succeeded and the local list was refreshed, `false` otherwise
+   */
   async function updateConnection(
     connectionId: number,
     updatedData: Partial<
@@ -147,6 +169,14 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Delete a connection by its identifier and update the store and cache accordingly.
+   *
+   * Removes the connection from the in-memory list and clears the connections cache; on failure sets the store `error`.
+   *
+   * @param connectionId - The identifier of the connection to delete
+   * @returns `true` if the deletion succeeded and the store was updated, `false` otherwise
+   */
   async function deleteConnection(connectionId: number) {
     isLoading.value = true;
     error.value = null;
@@ -167,7 +197,12 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
-  // 内部删除函数，不操作 isLoading/error，用于批量删除
+  /**
+   * Delete a connection by its ID on the server, remove the cached connections entry, and filter the connection out of local state without modifying loading or error flags.
+   *
+   * @param connectionId - The identifier of the connection to delete
+   * @returns An object with `success: true` on successful deletion; otherwise `success: false` and a `message` describing the failure
+   */
   async function _deleteConnection(
     connectionId: number
   ): Promise<{ success: boolean; message?: string }> {
@@ -186,6 +221,15 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Deletes multiple connections by their IDs, processing each deletion sequentially.
+   *
+   * If `connectionIds` is empty or falsy, the function returns immediately with `true`.
+   * On partial failures, `error` is set to a combined message describing each failed ID; `isLoading` is managed for the duration of the operation.
+   *
+   * @param connectionIds - Array of connection IDs to delete
+   * @returns `true` if all deletions succeeded, `false` if one or more deletions failed
+   */
   async function deleteBatchConnections(connectionIds: number[]): Promise<boolean> {
     if (!connectionIds || connectionIds.length === 0) {
       log.warn('[ConnectionsStore] deleteBatchConnections called with no IDs.');
@@ -219,6 +263,12 @@ export const useConnectionsStore = defineStore('connections', () => {
     return allSucceeded;
   }
 
+  /**
+   * Tests a connection by invoking the server-side connection test endpoint.
+   *
+   * @param connectionId - ID of the connection to test
+   * @returns An object with `success` indicating whether the test succeeded, an optional `message` with details, and an optional `latency` (milliseconds) when available
+   */
   async function testConnection(
     connectionId: number
   ): Promise<{ success: boolean; message?: string; latency?: number }> {
@@ -242,6 +292,13 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Clone an existing connection and refresh the store's connections list.
+   *
+   * @param originalId - The ID of the connection to clone
+   * @param newName - The display name to assign to the cloned connection
+   * @returns `true` if the clone operation succeeded and the connections cache/store was refreshed, `false` otherwise
+   */
   async function cloneConnection(originalId: number, newName: string): Promise<boolean> {
     isLoading.value = true;
     error.value = null;
@@ -262,6 +319,13 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Attach a tag to multiple connections and refresh the cached connections list.
+   *
+   * @param connectionIds - Array of connection IDs to which the tag will be added
+   * @param tagId - The ID of the tag to add to the specified connections
+   * @returns `true` if all specified connections were tagged (or if `connectionIds` is empty), `false` if the operation failed
+   */
   async function addTagToConnectionsAction(
     connectionIds: number[],
     tagId: number
@@ -289,6 +353,13 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Update the set of tags assigned to a connection and refresh the cached connections list.
+   *
+   * @param connectionId - The ID of the connection whose tags will be replaced
+   * @param tagIds - Array of tag IDs to assign to the connection
+   * @returns `true` if the tags were updated successfully, `false` otherwise
+   */
   async function updateConnectionTags(connectionId: number, tagIds: number[]): Promise<boolean> {
     isLoading.value = true;
     error.value = null;
@@ -306,6 +377,15 @@ export const useConnectionsStore = defineStore('connections', () => {
     }
   }
 
+  /**
+   * Obtain a VNC session token for the specified connection.
+   *
+   * @param connectionId - ID of the connection to create a VNC session for
+   * @param width - Optional requested VNC display width in pixels
+   * @param height - Optional requested VNC display height in pixels
+   * @returns The VNC session token string if available, `null` otherwise.
+   * @throws Re-throws the original error when the HTTP request fails.
+   */
   async function getVncSessionToken(
     connectionId: number,
     width?: number,

@@ -76,15 +76,28 @@ export const useAuthStore = defineStore(
     // --- Getters ---
     const loggedInUser = computed(() => user.value?.username);
 
-    // --- Actions ---
+    /**
+     * Clears the current error message.
+     */
     function clearError() {
       error.value = null;
     }
 
+    /**
+     * Set the store's current error message.
+     *
+     * @param errorMessage - The message to store; replaces any existing error
+     */
     function setError(errorMessage: string) {
       error.value = errorMessage;
     }
 
+    /**
+     * Attempt to authenticate a user with credentials and an optional CAPTCHA token.
+     *
+     * @param payload - Login credentials and optional `captchaToken` for CAPTCHA verification
+     * @returns `{ requiresTwoFactor: true }` if the server requires two-factor authentication; `{ success: true }` on successful login; `{ success: false, error: string }` on failure
+     */
     async function login(payload: LoginPayload & { captchaToken?: string }) {
       isLoading.value = true;
       error.value = null;
@@ -127,6 +140,13 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Complete a pending two-factor authentication (2FA) login using the provided 2FA token.
+     *
+     * @param token - The one-time 2FA token provided by the user
+     * @returns `{ success: true }` when authentication completes and the user is redirected; otherwise `{ success: false, error: string }` containing the extracted error message
+     * @throws When the current login flow is not awaiting 2FA verification
+     */
     async function verifyLogin2FA(token: string) {
       if (!loginRequires2FA.value) {
         throw new Error('当前登录流程不需要 2FA 验证。');
@@ -157,6 +177,11 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Log out the current user and navigate to the login page.
+     *
+     * Attempts to end the session on the server; on success clears local authentication state and redirects to the login flow. On failure sets the store's error state.
+     */
     async function logout() {
       isLoading.value = true;
       error.value = null;
@@ -175,6 +200,11 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Refreshes authentication state from the server and updates the store accordingly.
+     *
+     * On success updates `isAuthenticated`, `user`, and clears `loginRequires2FA`; if the retrieved user has a `language` it applies it via `setLocale`. On failure resets authentication-related state (`isAuthenticated=false`, `user=null`, `loginRequires2FA=false`) and logs a warning. Sets `isLoading` while the operation is in progress.
+     */
     async function checkAuthStatus() {
       isLoading.value = true;
       try {
@@ -204,6 +234,14 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Change the authenticated user's password.
+     *
+     * @param currentPassword - The user's current password.
+     * @param newPassword - The new password to set.
+     * @returns `true` if the password was changed successfully.
+     * @throws Will throw an Error if the user is not authenticated or if the change fails.
+     */
     async function changePassword(currentPassword: string, newPassword: string) {
       if (!isAuthenticated.value) {
         throw new Error('用户未登录，无法修改密码。');
@@ -226,6 +264,14 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Fetches a page of IP blacklist entries from the backend and stores them in the store.
+     *
+     * @param limit - Maximum number of entries to return (defaults to 50)
+     * @param offset - Number of entries to skip for pagination (defaults to 0)
+     * @returns The response data containing `entries` and `total`
+     * @throws An Error with a user-facing message when the request fails
+     */
     async function fetchIpBlacklist(limit: number = 50, offset: number = 0) {
       isLoading.value = true;
       error.value = null;
@@ -246,6 +292,13 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Remove an IP address from the server-side blacklist and update the local blacklist state.
+     *
+     * @param ip - The IP address to remove from the blacklist
+     * @returns `true` on successful deletion
+     * @throws An `Error` with a user-facing message when the deletion request fails
+     */
     async function deleteIpFromBlacklist(ip: string) {
       isLoading.value = true;
       error.value = null;
@@ -264,6 +317,13 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Fetches the server's "needs setup" flag, updates the store's `needsSetup` state, and returns the result.
+     *
+     * On failure, sets `needsSetup` to `false` and returns `false`.
+     *
+     * @returns `true` if the server reports that initial setup is required, `false` otherwise.
+     */
     async function checkSetupStatus() {
       try {
         const response = await apiClient.get<{ needsSetup: boolean }>('/auth/needs-setup');
@@ -277,6 +337,12 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Fetches CAPTCHA configuration from the server and updates the store's `publicCaptchaConfig` used by the public UI.
+     *
+     * On success, sets `publicCaptchaConfig` with `provider`, `enabled`, and any site keys returned by the backend.
+     * On failure, sets `publicCaptchaConfig` to `{ enabled: false, provider: 'none' }`.
+     */
     async function fetchCaptchaConfig() {
       log.info('[AuthStore] fetchCaptchaConfig called. Forcing refetch.');
       try {
@@ -305,6 +371,17 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Authenticate a user using a passkey (WebAuthn) and establish the session on success.
+     *
+     * On success, sets authentication state and the current user, applies the user's locale if present,
+     * and navigates to the application root (`/`). On failure, clears authenticated user state and
+     * returns the error message.
+     *
+     * @param username - The username to authenticate
+     * @param assertionResponse - The WebAuthn assertion response returned by the authenticator (shape depends on the WebAuthn API)
+     * @returns An object with `success: true` when authentication succeeds; on failure, `success: false` and `error` contains the error message
+     */
     async function loginWithPasskey(username: string, assertionResponse: unknown) {
       isLoading.value = true;
       error.value = null;
@@ -333,6 +410,13 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Fetches server-generated passkey (WebAuthn) registration options for the given username.
+     *
+     * @param username - The account username for which to request registration options
+     * @returns The registration options object (challenge and parameters) required to create a passkey
+     * @throws An Error with a user-facing message when the request to obtain registration options fails
+     */
     async function getPasskeyRegistrationOptions(username: string) {
       isLoading.value = true;
       error.value = null;
@@ -348,6 +432,14 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Register a new passkey credential for the specified username.
+     *
+     * @param username - The account username to associate the passkey with
+     * @param registrationResponse - The authenticator's registration response payload (opaque)
+     * @returns An object with `success: true` when registration completes successfully
+     * @throws An `Error` containing a user-facing message when registration fails
+     */
     async function registerPasskey(username: string, registrationResponse: unknown) {
       isLoading.value = true;
       error.value = null;
@@ -367,6 +459,13 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Fetches the current user's passkeys from the backend and updates store state.
+     *
+     * If the user is not authenticated, clears the passkeys list and returns immediately.
+     * On success, maps backend fields into `PasskeyInfo` objects and sets `passkeys`.
+     * On failure, sets `error` with the extracted message and clears `passkeys`.
+     */
     async function fetchPasskeys() {
       if (!isAuthenticated.value) {
         log.warn('User not authenticated. Cannot fetch passkeys.');
@@ -405,6 +504,14 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Delete a passkey by its credential ID and refresh the stored passkey list.
+     *
+     * @param credentialID - The credential ID of the passkey to delete
+     * @returns An object with `success: true` when the passkey is deleted
+     * @throws Error if the current user is not authenticated
+     * @throws Error if deletion fails; error message contains server-provided text or a fallback message
+     */
     async function deletePasskey(credentialID: string) {
       if (!isAuthenticated.value) {
         throw new Error('User not authenticated. Cannot delete passkey.');
@@ -425,6 +532,15 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Update the display name of a passkey credential and refresh the local passkey list.
+     *
+     * @param credentialID - The credential identifier of the passkey to rename
+     * @param newName - The new display name to assign to the passkey
+     * @returns An object `{ success: true }` when the update succeeds
+     * @throws Error if the user is not authenticated
+     * @throws Error if the API request to update the passkey name fails
+     */
     async function updatePasskeyName(credentialID: string, newName: string) {
       if (!isAuthenticated.value) {
         throw new Error('User not authenticated. Cannot update passkey name.');
@@ -442,6 +558,12 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Checks whether passkeys are configured, optionally for a specific username.
+     *
+     * @param username - Optional username to check; when omitted, checks availability for any user
+     * @returns `true` if passkeys are configured (for the given username or generally), `false` otherwise
+     */
     async function checkHasPasskeysConfigured(username?: string) {
       try {
         const params = username ? { username } : {};
@@ -464,6 +586,14 @@ export const useAuthStore = defineStore(
       }
     }
 
+    /**
+     * Loads initial authentication, setup, user, and public CAPTCHA configuration from the server and applies them to the store state.
+     *
+     * On success, updates `needsSetup`, `isAuthenticated`, `user`, `publicCaptchaConfig`, and `isInitCompleted`, applies the user's locale if present, and logs the result.
+     * On failure, logs the error, ensures `isInitCompleted` is set to `true`, and if no user is present and the app appears unauthenticated, sets `needsSetup` to `true`.
+     *
+     * The function validates the CAPTCHA provider returned by the server and treats an invalid provider as a failed initialization.
+     */
     async function loadInitData() {
       isLoading.value = true;
       try {

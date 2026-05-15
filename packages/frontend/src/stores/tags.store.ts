@@ -19,6 +19,13 @@ export type TagsStoreExtended = ReturnType<typeof useTagsStore> & {
   updateTagConnections: (tagId: number, connectionIds: number[]) => Promise<boolean>;
 };
 
+/**
+ * Creates the tags store and augments it with a method to update a tag's connections.
+ *
+ * The added `updateTagConnections` method sends an update for a tag's connection IDs, clears related caches, and refreshes the store's tag data.
+ *
+ * @returns The tags store instance extended with `updateTagConnections(tagId, connectionIds)`, which yields `true` on success and `false` on failure.
+ */
 export function useTagsStoreExtended(): TagsStoreExtended {
   const store = useTagsStore();
 
