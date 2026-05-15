@@ -651,3 +651,191 @@ describe('OutputProcessor', () => {
     });
   });
 });
+
+// ==================== processInWorker & destroyWorkerPool ====================
+
+describe('processInWorker', () => {
+  let processInWorker: typeof import('./output-processor').processInWorker;
+  let destroyWorkerPool: typeof import('./output-processor').destroyWorkerPool;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.clearAllMocks();
+    const mod = await import('./output-processor');
+    processInWorker = mod.processInWorker;
+    destroyWorkerPool = mod.destroyWorkerPool;
+  });
+
+  afterEach(() => {
+    destroyWorkerPool();
+    vi.clearAllMocks();
+  });
+
+  describe('短文本直接同步处理（<=100 字符）', () => {
+    it('100 字符以内的文本应同步处理，不使用 Worker', async () => {
+      const shortText = 'hello world'; // 11 chars
+      const result = await processInWorker(shortText);
+      expect(result).toHaveProperty('type');
+      expect(result).toHaveProperty('content');
+      expect(result).toHaveProperty('metadata');
+    });
+
+    it('恰好 100 字符应同步处理', async () => {
+      const text100 = 'a'.repeat(100);
+      const result = await processInWorker(text100);
+      expect(result.type).toBe(OutputType.TEXT);
+    });
+
+    it('空字符串应同步处理并返回 TEXT 类型', async () => {
+      const result = await processInWorker('');
+      expect(result.type).toBe(OutputType.TEXT);
+    });
+
+    it('短 JSON 文本应同步处理并返回正确类型', async () => {
+      const result = await processInWorker('{"a":1}');
+      expect(result.type).toBe(OutputType.JSON);
+    });
+  });
+
+  describe('Worker 不可用时的降级处理', () => {
+    it('Worker 创建失败时应降级为同步处理并返回结果', async () => {
+      // Mock createWorkerPool to throw so the fallback path is exercised
+      vi.doMock('../workers/createWorkerPool', () => ({
+        createWorkerPool: vi.fn().mockImplementation(() => {
+          throw new Error('Worker not available');
+        }),
+      }));
+
+      // Re-import after mock
+      vi.resetModules();
+      const mod = await import('./output-processor');
+      const longText = 'a'.repeat(200);
+      const result = await mod.processInWorker(longText);
+      expect(result).toHaveProperty('type');
+      expect(result).toHaveProperty('content');
+    });
+  });
+
+  describe('Worker execute 失败时降级', () => {
+    it('Worker 执行失败时应降级为同步处理', async () => {
+      vi.doMock('../workers/createWorkerPool', () => ({
+        createWorkerPool: vi.fn().mockReturnValue({
+          execute: vi.fn().mockRejectedValue(new Error('Worker timeout')),
+          destroy: vi.fn(),
+        }),
+      }));
+
+      vi.resetModules();
+      const mod = await import('./output-processor');
+      const longText = 'x'.repeat(200);
+      const result = await mod.processInWorker(longText);
+      // Should fallback to sync processing
+      expect(result).toHaveProperty('type');
+      expect(result.content).toBeDefined();
+    });
+  });
+
+  describe('长文本触发 Worker 路径', () => {
+    it('超过 100 字符时应尝试使用 Worker（成功场景）', async () => {
+      const mockResult = {
+        type: OutputType.TEXT,
+        content: 'processed by worker',
+        metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 500 },
+      };
+      const mockExecute = vi.fn().mockResolvedValue(mockResult);
+      const mockDestroy = vi.fn();
+
+      vi.doMock('../workers/createWorkerPool', () => ({
+        createWorkerPool: vi.fn().mockReturnValue({
+          execute: mockExecute,
+          destroy: mockDestroy,
+        }),
+      }));
+
+      vi.resetModules();
+      const mod = await import('./output-processor');
+      const longText = 'x'.repeat(200);
+      const result = await mod.processInWorker(longText);
+      expect(result.content).toBe('processed by worker');
+    });
+
+    it('应该将 text 和 options 传递给 Worker', async () => {
+      const mockExecute = vi.fn().mockResolvedValue({
+        type: OutputType.TEXT,
+        content: '',
+        metadata: {},
+      });
+
+      vi.doMock('../workers/createWorkerPool', () => ({
+        createWorkerPool: vi.fn().mockReturnValue({
+          execute: mockExecute,
+          destroy: vi.fn(),
+        }),
+      }));
+
+      vi.resetModules();
+      const mod = await import('./output-processor');
+      const longText = 'x'.repeat(200);
+      const opts = { enableHighlight: false };
+      await mod.processInWorker(longText, opts);
+
+      expect(mockExecute).toHaveBeenCalledWith('process', { text: longText, options: opts });
+    });
+  });
+
+  describe('processInWorker 选项传递', () => {
+    it('应该接受 foldThreshold 选项', async () => {
+      const shortText = 'hello'; // <= 100 chars, processed synchronously
+      const result = await processInWorker(shortText, { foldThreshold: 1 });
+      expect(result).toBeDefined();
+    });
+
+    it('没有 options 时应使用默认配置', async () => {
+      const shortText = 'plain text';
+      const result = await processInWorker(shortText);
+      expect(result.type).toBe(OutputType.TEXT);
+    });
+  });
+});
+
+describe('destroyWorkerPool', () => {
+  it('没有 Worker 池时调用应不抛出错误', async () => {
+    vi.resetModules();
+    const { destroyWorkerPool: destroy } = await import('./output-processor');
+    expect(() => destroy()).not.toThrow();
+  });
+
+  it('销毁后再次调用应不抛出错误', async () => {
+    vi.resetModules();
+    const { destroyWorkerPool: destroy } = await import('./output-processor');
+    destroy();
+    expect(() => destroy()).not.toThrow();
+  });
+
+  it('有 Worker 池时应调用 pool.destroy()', async () => {
+    const mockDestroy = vi.fn();
+    const mockExecute = vi.fn().mockResolvedValue({
+      type: OutputType.TEXT,
+      content: '',
+      metadata: {},
+    });
+
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn().mockReturnValue({
+        execute: mockExecute,
+        destroy: mockDestroy,
+      }),
+    }));
+
+    vi.resetModules();
+    const mod = await import('./output-processor');
+
+    // Trigger worker pool creation
+    const longText = 'x'.repeat(200);
+    await mod.processInWorker(longText);
+
+    // Now destroy
+    mod.destroyWorkerPool();
+    expect(mockDestroy).toHaveBeenCalled();
+  });
+});
