@@ -137,9 +137,9 @@ async function cacheFirst(request, cacheName) {
 }
 
 /**
- * Attempt to fetch a resource from the network and fall back to a cached response if the network request fails.
+ * Fetches a resource from the network and falls back to a cached match if the network request fails.
  * @param {Request} request - The request to retrieve.
- * @returns {Response} The network response if the fetch succeeds; otherwise a cached response matching the request if available, or a 503 `Response` with body `'Offline'`.
+ * @returns {Response} The network response if the fetch succeeds, otherwise a cached response matching the request if available, or a 503 `Response` with body `'Offline'`.
  */
 async function networkFirst(request) {
   try {

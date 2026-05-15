@@ -117,17 +117,15 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
 };
 
 /**
- * Process raw terminal output into a typed, possibly highlighted and formatted representation.
+ * Produce a typed, optionally highlighted and formatted representation of terminal output.
  *
- * Processes and sanitizes `output`, detects its type (JSON, YAML, LOG, TABLE, or TEXT), applies
- * highlighting/formatting according to current configuration, and detects links when enabled.
- * For very large inputs, highlighting/formatting is skipped and only sanitized text is returned.
+ * Sanitizes newlines and ANSI codes, detects the output semantic type (JSON, YAML, LOG, TABLE, or TEXT),
+ * applies highlighting/formatting according to current configuration, and optionally highlights links.
+ * For inputs longer than 5000 lines highlighting and formatting are skipped and the sanitized text is returned.
  *
- * @param output - The raw text from the terminal to process
- * @returns A ProcessedOutput containing:
- *  - `type`: the detected `OutputType`
- *  - `content`: the processed (highlighted/formatted or sanitized) text
- *  - `metadata`: an object with `lineCount`, `isLong`, `shouldFold`, and `foldThreshold`
+ * @param output - The raw terminal text to process
+ * @returns A ProcessedOutput containing the detected `type`, the processed `content` (highlighted/formatted or sanitized),
+ * and `metadata` with `lineCount`, `isLong`, `shouldFold`, and `foldThreshold`
  */
 
 function processOutput(output: string): ProcessedOutput {
@@ -255,51 +253,10 @@ function highlightJSON(jsonText: string): string {
 }
 
 /**
- * Apply ANSI color highlighting to YAML-formatted text.
+ * Highlight YAML by applying ANSI color codes to keys, values, comments, and list markers.
  *
- * Highlights YAML keys, scalar values, comments, and list markers using ANSI escape codes.
- *
- * @param yamlText - The YAML content to highlight; may be multiline.
- * @returns The input text with keys wrapped in cyan+bold, quoted strings in green, numbers in yellow, booleans (`true|false|yes|no`) in magenta, `null`/`~` in bright black, full-line comments in bright black, and list markers (`- `) in white.
-function highlightYAML(yamlText: string): string {
-  return yamlText
-    .split('\n')
-    .map((line) => {
-      if (/^(\s*)([\w.-]+):\s*(.*)$/.test(line)) {
-        return line.replace(
-          /^(\s*)([\w.-]+):\s*(.*)$/,
-          (_, indent: string, key: string, value: string) => {
-            let highlightedValue = value;
-            const trimmedValue = value.trim();
-            if (/^".*"$/.test(trimmedValue) || /^'.*'$/.test(trimmedValue)) {
-              highlightedValue = `${ANSI.GREEN}${value}${ANSI.RESET}`;
-            } else if (/^-?\d+(?:\.\d+)?$/.test(trimmedValue)) {
-              highlightedValue = `${ANSI.YELLOW}${value}${ANSI.RESET}`;
-            } else if (/^(true|false|yes|no)$/i.test(trimmedValue)) {
-              highlightedValue = `${ANSI.MAGENTA}${value}${ANSI.RESET}`;
-            } else if (/^(null|~)$/i.test(trimmedValue)) {
-              highlightedValue = `${ANSI.BRIGHT_BLACK}${value}${ANSI.RESET}`;
-            }
-            return `${indent}${ANSI.CYAN}${ANSI.BOLD}${key}${ANSI.RESET}: ${highlightedValue}`;
-          }
-        );
-      }
-      if (/^\s*#/.test(line)) {
-        return `${ANSI.BRIGHT_BLACK}${line}${ANSI.RESET}`;
-      }
-      if (/^\s*-\s/.test(line)) {
-        return line.replace(/^(\s*-\s)/, `${ANSI.WHITE}$1${ANSI.RESET}`);
-      }
-      return line;
-    })
-    .join('\n');
-}
-
-/**
- * Apply ANSI color highlighting to log text, emphasizing timestamps, level keywords, IPs, and status codes.
- *
- * @param logText - The raw log text to highlight
- * @returns The input text with ANSI color codes applied: timestamps in bright black; `ERROR/ERR` in bright red bold; `WARN/WARNING` in bright yellow bold; `INFO` in bright cyan bold; `DEBUG` in bright black bold; `SUCCESS/OK` in bright green bold; IPv4 addresses in yellow; HTTP status codes colored by range — 2xx green, 3xx cyan, 4xx yellow, 5xx red
+ * @param yamlText - The YAML content to highlight; may be multiline
+ * @returns The input text with ANSI color codes applied: keys in cyan+bold, quoted strings in green, numbers in yellow, booleans (`true|false|yes|no`) in magenta, `null`/`~` in bright black, full-line comments in bright black, and list markers (`- `) in white
  */
 function highlightLog(logText: string): string {
   return logText

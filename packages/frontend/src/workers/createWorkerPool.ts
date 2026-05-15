@@ -119,10 +119,11 @@ export function createWorkerPool(
   }
 
   /**
-   * Reserves an idle worker and prepares the oldest pending request for dispatch.
+   * Selects an idle worker and prepares the oldest pending request for dispatch.
    *
-   * If the pool is destroyed or no idle worker exists, the function returns without action.
-   * Otherwise it marks the chosen worker as busy and constructs the WorkerRequest for the earliest entry in the pending map; it does not actually post the message to the worker.
+   * If the pool is destroyed or no idle worker exists, no action is taken.
+   * When an oldest pending entry is found, the chosen worker is marked busy and a `WorkerRequest`
+   * for that entry is constructed but not sent; actual message posting is performed elsewhere.
    */
   function processQueue() {
     if (destroyed) return;
@@ -149,13 +150,11 @@ export function createWorkerPool(
   }
 
   /**
-   * Execute a task on the worker pool using the provided task type and payload.
+   * Execute a task on the worker pool identified by `taskType` using the provided `payload`.
    *
-   * If workers are unavailable and a `fallback` is configured, the fallback is invoked and its result is returned.
-   *
-   * @param taskType - Identifier for the task to run inside the worker
-   * @param payload - Data to pass to the worker for this task
-   * @returns The value produced by the worker (or by the configured `fallback`) cast to `T`
+   * @param taskType - Identifier for the task to run inside a worker
+   * @param payload - Data to pass to the task
+   * @returns The value produced by the task execution (from a worker or the configured `fallback`) typed as `T`
    * @throws Error when workers are unavailable and no `fallback` is configured
    * @throws Error when the worker pool has been destroyed
    */
