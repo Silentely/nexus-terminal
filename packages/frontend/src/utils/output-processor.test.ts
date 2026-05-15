@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OutputProcessor, OutputType } from './output-processor';
 
 describe('OutputProcessor', () => {
@@ -649,5 +649,251 @@ describe('OutputProcessor', () => {
       const result = processor.process('test');
       expect(result.type).toBe(OutputType.TEXT);
     });
+  });
+});
+
+// ==================== processInWorker 和 destroyWorkerPool 测试 ====================
+
+// 使用 vi.hoisted 确保 mock 变量在 vi.mock 工厂函数执行前已定义
+const { mockExecute: wpMockExecute, mockDestroy: wpMockDestroy } = vi.hoisted(() => ({
+  mockExecute: vi.fn(),
+  mockDestroy: vi.fn(),
+}));
+
+const mockWorkerPool = {
+  get execute() { return wpMockExecute; },
+  get destroy() { return wpMockDestroy; },
+  size: 1,
+  hasIdle: true,
+};
+
+vi.mock('../workers/createWorkerPool', () => ({
+  createWorkerPool: vi.fn(() => mockWorkerPool),
+}));
+
+describe('processInWorker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('短文本（≤100字符）应该直接同步处理而不使用 Worker', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const shortText = 'short text';
+    const result = await processInWorker(shortText);
+    // Should not call worker
+    expect(wpMockExecute).not.toHaveBeenCalled();
+    // Should return a ProcessedOutput object
+    expect(result).toHaveProperty('type');
+    expect(result).toHaveProperty('content');
+  });
+
+  it('恰好 100 字符的文本应同步处理', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const text100 = 'a'.repeat(100);
+    await processInWorker(text100);
+    expect(wpMockExecute).not.toHaveBeenCalled();
+  });
+
+  it('超过 100 字符的文本应使用 Worker 池处理', async () => {
+    const expectedResult = {
+      type: OutputType.TEXT,
+      content: 'processed',
+      metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 500 },
+    };
+    wpMockExecute.mockResolvedValueOnce(expectedResult);
+
+    const { processInWorker } = await import('./output-processor');
+    const longText = 'a'.repeat(101);
+    const result = await processInWorker(longText);
+
+    expect(wpMockExecute).toHaveBeenCalledWith('process', { text: longText, options: undefined });
+    expect(result).toBe(expectedResult);
+  });
+
+  it('传递 options 时应将 options 传入 Worker', async () => {
+    const expectedResult = {
+      type: OutputType.JSON,
+      content: '{"key":"value"}',
+      metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 100 },
+    };
+    wpMockExecute.mockResolvedValueOnce(expectedResult);
+
+    const { processInWorker } = await import('./output-processor');
+    const longText = 'a'.repeat(150);
+    const options = { foldThreshold: 100, enableHighlight: false };
+    await processInWorker(longText, options);
+
+    expect(wpMockExecute).toHaveBeenCalledWith('process', { text: longText, options });
+  });
+
+  it('Worker 执行失败时应降级为同步处理', async () => {
+    wpMockExecute.mockRejectedValueOnce(new Error('Worker failed'));
+
+    const { processInWorker } = await import('./output-processor');
+    const longText = 'a'.repeat(150);
+    const result = await processInWorker(longText);
+
+    // Should fallback to sync processing
+    expect(result).toHaveProperty('type');
+    expect(result).toHaveProperty('content');
+    expect(result.content).toContain('a');
+  });
+
+  it('短文本同步处理应返回完整的 ProcessedOutput 结构', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const result = await processInWorker('hello world');
+    expect(result).toHaveProperty('type');
+    expect(result).toHaveProperty('content');
+    expect(result).toHaveProperty('metadata');
+    expect(result.metadata).toHaveProperty('lineCount');
+    expect(result.metadata).toHaveProperty('isLong');
+    expect(result.metadata).toHaveProperty('shouldFold');
+  });
+
+  it('空字符串应该同步处理（长度为 0 ≤ 100）', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const result = await processInWorker('');
+    expect(wpMockExecute).not.toHaveBeenCalled();
+    expect(result.type).toBe(OutputType.TEXT);
+    expect(result.content).toBe('');
+  });
+});
+
+describe('destroyWorkerPool', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('有 Worker 池时调用 destroyWorkerPool 应销毁池', async () => {
+    wpMockExecute.mockResolvedValueOnce({
+      type: OutputType.TEXT,
+      content: 'result',
+      metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 500 },
+    });
+
+    const { processInWorker, destroyWorkerPool } = await import('./output-processor');
+
+    // Trigger pool creation with a long text
+    await processInWorker('a'.repeat(200));
+
+    // Now destroy - reset mock first to track the call
+    wpMockDestroy.mockClear();
+    destroyWorkerPool();
+    expect(wpMockDestroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('连续调用 destroyWorkerPool 只应销毁一次', async () => {
+    const { destroyWorkerPool } = await import('./output-processor');
+
+    // First call (pool might already be null from previous test flow)
+    wpMockDestroy.mockClear();
+    destroyWorkerPool();
+    destroyWorkerPool(); // Second call
+    // destroy should be called at most once since pool becomes null after first call
+    expect(wpMockDestroy.mock.calls.length).toBeLessThanOrEqual(1);
+  });
+
+  it('destroyWorkerPool 不抛出错误', async () => {
+    const { destroyWorkerPool } = await import('./output-processor');
+    expect(() => destroyWorkerPool()).not.toThrow();
+  });
+
+  it('销毁后再调用 destroyWorkerPool 不应报错', async () => {
+    const { destroyWorkerPool } = await import('./output-processor');
+    destroyWorkerPool(); // First destroy
+    expect(() => destroyWorkerPool()).not.toThrow(); // Second destroy
+  });
+});
+
+// ==================== processInWorker 边界精确测试 ====================
+
+describe('processInWorker 字符数边界（100/101 边界）', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('恰好 100 字符应同步处理（不使用 Worker）', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const text = 'x'.repeat(100);
+    const result = await processInWorker(text);
+    expect(wpMockExecute).not.toHaveBeenCalled();
+    expect(result).toHaveProperty('type');
+    expect(result).toHaveProperty('content');
+  });
+
+  it('恰好 101 字符应使用 Worker 池处理', async () => {
+    const expectedResult = {
+      type: OutputType.TEXT,
+      content: 'x'.repeat(101),
+      metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 500 },
+    };
+    wpMockExecute.mockResolvedValueOnce(expectedResult);
+
+    const { processInWorker } = await import('./output-processor');
+    const text = 'x'.repeat(101);
+    const result = await processInWorker(text);
+
+    expect(wpMockExecute).toHaveBeenCalledTimes(1);
+    expect(wpMockExecute).toHaveBeenCalledWith('process', { text, options: undefined });
+    expect(result).toBe(expectedResult);
+  });
+
+  it('99 字符应同步处理（低于阈值）', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const text = 'y'.repeat(99);
+    const result = await processInWorker(text);
+    expect(wpMockExecute).not.toHaveBeenCalled();
+    expect(result.content).toBe(text);
+  });
+
+  it('options.enableTableFormat 应正确传递给 Worker', async () => {
+    const expectedResult = {
+      type: OutputType.TABLE,
+      content: 'formatted table',
+      metadata: { lineCount: 3, isLong: false, shouldFold: false, foldThreshold: 500 },
+    };
+    wpMockExecute.mockResolvedValueOnce(expectedResult);
+
+    const { processInWorker } = await import('./output-processor');
+    const text = 'a'.repeat(150);
+    const options = { foldThreshold: 500, enableHighlight: true, enableTableFormat: true };
+    await processInWorker(text, options);
+
+    expect(wpMockExecute).toHaveBeenCalledWith('process', { text, options });
+  });
+
+  it('Worker 返回 JSON 类型结果时应原样返回', async () => {
+    const expectedResult = {
+      type: OutputType.JSON,
+      content: '{"key":"value"}',
+      metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 500 },
+    };
+    wpMockExecute.mockResolvedValueOnce(expectedResult);
+
+    const { processInWorker } = await import('./output-processor');
+    const text = 'a'.repeat(200);
+    const result = await processInWorker(text);
+
+    expect(result.type).toBe(OutputType.JSON);
+    expect(result.content).toBe('{"key":"value"}');
+  });
+
+  it('enableLinkDetection 选项应传递给 Worker', async () => {
+    wpMockExecute.mockResolvedValueOnce({
+      type: OutputType.TEXT,
+      content: 'some text with https://example.com',
+      metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 500 },
+    });
+
+    const { processInWorker } = await import('./output-processor');
+    const text = 'a'.repeat(150);
+    const options = { enableLinkDetection: false };
+    await processInWorker(text, options);
+
+    expect(wpMockExecute).toHaveBeenCalledWith('process', { text, options });
   });
 });
