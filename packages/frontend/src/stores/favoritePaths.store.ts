@@ -43,11 +43,23 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     );
   });
 
+  /**
+   * Retrieve a favorite path by its id.
+   *
+   * @param id - The id of the favorite path to find
+   * @returns The favorite path with the given id, or `undefined` if none exists
+   */
   function getFavoritePathById(id: number) {
     return favoritePaths.value.find((fav) => fav.id === id);
   }
 
-  // --- Actions ---
+  /**
+   * Sorts the `favoritePaths` array in place according to `currentSortBy`.
+   *
+   * When `currentSortBy` is `'name'`, sorts ascending by case-insensitive `name`, falling back to `path` when `name` is null.
+   * When `currentSortBy` is `'last_used_at'`, sorts descending by `last_used_at`, treating missing values as `0`.
+   * If `currentSortBy` has any other value, the order is left unchanged.
+   */
   function _sortFavoritePaths() {
     favoritePaths.value.sort((a, b) => {
       if (currentSortBy.value === 'name') {
@@ -66,10 +78,22 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     });
   }
 
+  /**
+   * Update the store's search term used to filter favorite paths.
+   *
+   * @param term - The new search text; an empty string clears the filter
+   */
   function setSearchTerm(term: string) {
     searchTerm.value = term;
   }
 
+  /**
+   * Ensures the favorite paths list is initialized by fetching it once.
+   *
+   * If the store is not yet initialized, marks it initialized and triggers a fetch of favorite paths.
+   *
+   * @param t - Translation function used for notification/error messages during fetching
+   */
   async function initializeFavoritePaths(t: (key: string, defaultMessage: string) => string) {
     if (isInitialized.value) {
       return;
@@ -78,6 +102,12 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     await fetchFavoritePaths(t);
   }
 
+  /**
+   * Fetches the user's favorite paths from the API and updates the store state.
+   *
+   * On success, replaces `favoritePaths` with the response data and applies the current sort order.
+   * On failure, records a descriptive error message and resets `isInitialized` to allow retries.
+   */
   async function fetchFavoritePaths(_t: (key: string, defaultMessage: string) => string) {
     isLoading.value = true;
     error.value = null;
@@ -94,12 +124,28 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     }
   }
 
+  /**
+   * Set the current sort mode for favorite paths and persist the choice to localStorage.
+   *
+   * @param sortBy - Sort mode: `'name'` to order by name (falling back to path) or `'last_used_at'` to order by most-recently used first
+   */
   function setSortBy(sortBy: FavoritePathSortType) {
     currentSortBy.value = sortBy;
     localStorage.setItem('favoritePathSortBy', sortBy);
     _sortFavoritePaths();
   }
 
+  /**
+   * Mark a favorite path as recently used and update the store with the server's returned record.
+   *
+   * Calls the backend to update the path's "last used" timestamp; if the response contains an updated
+   * favorite path, replaces the existing item (or appends it if missing) and re-sorts the list.
+   * If the response lacks the updated record, triggers a full refresh of favorite paths. On error,
+   * logs the failure and adds an error notification using the provided translator.
+   *
+   * @param pathId - The ID of the favorite path to mark as used
+   * @param t - Translation function that accepts a message key and default message and returns a localized string
+   */
   async function markPathAsUsed(
     pathId: number,
     t: (key: string, defaultMessage: string) => string
@@ -131,6 +177,17 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     }
   }
 
+  /**
+   * Create a new favorite path on the server and add it to the local store.
+   *
+   * On success, the created favorite path is appended to `favoritePaths`, the list is re-sorted,
+   * and a success notification is shown. The function sets `isLoading` while the request is in progress
+   * and populates `error` on failure.
+   *
+   * @param newPathData - Object with the properties required to create a favorite path (`path` and optional `name`)
+   * @param t - Translation function used to produce notification messages
+   * @throws Propagates the original error if the API request fails
+   */
   async function addFavoritePath(
     newPathData: Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>,
     t: (key: string, defaultMessage: string) => string
@@ -162,6 +219,16 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     }
   }
 
+  /**
+   * Update an existing favorite path on the server, update the local store entry, re-sort the list, and show a success or error notification.
+   *
+   * Updates the corresponding item in `favoritePaths` with the server response when successful; on failure the error state is populated, a notification is shown, and the error is re-thrown.
+   *
+   * @param id - The identifier of the favorite path to update
+   * @param updatedPathData - Partial favorite path fields to update (excluding `id`, `created_at`, and `last_used_at`)
+   * @param t - Translation function used to produce notification messages
+   * @throws Propagates the original error when the update request fails
+   */
   async function updateFavoritePath(
     id: number,
     updatedPathData: Partial<Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>>,
@@ -200,6 +267,15 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     }
   }
 
+  /**
+   * Deletes a favorite path by its ID, updates the store state accordingly, and emits a UI notification for success or failure.
+   *
+   * On success the corresponding item is removed from `favoritePaths` and a success notification is added.
+   * On failure the store `error` is set and an error notification is added.
+   *
+   * @param id - The identifier of the favorite path to delete
+   * @param t - Translation function for notification messages (key, defaultMessage) => translated string
+   */
   async function deleteFavoritePath(
     id: number,
     t: (key: string, defaultMessage: string) => string
