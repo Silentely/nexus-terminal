@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OutputProcessor, OutputType } from './output-processor';
 
 describe('OutputProcessor', () => {
@@ -649,5 +649,141 @@ describe('OutputProcessor', () => {
       const result = processor.process('test');
       expect(result.type).toBe(OutputType.TEXT);
     });
+  });
+});
+
+// ==================== processInWorker / destroyWorkerPool ====================
+
+describe('processInWorker', () => {
+  const mockExecute = vi.fn();
+  const mockDestroy = vi.fn();
+  const mockWorkerPool = { execute: mockExecute, destroy: mockDestroy, size: 2, hasIdle: true };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should process short text (≤ 100 chars) synchronously on main thread', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const shortText = 'short'; // ≤ 100 characters
+    const result = await processInWorker(shortText);
+    // Should return a valid ProcessedOutput
+    expect(result).toHaveProperty('type');
+    expect(result).toHaveProperty('content');
+    expect(result).toHaveProperty('metadata');
+    // Should not involve Worker (mockExecute not called because pool not created for short text)
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('should process exactly 100 characters synchronously on main thread', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const text100 = 'a'.repeat(100); // exactly 100 chars
+    const result = await processInWorker(text100);
+    expect(result).toHaveProperty('type');
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('should use worker pool for text longer than 100 characters', async () => {
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn(() => mockWorkerPool),
+    }));
+
+    const expectedResult = { type: OutputType.JSON, content: '{}', metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 500 } };
+    mockExecute.mockResolvedValue(expectedResult);
+
+    const { processInWorker } = await import('./output-processor');
+    const longText = 'a'.repeat(101); // > 100 characters
+    const result = await processInWorker(longText);
+
+    expect(mockExecute).toHaveBeenCalledWith('process', { text: longText, options: undefined });
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('should fall back to synchronous processing when worker throws', async () => {
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn(() => ({
+        ...mockWorkerPool,
+        execute: vi.fn().mockRejectedValue(new Error('Worker failed')),
+      })),
+    }));
+
+    const { processInWorker } = await import('./output-processor');
+    const longText = 'a'.repeat(101);
+    // Should not throw — falls back to main thread
+    const result = await processInWorker(longText);
+    expect(result).toHaveProperty('type');
+    expect(result).toHaveProperty('content');
+  });
+
+  it('should pass options to the worker execute call', async () => {
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn(() => mockWorkerPool),
+    }));
+
+    const opts = { enableHighlight: false, foldThreshold: 100 };
+    const expectedResult = { type: OutputType.TEXT, content: 'test', metadata: { lineCount: 1, isLong: false, shouldFold: false, foldThreshold: 100 } };
+    mockExecute.mockResolvedValue(expectedResult);
+
+    const { processInWorker } = await import('./output-processor');
+    const longText = 'a'.repeat(101);
+    await processInWorker(longText, opts);
+
+    expect(mockExecute).toHaveBeenCalledWith('process', { text: longText, options: opts });
+  });
+});
+
+describe('destroyWorkerPool', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should call destroy on the worker pool', async () => {
+    const mockDestroy = vi.fn();
+    const mockPool = { execute: vi.fn().mockResolvedValue({}), destroy: mockDestroy, size: 2, hasIdle: true };
+
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn(() => mockPool),
+    }));
+
+    const { processInWorker, destroyWorkerPool } = await import('./output-processor');
+
+    // Initialize the pool by calling processInWorker with long text
+    mockPool.execute.mockResolvedValue({ type: 'text', content: '', metadata: {} });
+    await processInWorker('a'.repeat(101));
+
+    destroyWorkerPool();
+    expect(mockDestroy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should be a no-op when pool has not been initialized', async () => {
+    const { destroyWorkerPool } = await import('./output-processor');
+    // Should not throw when pool is null
+    expect(() => destroyWorkerPool()).not.toThrow();
+  });
+
+  it('should not throw if called twice', async () => {
+    const mockDestroyFn = vi.fn();
+    const mockPool = { execute: vi.fn().mockResolvedValue({}), destroy: mockDestroyFn, size: 2, hasIdle: true };
+
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn(() => mockPool),
+    }));
+
+    const { processInWorker, destroyWorkerPool } = await import('./output-processor');
+    mockPool.execute.mockResolvedValue({ type: 'text', content: '', metadata: {} });
+    await processInWorker('a'.repeat(101));
+
+    destroyWorkerPool(); // first call
+    expect(() => destroyWorkerPool()).not.toThrow(); // second call — pool is null
   });
 });

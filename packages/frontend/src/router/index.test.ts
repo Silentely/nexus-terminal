@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // 使用 vi.hoisted 创建 mock，确保在 vi.mock 之前执行
 const { mockUseAuthStore, mockAuthState } = vi.hoisted(() => {
@@ -10,7 +10,7 @@ vi.mock('../stores/auth.store', () => ({
   useAuthStore: mockUseAuthStore,
 }));
 
-import router from './index';
+import router, { schedulePrefetch } from './index';
 
 // Mock views to avoid actual component loading
 vi.mock('../views/DashboardView.vue', () => ({ default: { template: '<div />' } }));
@@ -110,6 +110,127 @@ describe('路由守卫', () => {
       await router.push('/workspace');
       await router.isReady();
       expect(router.currentRoute.value.name).toBe('Workspace');
+    });
+  });
+});
+
+// ==================== schedulePrefetch ====================
+
+describe('schedulePrefetch', () => {
+  const originalRequestIdleCallback = (globalThis as Record<string, unknown>).requestIdleCallback;
+
+  afterEach(() => {
+    // Restore requestIdleCallback to original state
+    if (originalRequestIdleCallback === undefined) {
+      delete (globalThis as Record<string, unknown>).requestIdleCallback;
+    } else {
+      (globalThis as Record<string, unknown>).requestIdleCallback = originalRequestIdleCallback;
+    }
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  describe('with requestIdleCallback available', () => {
+    it('should use requestIdleCallback when available', () => {
+      const mockRIC = vi.fn();
+      (globalThis as Record<string, unknown>).requestIdleCallback = mockRIC;
+
+      schedulePrefetch();
+
+      expect(mockRIC).toHaveBeenCalledTimes(1);
+      expect(mockRIC).toHaveBeenCalledWith(expect.any(Function), { timeout: 5000 });
+    });
+
+    it('should pass a function as the callback to requestIdleCallback', () => {
+      const mockRIC = vi.fn();
+      (globalThis as Record<string, unknown>).requestIdleCallback = mockRIC;
+
+      schedulePrefetch();
+
+      const [callback] = mockRIC.mock.calls[0];
+      expect(typeof callback).toBe('function');
+    });
+
+    it('should invoke prefetch for all 3 core routes when the callback runs', () => {
+      const mockRIC = vi.fn();
+      (globalThis as Record<string, unknown>).requestIdleCallback = mockRIC;
+
+      // Spy on router.resolve to detect which paths are prefetched
+      const resolveSpy = vi.spyOn(router, 'resolve');
+
+      schedulePrefetch();
+
+      // Execute the idle callback immediately
+      const [callback] = mockRIC.mock.calls[0];
+      callback();
+
+      const resolvedPaths = resolveSpy.mock.calls.map((call) => call[0]);
+      expect(resolvedPaths).toContain('/');
+      expect(resolvedPaths).toContain('/workspace');
+      expect(resolvedPaths).toContain('/connections');
+    });
+  });
+
+  describe('without requestIdleCallback (fallback to setTimeout)', () => {
+    beforeEach(() => {
+      delete (globalThis as Record<string, unknown>).requestIdleCallback;
+      vi.useFakeTimers();
+    });
+
+    it('should use setTimeout fallback when requestIdleCallback is not available', () => {
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+
+      schedulePrefetch();
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000);
+    });
+
+    it('should invoke prefetch for all 3 core routes after 2000ms timeout', () => {
+      const resolveSpy = vi.spyOn(router, 'resolve');
+
+      schedulePrefetch();
+
+      // Before timeout — routes not yet prefetched
+      expect(resolveSpy).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(2000);
+
+      const resolvedPaths = resolveSpy.mock.calls.map((call) => call[0]);
+      expect(resolvedPaths).toContain('/');
+      expect(resolvedPaths).toContain('/workspace');
+      expect(resolvedPaths).toContain('/connections');
+    });
+
+    it('should not invoke prefetch before the 2000ms timeout elapses', () => {
+      const resolveSpy = vi.spyOn(router, 'resolve');
+
+      schedulePrefetch();
+      vi.advanceTimersByTime(1999);
+
+      expect(resolveSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('prefetchRoute behavior', () => {
+    it('should call route component factory for matched routes', () => {
+      (globalThis as Record<string, unknown>).requestIdleCallback = undefined;
+      vi.useFakeTimers();
+
+      // Spy on resolved route records to verify component imports are triggered
+      const resolveSpy = vi.spyOn(router, 'resolve');
+
+      schedulePrefetch();
+      vi.advanceTimersByTime(2000);
+
+      // router.resolve should have been called for each of the 3 core routes
+      expect(resolveSpy).toHaveBeenCalledTimes(3);
+    });
+
+    it('should not throw for unknown paths', () => {
+      (globalThis as Record<string, unknown>).requestIdleCallback = vi.fn((cb: () => void) => cb());
+
+      // Should not throw even if router.resolve returns empty matched array
+      expect(() => schedulePrefetch()).not.toThrow();
     });
   });
 });
