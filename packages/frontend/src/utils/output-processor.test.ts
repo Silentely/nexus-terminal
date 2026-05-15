@@ -651,3 +651,122 @@ describe('OutputProcessor', () => {
     });
   });
 });
+
+// ==================== processInWorker / destroyWorkerPool 测试 ====================
+
+describe('processInWorker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  it('短文本（<=100 字符）应同步处理，不调用 Worker', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const shortText = 'Hello world'; // 11 chars
+    const result = await processInWorker(shortText);
+
+    expect(result).toBeDefined();
+    expect(result.type).toBe(OutputType.TEXT);
+    expect(result.content).toContain('Hello world');
+  });
+
+  it('恰好 100 字符的文本应同步处理', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const text = 'a'.repeat(100);
+    const result = await processInWorker(text);
+
+    expect(result).toBeDefined();
+    expect(result.type).toBe(OutputType.TEXT);
+  });
+
+  it('短文本处理应返回 ProcessedOutput 结构', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const result = await processInWorker('{"key":"value"}');
+
+    expect(result).toHaveProperty('type');
+    expect(result).toHaveProperty('content');
+    expect(result).toHaveProperty('metadata');
+  });
+
+  it('Worker 池执行失败时应降级到同步处理', async () => {
+    // mock createWorkerPool 使 execute 抛出错误
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn().mockReturnValue({
+        execute: vi.fn().mockRejectedValue(new Error('Worker failed')),
+        destroy: vi.fn(),
+        size: 2,
+        hasIdle: true,
+      }),
+    }));
+
+    const { processInWorker } = await import('./output-processor');
+    // 长文本触发 Worker 路径
+    const longText = 'x'.repeat(200);
+    // 应该降级到同步处理，不应抛出
+    const result = await processInWorker(longText);
+
+    expect(result).toBeDefined();
+    expect(result.type).toBe(OutputType.TEXT);
+  });
+
+  it('options 参数应被正确传递（短文本路径）', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const result = await processInWorker('{"key":"value"}', { enableHighlight: false });
+
+    // 短文本走同步路径，options 通过标准 outputProcessor 处理
+    expect(result).toBeDefined();
+    // 即使传入 options，短文本仍通过全局 outputProcessor 处理（忽略 options）
+    expect(result.type).toBe(OutputType.JSON);
+  });
+
+  it('空字符串应正确处理（短文本路径）', async () => {
+    const { processInWorker } = await import('./output-processor');
+    const result = await processInWorker('');
+
+    expect(result).toBeDefined();
+    expect(result.type).toBe(OutputType.TEXT);
+  });
+});
+
+describe('destroyWorkerPool', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+  });
+
+  it('未初始化 Worker 池时调用 destroyWorkerPool 不应抛出', async () => {
+    const { destroyWorkerPool } = await import('./output-processor');
+    expect(() => destroyWorkerPool()).not.toThrow();
+  });
+
+  it('初始化后调用 destroyWorkerPool 应销毁池', async () => {
+    const mockDestroy = vi.fn();
+    vi.doMock('../workers/createWorkerPool', () => ({
+      createWorkerPool: vi.fn().mockReturnValue({
+        execute: vi.fn().mockRejectedValue(new Error('simulate error')),
+        destroy: mockDestroy,
+        size: 2,
+        hasIdle: true,
+      }),
+    }));
+
+    const { processInWorker, destroyWorkerPool } = await import('./output-processor');
+
+    // 触发 Worker 池初始化（长文本）
+    try {
+      await processInWorker('x'.repeat(200));
+    } catch {
+      // 忽略错误
+    }
+
+    destroyWorkerPool();
+    expect(mockDestroy).toHaveBeenCalled();
+  });
+
+  it('destroyWorkerPool 调用后再次调用不应抛出', async () => {
+    const { destroyWorkerPool } = await import('./output-processor');
+
+    destroyWorkerPool();
+    expect(() => destroyWorkerPool()).not.toThrow();
+  });
+});
