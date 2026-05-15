@@ -24,11 +24,18 @@ interface PendingRequest {
 }
 
 /**
- * 创建一个 Worker 池
+ * Create and manage a pool of Web Workers to execute tasks.
  *
- * @param workerUrl - Worker 脚本的 URL（使用 Vite 的 `new URL(..., import.meta.url)` 模式）
- * @param options - 池配置
- * @returns 池控制对象
+ * @param workerUrl - Worker script URL (use Vite-style `new URL(..., import.meta.url)`)
+ * @param options - Optional pool settings:
+ *   - `size`: number of workers in the pool (default 2)
+ *   - `timeout`: per-task timeout in milliseconds (default 30000)
+ *   - `fallback`: function invoked when Workers are unavailable; receives `(type, payload)`
+ * @returns An object exposing:
+ *   - `execute(taskType, payload)`: run a task and obtain its result
+ *   - `destroy()`: terminate the pool and reject pending tasks
+ *   - `size` (getter): current number of workers in the pool
+ *   - `hasIdle` (getter): whether any worker is currently idle
  */
 export function createWorkerPool(
   workerUrl: URL,
@@ -50,7 +57,12 @@ export function createWorkerPool(
   /** 检测 Worker 是否可用 */
   const isWorkerAvailable = typeof Worker !== 'undefined';
 
-  /** 初始化 Worker 池 */
+  /**
+   * Create the configured number of Web Workers and register their message and error handlers.
+   *
+   * If the platform does not support Worker, the function returns without side effects.
+   * Worker construction failures are ignored so available workers are created opportunistically.
+   */
   function init() {
     if (!isWorkerAvailable) return;
 
@@ -66,7 +78,13 @@ export function createWorkerPool(
     }
   }
 
-  /** 处理 Worker 响应 */
+  /**
+   * Handle an incoming Worker message by completing the matching pending request and freeing the worker.
+   *
+   * Deletes the pending entry for the response `id`, clears its timeout, marks the originating pool worker as idle, and either resolves with the response `payload` or rejects with the `error`. After completion, attempts to schedule the next queued task.
+   *
+   * @param event - The message event from a Worker containing `{ id, payload, error }`
+   */
   function handleMessage(event: MessageEvent<WorkerResponse>) {
     const { id, error } = event.data;
     const request = pending.get(id);
@@ -89,12 +107,24 @@ export function createWorkerPool(
     processQueue();
   }
 
-  /** 处理 Worker 错误 */
+  /**
+   * Logs an error emitted by a Worker to console.error.
+   *
+   * @param event - The ErrorEvent from the Worker containing the error message
+   */
   function handleWorkerError(event: ErrorEvent) {
     console.error('[WorkerPool] Worker 错误:', event.message);
   }
 
-  /** 处理等待队列 */
+  /**
+   * Schedules the next pending request to an available worker.
+   *
+   * Finds an idle worker and, if a pending request exists, marks that worker as busy
+   * and constructs the corresponding WorkerRequest payload for dispatch. The function
+   * returns immediately if the pool is destroyed, no idle worker is available, or
+   * there are no pending requests. It does not remove the pending entry, post the
+   * message to the worker, or handle timeouts — it only performs queue-to-worker allocation.
+   */
   function processQueue() {
     if (destroyed) return;
 
@@ -120,11 +150,13 @@ export function createWorkerPool(
   }
 
   /**
-   * 执行 Worker 任务
+   * Schedule a task of the given type to run in the worker pool and produce its result.
    *
-   * @param taskType - 任务类型标识
-   * @param payload - 任务载荷
-   * @returns Promise<unknown> - 处理结果
+   * @param taskType - Identifier for the task handler inside the worker
+   * @param payload - Data to pass to the worker for the task
+   * @returns The value produced by the task when it completes
+   * @throws Error if workers are unavailable and no fallback is configured
+   * @throws Error if the worker pool has been destroyed
    */
   async function execute<T>(taskType: string, payload: unknown): Promise<T> {
     // Worker 不可用时降级到主线程
@@ -188,7 +220,12 @@ export function createWorkerPool(
     });
   }
 
-  /** 销毁 Worker 池，释放所有资源 */
+  /**
+   * Destroys the worker pool and releases all associated resources.
+   *
+   * Marks the pool as destroyed, rejects all pending requests with `Error('Worker pool 已销毁')`,
+   * clears their timeouts, and terminates all workers.
+   */
   function destroy() {
     destroyed = true;
 

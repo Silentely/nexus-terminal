@@ -116,7 +116,17 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   }
 };
 
-// ==================== 处理逻辑（从 OutputProcessor 迁移）====================
+/**
+ * Process raw terminal output into a typed, optionally highlighted or formatted result with folding metadata.
+ *
+ * Normalizes newlines, strips ANSI escape codes, detects the output type (json, yaml, table, log, or text), and applies highlighting or table formatting based on the current configuration. For very large outputs (more than 5000 lines) highlighting/formatting is skipped and the sanitized text is returned directly.
+ *
+ * @param output - The raw terminal output text to process.
+ * @returns The processed output object containing:
+ *  - `type`: the detected `OutputType`;
+ *  - `content`: the processed string (may include ANSI color codes when highlighting is applied);
+ *  - `metadata`: an object with `lineCount`, `isLong`, `shouldFold`, and `foldThreshold`.
+ */
 
 function processOutput(output: string): ProcessedOutput {
   const normalized = normalizeNewlines(output);
@@ -171,6 +181,16 @@ function processOutput(output: string): ProcessedOutput {
   };
 }
 
+/**
+ * Detects the output's format (JSON, YAML, table, log, or plain text) based on its content.
+ *
+ * The function examines the trimmed, ANSI-stripped text to determine its most likely type:
+ * it attempts a JSON parse for bracketed content, looks for YAML-style key/value lines,
+ * recognizes table-like separators or consistent multi-column rows, and detects common log
+ * patterns (timestamps or level keywords). Empty or whitespace-only input is treated as plain text.
+ *
+ * @param output - The ANSI-free text to analyze.
+ * @returns The detected `OutputType`: `JSON`, `YAML`, `TABLE`, `LOG`, or `TEXT`.
 function detectType(output: string): OutputType {
   const trimmed = output.trim();
   if (!trimmed) return OutputType.TEXT;
@@ -214,6 +234,17 @@ function detectType(output: string): OutputType {
   return OutputType.TEXT;
 }
 
+/**
+ * Format JSON text with two-space indentation and apply ANSI color highlighting.
+ *
+ * Parses the provided JSON, pretty-prints it with two-space indentation, and
+ * applies ANSI color codes to keys, string values, numeric values, booleans,
+ * `null`, and JSON punctuation. If the input is not valid JSON, the original
+ * `jsonText` is returned unchanged.
+ *
+ * @param jsonText - The JSON text to format and highlight
+ * @returns The colorized, pretty-printed JSON string, or the original input if parsing fails
+ */
 function highlightJSON(jsonText: string): string {
   try {
     const parsed = JSON.parse(jsonText);
@@ -230,6 +261,12 @@ function highlightJSON(jsonText: string): string {
   }
 }
 
+/**
+ * Apply ANSI color highlighting to YAML-formatted text.
+ *
+ * @param yamlText - The YAML input to process
+ * @returns The input text with ANSI color codes applied: keys rendered in cyan bold; string values in green; numeric values in yellow; boolean-like values in magenta; `null`/`~` in bright black; comment lines in bright black; and list item markers (`- `) in white. Lines that do not match YAML key/value, comment, or list-item patterns are returned unchanged.
+ */
 function highlightYAML(yamlText: string): string {
   return yamlText
     .split('\n')
@@ -264,6 +301,12 @@ function highlightYAML(yamlText: string): string {
     .join('\n');
 }
 
+/**
+ * Apply ANSI color highlighting to log text for timestamps, severity levels, IP addresses, and HTTP status codes.
+ *
+ * @param logText - The raw log text to highlight
+ * @returns The input log text with ANSI color codes inserted for matched timestamps, level keywords (e.g., ERROR, WARN, INFO, DEBUG, SUCCESS), IP addresses, and HTTP status codes (2xx–5xx)
+ */
 function highlightLog(logText: string): string {
   return logText
     .split('\n')
@@ -295,6 +338,17 @@ function highlightLog(logText: string): string {
     .join('\n');
 }
 
+/**
+ * Format a plain-text table into aligned columns and apply ANSI styling for separators and header.
+ *
+ * The function parses the input into separator lines and data rows, calculates column widths,
+ * pads each cell to align columns, wraps separator lines with dim coloring, and highlights the
+ * first data row as a cyan bold header. If the input cannot be parsed into a table, the original
+ * text is returned unchanged.
+ *
+ * @param tableText - Raw table-like text (rows separated by newlines; cells separated by `|` or by two or more spaces)
+ * @returns The table text with columns aligned and ANSI styles applied, or the original `tableText` if formatting is not applicable
+ */
 function formatTable(tableText: string): string {
   const lines = tableText.split('\n').filter((line) => line.trim().length);
   if (!lines.length) return tableText;
@@ -346,6 +400,16 @@ function formatTable(tableText: string): string {
   return formatted.join('\n');
 }
 
+/**
+ * Highlights URLs and path-like segments in the given text with ANSI color codes.
+ *
+ * Wraps `http`/`https` URLs in blue bold ANSI codes. Also highlights leading path-like segments
+ * (strings beginning with `/` and composed of path characters) in cyan unless the prefix ends
+ * with `:` or the path starts with `//`, in which case the segment is left unchanged.
+ *
+ * @param text - The input text to scan for URLs and path-like segments
+ * @returns The input string with matched URLs and eligible paths wrapped in ANSI color codes
+ */
 function highlightLinks(text: string): string {
   let result = text.replace(/(https?:\/\/[^\s]+)/g, `${ANSI.BLUE}${ANSI.BOLD}$1${ANSI.RESET}`);
   result = result.replace(
@@ -360,6 +424,14 @@ function highlightLinks(text: string): string {
   return result;
 }
 
+/**
+ * Split a single table line into its constituent cell strings.
+ *
+ * Supports two formats: pipe-separated cells (e.g., "| a | b |") and cells separated by two or more spaces. Each returned cell is trimmed of surrounding whitespace. For pipe-separated lines, leading or trailing empty segments produced by outer pipes are removed. For space-separated lines, empty cells are preserved only if the original line contained two consecutive spaces.
+ *
+ * @param line - A single input line from a table.
+ * @returns An array of trimmed cell strings parsed from the line.
+ */
 function parseTableCells(line: string): string[] {
   if (line.includes('|')) {
     const raw = line.split('|').map((cell) => cell.trim());
@@ -374,10 +446,22 @@ function parseTableCells(line: string): string[] {
     .filter((cell) => cell.length || line.includes('  '));
 }
 
+/**
+ * Normalize newline sequences in a string to LF (`\n`).
+ *
+ * @param value - Input text that may contain CRLF (`\r\n`) or CR (`\r`) newlines
+ * @returns The input with all `\r\n` and `\r` sequences replaced by `\n`
+ */
 function normalizeNewlines(value: string): string {
   return value.replace(/\r\n?/g, '\n');
 }
 
+/**
+ * Remove ANSI escape sequences from a string.
+ *
+ * @param value - The input string that may contain ANSI escape codes (e.g. color or style sequences)
+ * @returns The input string with all ANSI escape sequences removed
+ */
 function stripAnsiCodes(value: string): string {
   return value.replace(ANSI_ESCAPE_REGEX, '');
 }

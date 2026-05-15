@@ -114,8 +114,11 @@ router.beforeEach(async (to) => {
 });
 
 /**
- * 预加载指定路由的懒加载 chunk
- * 通过解析路由配置触发 dynamic import，使浏览器提前下载 chunk
+ * Prefetches the lazy-loaded chunk(s) for a route by triggering its dynamic imports.
+ *
+ * Resolves the given router path and, for each matched route record whose default component is a function, invokes that function to start downloading the associated chunk.
+ *
+ * @param path - Router path (e.g. "/workspace") to resolve and prefetch; dynamic imports on matched route components will be invoked if present.
  */
 function prefetchRoute(path: string) {
   const route = router.resolve(path);
@@ -130,8 +133,9 @@ function prefetchRoute(path: string) {
 }
 
 /**
- * 在浏览器空闲时预加载核心路由的 chunk
- * 优先级：Dashboard > Workspace > Connections
+ * Schedule preloading of core route component chunks when the browser is idle.
+ *
+ * Prefetches the Dashboard (`/`), Workspace (`/workspace`), and Connections (`/connections`) routes in that priority order. Uses `requestIdleCallback` with a 5000ms timeout when available; otherwise falls back to a 2000ms delayed task.
  */
 function schedulePrefetch() {
   const CORE_ROUTES = ['/', '/workspace', '/connections'];

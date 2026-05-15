@@ -402,14 +402,14 @@ let workerPool: ReturnType<typeof import('../workers/createWorkerPool').createWo
   null;
 
 /**
- * 在 Worker 线程中处理终端输出
+ * Process terminal output using a worker thread when beneficial.
  *
- * 将计算密集型的语法高亮处理移至 Worker 线程，避免阻塞主线程。
- * Worker 不可用时自动降级为同步处理。
+ * Falls back to synchronous processing on the main thread when the input is small,
+ * when worker creation or execution fails, or when workers are unavailable.
  *
- * @param text - 待处理的终端输出文本
- * @param options - 处理配置
- * @returns Promise<ProcessedOutput> - 处理结果
+ * @param text - The terminal output to process.
+ * @param options - Optional processing configuration: `foldThreshold`, `enableHighlight`, `enableTableFormat`, and `enableLinkDetection`.
+ * @returns The processed output containing `type`, `content`, and optional folding `metadata`.
  */
 export async function processInWorker(
   text: string,
@@ -455,7 +455,9 @@ export async function processInWorker(
 }
 
 /**
- * 销毁 Worker 池（应用卸载时调用）
+ * Destroy the global worker pool and release its resources.
+ *
+ * If no worker pool is initialized, this function does nothing.
  */
 export function destroyWorkerPool(): void {
   if (workerPool) {

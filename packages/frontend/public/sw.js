@@ -118,7 +118,13 @@ self.addEventListener('message', (event) => {
 
 // ==================== 缓存策略实现 ====================
 
-/** Cache-First：优先从缓存读取，未命中则网络请求并缓存 */
+/**
+ * Serve a request from cache when possible; if not cached, fetch it, store a successful response in the specified cache, and return the response.
+ *
+ * @param {Request|string} request - The Request or URL to match or fetch.
+ * @param {string} cacheName - Cache bucket name to store a successful network response.
+ * @returns {Promise<Response>} The cached response if found, otherwise the network response.
+ */
 async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) return cached;
@@ -131,7 +137,11 @@ async function cacheFirst(request, cacheName) {
   return response;
 }
 
-/** Network-First：优先网络请求，失败时降级到缓存 */
+/**
+ * Attempt to fetch the request from the network and fall back to cache or an offline response if network fails.
+ * @param {Request|string} request - The request (Request object or URL string) to fetch or match in cache.
+ * @returns {Response} The network response when available; otherwise the cached response, or a 503 "Offline" Response.
+ */
 async function networkFirst(request) {
   try {
     return await fetch(request);
@@ -141,7 +151,13 @@ async function networkFirst(request) {
   }
 }
 
-/** Network-First + 离线降级：导航请求专用，失败时返回缓存的 index.html */
+/**
+ * Serve navigation requests with a network-first strategy and fall back to cached pages.
+ *
+ * @param {Request} request - The navigation request to fetch.
+ * @param {string} cacheName - Cache name used to store successful navigation responses.
+ * @returns {Response} The network response if fetch succeeds; otherwise the cached response for the request or '/index.html', or an HTML 503 Response if none is available.
+ */
 async function networkFirstWithFallback(request, cacheName) {
   try {
     const response = await fetch(request);
@@ -159,7 +175,13 @@ async function networkFirstWithFallback(request, cacheName) {
   }
 }
 
-/** Network-First + 超时降级：API 请求专用，超时后降级到缓存 */
+/**
+ * Handle API requests with a network-first strategy that falls back to cache on failure or when a request times out.
+ * @param {Request|string} request - The request or URL to fetch and optionally cache.
+ * @param {string} cacheName - Name of the cache to write successful network responses to.
+ * @param {number} timeoutMs - Maximum time in milliseconds to wait for the network response before aborting.
+ * @returns {Response} The network response when available; otherwise a cached response for the request, or a 503 JSON response `{ error: "Offline" }`.
+ */
 async function networkFirstWithTimeout(request, cacheName, timeoutMs) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -188,7 +210,14 @@ async function networkFirstWithTimeout(request, cacheName, timeoutMs) {
   }
 }
 
-/** 限制缓存条目数量，淘汰最早的条目 */
+/**
+ * Ensure the specified cache holds at most `maxEntries` items by deleting the oldest entries.
+ *
+ * The oldest entries are determined by the order returned from `cache.keys()` (index 0 is oldest).
+ *
+ * @param {string} cacheName - The name of the cache to trim.
+ * @param {number} maxEntries - Maximum number of entries to retain in the cache.
+ */
 async function trimCache(cacheName, maxEntries) {
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();

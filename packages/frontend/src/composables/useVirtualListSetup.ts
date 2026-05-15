@@ -2,14 +2,15 @@ import { computed, type Ref } from 'vue';
 import { useVirtualList } from '@vueuse/core';
 
 /**
- * 虚拟列表通用配置 composable
+ * Provide a reusable virtual-list setup that wraps `useVirtualList` and exposes rendering bindings and a scroll helper.
  *
- * 封装 @vueuse/core 的 useVirtualList，提供统一的接口和自动 overscan 缩放。
- * 消除各组件重复的虚拟滚动样板代码。
+ * When `options.overscan` is omitted, the function computes an overscan value from `itemHeight` as `Math.ceil(200 / height)` and clamps it to the range [5, 15].
  *
- * @param dataSource - 数据源响应式引用
- * @param options - 配置项
- * @returns 虚拟列表控制对象
+ * @param dataSource - Reactive array `Ref` used as the list data source
+ * @param options - Configuration for item sizing and optional overscan
+ * @param options.itemHeight - Item height in pixels or a function that returns the height
+ * @param options.overscan - Optional override for the number of items to pre-render around the viewport
+ * @returns An object containing `list` (virtualized rendering rows), `containerProps` (props for the scroll container), `wrapperProps` (props for the inner wrapper), and `scrollTo` (function to scroll to a specific index)
  */
 export function useVirtualListSetup<T>(
   dataSource: Ref<T[]>,
