@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // 使用 vi.hoisted 创建 mock，确保在 vi.mock 之前执行
 const { mockUseAuthStore, mockAuthState } = vi.hoisted(() => {
@@ -10,7 +10,7 @@ vi.mock('../stores/auth.store', () => ({
   useAuthStore: mockUseAuthStore,
 }));
 
-import router from './index';
+import router, { schedulePrefetch } from './index';
 
 // Mock views to avoid actual component loading
 vi.mock('../views/DashboardView.vue', () => ({ default: { template: '<div />' } }));
@@ -110,6 +110,169 @@ describe('路由守卫', () => {
       await router.push('/workspace');
       await router.isReady();
       expect(router.currentRoute.value.name).toBe('Workspace');
+    });
+  });
+});
+
+// ==================== schedulePrefetch ====================
+
+describe('schedulePrefetch', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('应该是一个可导出的函数', () => {
+    expect(typeof schedulePrefetch).toBe('function');
+  });
+
+  describe('requestIdleCallback 可用时', () => {
+    it('应该调用 requestIdleCallback 而不是 setTimeout', () => {
+      const mockRIC = vi.fn();
+      (globalThis as unknown as Record<string, unknown>).requestIdleCallback = mockRIC;
+
+      schedulePrefetch();
+
+      expect(mockRIC).toHaveBeenCalled();
+      expect(mockRIC).toHaveBeenCalledWith(expect.any(Function), { timeout: 5000 });
+
+      delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+    });
+
+    it('应该使用 5000ms timeout 调用 requestIdleCallback', () => {
+      const mockRIC = vi.fn();
+      (globalThis as unknown as Record<string, unknown>).requestIdleCallback = mockRIC;
+
+      schedulePrefetch();
+
+      expect(mockRIC).toHaveBeenCalledWith(
+        expect.any(Function),
+        expect.objectContaining({ timeout: 5000 })
+      );
+
+      delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+    });
+
+    it('requestIdleCallback 回调执行时不应抛出错误', () => {
+      let capturedCallback: (() => void) | null = null;
+      (globalThis as unknown as Record<string, unknown>).requestIdleCallback = (
+        cb: () => void
+      ) => {
+        capturedCallback = cb;
+      };
+
+      schedulePrefetch();
+
+      expect(() => capturedCallback?.()).not.toThrow();
+
+      delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+    });
+  });
+
+  describe('requestIdleCallback 不可用时（降级）', () => {
+    beforeEach(() => {
+      // 确保没有 requestIdleCallback
+      if ('requestIdleCallback' in globalThis) {
+        delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+      }
+    });
+
+    it('应该使用 setTimeout 作为降级', () => {
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+
+      schedulePrefetch();
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000);
+
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('setTimeout 应延迟 2000ms', () => {
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+
+      schedulePrefetch();
+
+      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 2000);
+
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('setTimeout 回调执行后不应抛出错误', () => {
+      schedulePrefetch();
+
+      // 执行所有延迟定时器
+      expect(() => vi.runAllTimers()).not.toThrow();
+    });
+  });
+
+  describe('预加载路由', () => {
+    it('schedulePrefetch 调用后无论路由是否存在都不应抛出', () => {
+      // 确保没有 requestIdleCallback
+      if ('requestIdleCallback' in globalThis) {
+        delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+      }
+
+      expect(() => {
+        schedulePrefetch();
+        vi.runAllTimers();
+      }).not.toThrow();
+    });
+
+    it('多次调用 schedulePrefetch 应是安全的', () => {
+      if ('requestIdleCallback' in globalThis) {
+        delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+      }
+
+      expect(() => {
+        schedulePrefetch();
+        schedulePrefetch();
+        schedulePrefetch();
+        vi.runAllTimers();
+      }).not.toThrow();
+    });
+  });
+
+  describe('requestIdleCallback 与 setTimeout 优先级', () => {
+    it('同时有 requestIdleCallback 时应不调用 setTimeout', () => {
+      const mockRIC = vi.fn();
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+      (globalThis as unknown as Record<string, unknown>).requestIdleCallback = mockRIC;
+
+      schedulePrefetch();
+
+      expect(mockRIC).toHaveBeenCalled();
+      expect(setTimeoutSpy).not.toHaveBeenCalled();
+
+      delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('没有 requestIdleCallback 时应不调用 requestIdleCallback', () => {
+      if ('requestIdleCallback' in globalThis) {
+        delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
+      }
+
+      const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+      schedulePrefetch();
+
+      expect(setTimeoutSpy).toHaveBeenCalled();
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('requestIdleCallback 被调用时传入的 options.timeout 应为 5000', () => {
+      const mockRIC = vi.fn();
+      (globalThis as unknown as Record<string, unknown>).requestIdleCallback = mockRIC;
+
+      schedulePrefetch();
+
+      const [, options] = mockRIC.mock.calls[0];
+      expect(options).toEqual({ timeout: 5000 });
+
+      delete (globalThis as unknown as Record<string, unknown>).requestIdleCallback;
     });
   });
 });
