@@ -217,12 +217,10 @@ async function networkFirstWithTimeout(request, cacheName, timeoutMs) {
 }
 
 /**
- * Limit the number of entries in a cache by removing the oldest entries.
- *
- * Evicts entries when the cache contains more than `maxEntries`; eviction is
- * performed in FIFO order based on the array returned by `cache.keys()`.
- * @param {string} cacheName - The name of the cache to trim.
- * @param {number} maxEntries - The maximum number of entries to retain.
+ * Trim a cache to retain at most the specified number of entries by removing the oldest entries.
+ * Eviction is performed in FIFO order based on the order returned by `cache.keys()`.
+ * @param {string} cacheName - Name of the cache to trim.
+ * @param {number} maxEntries - Maximum number of entries to retain in the cache.
  */
 async function trimCache(cacheName, maxEntries) {
   const cache = await caches.open(cacheName);

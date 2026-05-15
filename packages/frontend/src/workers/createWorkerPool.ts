@@ -78,12 +78,12 @@ export function createWorkerPool(
   }
 
   /**
-   * Settle the pending promise matching a worker response and free its worker.
+   * Settle a pending request that matches a worker response and free its worker.
    *
-   * If a pending request with the response `id` exists, removes it from the pending map,
-   * clears its timeout, marks the originating worker as idle, and resolves with `payload`
-   * or rejects with an `Error` when `error` is present; then calls `processQueue`.
-   * Messages without a matching pending request are ignored.
+   * If a pending request with the response `id` exists, removes it from the pending
+   * map, clears its timeout, marks the originating worker as idle, resolves with
+   * the response `payload` or rejects with an `Error` when `error` is present,
+   * and then calls `processQueue`. Messages without a matching pending request are ignored.
    *
    * @param event - MessageEvent from a worker with shape `{ id, error?, payload? }`
    */
@@ -119,12 +119,12 @@ export function createWorkerPool(
   }
 
   /**
-   * Schedules the oldest pending request onto an available worker in the pool.
+   * Dispatches the oldest queued request to an available worker in the pool.
    *
-   * If the pool is destroyed or no idle worker exists, this function does nothing.
-   * When a candidate request is found, the chosen worker is marked busy and a
-   * `WorkerRequest` payload is prepared for dispatch; this function does not
-   * perform the actual `postMessage` send.
+   * If the pool is destroyed or no idle worker exists, the function returns without action.
+   * When a queued request is selected, the corresponding worker is marked busy and a
+   * `WorkerRequest` payload is prepared for dispatch; this function does not send the
+   * message to the worker itself.
    */
   function processQueue() {
     if (destroyed) return;
