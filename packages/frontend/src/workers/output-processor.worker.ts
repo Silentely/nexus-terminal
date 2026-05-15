@@ -117,17 +117,12 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
 };
 
 /**
- * Process raw terminal output into a typed, possibly highlighted and formatted representation.
+ * Converts raw terminal text into a structured ProcessedOutput by sanitizing, detecting type, and applying configured highlighting or formatting.
  *
- * Processes and sanitizes `output`, detects its type (JSON, YAML, LOG, TABLE, or TEXT), applies
- * highlighting/formatting according to current configuration, and detects links when enabled.
- * For very large inputs, highlighting/formatting is skipped and only sanitized text is returned.
+ * Normalizes newlines and strips ANSI escape codes, skips highlighting/formatting for very large inputs, detects JSON/YAML/TABLE/LOG/TEXT, applies type-specific rendering according to the current worker `config`, and optionally highlights links.
  *
- * @param output - The raw text from the terminal to process
- * @returns A ProcessedOutput containing:
- *  - `type`: the detected `OutputType`
- *  - `content`: the processed (highlighted/formatted or sanitized) text
- *  - `metadata`: an object with `lineCount`, `isLong`, `shouldFold`, and `foldThreshold`
+ * @param output - Raw terminal text to process
+ * @returns The processed output object containing the detected `type`, the resulting `content`, and `metadata` with `lineCount`, `isLong`, `shouldFold`, and `foldThreshold`
  */
 
 function processOutput(output: string): ProcessedOutput {
@@ -390,14 +385,10 @@ function formatTable(tableText: string): string {
 }
 
 /**
- * Highlights URLs and path-like segments in the provided text using ANSI escape sequences.
+ * Colorizes full URLs and eligible path-like segments in the input using ANSI escape sequences.
  *
- * The function colors full `http://` and `https://` URLs and also colors leading path-like fragments
- * (e.g., `/path/to/resource`) when they appear with a preceding whitespace or certain punctuation.
- * It avoids coloring when the prefix ends with `:` or when the path starts with `//`.
- *
- * @param text - The input text to scan for links and path-like segments
- * @returns The input string with matched URLs and eligible paths wrapped in ANSI color codes
+ * @param text - Input string to scan for URLs and path-like paths
+ * @returns The original text with full `http://`/`https://` URLs wrapped in blue+bold ANSI codes and eligible leading path-like segments wrapped in cyan ANSI codes
  */
 function highlightLinks(text: string): string {
   let result = text.replace(/(https?:\/\/[^\s]+)/g, `${ANSI.BLUE}${ANSI.BOLD}$1${ANSI.RESET}`);
@@ -446,10 +437,10 @@ function normalizeNewlines(value: string): string {
 }
 
 /**
- * Remove ANSI escape sequences from the provided string.
+ * Removes ANSI SGR escape sequences (e.g., `\x1b[...m`) from the input string.
  *
- * @param value - Input string that may contain ANSI escape codes (e.g., color or style sequences)
- * @returns The input string with all ANSI escape sequences removed
+ * @param value - The string that may contain ANSI escape codes
+ * @returns The string with all ANSI escape sequences removed
  */
 function stripAnsiCodes(value: string): string {
   return value.replace(ANSI_ESCAPE_REGEX, '');

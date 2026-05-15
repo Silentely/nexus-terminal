@@ -2,17 +2,15 @@ import { computed, type Ref } from 'vue';
 import { useVirtualList } from '@vueuse/core';
 
 /**
- * Create a reusable virtual-list setup with automatic overscan scaling.
+ * Provide a reusable virtual-list setup with automatic overscan scaling.
  *
- * Provides a unified wrapper around `useVirtualList` that returns the virtualized
- * rendering data and binding props while automatically computing an appropriate
- * `overscan` when not explicitly provided.
+ * When `options.overscan` is omitted, computes an overscan based on `itemHeight`
+ * as `clamp(ceil(200 / height), 5, 15)` to balance smoothness and render cost.
  *
  * @param dataSource - A `Ref` to the source array to be virtualized.
- * @param options - Configuration options.
  * @param options.itemHeight - Item height in pixels, either a fixed number or a function returning the height.
- * @param options.overscan - Optional explicit overscan (number of items to prerender); if omitted an automatic value is computed.
- * @returns An object with `list`, `containerProps`, `wrapperProps`, and `scrollTo` for driving a virtual list.
+ * @param options.overscan - Optional explicit overscan (number of items to prerender); when omitted an automatic value is computed.
+ * @returns An object containing `list`, `containerProps`, `wrapperProps`, and `scrollTo` for driving a virtualized list.
  */
 export function useVirtualListSetup<T>(
   dataSource: Ref<T[]>,

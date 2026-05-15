@@ -78,14 +78,13 @@ export function createWorkerPool(
   }
 
   /**
-   * Handle an inbound worker message and settle the matching pending request.
+   * Settle the pending request that matches an incoming worker message and free the worker.
    *
-   * Finds a pending request by `event.data.id`; if a matching request exists, clears its timeout,
-   * removes it from the pending map, marks the originating worker as idle, resolves with the
-   * payload or rejects with an Error when `event.data.error` is present, and then triggers queue processing.
-   * If no matching pending request is found, the message is ignored.
+   * If a pending request with the message's `id` exists, clears its timeout, removes it from the pending map,
+   * marks the originating worker as idle, and resolves with `payload` or rejects with `Error(error)`.
+   * Messages with unknown `id` values are ignored.
    *
-   * @param event - The MessageEvent from a worker containing `{ id, error?, payload? }`
+   * @param event - The worker MessageEvent containing `{ id, error?, payload? }`
    */
   function handleMessage(event: MessageEvent<WorkerResponse>) {
     const { id, error } = event.data;
@@ -110,19 +109,19 @@ export function createWorkerPool(
   }
 
   /**
-   * Log a worker runtime error to the console with a WorkerPool prefix.
+   * Logs a worker runtime error to the console with a WorkerPool prefix.
    *
-   * @param event - The ErrorEvent emitted by the Worker containing the error message
+   * @param event - The ErrorEvent emitted by the worker containing the error message
    */
   function handleWorkerError(event: ErrorEvent) {
     console.error('[WorkerPool] Worker 错误:', event.message);
   }
 
   /**
-   * Reserves an idle worker and prepares the oldest pending request for dispatch.
+   * Reserve an idle worker and prepare the earliest pending request for dispatch.
    *
-   * If the pool is destroyed or no idle worker exists, the function returns without action.
-   * Otherwise it marks the chosen worker as busy and constructs the WorkerRequest for the earliest entry in the pending map; it does not actually post the message to the worker.
+   * If the pool is destroyed or no idle worker is available, the function does nothing.
+   * Otherwise it marks the selected worker as busy and constructs the WorkerRequest for the oldest pending entry without sending it.
    */
   function processQueue() {
     if (destroyed) return;

@@ -455,7 +455,9 @@ export async function processInWorker(
 }
 
 /**
- * Destroy the internal worker pool and release its resources.
+ * Destroy the internal worker pool and free its associated resources.
+ *
+ * If no worker pool exists, the call has no effect and is safe to repeat.
  */
 export function destroyWorkerPool(): void {
   if (workerPool) {
