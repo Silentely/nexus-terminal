@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { OutputProcessor, OutputType } from './output-processor';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { OutputProcessor, OutputType, processInWorker, destroyWorkerPool } from './output-processor';
 
 describe('OutputProcessor', () => {
   let processor: OutputProcessor;
@@ -649,5 +649,135 @@ describe('OutputProcessor', () => {
       const result = processor.process('test');
       expect(result.type).toBe(OutputType.TEXT);
     });
+  });
+});
+
+// ==================== processInWorker / destroyWorkerPool ====================
+
+describe('processInWorker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // 每次测试前销毁可能存在的 Worker 池，保证测试隔离
+    destroyWorkerPool();
+  });
+
+  afterEach(() => {
+    destroyWorkerPool();
+  });
+
+  describe('小数据包同步处理（text.length <= 100）', () => {
+    it('短文本应返回有效的 ProcessedOutput', async () => {
+      const result = await processInWorker('hello');
+      expect(result).toBeDefined();
+      expect(result.type).toBeDefined();
+      expect(result.content).toBeDefined();
+    });
+
+    it('恰好 100 字符时应同步处理，返回 TEXT 类型', async () => {
+      const text = 'a'.repeat(100);
+      const result = await processInWorker(text);
+      expect(result.type).toBe(OutputType.TEXT);
+    });
+
+    it('空字符串应返回 TEXT 类型', async () => {
+      const result = await processInWorker('');
+      expect(result.type).toBe(OutputType.TEXT);
+    });
+
+    it('99 字符文本应同步处理', async () => {
+      const text = 'x'.repeat(99);
+      const result = await processInWorker(text);
+      expect(result).toBeDefined();
+      expect(typeof result.content).toBe('string');
+    });
+
+    it('短文本中的有效 JSON 应被检测为 json 类型', async () => {
+      // 短 JSON 应同步处理，但仍检测类型
+      const result = await processInWorker('{}');
+      expect(result.type).toBe(OutputType.JSON);
+    });
+  });
+
+  describe('大数据包处理（text.length > 100）：降级到主线程', () => {
+    it('大文本（>100 字符）应返回有效结果（Worker 不可用时降级处理）', async () => {
+      // 在测试环境中 Worker 不可用，processInWorker 会降级到同步处理
+      const longText = 'a'.repeat(200);
+      const result = await processInWorker(longText);
+      expect(result).toBeDefined();
+      expect(result.type).toBe(OutputType.TEXT);
+      expect(result.content).toBeDefined();
+    });
+
+    it('大文本 JSON 应被正确检测并处理', async () => {
+      // 超过 100 字符的 JSON
+      const longJson = JSON.stringify({ key: 'value', data: 'x'.repeat(80) });
+      expect(longJson.length).toBeGreaterThan(100);
+      const result = await processInWorker(longJson);
+      expect(result).toBeDefined();
+      // 降级处理仍然能正确识别类型
+      expect(result.type).toBe(OutputType.JSON);
+    });
+
+    it('Worker 不可用时不应抛出异常', async () => {
+      const longText = 'some text that is quite long and should trigger worker processing pipeline fallback behavior';
+      expect(longText.length).toBeGreaterThan(100);
+      await expect(processInWorker(longText)).resolves.toBeDefined();
+    });
+
+    it('传入选项时应正确处理', async () => {
+      const longText = '{"key": "value", "data": "' + 'x'.repeat(80) + '"}';
+      const result = await processInWorker(longText, { enableHighlight: false });
+      expect(result).toBeDefined();
+      // 禁用高亮时，内容不应包含 ANSI 代码
+      if (result.type === OutputType.JSON) {
+        expect(result.content).not.toContain('\x1b[');
+      }
+    });
+
+    it('包含换行的大文本应返回正确的 lineCount 元数据', async () => {
+      const lines = Array.from({ length: 10 }, (_, i) => `Line ${i}: ${'x'.repeat(10)}`).join('\n');
+      expect(lines.length).toBeGreaterThan(100);
+      const result = await processInWorker(lines);
+      expect(result.metadata?.lineCount).toBe(10);
+    });
+  });
+
+  describe('metadata', () => {
+    it('返回值应包含 metadata 字段', async () => {
+      const result = await processInWorker('hello world');
+      expect(result.metadata).toBeDefined();
+    });
+
+    it('metadata.shouldFold 对短文本应为 false', async () => {
+      const result = await processInWorker('short text');
+      expect(result.metadata?.shouldFold).toBe(false);
+    });
+
+    it('metadata.foldThreshold 应为 500', async () => {
+      const result = await processInWorker('test');
+      expect(result.metadata?.foldThreshold).toBe(500);
+    });
+  });
+});
+
+describe('destroyWorkerPool', () => {
+  it('未创建 Worker 池时调用不应抛出', () => {
+    destroyWorkerPool(); // 先清理
+    expect(() => destroyWorkerPool()).not.toThrow();
+  });
+
+  it('重复调用不应抛出', () => {
+    destroyWorkerPool();
+    destroyWorkerPool();
+    destroyWorkerPool();
+    // 无异常即通过
+    expect(true).toBe(true);
+  });
+
+  it('销毁后调用 processInWorker 仍应正常工作（重新初始化）', async () => {
+    destroyWorkerPool();
+    const result = await processInWorker('hello');
+    expect(result).toBeDefined();
+    expect(result.type).toBeDefined();
   });
 });
