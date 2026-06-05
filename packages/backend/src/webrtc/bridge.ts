@@ -10,6 +10,7 @@
 import WebSocket from 'ws';
 import { RTCDataChannel } from 'werift';
 import { logger } from '../utils/logger';
+import { validateUrlNotPrivate } from '../utils/url';
 
 /**
  * Guacamole 握手指令过滤器
@@ -23,14 +24,24 @@ const CLIENT_HANDSHAKE_FILTER = /^(connect|select|size|audio|video|image|timezon
  * @param remoteGatewayUrl remote-gateway WebSocket URL
  * @param sessionId 会话 ID（用于日志）
  */
-export function bridgeDataChannelToGateway(
+export async function bridgeDataChannelToGateway(
   dc: RTCDataChannel,
   remoteGatewayUrl: string,
   sessionId: string
-): void {
+): Promise<void> {
   if (!remoteGatewayUrl) {
     logger.error(`[WebRTC Bridge] remoteGatewayUrl 为空: ${sessionId}`);
     dc.send(JSON.stringify({ type: 'error', payload: 'remote-gateway URL 未配置' }));
+    return;
+  }
+
+  // 验证 remoteGatewayUrl 不属于私有网络
+  try {
+    await validateUrlNotPrivate(remoteGatewayUrl, 'WebRTC-Bridge');
+  } catch (error) {
+    const errorMsg = `SSRF 验证失败: ${error instanceof Error ? error.message : '未知错误'}`;
+    logger.error(`[WebRTC Bridge] ${errorMsg}: ${sessionId}`);
+    dc.send(JSON.stringify({ type: 'error', payload: errorMsg }));
     return;
   }
 
