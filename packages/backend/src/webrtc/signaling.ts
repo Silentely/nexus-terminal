@@ -81,7 +81,10 @@ function handleSignalingConnection(clientWs: WebSocket): void {
 
       switch (message.type) {
         case 'offer':
-          await handleOffer(clientWs, message);
+          sessionId = await handleOffer(clientWs, message);
+          if (sessionId) {
+            session = activeSessions.get(sessionId) || null;
+          }
           break;
         case 'ice-candidate':
           await handleIceCandidate(clientWs, message);
@@ -113,12 +116,12 @@ function handleSignalingConnection(clientWs: WebSocket): void {
 /**
  * 处理 SDP offer：创建后端 RTCPeerConnection 并生成 answer
  */
-async function handleOffer(clientWs: WebSocket, message: SignalingMessage): Promise<void> {
+async function handleOffer(clientWs: WebSocket, message: SignalingMessage): Promise<string> {
   const offer = message.payload as RTCSessionDescriptionInit;
 
   if (!offer || offer.type !== 'offer') {
     sendError(clientWs, '无效的 SDP offer');
-    return;
+    return '';
   }
 
   const sessionId = `webrtc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -133,12 +136,20 @@ async function handleOffer(clientWs: WebSocket, message: SignalingMessage): Prom
     })),
   });
 
+  // 从 offer payload 中提取 remoteGatewayUrl
+  const offerPayload = message as unknown as { remoteGatewayUrl?: string };
+  const remoteGatewayUrl = offerPayload.remoteGatewayUrl || '';
+
+  if (!remoteGatewayUrl) {
+    logger.warn(`[WebRTC Signaling] remoteGatewayUrl 未提供: ${sessionId}`);
+  }
+
   const session: ActiveWebRTCSession = {
     pc,
     dc: null,
     ws: clientWs,
     sessionId,
-    remoteGatewayUrl: '', // 由前端在 offer 中指定
+    remoteGatewayUrl, // 从前端 offer 中提取
     createdAt: Date.now(),
   };
 
@@ -191,6 +202,7 @@ async function handleOffer(clientWs: WebSocket, message: SignalingMessage): Prom
   }
 
   logger.debug(`[WebRTC Signaling] SDP answer 已发送: ${sessionId}`);
+  return sessionId;
 }
 
 /**

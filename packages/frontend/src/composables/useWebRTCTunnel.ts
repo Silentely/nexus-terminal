@@ -121,10 +121,12 @@ export class WebRTCTunnel {
       this.pc.onconnectionstatechange = () => {
         const connectionState = this.pc?.connectionState;
         if (connectionState === 'connected') {
+          this.clearConnectTimer();
           this.setState('connected');
           // 通知 Guacamole Client 连接已建立
           this.onstatechange?.(3); // 3 = CONNECTED
         } else if (connectionState === 'failed' || connectionState === 'disconnected') {
+          this.clearConnectTimer();
           this.handleError(`WebRTC 连接 ${connectionState}`);
           this.onstatechange?.(5); // 5 = DISCONNECTED
         }

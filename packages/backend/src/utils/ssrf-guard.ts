@@ -14,6 +14,7 @@
 import http from 'http';
 import https from 'https';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import ipaddr from 'ipaddr.js';
 import { resolveAndValidatePublicHost, SsrfValidationResult } from './url';
 import { logger } from './logger';
 
@@ -53,10 +54,8 @@ async function getOrResolveHost(
   const result = await resolveAndValidatePublicHost(targetUrl, sourceTag);
 
   // 写入缓存（非直接 IP 才缓存）
-  try {
-    // eslint-disable-next-line no-new
-    new URL(`http://${hostname}`);
-  } catch {
+  // 使用 ipaddr.js 检测是否为 IP 地址
+  if (!ipaddr.isValid(hostname)) {
     // hostname 不是合法 IP，说明是域名，可以缓存
     dnsCache.set(hostname, {
       result,

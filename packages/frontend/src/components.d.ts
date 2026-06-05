@@ -68,6 +68,7 @@ declare module 'vue' {
     PaneTitleBar: typeof import('./components/PaneTitleBar.vue')['default']
     PasskeyManagement: typeof import('./components/settings/PasskeyManagement.vue')['default']
     PathHistoryDropdown: typeof import('./components/PathHistoryDropdown.vue')['default']
+    PerformanceMonitor: typeof import('./features/terminal/components/PerformanceMonitor.vue')['default']
     ProxyList: typeof import('./components/ProxyList.vue')['default']
     QuickCommandContextMenu: typeof import('./components/QuickCommandContextMenu.vue')['default']
     QuickCommandListItem: typeof import('./components/QuickCommandListItem.vue')['default']
