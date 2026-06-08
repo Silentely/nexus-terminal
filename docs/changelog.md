@@ -4,20 +4,14 @@
 
 ## [Unreleased]
 
-### 改进
-
-- 🎨 WebGPU 渲染支持（`useWebGPURenderer`）：新增 WebGPU 能力检测与 GPUDevice 管理，作为最高优先级渲染模式，不可用时自动降级到 WebGL/Canvas/DOM
-- 🎨 WebCodecs 视频解码（`useVideoDecoder`）：新增基于 WebCodecs API 的硬件加速视频解码 composable，支持 OffscreenCanvas 离屏渲染，移动端/低端设备条件启用
-- 📱 终端触摸手势增强（`useTouchGestures`）：单指长按 500ms 弹出复制/粘贴/全选快捷菜单，单指上下滑动精准控制终端滚动
-- 📱 RDP/VNC 触摸-鼠标映射（`useTouchMouseMapping`）：支持 Absolute（直接映射坐标）和 Relative（触控板模式）两种模式，单指 tap=左键、长按=右键、双指 tap=右键、拖拽=鼠标拖拽
-
-## v1.5.4（2026-06-05）
+## v1.5.4（2026-06-08）
 
 ### 修复
 
 - 🐛 修复 WebRTC 远程桌面桥接的 SSRF 防护漏洞（PR #92）— `bridgeDataChannelToGateway` 在建立 WebSocket 连接前，新增 `validateUrlNotPrivate` 验证 `remoteGatewayUrl`，阻止指向私有/内部地址的恶意网关 URL
 - 🐛 修复 SSRF DNS 缓存误缓存直接 IP 地址问题（PR #92）— 使用 `ipaddr.js` 明确检测 IP 地址格式，替代原先 `new URL()` 的间接判断方式，避免原始 IP 被错误写入 DNS 缓存
 - 🐛 修复 WebRTC 连接状态变更时定时器未清理问题（PR #92）— 前端 `WebRTCTunnel` 在 `connected`、`failed`、`disconnected` 状态变更时调用 `clearConnectTimer()`，防止连接超时计时器在已确定状态下继续触发
+- 🐛 修复 SFTP 大文件上传 5 秒超时中断问题（Issue #95）— `closeTimeoutFallback` 原先在 `startUpload()` 阶段立即启动 5 秒倒计时，而非在 `stream.end()` 调用后启动，导致 88MB+ 文件传输必然超时中断；将计时器移至 `_doFlushPendingChunks()` 中 `stream.end()` 调用处，确保仅在全部字节写入后启动，同时新增 `endRequested` 字段防止重入重复调用
 
 ### 改进
 
@@ -27,7 +21,11 @@
 - 📝 结构化日志增强：AsyncLocalStorage 日志上下文自动传播（requestId、userId、sessionId、protocol）
 - 🎨 终端渲染优化：Unicode11Addon 支持 CJK 宽字符对齐
 - 🎨 新增异步搜索 Web Worker
+- 🎨 WebGPU 渲染支持（`useWebGPURenderer`）：新增 WebGPU 能力检测与 GPUDevice 管理，作为最高优先级渲染模式，不可用时自动降级到 WebGL/Canvas/DOM
+- 🎨 WebCodecs 视频解码（`useVideoDecoder`）：新增基于 WebCodecs API 的硬件加速视频解码 composable，支持 OffscreenCanvas 离屏渲染，移动端/低端设备条件启用
 - 📱 移动端优化：VisualViewport 键盘避让、触摸手势增强（双指缩放字号）
+- 📱 终端触摸手势增强（`useTouchGestures`）：单指长按 500ms 弹出复制/粘贴/全选快捷菜单，单指上下滑动精准控制终端滚动
+- 📱 RDP/VNC 触摸-鼠标映射（`useTouchMouseMapping`）：支持 Absolute（直接映射坐标）和 Relative（触控板模式）两种模式，单指 tap=左键、长按=右键、双指 tap=右键、拖拽=鼠标拖拽
 - 📱 PWA manifest 完善：新增快捷方式、display_override
 
 ### 安全
@@ -113,6 +111,8 @@
 - 🔧 chore: 发布 v1.5.2 版本并清理废弃运行时脚本
 
 - 🐛 fix: 修复 RDP 握手冲突、SFTP 大文件超时误报及进度计数丢失问题
+
+- 🔧 chore: 更新版本号至 1.5.4 并调整变更日志结构
 
 ## v1.5.1（2026-05-19）
 
