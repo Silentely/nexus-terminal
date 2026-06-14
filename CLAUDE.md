@@ -270,3 +270,69 @@ Remote Gateway (8080/9090) -> Guacamole Lite + Guacd (4822)
 - 决策历史：`.context/history/commits.md`
 
 **规则**：修改代码前必读 prefs/，做决策时按 workflow.md 规则记录日志。
+
+---
+
+## 🧠 项目记忆管理
+
+### 项目容器标签
+
+**containerTag**: `nexus-terminal`
+
+### 关键记忆点
+
+#### 架构决策
+- **Monorepo 架构**：npm workspaces 管理 backend/frontend/remote-gateway 三个子包
+- **前后端分离**：RESTful API + WebSocket 实时通信
+- **微服务部署**：后端服务、前端应用、远程网关独立容器化
+- **多协议支持**：SSH/SFTP/RDP/VNC/Telnet 统一管理
+
+#### 技术栈特性
+- **前端**：Vue 3 Composition API + Pinia + Xterm.js + Monaco Editor
+- **后端**：Express + TypeScript + SQLite3 + SSH2 + WebSocket
+- **远程网关**：Guacamole Lite 协议转换层
+- **测试**：Vitest（单元）+ Playwright（E2E）+ Autocannon（性能）
+
+#### 踩坑记录
+- **会话持久化**：网络断开后自动保持会话，需正确处理 WebSocket 重连和状态恢复
+- **加密密钥管理**：`ENCRYPTION_KEY` 必须 32 字节 hex，首次启动自动生成不可更改
+- **Guacamole 协议**：RDP/VNC 需要 Guacd daemon (4822) + Guacamole Lite WebSocket 桥接
+- **日志量控制**：`ENABLE_REQUEST_LOG=false` 可关闭访问日志，避免高频请求刷屏
+
+#### 分层架构约定
+- **后端**：`routes.ts` → `controller.ts` → `service.ts` → `repository.ts`
+- **前端**：View 组件 → Pinia Store → API Service
+- **数据库**：24 张表，统一在 `schema.ts` 定义
+- **WebSocket**：`websocket.ts` 主入口 + `handlers/` 分协议处理
+
+#### 测试覆盖率要求
+- Service: 行 ≥80%, 分支 ≥70%
+- Controller: 行 ≥70%, 分支 ≥60%
+- Repository: 行 ≥60%, 分支 ≥50%
+- Utils: 行 ≥90%, 分支 ≥80%
+- Store: 行 ≥80%, 分支 ≥70%
+- Component: 行 ≥60%, 分支 ≥50%
+
+#### 编码偏好
+- 文件命名：kebab-case（`auth.controller.ts`）
+- 类名/接口：PascalCase
+- 变量/函数：camelCase
+- 常量：UPPER_SNAKE_CASE
+- 测试描述：使用中文
+
+#### 安全实践
+- **AI 安全审计**：基于规则引擎的异常检测 + 风险评分
+- **审计日志**：完整记录用户行为，支持 Webhook/Email/Telegram 通知
+- **加密存储**：敏感数据（密码、密钥）使用 AES-256-GCM 加密
+- **HSTS 支持**：生产环境 HTTPS 可启用 `ENABLE_HSTS=true`
+
+### 自动记忆触发
+
+- 修改 WebSocket 协议处理 → 检索 "WebSocket SSH SFTP RDP VNC 会话恢复"
+- 添加新数据表 → 检索 "schema.ts 数据库迁移 加密字段"
+- 前端状态管理 → 检索 "Pinia Store Composition API 响应式"
+- 远程网关调试 → 检索 "Guacamole 协议转换 Guacd 连接"
+- 审计功能开发 → 检索 "AI 审计 规则引擎 风险评分"
+- 通知系统集成 → 检索 "Webhook Email Telegram 通知模板"
+
+---
