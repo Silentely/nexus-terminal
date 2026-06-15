@@ -55,6 +55,7 @@
   "homepage": "https://github.com/Silentely/nexus-terminal#readme",
   "description": "",
   "dependencies": {
+    "@vue/shared": "^3.5.38",
     "archiver-zip-encrypted": "^2.0.0",
     "axios": "^1.15.0",
     "element-plus": "^2.13.7",

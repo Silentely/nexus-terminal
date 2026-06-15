@@ -28,6 +28,8 @@ import { settingsRepository } from '../settings/settings.repository';
 import crypto from 'crypto';
 import { encrypt, decrypt } from '../utils/crypto';
 import { ErrorFactory } from '../utils/AppError';
+import * as PollinationsRepository from '../pollinations/pollinations.repository.js';
+import * as PollinationsService from '../pollinations/pollinations.service.js';
 import { logger } from '../utils/logger';
 import { resolveAndValidatePublicHost } from '../utils/url';
 import { createPinnedLookup } from '../utils/ssrf-guard';
@@ -448,7 +450,8 @@ export async function generateCommandStream(
   request: NL2CMDRequest,
   onChunk: (chunk: string) => void,
   traceId?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  userId?: number
 ): Promise<NL2CMDResponse> {
   const startTime = Date.now();
   try {
@@ -456,6 +459,14 @@ export async function generateCommandStream(
     if (!settings || !settings.enabled) {
       return { success: false, error: 'AI 功能未启用或未配置' };
     }
+
+    const prompt = buildNL2CMDPrompt(request);
+
+    // 流式模式暂不走 Pollinations（不支持 stream），直接回退到默认 Provider
+    if (userId !== undefined) {
+      // Pollinations 不支持 stream，直接使用默认 Provider
+    }
+
     const config: AIProviderConfig = {
       provider: settings.provider,
       baseUrl: settings.baseUrl,
@@ -463,7 +474,6 @@ export async function generateCommandStream(
       model: settings.model,
       openaiEndpoint: settings.openaiEndpoint,
     };
-    const prompt = buildNL2CMDPrompt(request);
     let providerResult: ProviderResult;
     const providerStart = Date.now();
 
@@ -808,9 +818,87 @@ function buildErrorMessage(error: AxiosError): string {
  * 生成命令（主函数）
  * 特性：429 限流自动重试（指数退避）
  */
-export async function generateCommand(
+/**
+ * 尝试使用用户的 Pollinations 账户生成命令（BYOP）
+ *
+ * 行为：
+ * - 用户未启用 Pollinations → 返回 null（调用方回退到默认 Provider）
+ * - 启用且生成成功 → 返回成功响应
+ * - 启用但生成失败 → 记录日志并返回 null（无缝回退到默认 Provider）
+ *
+ * @param userId 当前用户 ID
+ * @param prompt 已构造好的 NL2CMD prompt
+ * @param request 原始请求（用于日志）
+ * @param traceId 链路追踪 ID
+ * @returns 成功响应或 null（表示应回退）
+ */
+async function tryGenerateWithPollinations(
+  userId: number,
+  prompt: string,
   request: NL2CMDRequest,
   traceId?: string
+): Promise<NL2CMDResponse | null> {
+  // 检查用户是否启用了 Pollinations
+  const enabled = await PollinationsRepository.isPollinationsEnabled(userId).catch((error) => {
+    logger.warn('[NL2CMD] 检查 Pollinations 启用状态失败，回退到默认 Provider', {
+      traceId,
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  });
+  if (!enabled) {
+    return null;
+  }
+
+  try {
+    const providerStart = Date.now();
+    const result = await PollinationsService.generateText(
+      userId,
+      {
+        prompt,
+        model: 'openai',
+        max_tokens: 500,
+        temperature: 0.3,
+      },
+      traceId
+    );
+
+    const command = cleanCommandOutput(result.text);
+    if (!command) {
+      logger.warn('[NL2CMD] Pollinations 返回空命令，回退到默认 Provider', { traceId, userId });
+      return null;
+    }
+
+    const warning = detectDangerousCommand(command);
+    const providerMs = Date.now() - providerStart;
+
+    logger.info('[NL2CMD Timing] Pollinations Success', {
+      traceId,
+      userId,
+      providerMs,
+      model: result.model,
+      tokens: result.usage.total_tokens,
+      queryLen: request.query.length,
+      hasWarning: Boolean(warning),
+    });
+
+    return { success: true, command, warning };
+  } catch (error: unknown) {
+    // Pollinations 失败时回退到默认 Provider，不中断用户体验
+    logger.warn('[NL2CMD] Pollinations 生成失败，回退到默认 Provider', {
+      traceId,
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
+export async function generateCommand(
+  request: NL2CMDRequest,
+  traceId?: string,
+  userId?: number
 ): Promise<NL2CMDResponse> {
   const startTime = Date.now();
 
@@ -825,6 +913,22 @@ export async function generateCommand(
       return { success: false, error: 'AI 功能未启用或未配置' };
     }
 
+    const prompt = buildNL2CMDPrompt(request);
+
+    // Pollinations BYOP 优先：若用户启用了自己的 Pollinations 账户，优先使用
+    if (userId !== undefined) {
+      const pollinationsResult = await tryGenerateWithPollinations(
+        userId,
+        prompt,
+        request,
+        traceId
+      );
+      if (pollinationsResult) {
+        return pollinationsResult;
+      }
+      // Pollinations 未启用或失败 → 回退到默认 Provider（继续下方逻辑）
+    }
+
     const config: AIProviderConfig = {
       provider: settings.provider,
       baseUrl: settings.baseUrl,
@@ -832,8 +936,6 @@ export async function generateCommand(
       model: settings.model,
       openaiEndpoint: settings.openaiEndpoint,
     };
-
-    const prompt = buildNL2CMDPrompt(request);
 
     if (process.env.NODE_ENV === 'development' || request.debug) {
       logger.debug('[NL2CMD Debug] Request:', {

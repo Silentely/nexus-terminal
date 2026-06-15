@@ -273,4 +273,10 @@ export const tableDefinitions: TableDefinition[] = [
       logger.debug('[DB Init] AI 审计任务表索引创建完成。');
     },
   },
+
+  // Pollinations BYOP 集成模块
+  {
+    name: 'pollinations_settings',
+    sql: schemaSql.createPollinationsSettingsTableSQL,
+  },
 ];

@@ -101,7 +101,8 @@ describe('NL2CMD Controller', () => {
           shellType: 'bash',
           currentPath: undefined,
         },
-        expect.any(String)
+        expect.any(String),
+        1
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockResult);

@@ -470,3 +470,22 @@ export const createAiAuditTasksIndexesSQL = [
   `CREATE INDEX IF NOT EXISTS idx_ai_audit_tasks_user ON ai_audit_tasks(user_id);`,
   `CREATE INDEX IF NOT EXISTS idx_ai_audit_tasks_status ON ai_audit_tasks(status);`,
 ];
+
+// ========== Pollinations BYOP 集成模块 ==========
+
+// Pollinations 配置表
+export const createPollinationsSettingsTableSQL = `
+CREATE TABLE IF NOT EXISTS pollinations_settings (
+    user_id INTEGER PRIMARY KEY NOT NULL,
+    encrypted_app_key TEXT NOT NULL,
+    encrypted_user_key TEXT NULL,
+    scope TEXT NOT NULL DEFAULT 'usage,keys',
+    models TEXT NOT NULL DEFAULT 'openai,claude,gemini',
+    budget REAL NOT NULL DEFAULT 5.0,
+    expiry INTEGER NOT NULL DEFAULT 604800,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+`;

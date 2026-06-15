@@ -58,7 +58,7 @@ export const generateCommand = async (req: Request, res: Response): Promise<void
       currentPath,
     };
 
-    const response = await NL2CMDService.generateCommand(request, traceId);
+    const response = await NL2CMDService.generateCommand(request, traceId, userId);
     res.status(200).json(response);
 
     const durationMs = Date.now() - start;
@@ -258,7 +258,8 @@ export const generateCommandStream = async (req: Request, res: Response): Promis
         }
       },
       traceId,
-      abortController.signal
+      abortController.signal,
+      userId
     );
 
     if (!clientDisconnected && !res.writableEnded) {

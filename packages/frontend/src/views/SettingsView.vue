@@ -53,8 +53,9 @@
         </div>
 
         <!-- AI Settings Tab -->
-        <div v-if="activeTab === 'ai'">
+        <div v-if="activeTab === 'ai'" class="space-y-6">
           <AISettingsSection />
+          <PollinationsSettingsPanel />
         </div>
 
         <!-- Security Tab Content -->
@@ -168,6 +169,7 @@ import SystemSettingsSection from '../components/settings/SystemSettingsSection.
 import DataManagementSection from '../components/settings/DataManagementSection.vue';
 import AppearanceSection from '../components/settings/AppearanceSection.vue';
 import AISettingsSection from '../components/settings/AISettingsSection.vue';
+import PollinationsSettingsPanel from '../components/settings/PollinationsSettingsPanel.vue';
 
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();

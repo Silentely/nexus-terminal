@@ -795,4 +795,114 @@ describe('NL2CMD Service', () => {
       expect(result.warning).toContain('完全权限');
     });
   });
+
+  describe('Pollinations BYOP 集成', () => {
+    beforeAll(() => {
+      // Mock Pollinations 模块
+      vi.mock('../pollinations/pollinations.repository.js', () => ({
+        isPollinationsEnabled: vi.fn(),
+      }));
+      vi.mock('../pollinations/pollinations.service.js', () => ({
+        generateText: vi.fn(),
+      }));
+    });
+
+    beforeEach(() => {
+      // 重置模块缓存，确保 mock 生效
+      vi.resetModules();
+    });
+
+    it('当 Pollinations 启用时应调用 generateText 并传递 traceId', async () => {
+      const PollinationsRepository = await import('../pollinations/pollinations.repository.js');
+      const PollinationsService = await import('../pollinations/pollinations.service.js');
+
+      vi.mocked(PollinationsRepository.isPollinationsEnabled).mockResolvedValue(true);
+      vi.mocked(PollinationsService.generateText).mockResolvedValue({
+        text: 'ls -la',
+        model: 'openai',
+        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+      });
+
+      // Mock AI 设置（getAISettings 需要调用 settingsRepository.getSetting）
+      const mockSettings = {
+        enabled: true,
+        provider: 'openai',
+        baseUrl: 'https://api.openai.com',
+        apiKey: 'encrypted_sk-test',
+        model: 'gpt-4o-mini',
+      };
+      vi.mocked(settingsRepository.getSetting).mockResolvedValue(JSON.stringify(mockSettings));
+
+      const { generateCommand } = await import('./nl2cmd.service');
+      const result = await generateCommand({ query: '列出文件' }, 'test-trace-id', 1);
+
+      expect(PollinationsService.generateText).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          prompt: expect.stringContaining('列出文件'), // buildNL2CMDPrompt 会生成完整 prompt
+          model: 'openai',
+        }),
+        'test-trace-id' // traceId 应该被正确传递
+      );
+      expect(result.success).toBe(true);
+      expect(result.command).toBe('ls -la');
+    });
+
+    it('当 Pollinations 未启用时应回退到默认 Provider', async () => {
+      const PollinationsRepository = await import('../pollinations/pollinations.repository.js');
+
+      vi.mocked(PollinationsRepository.isPollinationsEnabled).mockResolvedValue(false);
+
+      const mockSettings = {
+        enabled: true,
+        provider: 'openai',
+        baseUrl: 'https://api.openai.com',
+        apiKey: 'encrypted_sk-test',
+        model: 'gpt-4o-mini',
+      };
+      vi.mocked(settingsRepository.getSetting).mockResolvedValue(JSON.stringify(mockSettings));
+
+      mockPost.mockResolvedValue({
+        data: {
+          choices: [{ message: { content: 'ls -la' } }],
+        },
+      });
+
+      const { generateCommand } = await import('./nl2cmd.service');
+      const result = await generateCommand({ query: '列出文件' }, undefined, 1);
+
+      expect(result.success).toBe(true);
+      expect(result.command).toBe('ls -la');
+    });
+
+    it('当 isPollinationsEnabled 失败时应记录 warn 并回退', async () => {
+      const PollinationsRepository = await import('../pollinations/pollinations.repository.js');
+
+      vi.mocked(PollinationsRepository.isPollinationsEnabled).mockRejectedValue(
+        new Error('Database connection failed')
+      );
+
+      const mockSettings = {
+        enabled: true,
+        provider: 'openai',
+        baseUrl: 'https://api.openai.com',
+        apiKey: 'encrypted_sk-test',
+        model: 'gpt-4o-mini',
+      };
+      vi.mocked(settingsRepository.getSetting).mockResolvedValue(JSON.stringify(mockSettings));
+
+      mockPost.mockResolvedValue({
+        data: {
+          choices: [{ message: { content: 'ls -la' } }],
+        },
+      });
+
+      const { generateCommand } = await import('./nl2cmd.service');
+      const result = await generateCommand({ query: '列出文件' }, undefined, 1);
+
+      expect(result.success).toBe(true);
+      expect(result.command).toBe('ls -la');
+      // 注意：无法直接断言 logger.warn 调用，但至少验证回退行为正常
+    });
+  });
 });
