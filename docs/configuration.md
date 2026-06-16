@@ -8,7 +8,7 @@
 | --------- | --------------------------------------------- | ------------------------------------------------------------ |
 | 环境变量  | [Docker 环境变量配置](./configuration/docker) | 完整的环境变量参考，含 Backend 和 Remote Gateway             |
 | CORS 跨域 | [CORS 跨域配置](./configuration/cors)         | 自定义域名、多域名、开发环境 CORS 配置                       |
-| 本页      | 下方                                          | Passkey、API Token、速率限制、WebSocket、日志、HTTPS、防火墙 |
+| 本页      | [下方各章节](#passkey-认证配置)               | Passkey、API Token、速率限制、WebSocket、日志、HTTPS、防火墙 |
 
 ---
 
@@ -35,7 +35,7 @@ RP_ORIGIN=https://domain-a.com,https://domain-b.com
 
 ### WebAuthn 端点
 
-确保 `/.well-known/webauthn` 可访问，该端点会自动配置。
+检查 `/.well-known/webauthn` 是否可访问，该端点会自动配置。
 
 ## API Token 配置
 
@@ -52,7 +52,7 @@ remote-gateway:
 ::: tip 建议
 
 - 使用强随机字符串（建议 32+ 字符）
-- Backend 和 Remote Gateway 必须使用相同 Token
+- Backend 和 Remote Gateway 需要使用相同 Token
   :::
 
 ## 速率限制

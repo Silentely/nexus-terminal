@@ -12,7 +12,7 @@
 
 **升级时必须更新**：`docker-compose.yml` 端口映射、宿主机 Nginx 反向代理配置、`.env` 中的环境变量默认值。
 
-详见 [更新日志](./changelog) 中的 v1.5.1 破坏性变更说明。
+[更新日志](./changelog)中有 v1.5.1 破坏性变更的完整说明。
 :::
 
 ## 前置要求
@@ -74,7 +74,7 @@ Docker 部署包含三个容器，职责如下：
 | **remote-gateway** | 8081 (WebSocket) / 9090 (API) | Guacamole 网关，处理 RDP/VNC 远程桌面连接                           |
 
 ::: warning 注意
-前端容器的 nginx 默认只代理 `/api/` 和 `/ws/` 到 backend。**`/guacamole/` 不会自动转发到 remote-gateway**，需要在宿主机 Nginx 中单独处理（详见 [Nginx 反向代理配置](./deployment/nginx)）。
+前端容器的 nginx 默认只代理 `/api/` 和 `/ws/` 到 backend。**`/guacamole/` 不会自动转发到 remote-gateway**，需要在宿主机 Nginx 中单独处理（[Nginx 反向代理配置](./deployment/nginx)中有详细步骤）。
 :::
 
 ## 手动 Docker Compose 部署
@@ -230,19 +230,19 @@ RP_ORIGIN=https://your-domain.com
 
 ::: warning 安全提示
 
-- `RP_ID` 应为您的域名（不带协议和端口）
-- `RP_ORIGIN` 应为完整的 URL（包含协议）
-- 启用 Passkey 后，确保 `/.well-known/webauthn` 可访问
+- `RP_ID` 需填写您的域名（不带协议和端口）
+- `RP_ORIGIN` 需填写完整的 URL（包含协议）
+- 启用 Passkey 后，检查 `/.well-known/webauthn` 是否可访问
   :::
 
 ### Remote Gateway API 鉴权（推荐）
 
 ```dotenv
-# 共享令牌：backend 与 remote-gateway 必须使用相同值
+# 共享令牌：backend 与 remote-gateway 需要使用相同值
 REMOTE_GATEWAY_API_TOKEN=
 ```
 
-> 详细配置请参考 [环境变量配置](./configuration/docker)。
+> [环境变量配置](./configuration/docker)中有完整的变量列表和说明。
 
 ### Prometheus 监控（可选）
 
@@ -257,7 +257,7 @@ ENABLE_METRICS=true
 
 生产环境部署建议使用 Nginx 反向代理，提供 SSL 终止、静态资源缓存和 WebSocket 代理。
 
-详细配置请参考 [Nginx 反向代理配置指南](./deployment/nginx)，包含：
+[Nginx 反向代理配置指南](./deployment/nginx)包含以下内容：
 
 - 基础 HTTP 配置与 Docker Compose 部署配置
 - HTTPS/SSL 证书配置（Let's Encrypt 与自签名）
@@ -345,7 +345,7 @@ docker compose start backend
 Apache Guacamole 未提供 guacd 的 ARMv7 镜像，RDP 功能将被禁用。
 :::
 
-参考上方 Docker 部署章节中的详细说明。
+上方 Docker 部署章节中有详细说明。
 
 ## 健康检查
 

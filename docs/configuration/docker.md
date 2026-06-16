@@ -141,6 +141,8 @@
 | `FRONTEND_URL`     | `http://frontend`     | 前端 URL（始终加入 CORS 白名单） |
 | `MAIN_BACKEND_URL` | `http://backend:3001` | 后端 URL（始终加入 CORS 白名单） |
 
+> **代码默认值说明**：Remote Gateway 代码中的默认值为 `http://localhost:5173` 和 `http://localhost:3001`。Docker Compose 配置通过环境变量覆盖为容器服务名 `http://frontend` 和 `http://backend:3001`，实现容器间通信。
+
 ### API 鉴权
 
 | 变量名                     | 默认值 | 描述                                                   |

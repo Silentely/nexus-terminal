@@ -196,7 +196,7 @@ Nexus Terminal 覆盖远程服务器管理的核心场景，以下按模块说�
 | `sftp_transferred_bytes_total`  | Counter   | SFTP 传输总字节数（direction: upload/download） |
 | `auth_failures_total`           | Counter   | 认证失败次数（method: password/passkey/2fa）    |
 
-详细配置指南、Grafana Dashboard 模板和告警规则见 [监控与告警](./monitoring/index.md)。
+[监控与告警指南](./monitoring/index.md)包含配置详情、Grafana Dashboard 模板和告警规则。
 
 ## 性能优化
 

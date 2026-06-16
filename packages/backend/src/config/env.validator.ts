@@ -48,9 +48,14 @@ export interface EnvironmentConfig {
   TZ?: string;
   ENABLE_REQUEST_LOG?: boolean;
 
+  // 代理配置
+  TRUST_PROXY?: string;
+  TRUST_PROXY_HOPS?: number;
+
   // AI/NL2CMD 调试配置
   NL2CMD_TIMING_LOG?: '0' | '1';
   NL2CMD_SLOW_THRESHOLD_MS?: number;
+  NL2CMD_REQUEST_TIMEOUT_MS?: number;
 
   // WebSocket 多路复用
   ENABLE_MULTIPLEX?: boolean;
@@ -301,6 +306,26 @@ const ENV_SCHEMA: Record<keyof EnvironmentConfig, EnvVarSchema> = {
     default: 'UTC',
   },
 
+  // 代理配置
+  TRUST_PROXY: {
+    required: false,
+    type: 'string',
+    validator: (value: string) => {
+      // 支持 true/false 或数字（跳数）
+      return /^(true|false|\d+)$/i.test(value);
+    },
+    errorMessage: 'TRUST_PROXY 必须是 true/false 或数字（跳数）',
+  },
+  TRUST_PROXY_HOPS: {
+    required: false,
+    type: 'number',
+    validator: (value: string) => {
+      const hops = parseInt(value, 10);
+      return hops >= 1 && hops <= 10;
+    },
+    errorMessage: 'TRUST_PROXY_HOPS 必须在 1-10 之间',
+  },
+
   // AI/NL2CMD 调试配置
   NL2CMD_TIMING_LOG: {
     required: false,
@@ -317,6 +342,16 @@ const ENV_SCHEMA: Record<keyof EnvironmentConfig, EnvVarSchema> = {
       return ms >= 0 && ms <= 300000;
     },
     errorMessage: 'NL2CMD_SLOW_THRESHOLD_MS 必须在 0-300000 毫秒之间',
+  },
+  NL2CMD_REQUEST_TIMEOUT_MS: {
+    required: false,
+    type: 'number',
+    default: 30000,
+    validator: (value: string) => {
+      const ms = parseInt(value, 10);
+      return ms >= 1000 && ms <= 300000;
+    },
+    errorMessage: 'NL2CMD_REQUEST_TIMEOUT_MS 必须在 1000-300000 毫秒之间',
   },
 
   // WebSocket 多路复用
