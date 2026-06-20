@@ -45,7 +45,7 @@ vi.mock('../state', async (importOriginal) => {
 
 // Helper to create mock WebSocket
 function createMockWebSocket(
-  overrides: Partial<AuthenticatedWebSocket> = {}
+  overrides: Partial<AuthenticatedWebSocket> = {},
 ): AuthenticatedWebSocket {
   const ws = new EventEmitter() as AuthenticatedWebSocket;
   ws.readyState = WebSocket.OPEN;
@@ -89,7 +89,7 @@ describe('SFTP WebSocket Handler', () => {
         JSON.stringify({
           type: 'sftp_error',
           payload: { message: '无效的会话', requestId: 'req-1' },
-        })
+        }),
       );
     });
 
@@ -105,7 +105,7 @@ describe('SFTP WebSocket Handler', () => {
           type: 'sftp_error',
           payload: { message: 'SFTP 操作 sftp:readdir 缺少 requestId' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -128,7 +128,7 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:readdir', {}, 'req-1');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'path' in payload for readdir")
+        expect.stringContaining("Missing or unsafe 'path' in payload for readdir"),
       );
     });
 
@@ -153,14 +153,14 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:readfile',
         { path: '/home/test.txt', encoding: 'utf8' },
-        'req-3'
+        'req-3',
       );
 
       expect(sftpService.readFile).toHaveBeenCalledWith(
         'test-session',
         '/home/test.txt',
         'req-3',
-        'utf8'
+        'utf8',
       );
     });
 
@@ -174,7 +174,7 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:writefile',
         { path: '/home/test.txt', content: 'line1\r\nline2\rline3' },
-        'req-4'
+        'req-4',
       );
 
       // 不再进行 CRLF 转换，保持原始内容不变
@@ -183,7 +183,7 @@ describe('SFTP WebSocket Handler', () => {
         '/home/test.txt',
         'line1\r\nline2\rline3',
         'req-4',
-        undefined
+        undefined,
       );
     });
 
@@ -199,11 +199,11 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:writefile',
         { path: '/home/test.txt', content: 'data' },
-        'req-4c'
+        'req-4c',
       );
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining('处理 SFTP 请求 sftp:writefile 时出错')
+        expect.stringContaining('处理 SFTP 请求 sftp:writefile 时出错'),
       );
       const sent = JSON.parse(mockWs.send.mock.calls[0][0] as string);
       expect(sent.type).toBe('sftp_error');
@@ -218,7 +218,7 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:writefile', { content: 'data' }, 'req-4d');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'path' in payload for writefile")
+        expect.stringContaining("Missing or unsafe 'path' in payload for writefile"),
       );
     });
 
@@ -232,7 +232,7 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:writefile',
         { path: '/home/test.txt', content: 'from-content', data: 'from-data' },
-        'req-4e'
+        'req-4e',
       );
 
       expect(sftpService.writefile).toHaveBeenCalledWith(
@@ -240,7 +240,7 @@ describe('SFTP WebSocket Handler', () => {
         '/home/test.txt',
         'from-content',
         'req-4e',
-        undefined
+        undefined,
       );
     });
 
@@ -254,7 +254,7 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:writefile',
         { path: '/home/test.txt', data: 'from-data' },
-        'req-4f'
+        'req-4f',
       );
 
       expect(sftpService.writefile).toHaveBeenCalledWith(
@@ -262,7 +262,7 @@ describe('SFTP WebSocket Handler', () => {
         '/home/test.txt',
         'from-data',
         'req-4f',
-        undefined
+        undefined,
       );
     });
 
@@ -277,7 +277,7 @@ describe('SFTP WebSocket Handler', () => {
       // 缺少 content/data 时不应调用 writefile，而是发送错误
       expect(sftpService.writefile).not.toHaveBeenCalled();
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'content' or 'data'")
+        expect.stringContaining("Missing 'content' or 'data'"),
       );
     });
 
@@ -291,7 +291,7 @@ describe('SFTP WebSocket Handler', () => {
 
       // 缺少 path 应报错
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'path' in payload for writefile")
+        expect.stringContaining("Missing or unsafe 'path' in payload for writefile"),
       );
     });
 
@@ -303,7 +303,7 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:mkdir', {}, 'req-5b');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'path' in payload for mkdir")
+        expect.stringContaining("Missing or unsafe 'path' in payload for mkdir"),
       );
     });
 
@@ -315,7 +315,7 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:unlink', {}, 'req-7b');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'path' in payload for unlink")
+        expect.stringContaining("Missing or unsafe 'path' in payload for unlink"),
       );
     });
 
@@ -327,7 +327,7 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:rename', { oldPath: '/home/old.txt' }, 'req-8b');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'oldPath' or 'newPath' in payload for rename")
+        expect.stringContaining("Missing or unsafe 'oldPath' or 'newPath' in payload for rename"),
       );
     });
 
@@ -339,7 +339,7 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:chmod', { path: '/home/file.txt' }, 'req-9b');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'path' or invalid 'mode' in payload for chmod")
+        expect.stringContaining("Missing or unsafe 'path' or invalid 'mode' in payload for chmod"),
       );
     });
 
@@ -351,7 +351,9 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:copy', { sources: ['/home/file1.txt'] }, 'req-11b');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'sources' (array) or 'destination' in payload for copy")
+        expect.stringContaining(
+          "Missing or unsafe 'sources' (array) or 'destination' in payload for copy",
+        ),
       );
     });
 
@@ -363,7 +365,9 @@ describe('SFTP WebSocket Handler', () => {
       await handleSftpOperation(mockWs, 'sftp:move', { destination: '/backup' }, 'req-12b');
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining("Missing 'sources' (array) or 'destination' in payload for move")
+        expect.stringContaining(
+          "Missing or unsafe 'sources' (array) or 'destination' in payload for move",
+        ),
       );
     });
 
@@ -377,7 +381,7 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:writefile',
         { path: '/home/test.txt', content: 'hello', encoding: 'gbk' },
-        'req-4b'
+        'req-4b',
       );
 
       expect(sftpService.writefile).toHaveBeenCalledWith(
@@ -385,7 +389,7 @@ describe('SFTP WebSocket Handler', () => {
         '/home/test.txt',
         'hello',
         'req-4b',
-        'gbk'
+        'gbk',
       );
     });
 
@@ -432,14 +436,14 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:rename',
         { oldPath: '/home/old.txt', newPath: '/home/new.txt' },
-        'req-8'
+        'req-8',
       );
 
       expect(sftpService.rename).toHaveBeenCalledWith(
         'test-session',
         '/home/old.txt',
         '/home/new.txt',
-        'req-8'
+        'req-8',
       );
     });
 
@@ -453,14 +457,14 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:chmod',
         { path: '/home/file.txt', mode: 0o755 },
-        'req-9'
+        'req-9',
       );
 
       expect(sftpService.chmod).toHaveBeenCalledWith(
         'test-session',
         '/home/file.txt',
         0o755,
-        'req-9'
+        'req-9',
       );
     });
 
@@ -485,14 +489,14 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:copy',
         { sources: ['/home/file1.txt', '/home/file2.txt'], destination: '/backup' },
-        'req-11'
+        'req-11',
       );
 
       expect(sftpService.copy).toHaveBeenCalledWith(
         'test-session',
         ['/home/file1.txt', '/home/file2.txt'],
         '/backup',
-        'req-11'
+        'req-11',
       );
     });
 
@@ -506,14 +510,14 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:move',
         { sources: ['/home/file1.txt'], destination: '/archive' },
-        'req-12'
+        'req-12',
       );
 
       expect(sftpService.move).toHaveBeenCalledWith(
         'test-session',
         ['/home/file1.txt'],
         '/archive',
-        'req-12'
+        'req-12',
       );
     });
 
@@ -531,7 +535,7 @@ describe('SFTP WebSocket Handler', () => {
           destination: '/backup/archive.zip',
           format: 'zip',
         },
-        'req-13'
+        'req-13',
       );
 
       expect(sftpService.compress).toHaveBeenCalledWith('test-session', {
@@ -553,7 +557,7 @@ describe('SFTP WebSocket Handler', () => {
         mockWs,
         'sftp:decompress',
         { source: '/backup/archive.tar.gz' },
-        'req-14'
+        'req-14',
       );
 
       expect(sftpService.decompress).toHaveBeenCalledWith('test-session', {
@@ -593,7 +597,7 @@ describe('SFTP WebSocket Handler', () => {
         JSON.stringify({
           type: 'sftp:upload:error',
           payload: { uploadId: 'upload-1', message: '无效的会话' },
-        })
+        }),
       );
     });
 
@@ -609,7 +613,7 @@ describe('SFTP WebSocket Handler', () => {
           type: 'sftp:upload:error',
           payload: { uploadId: 'upload-1', message: '缺少 uploadId, remotePath 或 size' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -631,7 +635,7 @@ describe('SFTP WebSocket Handler', () => {
         'upload-1',
         '/home/test.txt',
         1024,
-        'folder/test.txt'
+        'folder/test.txt',
       );
     });
   });
@@ -677,7 +681,7 @@ describe('SFTP WebSocket Handler', () => {
         'upload-1',
         0,
         'base64data',
-        undefined
+        undefined,
       );
     });
 
@@ -699,7 +703,7 @@ describe('SFTP WebSocket Handler', () => {
         'upload-empty',
         0,
         '',
-        true
+        true,
       );
     });
   });
@@ -725,7 +729,7 @@ describe('SFTP WebSocket Handler', () => {
           type: 'sftp:upload:error',
           payload: { uploadId: undefined, message: '缺少 uploadId' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 

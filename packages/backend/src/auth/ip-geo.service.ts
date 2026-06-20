@@ -152,7 +152,7 @@ class IpGeoService {
     this.adapter = PROVIDER_ADAPTERS[providerName] || ipApiAdapter;
     if (providerName !== 'ip-api' && !PROVIDER_ADAPTERS[providerName]) {
       logger.warn(
-        `[IpGeo] 未知提供商 "${providerName}"，可用: ${Object.keys(PROVIDER_ADAPTERS).join(', ')}。回退到 ip-api。`
+        `[IpGeo] 未知提供商 "${providerName}"，可用: ${Object.keys(PROVIDER_ADAPTERS).join(', ')}。回退到 ip-api。`,
       );
       this.adapter = ipApiAdapter;
     }
@@ -204,7 +204,7 @@ class IpGeoService {
       const row = await getDbRow<DbCacheRow>(
         db,
         'SELECT * FROM ip_geo_cache WHERE ip = ? AND queried_at > ?',
-        [ip, cutoff]
+        [ip, cutoff],
       );
       if (!row) return null;
       return {
@@ -215,7 +215,8 @@ class IpGeoService {
         asn: row.asn || '',
         query: row.ip,
       };
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       return null;
     }
   }
@@ -237,7 +238,7 @@ class IpGeoService {
            asn = excluded.asn,
            provider = excluded.provider,
            queried_at = excluded.queried_at`,
-        [ip, geo.country, geo.regionName, geo.city, geo.isp, geo.asn, this.adapter.name, now]
+        [ip, geo.country, geo.regionName, geo.city, geo.isp, geo.asn, this.adapter.name, now],
       );
     } catch (err: unknown) {
       logger.debug('[IpGeo] 写入 SQLite 缓存失败:', err instanceof Error ? err.message : err);
@@ -314,7 +315,8 @@ export async function lookupGeoInfo(ip: string | undefined | null): Promise<stri
       const location = parts.join(', ');
       return location ? `${location} | ${asnOrIsp}` : asnOrIsp;
     }
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     /* 静默忽略 */
   }
   return undefined;

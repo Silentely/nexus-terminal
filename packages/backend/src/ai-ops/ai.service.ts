@@ -1,9 +1,9 @@
+import crypto from 'crypto';
 /**
  * AI 智能运维 Service 层
  * 提供系统健康分析、命令模式分析和智能问答功能
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { getDbInstance, allDb, getDb } from '../database/connection';
 import {
   AISession,
@@ -26,7 +26,7 @@ const SECONDS_24H = 24 * 60 * 60;
  */
 export async function getOrCreateSession(
   userId: number | string,
-  sessionId?: string
+  sessionId?: string,
 ): Promise<AISession> {
   if (sessionId) {
     const session = await AIRepository.getSession(sessionId);
@@ -39,7 +39,7 @@ export async function getOrCreateSession(
   }
 
   // 创建新会话
-  const newSessionId = uuidv4();
+  const newSessionId = crypto.randomUUID();
   return AIRepository.createSession(newSessionId, userId, '新对话');
 }
 
@@ -48,13 +48,13 @@ export async function getOrCreateSession(
  */
 export async function processQuery(
   userId: number | string,
-  request: AIQueryRequest
+  request: AIQueryRequest,
 ): Promise<AIQueryResponse> {
   // 获取或创建会话
   const session = await getOrCreateSession(userId, request.sessionId);
 
   // 存储用户消息
-  const userMessageId = uuidv4();
+  const userMessageId = crypto.randomUUID();
   await AIRepository.addMessage(userMessageId, session.sessionId, 'user', request.query, {
     context: request.context,
   });
@@ -86,13 +86,13 @@ export async function processQuery(
   }
 
   // 存储助手响应
-  const assistantMessageId = uuidv4();
+  const assistantMessageId = crypto.randomUUID();
   const assistantMessage = await AIRepository.addMessage(
     assistantMessageId,
     session.sessionId,
     'assistant',
     analysis.response,
-    { insights: analysis.insights }
+    { insights: analysis.insights },
   );
 
   // 如果是首条消息，生成会话标题
@@ -117,7 +117,7 @@ export async function processQuery(
 async function analyzeQuery(
   query: string,
   userId: number | string,
-  _context?: AIQueryRequest['context']
+  _context?: AIQueryRequest['context'],
 ): Promise<{
   response: string;
   insights: AIInsight[];
@@ -175,7 +175,7 @@ async function analyzeQuery(
  * @param userId 用户 ID，用于过滤该用户相关的数据
  */
 export async function getSystemHealthSummary(
-  userId?: number | string
+  userId?: number | string,
 ): Promise<SystemHealthSummary> {
   const db = await getDbInstance();
   const now = Math.floor(Date.now() / 1000);
@@ -202,21 +202,21 @@ export async function getSystemHealthSummary(
   const failedLogins = await getDb<{ count: number }>(
     db,
     `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ?`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
 
   // 24小时内 SSH 失败次数（单用户系统，不按用户过滤）
   const sshFailures = await getDb<{ count: number }>(
     db,
     `SELECT COUNT(*) as count FROM audit_logs WHERE action_type = 'SSH_CONNECT_FAILURE' AND timestamp >= ?`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
 
   // 24小时内执行的命令数量（单用户系统，不按用户过滤）
   const commandsExecuted = await getDb<{ count: number }>(
     db,
     `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ?`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
 
   // 热门连接（单 SQL JOIN 查询消除 N+1）
@@ -231,13 +231,13 @@ export async function getSystemHealthSummary(
            GROUP BY conn_id ORDER BY count DESC LIMIT 5
          ) al
          LEFT JOIN connections c ON al.conn_id = c.id`,
-    [oneDayAgo]
+    [oneDayAgo],
   ).then((rows) =>
     rows.map((item) => ({
       connectionId: item.connection_id,
       name: item.name || `连接 #${item.connection_id}`,
       commandCount: item.count,
-    }))
+    })),
   );
 
   // 确定整体状态
@@ -300,7 +300,7 @@ export async function getSystemHealthSummary(
  * @param userId 用户 ID，用于过滤该用户的命令历史
  */
 export async function analyzeCommandPatterns(
-  _userId?: number | string
+  _userId?: number | string,
 ): Promise<CommandPatternAnalysis> {
   const db = await getDbInstance();
   const now = Math.floor(Date.now() / 1000);
@@ -310,7 +310,7 @@ export async function analyzeCommandPatterns(
   const totalResult = await getDb<{ count: number }>(
     db,
     `SELECT COUNT(*) as count FROM command_history WHERE timestamp >= ?`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
   const totalCommands = totalResult?.count || 0;
 
@@ -320,7 +320,7 @@ export async function analyzeCommandPatterns(
     `SELECT SUBSTR(command, 1, INSTR(command || ' ', ' ') - 1) as cmd_name, COUNT(*) as count
            FROM command_history WHERE timestamp >= ?
            GROUP BY cmd_name ORDER BY count DESC LIMIT 10`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
 
   const topCommands = topCommandsData.map((item) => ({
@@ -335,7 +335,7 @@ export async function analyzeCommandPatterns(
     `SELECT (timestamp % 86400) / 3600 as hour, COUNT(*) as count
            FROM command_history WHERE timestamp >= ?
            GROUP BY hour ORDER BY hour`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
 
   const timeDistribution: Record<string, number> = {};
@@ -351,7 +351,7 @@ export async function analyzeCommandPatterns(
     const found = await allDb<{ command: string }>(
       db,
       `SELECT DISTINCT command FROM command_history WHERE timestamp >= ? AND command LIKE ? LIMIT 3`,
-      [oneDayAgo, `%${keyword}%`]
+      [oneDayAgo, `%${keyword}%`],
     );
     unusualCommands.push(...found.map((f) => f.command));
   }
@@ -380,7 +380,7 @@ async function analyzeSecurityEvents(_userId?: number | string): Promise<AIInsig
     `SELECT details, timestamp FROM audit_logs
            WHERE action_type = 'LOGIN_FAILURE' AND timestamp >= ?
            ORDER BY timestamp DESC LIMIT 10`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
 
   if (failedLogins.length > 0) {
@@ -416,7 +416,7 @@ async function analyzeSecurityEvents(_userId?: number | string): Promise<AIInsig
     db,
     `SELECT COUNT(*) as count FROM audit_logs
            WHERE action_type IN ('2FA_ENABLED', '2FA_DISABLED') AND timestamp >= ?`,
-    [oneDayAgo]
+    [oneDayAgo],
   );
 
   if ((twoFactorChanges?.count || 0) > 0) {
@@ -466,7 +466,7 @@ async function analyzeConnectionStats(userId?: number | string): Promise<{
   const byType = await allDb<{ type: string; count: number }>(
     db,
     `SELECT type, COUNT(*) as count FROM connections GROUP BY type`,
-    []
+    [],
   );
 
   let sshConnections = 0;
@@ -504,7 +504,7 @@ async function analyzeConnectionStats(userId?: number | string): Promise<{
     db,
     `SELECT id, name, last_connected_at FROM connections
            ORDER BY last_connected_at DESC NULLS LAST LIMIT 5`,
-    []
+    [],
   );
 
   const recentlyUsed = recentlyUsedData.map((item) => ({
@@ -683,7 +683,7 @@ function generateSessionTitle(query: string): string {
 export async function getUserSessions(
   userId: number | string,
   limit: number = 50,
-  offset: number = 0
+  offset: number = 0,
 ): Promise<AISession[]> {
   return AIRepository.getSessionsByUser(userId, limit, offset);
 }
@@ -693,7 +693,7 @@ export async function getUserSessions(
  */
 export async function getSessionDetails(
   sessionId: string,
-  userId: number | string
+  userId: number | string,
 ): Promise<AISession | null> {
   const isOwner = await AIRepository.isSessionOwnedByUser(sessionId, userId);
   if (!isOwner) return null;
@@ -715,7 +715,7 @@ export async function deleteSession(sessionId: string, userId: number | string):
  */
 export async function cleanupUserSessions(
   userId: number | string,
-  keepCount: number = 50
+  keepCount: number = 50,
 ): Promise<number> {
   return AIRepository.cleanupOldSessions(userId, keepCount);
 }

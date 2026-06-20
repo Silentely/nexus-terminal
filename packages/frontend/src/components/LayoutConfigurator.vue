@@ -56,18 +56,16 @@ watch(
     if (newValue) {
       // --- Load initial data and create original copies ---
       // Main layout
-      const initialLayout = layoutStore.layoutTree
-        ? JSON.parse(JSON.stringify(layoutStore.layoutTree))
-        : null;
+      const initialLayout = layoutStore.layoutTree ? structuredClone(layoutStore.layoutTree) : null;
       localLayoutTree.value = initialLayout;
-      originalLayoutTree.value = JSON.parse(JSON.stringify(initialLayout)); // Deep copy for original
+      originalLayoutTree.value = structuredClone(initialLayout); // Deep copy for original
 
       // Sidebar config
       const initialSidebars = layoutStore.sidebarPanes
-        ? JSON.parse(JSON.stringify(layoutStore.sidebarPanes))
+        ? structuredClone(layoutStore.sidebarPanes)
         : { left: [], right: [] };
       localSidebarPanes.value = initialSidebars;
-      originalSidebarPanes.value = JSON.parse(JSON.stringify(initialSidebars)); // Deep copy for original
+      originalSidebarPanes.value = structuredClone(initialSidebars); // Deep copy for original
 
       // Initialize available panes: Include 'terminal' only if it's not already used.
       const initialUsed = getAllLocalUsedPaneNames(localLayoutTree.value, localSidebarPanes.value);
@@ -80,11 +78,11 @@ watch(
       }
       // Ensure original order is maintained
       localAvailablePanes.value.sort(
-        (a, b) => layoutStore.allPossiblePanes.indexOf(a) - layoutStore.allPossiblePanes.indexOf(b)
+        (a, b) => layoutStore.allPossiblePanes.indexOf(a) - layoutStore.allPossiblePanes.indexOf(b),
       );
 
       log.info(
-        '[LayoutConfigurator] Dialog opened, initial data loaded and original copies created.'
+        '[LayoutConfigurator] Dialog opened, initial data loaded and original copies created.',
       );
     } else {
       // --- Clear all state on close ---
@@ -95,7 +93,7 @@ watch(
       localAvailablePanes.value = [];
       log.info('[LayoutConfigurator] Dialog closed, state cleared.');
     }
-  }
+  },
 );
 
 // --- Helper Functions ---
@@ -115,7 +113,7 @@ function getMainLayoutUsedPaneNames(node: LayoutNode | null): Set<PaneName> {
 
 function getAllLocalUsedPaneNames(
   mainNode: LayoutNode | null,
-  sidebars: { left: PaneName[]; right: PaneName[] }
+  sidebars: { left: PaneName[]; right: PaneName[] },
 ): Set<PaneName> {
   const usedNames = getMainLayoutUsedPaneNames(mainNode);
   sidebars.left.forEach((pane) => usedNames.add(pane));
@@ -230,7 +228,7 @@ const saveLayout = async () => {
     log.info('[LayoutConfigurator] Main layout tree update awaited.');
 
     // Save sidebar config and wait for persistence
-    const sidebarConfigToSave = JSON.parse(JSON.stringify(localSidebarPanes.value));
+    const sidebarConfigToSave = structuredClone(localSidebarPanes.value);
     log.info('[LayoutConfigurator] Updating sidebar panes in store:', sidebarConfigToSave);
     await layoutStore.updateSidebarPanes(sidebarConfigToSave); // Await the async action
     log.info('[LayoutConfigurator] Sidebar panes update awaited.');
@@ -247,17 +245,17 @@ const resetToDefault = async () => {
   const confirmed = await showConfirmDialog({
     message: t(
       'layoutConfigurator.confirmReset',
-      '确定要恢复默认布局和侧栏配置吗？当前更改将丢失。'
+      '确定要恢复默认布局和侧栏配置吗？当前更改将丢失。',
     ),
   });
   if (confirmed) {
     // Reset main layout
     const defaultLayout = layoutStore.getSystemDefaultLayout();
-    localLayoutTree.value = JSON.parse(JSON.stringify(defaultLayout));
+    localLayoutTree.value = structuredClone(defaultLayout);
 
     // Reset sidebar config
     const defaultSidebarPanes = layoutStore.getSystemDefaultSidebarPanes();
-    localSidebarPanes.value = JSON.parse(JSON.stringify(defaultSidebarPanes));
+    localSidebarPanes.value = structuredClone(defaultSidebarPanes);
 
     // Reset available panes: Include 'terminal' only if it's not used in the default layout.
     const defaultUsed = getAllLocalUsedPaneNames(localLayoutTree.value, localSidebarPanes.value);
@@ -268,7 +266,7 @@ const resetToDefault = async () => {
     }
     // Ensure original order
     localAvailablePanes.value.sort(
-      (a, b) => layoutStore.allPossiblePanes.indexOf(a) - layoutStore.allPossiblePanes.indexOf(b)
+      (a, b) => layoutStore.allPossiblePanes.indexOf(a) - layoutStore.allPossiblePanes.indexOf(b),
     );
 
     log.info('[LayoutConfigurator] Reset to default layout, sidebar panes, and available panes.');
@@ -319,7 +317,7 @@ const handleNodeUpdate = (updatedNode: LayoutNode) => {
 function findAndRemoveNode(
   node: LayoutNode | null,
   parentNodeId: string | undefined,
-  nodeIndex: number
+  nodeIndex: number,
 ): LayoutNode | null {
   if (!node) return null;
 
@@ -333,7 +331,7 @@ function findAndRemoveNode(
     const updatedChildren = [...node.children];
     const removedNode = updatedChildren.splice(nodeIndex, 1)[0]; // Remove and get the node
     log.info(
-      `[LayoutConfigurator] Removing node at index ${nodeIndex} from parent ${parentNodeId}`
+      `[LayoutConfigurator] Removing node at index ${nodeIndex} from parent ${parentNodeId}`,
     );
 
     // If the removed node was the terminal pane, add it back to available list
@@ -347,7 +345,7 @@ function findAndRemoveNode(
   // Case 2: Traverse deeper
   if (node.type === 'container' && node.children) {
     const updatedChildren = node.children.map((child) =>
-      findAndRemoveNode(child, parentNodeId, nodeIndex)
+      findAndRemoveNode(child, parentNodeId, nodeIndex),
     );
     // Check if any child subtree was modified
     if (updatedChildren.some((child, index) => child !== node.children![index])) {
@@ -369,7 +367,7 @@ const handleNodeRemove = async (payload: {
     const confirmed = await showConfirmDialog({
       message: t(
         'layoutConfigurator.confirmClearLayout',
-        '确定要清空整个布局吗？所有面板将返回可用列表。'
+        '确定要清空整个布局吗？所有面板将返回可用列表。',
       ),
     });
     if (confirmed) {
@@ -380,7 +378,7 @@ const handleNodeRemove = async (payload: {
     localLayoutTree.value = findAndRemoveNode(
       localLayoutTree.value,
       payload.parentNodeId,
-      payload.nodeIndex
+      payload.nodeIndex,
     );
   } else {
     log.warn('[LayoutConfigurator] Invalid remove payload:', payload);
@@ -392,7 +390,7 @@ const removeSidebarPane = (side: 'left' | 'right', index: number) => {
   const removedPane = localSidebarPanes.value[side].splice(index, 1)[0]; // Remove and get pane name
   if (removedPane) {
     log.info(
-      `[LayoutConfigurator] Removed pane '${removedPane}' from ${side} sidebar at index ${index}.`
+      `[LayoutConfigurator] Removed pane '${removedPane}' from ${side} sidebar at index ${index}.`,
     );
     // If the removed pane was 'terminal', add it back to available list
     if (removedPane === 'terminal') {
@@ -428,12 +426,12 @@ const onDraggableChange = (event: DraggableChangeEvent, side: 'left' | 'right') 
       const addedPaneName = (addedElement as { component: PaneName }).component;
       targetList.splice(addedIndex, 1, addedPaneName);
       log.info(
-        `[LayoutConfigurator] Replaced added LayoutNode at index ${addedIndex} on ${side} sidebar with PaneName: ${addedPaneName}`
+        `[LayoutConfigurator] Replaced added LayoutNode at index ${addedIndex} on ${side} sidebar with PaneName: ${addedPaneName}`,
       );
     } else {
       log.info(
         `[LayoutConfigurator] Added event detected on ${side} sidebar, but element was not a LayoutNode:`,
-        addedElement
+        addedElement,
       );
     }
   } else if (event.moved || event.removed) {
@@ -458,7 +456,7 @@ const handleAvailablePaneDragEnd = (event: DraggableEndEvent) => {
       // Other panes are clones, do nothing to the available list
     } else {
       log.error(
-        '[LayoutConfigurator] Could not determine dragged pane name in handleAvailablePaneDragEnd.'
+        '[LayoutConfigurator] Could not determine dragged pane name in handleAvailablePaneDragEnd.',
       );
     }
   } else {

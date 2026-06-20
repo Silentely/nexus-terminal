@@ -2,7 +2,7 @@
  * AI 审计分析路由
  */
 
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { AiAuditController } from './ai-audit.controller';
 import { isAuthenticated } from '../auth/auth.middleware';
 
@@ -13,14 +13,28 @@ const controller = new AiAuditController();
 router.use(isAuthenticated);
 
 // 审计报告
-router.post('/reports', (req, res) => controller.createReport(req, res));
-router.get('/reports', (req, res) => controller.getReports(req, res));
-router.get('/reports/:id', (req, res) => controller.getReportById(req, res));
-router.delete('/reports/:id', (req, res) => controller.deleteReport(req, res));
+router.post('/reports', (req: Request, res: Response, next: NextFunction) =>
+  controller.createReport(req, res, next),
+);
+router.get('/reports', (req: Request, res: Response, next: NextFunction) =>
+  controller.getReports(req, res, next),
+);
+router.get('/reports/:id', (req: Request, res: Response, next: NextFunction) =>
+  controller.getReportById(req, res, next),
+);
+router.delete('/reports/:id', (req: Request, res: Response, next: NextFunction) =>
+  controller.deleteReport(req, res, next),
+);
 
 // 异常检测
-router.get('/anomalies', (req, res) => controller.getAnomalies(req, res));
-router.get('/anomalies/stats', (req, res) => controller.getAnomalyStats(req, res));
-router.patch('/anomalies/:id/acknowledge', (req, res) => controller.acknowledgeAnomaly(req, res));
+router.get('/anomalies', (req: Request, res: Response, next: NextFunction) =>
+  controller.getAnomalies(req, res, next),
+);
+router.get('/anomalies/stats', (req: Request, res: Response, next: NextFunction) =>
+  controller.getAnomalyStats(req, res, next),
+);
+router.patch('/anomalies/:id/acknowledge', (req: Request, res: Response, next: NextFunction) =>
+  controller.acknowledgeAnomaly(req, res, next),
+);
 
 export { router as aiAuditRoutes };

@@ -110,7 +110,7 @@ class HealthCheckCollector {
       const end = raw.indexOf(delimiter, start);
       if (end === -1) {
         logger.warn(
-          `[StatusMonitor] splitSections: 未找到分隔符 "${delimiter}" (${key})，跳过该段`
+          `[StatusMonitor] splitSections: 未找到分隔符 "${delimiter}" (${key})，跳过该段`,
         );
         continue;
       }
@@ -129,7 +129,7 @@ class HealthCheckCollector {
     } catch (error: unknown) {
       logger.debug(
         '[StatusMonitor] 获取 OS 名称失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
       return undefined;
     }
@@ -140,7 +140,7 @@ class HealthCheckCollector {
     try {
       let output = await this.executeSshCommand(
         sshClient,
-        "cat /proc/cpuinfo | grep 'model name' | head -n 1"
+        "cat /proc/cpuinfo | grep 'model name' | head -n 1",
       );
       const model = output.match(/model name\s*:\s*(.*)/i)?.[1].trim();
       if (model) return model;
@@ -148,7 +148,7 @@ class HealthCheckCollector {
       /* 继续尝试 lscpu */
       logger.debug(
         '[StatusMonitor] 通过 /proc/cpuinfo 获取 CPU 型号失败，将尝试 lscpu:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
     }
     try {
@@ -159,7 +159,7 @@ class HealthCheckCollector {
       /* 忽略 lscpu 也不可用的情况 */
       logger.debug(
         '[StatusMonitor] 通过 lscpu 获取 CPU 型号失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
     }
     return 'Unknown';
@@ -167,7 +167,7 @@ class HealthCheckCollector {
 
   /** 解析内存和 Swap */
   async collectMemoryStats(
-    sshClient: Client
+    sshClient: Client,
   ): Promise<
     Pick<
       ServerStatus,
@@ -192,7 +192,7 @@ class HealthCheckCollector {
         /* BusyBox 检测失败，使用默认 free 命令 */
         logger.debug(
           '[StatusMonitor] 检测 BusyBox 环境失败，将使用默认 free 命令:',
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
       }
       const freeOutput = await this.executeSshCommand(sshClient, freeCommand);
@@ -237,7 +237,7 @@ class HealthCheckCollector {
       /* 采集内存信息失败，返回默认值 */
       logger.warn(
         '[StatusMonitor] 采集内存/Swap 信息失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
     }
     return result;
@@ -245,7 +245,7 @@ class HealthCheckCollector {
 
   /** 解析磁盘使用 */
   async collectDiskStats(
-    sshClient: Client
+    sshClient: Client,
   ): Promise<Pick<ServerStatus, 'diskTotal' | 'diskUsed' | 'diskPercent'>> {
     try {
       let dfOutput: string;
@@ -254,14 +254,14 @@ class HealthCheckCollector {
       } catch (error: unknown) {
         logger.debug(
           '[StatusMonitor] df -kP 命令失败，尝试 df -k:',
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
         try {
           dfOutput = await this.executeSshCommand(sshClient, 'df -k /');
         } catch (error2: unknown) {
           logger.debug(
             '[StatusMonitor] df -k 命令也失败:',
-            error2 instanceof Error ? error2.message : error2
+            error2 instanceof Error ? error2.message : error2,
           );
           dfOutput = '';
         }
@@ -288,7 +288,7 @@ class HealthCheckCollector {
       /* 采集磁盘信息失败，返回空对象 */
       logger.warn(
         '[StatusMonitor] 采集磁盘信息失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
     }
     return {};
@@ -304,7 +304,7 @@ class HealthCheckCollector {
       /* 采集负载信息失败 */
       logger.debug(
         '[StatusMonitor] 采集系统负载信息失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
     }
     return undefined;
@@ -329,7 +329,7 @@ class HealthCheckCollector {
     } catch (error: unknown) {
       logger.debug(
         '[StatusMonitor] 解析 /proc/net/dev 失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
       return null;
     }
@@ -340,14 +340,14 @@ class HealthCheckCollector {
     try {
       const output = await this.executeSshCommand(
         sshClient,
-        "ip route get 1.1.1.1 | grep -oP 'dev\\s+\\K\\S+'"
+        "ip route get 1.1.1.1 | grep -oP 'dev\\s+\\K\\S+'",
       );
       if (output.trim()) return output.trim();
     } catch (error: unknown) {
       /* ip route 不可用，继续 fallback */
       logger.debug(
         '[StatusMonitor] 通过 ip route 获取默认网络接口失败，将尝试解析 /proc/net/dev:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
     }
     try {
@@ -360,7 +360,7 @@ class HealthCheckCollector {
       /* 读取 /proc/net/dev 也不可用 */
       logger.debug(
         '[StatusMonitor] 解析 /proc/net/dev 获取网络接口失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
     }
     return null;
@@ -380,7 +380,7 @@ class HealthCheckCollector {
     } catch (error: unknown) {
       logger.debug(
         '[StatusMonitor] 解析 /proc/stat 失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
       return null;
     }
@@ -393,7 +393,8 @@ class HealthCheckCollector {
     try {
       const nameMatch = raw.match(/^PRETTY_NAME="?([^"]+)"?/m);
       return nameMatch ? nameMatch[1] : (raw.match(/^NAME="?([^"]+)"?/m)?.[1] ?? 'Unknown');
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       return undefined;
     }
   }
@@ -405,7 +406,8 @@ class HealthCheckCollector {
       if (model) return model;
       const lscpuModel = raw.match(/Model name:\s+(.*)/)?.[1]?.trim();
       if (lscpuModel) return lscpuModel;
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       /* 忽略 */
     }
     return 'Unknown';
@@ -414,7 +416,7 @@ class HealthCheckCollector {
   /** 从原始 free 输出解析内存和 Swap */
   parseMemoryStats(
     raw: string,
-    isMB?: boolean
+    isMB?: boolean,
   ): Pick<
     ServerStatus,
     'memTotal' | 'memUsed' | 'memPercent' | 'swapTotal' | 'swapUsed' | 'swapPercent'
@@ -438,7 +440,7 @@ class HealthCheckCollector {
       if (!memLine) {
         logger.warn(
           '[StatusMonitor] parseMemoryStats: 未找到内存行（Mem:/内存：），free 原始输出前 120 字符:',
-          raw.substring(0, 120)
+          raw.substring(0, 120),
         );
       }
       if (memLine) {
@@ -479,7 +481,8 @@ class HealthCheckCollector {
           }
         }
       }
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       /* 返回默认值 */
     }
     return result;
@@ -504,7 +507,8 @@ class HealthCheckCollector {
           }
         }
       }
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       /* 忽略 */
     }
     return {};
@@ -515,7 +519,8 @@ class HealthCheckCollector {
     try {
       const match = raw.match(/load average(?:s)?:\s*([\d.]+)[, ]?\s*([\d.]+)[, ]?\s*([\d.]+)/);
       if (match) return [parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3])];
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       /* 忽略 */
     }
     return undefined;
@@ -536,7 +541,8 @@ class HealthCheckCollector {
         }
       }
       return Object.keys(stats).length > 0 ? stats : null;
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       return null;
     }
   }
@@ -548,7 +554,8 @@ class HealthCheckCollector {
         const iface = line.trim().split(':')[0];
         if (iface && iface !== 'lo') return iface;
       }
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       /* 忽略 */
     }
     return null;
@@ -566,7 +573,7 @@ class StatusDataAggregator {
   /** 计算 CPU 使用率 */
   calculateCpuPercent(
     sessionId: string,
-    currentCpuTimes: { total: number; idle: number }
+    currentCpuTimes: { total: number; idle: number },
   ): number | undefined {
     const now = Date.now();
     const prev = this.cpuStats.get(sessionId);
@@ -600,7 +607,7 @@ class StatusDataAggregator {
     sessionId: string,
     timestamp: number,
     currentRx: number,
-    currentTx: number
+    currentTx: number,
   ): { netRxRate: number; netTxRate: number } {
     const prev = this.netStats.get(sessionId);
     let netRxRate = 0;
@@ -641,12 +648,12 @@ export class StatusMonitorService {
       const intervalSeconds = await settingsService.getStatusMonitorIntervalSeconds();
       intervalMs = intervalSeconds * 1000;
       logger.info(
-        `[StatusMonitor ${sessionId}] 使用配置的轮询间隔: ${intervalSeconds} 秒 (${intervalMs}ms)`
+        `[StatusMonitor ${sessionId}] 使用配置的轮询间隔: ${intervalSeconds} 秒 (${intervalMs}ms)`,
       );
     } catch (error: unknown) {
       logger.error(
         `[StatusMonitor ${sessionId}] 获取轮询间隔设置失败，将使用默认值 3000ms:`,
-        error
+        error,
       );
       intervalMs = 3000;
     }
@@ -677,7 +684,7 @@ export class StatusMonitorService {
         JSON.stringify({
           type: 'status_update',
           payload: { connectionId: state.dbConnectionId, status },
-        })
+        }),
       );
     } catch (error: unknown) {
       state.ws.send(
@@ -687,7 +694,7 @@ export class StatusMonitorService {
             connectionId: state.dbConnectionId,
             message: `获取状态失败: ${getErrorMessage(error)}`,
           },
-        })
+        }),
       );
     }
   }
@@ -720,14 +727,14 @@ export class StatusMonitorService {
         if (memStats.memTotal === undefined) {
           logger.warn(
             `[StatusMonitor] ${sessionId} parseMemoryStats 返回无 memTotal，freeRaw 前 150 字符:`,
-            freeRaw.substring(0, 150)
+            freeRaw.substring(0, 150),
           );
         }
         Object.assign(status, memStats);
       } else {
         logger.warn(
           `[StatusMonitor] ${sessionId} FREE 段落缺失或包含 FREE_FAIL:`,
-          freeRaw ? '包含 FREE_FAIL' : '未找到 FREE 段落'
+          freeRaw ? '包含 FREE_FAIL' : '未找到 FREE 段落',
         );
       }
 
@@ -763,7 +770,7 @@ export class StatusMonitorService {
               sessionId,
               timestamp,
               rx_bytes,
-              tx_bytes
+              tx_bytes,
             );
             status.netRxRate = rates.netRxRate;
             status.netTxRate = rates.netTxRate;
@@ -774,7 +781,7 @@ export class StatusMonitorService {
       // 批量采集失败，降级到逐项采集
       logger.warn(
         '[StatusMonitor] 批量采集失败，降级到逐项采集:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
       return this.fetchServerStatusLegacy(sshClient, sessionId);
     }
@@ -788,7 +795,7 @@ export class StatusMonitorService {
    */
   private async fetchServerStatusLegacy(
     sshClient: Client,
-    sessionId: string
+    sessionId: string,
   ): Promise<ServerStatus> {
     const timestamp = Date.now();
     const status: Partial<ServerStatus> = { timestamp };
@@ -818,7 +825,7 @@ export class StatusMonitorService {
     } catch (error: unknown) {
       logger.debug(
         '[StatusMonitor] 采集 CPU 使用率失败:',
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
       status.cpuPercent = undefined;
     }
@@ -835,7 +842,7 @@ export class StatusMonitorService {
             sessionId,
             timestamp,
             rx_bytes,
-            tx_bytes
+            tx_bytes,
           );
           status.netRxRate = rates.netRxRate;
           status.netTxRate = rates.netTxRate;
@@ -843,7 +850,7 @@ export class StatusMonitorService {
       } catch (error: unknown) {
         logger.debug(
           '[StatusMonitor] 计算网络速率失败:',
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
       }
     }

@@ -214,7 +214,8 @@ export class SshPoolService {
       for (const conn of pool) {
         try {
           conn.client.end();
-        } catch {
+        } catch (err: unknown) {
+          logger.debug({ err }, '操作失败，已忽略');
           // 忽略关闭错误
         }
       }

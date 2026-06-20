@@ -68,7 +68,7 @@ export class AiAuditService {
     userId: number,
     reportType: ReportType,
     timeRangeStart: number,
-    timeRangeEnd: number
+    timeRangeEnd: number,
   ): Promise<void> {
     try {
       // 更新状态为进行中
@@ -103,7 +103,7 @@ export class AiAuditService {
             title: a.title,
             description: a.description,
             evidenceJson: a.evidence_json || undefined,
-          }))
+          })),
         );
       }
 
@@ -145,7 +145,7 @@ export class AiAuditService {
         'completed',
         summary,
         JSON.stringify(allAnomalies),
-        aiAnalysis
+        aiAnalysis,
       );
 
       logger.info({ reportId, anomalyCount: allAnomalies.length }, '审计分析完成');
@@ -161,7 +161,7 @@ export class AiAuditService {
   private async callExternalAI(
     reportType: ReportType,
     dataSummary: AuditDataSummary,
-    loginSummary?: AuditDataSummary
+    loginSummary?: AuditDataSummary,
   ): Promise<string> {
     const settings = await getAISettings();
     if (!settings || !settings.enabled) {
@@ -208,7 +208,7 @@ export class AiAuditService {
           messages: [{ role: 'user', content: prompt }],
         },
         { headers, timeout: 30000 },
-        'AI-Audit'
+        'AI-Audit',
       );
 
       return response.data.content?.[0]?.text || 'AI 分析完成';
@@ -231,7 +231,7 @@ export class AiAuditService {
           max_tokens: 4096,
         },
         { headers, timeout: 30000 },
-        'AI-Audit'
+        'AI-Audit',
       );
 
       return response.data.choices?.[0]?.message?.content || 'AI 分析完成';
@@ -268,7 +268,7 @@ export class AiAuditService {
   private async getLoginEvents(
     timeRangeStart: number,
     timeRangeEnd: number,
-    userId?: number
+    userId?: number,
   ): Promise<Array<{ ip: string; success: boolean; timestamp: number }>> {
     const { getDbInstance, allDb } = await import('../database/connection.js');
     const db = await getDbInstance();
@@ -286,7 +286,7 @@ export class AiAuditService {
     const rows = await allDb<{ action_type: string; details: string; timestamp: number }>(
       db,
       query,
-      params
+      params,
     );
 
     return rows.map((row) => {
@@ -294,7 +294,8 @@ export class AiAuditService {
       try {
         const details = JSON.parse(row.details || '{}');
         ip = details.clientIp || details.ip || '';
-      } catch {
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
         // 忽略解析错误
       }
       return {
@@ -310,7 +311,7 @@ export class AiAuditService {
    */
   private async getCommands(
     timeRangeStart: number,
-    timeRangeEnd: number
+    timeRangeEnd: number,
   ): Promise<Array<{ command: string; timestamp: number }>> {
     const { getDbInstance, allDb } = await import('../database/connection.js');
     const db = await getDbInstance();
@@ -319,7 +320,7 @@ export class AiAuditService {
       db,
       `SELECT command, timestamp FROM command_history
        WHERE timestamp >= ? AND timestamp <= ?`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
   }
 
@@ -329,7 +330,7 @@ export class AiAuditService {
   private async getConnectionEvents(
     timeRangeStart: number,
     timeRangeEnd: number,
-    userId?: number
+    userId?: number,
   ): Promise<Array<{ type: string; timestamp: number }>> {
     const { getDbInstance, allDb } = await import('../database/connection.js');
     const db = await getDbInstance();

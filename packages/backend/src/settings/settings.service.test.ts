@@ -217,8 +217,8 @@ describe('Settings Service', () => {
 
     it('配置无效时应抛出异常', async () => {
       await expect(
-        settingsService.setFocusSwitcherSequence({ sequence: 'not-array' } as any)
-      ).rejects.toThrow('Invalid full config format');
+        settingsService.setFocusSwitcherSequence({ sequence: 'not-array' } as any),
+      ).rejects.toThrow('无效的焦点切换配置格式');
     });
   });
 
@@ -278,7 +278,7 @@ describe('Settings Service', () => {
 
     it('无效 JSON 应抛出异常', async () => {
       await expect(settingsService.setLayoutTree('invalid-json')).rejects.toThrow(
-        'Invalid layout tree JSON format'
+        '无效的布局树 JSON 格式',
       );
     });
   });
@@ -341,19 +341,19 @@ describe('Settings Service', () => {
 
       expect(settingsRepository.setSetting).toHaveBeenCalledWith(
         'statusMonitorIntervalSeconds',
-        '5'
+        '5',
       );
     });
 
     it('值为 0 时应抛出异常', async () => {
       await expect(settingsService.setStatusMonitorIntervalSeconds(0)).rejects.toThrow(
-        'Invalid interval value'
+        '无效的间隔值，必须为正整数',
       );
     });
 
     it('值为负数时应抛出异常', async () => {
       await expect(settingsService.setStatusMonitorIntervalSeconds(-1)).rejects.toThrow(
-        'Invalid interval value'
+        '无效的间隔值，必须为正整数',
       );
     });
   });
@@ -385,13 +385,13 @@ describe('Settings Service', () => {
 
     it('配置格式无效时应抛出异常', async () => {
       await expect(settingsService.setSidebarConfig({} as any)).rejects.toThrow(
-        '无效的侧栏配置格式'
+        '无效的侧栏配置格式',
       );
     });
 
     it('包含无效面板名称时应抛出异常', async () => {
       await expect(
-        settingsService.setSidebarConfig({ left: ['invalidPane'], right: [] })
+        settingsService.setSidebarConfig({ left: ['invalidPane'], right: [] }),
       ).rejects.toThrow('包含无效的面板名称');
     });
   });
@@ -432,7 +432,7 @@ describe('Settings Service', () => {
       });
 
       await expect(settingsService.setCaptchaConfig({ enabled: 'true' as any })).rejects.toThrow(
-        'captcha.enabled 必须是布尔值'
+        'captcha.enabled 必须是布尔值',
       );
     });
 
@@ -443,7 +443,7 @@ describe('Settings Service', () => {
       });
 
       await expect(
-        settingsService.setCaptchaConfig({ provider: 'invalid' as any })
+        settingsService.setCaptchaConfig({ provider: 'invalid' as any }),
       ).rejects.toThrow('无效的 CAPTCHA 提供商');
     });
   });
@@ -516,7 +516,7 @@ describe('Settings Service', () => {
 
       expect(settingsRepository.setSetting).toHaveBeenCalledWith(
         'showStatusMonitorIpAddress',
-        'false'
+        'false',
       );
     });
   });
@@ -544,7 +544,7 @@ describe('Settings Service', () => {
 
   describe('setLogLevel', () => {
     it('传入无效日志等级时应抛出异常', async () => {
-      await expect(settingsService.setLogLevel('verbose')).rejects.toThrow('Invalid log level');
+      await expect(settingsService.setLogLevel('verbose')).rejects.toThrow('无效的日志级别');
     });
 
     it('传入有效日志等级时应写入设置', async () => {
@@ -576,13 +576,9 @@ describe('Settings Service', () => {
 
   describe('setAuditLogMaxEntries', () => {
     it('传入非正整数时应抛出异常', async () => {
-      await expect(settingsService.setAuditLogMaxEntries(0)).rejects.toThrow('Invalid max entries');
-      await expect(settingsService.setAuditLogMaxEntries(-1)).rejects.toThrow(
-        'Invalid max entries'
-      );
-      await expect(settingsService.setAuditLogMaxEntries(1.2)).rejects.toThrow(
-        'Invalid max entries'
-      );
+      await expect(settingsService.setAuditLogMaxEntries(0)).rejects.toThrow('无效的最大条目值');
+      await expect(settingsService.setAuditLogMaxEntries(-1)).rejects.toThrow('无效的最大条目值');
+      await expect(settingsService.setAuditLogMaxEntries(1.2)).rejects.toThrow('无效的最大条目值');
     });
 
     it('传入有效值时应写入设置', async () => {

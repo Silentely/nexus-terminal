@@ -4,6 +4,7 @@
  */
 
 import { getDbInstance, runDb, allDb, getDb } from '../database/connection';
+import { logger } from '../utils/logger';
 import { AISession, AIMessage, AIMessageRole, AISessionRow, AIMessageRow } from './ai.types';
 
 // 会话行数据转换为 AISession 对象
@@ -22,7 +23,8 @@ const rowToMessage = (row: AIMessageRow): AIMessage => {
   if (row.metadata_json) {
     try {
       metadata = JSON.parse(row.metadata_json);
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       // 无效 JSON，忽略 metadata
       metadata = undefined;
     }
@@ -43,7 +45,7 @@ const rowToMessage = (row: AIMessageRow): AIMessage => {
 export const createSession = async (
   sessionId: string,
   userId: number | string,
-  title?: string
+  title?: string,
 ): Promise<AISession> => {
   const db = await getDbInstance();
   const now = Math.floor(Date.now() / 1000);
@@ -54,7 +56,7 @@ export const createSession = async (
         INSERT INTO ai_sessions (id, user_id, title, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?)
     `,
-    [sessionId, userId, title || null, now, now]
+    [sessionId, userId, title || null, now, now],
   );
 
   return {
@@ -73,7 +75,7 @@ export const createSession = async (
 export const getSession = async (
   sessionId: string,
   messageLimit: number = 100,
-  messageOffset: number = 0
+  messageOffset: number = 0,
 ): Promise<AISession | null> => {
   const db = await getDbInstance();
   const sessionRow = await getDb<AISessionRow>(
@@ -81,7 +83,7 @@ export const getSession = async (
     `
         SELECT * FROM ai_sessions WHERE id = ?
     `,
-    [sessionId]
+    [sessionId],
   );
 
   if (!sessionRow) return null;
@@ -93,7 +95,7 @@ export const getSession = async (
         ORDER BY timestamp ASC
         LIMIT ? OFFSET ?
     `,
-    [sessionId, messageLimit, messageOffset]
+    [sessionId, messageLimit, messageOffset],
   );
 
   const messages = messageRows.map(rowToMessage);
@@ -106,7 +108,7 @@ export const getSession = async (
 export const getSessionsByUser = async (
   userId: number | string,
   limit: number = 50,
-  offset: number = 0
+  offset: number = 0,
 ): Promise<AISession[]> => {
   const db = await getDbInstance();
   const sessionRows = await allDb<AISessionRow>(
@@ -117,7 +119,7 @@ export const getSessionsByUser = async (
         ORDER BY updated_at DESC
         LIMIT ? OFFSET ?
     `,
-    [userId, limit, offset]
+    [userId, limit, offset],
   );
 
   return sessionRows.map((row) => rowToSession(row, []));
@@ -135,7 +137,7 @@ export const updateSessionTitle = async (sessionId: string, title: string): Prom
     `
         UPDATE ai_sessions SET title = ?, updated_at = ? WHERE id = ?
     `,
-    [title, now, sessionId]
+    [title, now, sessionId],
   );
 };
 
@@ -151,7 +153,7 @@ export const touchSession = async (sessionId: string): Promise<void> => {
     `
         UPDATE ai_sessions SET updated_at = ? WHERE id = ?
     `,
-    [now, sessionId]
+    [now, sessionId],
   );
 };
 
@@ -171,7 +173,7 @@ export const addMessage = async (
   sessionId: string,
   role: AIMessageRole,
   content: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ): Promise<AIMessage> => {
   const db = await getDbInstance();
   const now = Math.floor(Date.now() / 1000);
@@ -182,7 +184,7 @@ export const addMessage = async (
         INSERT INTO ai_messages (id, session_id, role, content, timestamp, metadata_json)
         VALUES (?, ?, ?, ?, ?, ?)
     `,
-    [messageId, sessionId, role, content, now, metadata ? JSON.stringify(metadata) : null]
+    [messageId, sessionId, role, content, now, metadata ? JSON.stringify(metadata) : null],
   );
 
   // 更新会话时间戳
@@ -204,7 +206,7 @@ export const addMessage = async (
 export const getMessages = async (
   sessionId: string,
   limit: number = 100,
-  offset: number = 0
+  offset: number = 0,
 ): Promise<AIMessage[]> => {
   const db = await getDbInstance();
   const rows = await allDb<AIMessageRow>(
@@ -215,7 +217,7 @@ export const getMessages = async (
         ORDER BY timestamp ASC
         LIMIT ? OFFSET ?
     `,
-    [sessionId, limit, offset]
+    [sessionId, limit, offset],
   );
 
   return rows.map(rowToMessage);
@@ -226,7 +228,7 @@ export const getMessages = async (
  */
 export const cleanupOldSessions = async (
   userId: number | string,
-  keepCount: number = 50
+  keepCount: number = 50,
 ): Promise<number> => {
   const db = await getDbInstance();
 
@@ -239,7 +241,7 @@ export const cleanupOldSessions = async (
         ORDER BY updated_at DESC
         LIMIT ?
     `,
-    [userId, keepCount]
+    [userId, keepCount],
   );
 
   if (keepSessions.length === 0) return 0;
@@ -254,7 +256,7 @@ export const cleanupOldSessions = async (
         DELETE FROM ai_sessions
         WHERE user_id = ? AND id NOT IN (${placeholders})
     `,
-    [userId, ...keepIds]
+    [userId, ...keepIds],
   );
 
   return result.changes || 0;
@@ -265,7 +267,7 @@ export const cleanupOldSessions = async (
  */
 export const isSessionOwnedByUser = async (
   sessionId: string,
-  userId: number | string
+  userId: number | string,
 ): Promise<boolean> => {
   const db = await getDbInstance();
   const result = await getDb<{ count: number }>(
@@ -274,7 +276,7 @@ export const isSessionOwnedByUser = async (
         SELECT COUNT(*) as count FROM ai_sessions
         WHERE id = ? AND user_id = ?
     `,
-    [sessionId, userId]
+    [sessionId, userId],
   );
   return (result?.count || 0) > 0;
 };

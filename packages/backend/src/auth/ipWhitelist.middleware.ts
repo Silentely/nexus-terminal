@@ -83,7 +83,8 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
     let requestIp: ipaddr.IPv4 | ipaddr.IPv6 | null = null;
     try {
       requestIp = ipaddr.parse(requestIpString);
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       logger.warn(`无法解析请求 IP 地址 "${requestIpString}"，已拒绝访问。`);
       return res.status(403).json({
         success: false,
@@ -118,7 +119,8 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
         }
         // 如果 IP 类型和范围类型不匹配，则认为不匹配
         return false;
-      } catch {
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
         // 如果解析 CIDR 失败，尝试解析为单个 IP 地址
         try {
           const allowedIp = ipaddr.parse(entry);
@@ -126,7 +128,8 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
           return (
             requestIp.kind() === allowedIp.kind() && requestIp.toString() === allowedIp.toString()
           );
-        } catch {
+        } catch (err: unknown) {
+          logger.debug({ err }, '操作失败，已忽略');
           // 如果单个 IP 也解析失败，忽略此条目并记录警告
           logger.warn(`无效的 IP 白名单条目: "${entry}"`);
           return false;

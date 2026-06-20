@@ -20,12 +20,15 @@ const mockLogStorageService = vi.hoisted(() => ({
   listMetadataFiles: vi.fn(),
 }));
 
-const mockUuid = vi.hoisted(() => ({
-  v4: vi.fn(),
+const mockCrypto = vi.hoisted(() => ({
+  randomUUID: vi.fn(),
 }));
 
-// Mock uuid
-vi.mock('uuid', () => mockUuid);
+// Mock crypto.randomUUID
+vi.mock('crypto', () => ({
+  default: mockCrypto,
+  ...mockCrypto,
+}));
 
 // Mock 日志存储服务
 vi.mock('./temporary-log-storage.service', () => ({
@@ -55,8 +58,8 @@ describe('SshSuspendService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // 重新设置 uuid mock 返回值（vi.clearAllMocks 会清除之前的设置）
-    mockUuid.v4.mockReturnValue('mock-uuid-12345');
+    // 重新设置 crypto.randomUUID mock 返回值（vi.clearAllMocks 会清除之前的设置）
+    mockCrypto.randomUUID.mockReturnValue('mock-uuid-12345');
     mockLogStorageService.ensureLogDirectoryExists.mockResolvedValue(undefined);
     mockLogStorageService.writeToLog.mockResolvedValue(undefined);
     mockLogStorageService.readLog.mockResolvedValue('log content');
@@ -179,7 +182,7 @@ describe('SshSuspendService', () => {
             userId: 1,
             suspendSessionId: 'mock-uuid-12345',
             reason: expect.stringContaining('keepalive timeout'),
-          })
+          }),
         );
       } finally {
         vi.useRealTimers();
@@ -517,7 +520,7 @@ describe('SshSuspendService', () => {
         expect.objectContaining({
           userId: 1,
           suspendSessionId: 'mock-uuid-12345',
-        })
+        }),
       );
     });
   });
@@ -799,7 +802,7 @@ describe('SshSuspendService', () => {
       const result = await service.editSuspendedSessionName(
         1,
         'mock-uuid-12345',
-        'Renamed Session'
+        'Renamed Session',
       );
 
       expect(result).toBe(true);

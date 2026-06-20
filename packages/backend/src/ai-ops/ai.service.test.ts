@@ -17,9 +17,10 @@ import {
   cleanupUserSessions,
 } from './ai.service';
 
-// Mock uuid
-vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mock-uuid-1234'),
+// Mock crypto.randomUUID
+vi.mock('crypto', () => ({
+  default: { randomUUID: vi.fn(() => 'mock-uuid-1234') },
+  randomUUID: vi.fn(() => 'mock-uuid-1234'),
 }));
 
 // Mock 数据库连接

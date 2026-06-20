@@ -1,9 +1,9 @@
+import crypto from 'crypto';
 /**
  * 批量作业 Service 层
  * 处理批量命令执行的核心业务逻辑
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { Client, ClientChannel } from 'ssh2';
 import { getErrorMessage, ErrorFactory } from '../utils/AppError';
 import {
@@ -90,9 +90,9 @@ function sendBatchEvent(userId: number | string, message: BatchWsMessage): void 
  */
 export async function execCommandBatch(
   payload: BatchExecPayload,
-  userId: number | string
+  userId: number | string,
 ): Promise<BatchTask> {
-  const taskId = uuidv4();
+  const taskId = crypto.randomUUID();
   const now = new Date();
   const concurrencyLimit = payload.concurrencyLimit ?? DEFAULT_CONCURRENCY;
 
@@ -109,7 +109,7 @@ export async function execCommandBatch(
     safePayload.connectionIds.map(async (connId) => {
       const conn = await ConnectionRepository.findConnectionByIdWithTags(connId);
       return { connId, name: conn?.name || `连接 #${connId}` };
-    })
+    }),
   );
   for (let i = 0; i < nameResults.length; i++) {
     const result = nameResults[i];
@@ -123,7 +123,7 @@ export async function execCommandBatch(
 
   // 创建子任务
   const subTasks: BatchSubTask[] = payload.connectionIds.map((connId) => ({
-    subTaskId: uuidv4(),
+    subTaskId: crypto.randomUUID(),
     taskId,
     connectionId: connId,
     connectionName: connectionNames.get(connId),
@@ -196,7 +196,7 @@ async function processTask(
   taskId: string,
   userId: number | string,
   payload: BatchExecPayload,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): Promise<void> {
   const task = await BatchRepository.getTask(taskId);
   if (!task) {
@@ -286,7 +286,7 @@ async function processTask(
         completedCount,
         failedCount,
         cancelledCount,
-        subTasks.length
+        subTasks.length,
       );
 
       if (currentIndex < subTasks.length && !signal.aborted) {
@@ -350,7 +350,7 @@ async function processTask(
     failedCount,
     cancelledCount,
     subTasks.length,
-    taskCancelled
+    taskCancelled,
   );
   taskAbortControllers.delete(taskId);
 }
@@ -405,7 +405,7 @@ async function runSubTask(
   subTask: BatchSubTask,
   userId: number | string,
   payload: BatchExecPayload,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): Promise<SubTaskResult> {
   const { subTaskId, connectionId, command, connectionName } = subTask;
   let sshClient: Client | null = null;
@@ -429,7 +429,7 @@ async function runSubTask(
       subTaskId,
       'connecting',
       0,
-      `正在连接到 ${connectionName || connectionId}...`
+      `正在连接到 ${connectionName || connectionId}...`,
     );
 
     // 获取连接详情
@@ -488,7 +488,7 @@ async function runSubTask(
       subTaskId,
       userId,
       signal,
-      timeoutSeconds
+      timeoutSeconds,
     );
 
     // 更新最终状态
@@ -505,7 +505,7 @@ async function runSubTask(
         subTaskId,
         'cancelled',
         100,
-        result.timedOut ? '执行超时' : '已取消'
+        result.timedOut ? '执行超时' : '已取消',
       );
       return 'cancelled';
     }
@@ -524,7 +524,7 @@ async function runSubTask(
         100,
         '执行成功',
         result.output,
-        result.exitCode
+        result.exitCode,
       );
       return 'completed';
     }
@@ -542,7 +542,7 @@ async function runSubTask(
       100,
       `执行失败 (退出码: ${result.exitCode})`,
       result.output,
-      result.exitCode
+      result.exitCode,
     );
     return 'failed';
   } catch (error: unknown) {
@@ -593,7 +593,7 @@ function executeCommand(
   subTaskId: string,
   userId: number | string,
   signal: AbortSignal,
-  timeoutSeconds: number
+  timeoutSeconds: number,
 ): Promise<{ exitCode: number; output: string; cancelled: boolean; timedOut: boolean }> {
   return new Promise((resolve, reject) => {
     let output = '';
@@ -730,7 +730,7 @@ function sendSubTaskUpdate(
   progress: number,
   message?: string,
   output?: string,
-  exitCode?: number
+  exitCode?: number,
 ): void {
   sendBatchEvent(userId, {
     type: 'batch:subtask:update',
@@ -755,7 +755,7 @@ async function updateOverallProgress(
   completed: number,
   failed: number,
   cancelled: number,
-  total: number
+  total: number,
 ): Promise<void> {
   const overallProgress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -794,7 +794,7 @@ async function finalizeTask(
   failed: number,
   cancelled: number,
   total: number,
-  taskCancelled: boolean
+  taskCancelled: boolean,
 ): Promise<void> {
   let finalStatus: BatchTaskStatus;
 
@@ -871,7 +871,7 @@ async function finalizeTask(
   }
 
   logger.info(
-    `[BatchService] 任务 ${taskId} 已完成，最终状态: ${finalStatus}，成功: ${completed}，失败: ${failed}，取消: ${cancelled}`
+    `[BatchService] 任务 ${taskId} 已完成，最终状态: ${finalStatus}，成功: ${completed}，失败: ${failed}，取消: ${cancelled}`,
   );
 }
 
@@ -888,7 +888,7 @@ export async function getTaskStatus(taskId: string): Promise<BatchTask | null> {
 export async function getTasksByUser(
   userId: number | string,
   limit: number = 20,
-  offset: number = 0
+  offset: number = 0,
 ): Promise<BatchTask[]> {
   return BatchRepository.getTasksByUser(userId, limit, offset);
 }

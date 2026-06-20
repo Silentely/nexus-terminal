@@ -100,7 +100,7 @@ export const setup2FA = async (req: Request, res: Response, next: NextFunction):
     const user = await getDb<{ two_factor_secret: string | null }>(
       db,
       userQueryAction.sql,
-      userQueryAction.params
+      userQueryAction.params,
     );
     const existingSecret = user ? user.two_factor_secret : null;
     const setupValidation = resolveTwoFactorSetupRequestValidation({
@@ -120,7 +120,7 @@ export const setup2FA = async (req: Request, res: Response, next: NextFunction):
       userId: validatedUserId,
       username: validatedUsername,
     });
-    console[setupAction.log.level](setupAction.log.message);
+    logger[setupAction.log.level](setupAction.log.message);
     if (!setupAction.ok) {
       res.status(setupAction.failure.statusCode).json(setupAction.failure.body);
       return;
@@ -139,7 +139,7 @@ export const setup2FA = async (req: Request, res: Response, next: NextFunction):
 export const verifyAndActivate2FA = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { token, secret: secretFromBody } = req.body as { token?: unknown; secret?: unknown };
   const { userId } = req.session;
@@ -168,12 +168,12 @@ export const verifyAndActivate2FA = async (
   try {
     if (sessionSecretMismatched) {
       const mismatchLogAction = buildTwoFactorVerifySessionMismatchWarnLogAction(validatedUserId);
-      console[mismatchLogAction.level](mismatchLogAction.message);
+      logger[mismatchLogAction.level](mismatchLogAction.message);
     }
 
     if (secretProvidedByBody && sessionSecretMismatched) {
       const syncedLogAction = buildTwoFactorVerifySessionSyncedDebugLogAction(validatedUserId);
-      console[syncedLogAction.level](syncedLogAction.message);
+      logger[syncedLogAction.level](syncedLogAction.message);
     }
 
     const db = await getDbInstance();
@@ -190,7 +190,7 @@ export const verifyAndActivate2FA = async (
       verificationResult,
     });
     if (verifyFailureAction.handled) {
-      console[verifyFailureAction.log.level](verifyFailureAction.log.message);
+      logger[verifyFailureAction.log.level](verifyFailureAction.log.message);
       res.status(verifyFailureAction.response.statusCode).json(verifyFailureAction.response.body);
       return;
     }
@@ -202,7 +202,7 @@ export const verifyAndActivate2FA = async (
         skewWarnThreshold: TOTP_SKEW_WARN_THRESHOLD,
       });
       if (skewWarnLogAction) {
-        console[skewWarnLogAction.level](skewWarnLogAction.message);
+        logger[skewWarnLogAction.level](skewWarnLogAction.message);
       }
 
       const mutationAction = buildTwoFactorVerifySuccessMutationAction({
@@ -216,12 +216,12 @@ export const verifyAndActivate2FA = async (
         clientIp: resolveRequestClientIp(req),
       });
       if (!successMutationAction.ok) {
-        console[successMutationAction.log.level](successMutationAction.log.message);
+        logger[successMutationAction.log.level](successMutationAction.log.message);
         throw successMutationAction.error;
       }
 
       const successAction = successMutationAction.successAction;
-      console[successAction.log.level](successAction.log.message);
+      logger[successAction.log.level](successAction.log.message);
       applyAuthSideEffects(authSideEffectServices, successAction.sideEffects);
       eventService.emitEvent(AppEventType.TwoFactorEnabled, {
         userId: validatedUserId,
@@ -245,7 +245,7 @@ export const verifyAndActivate2FA = async (
 export const disable2FA = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const accessValidation = resolveDisable2FAAccessValidation({
     userId: req.session.userId,
@@ -296,7 +296,7 @@ export const disable2FA = async (
 
     const clientIp = resolveRequestClientIp(req);
     const successAction = buildDisableTwoFactorSuccessAction({ userId, clientIp });
-    console[successAction.log.level](successAction.log.message);
+    logger[successAction.log.level](successAction.log.message);
     applyAuthSideEffects(authSideEffectServices, successAction.sideEffects);
     eventService.emitEvent(AppEventType.TwoFactorDisabled, {
       userId,
@@ -318,7 +318,7 @@ export const disable2FA = async (
 export const changePassword = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const accessValidation = resolveChangePasswordAccessValidation({
     userId: req.session.userId,
@@ -375,7 +375,7 @@ export const changePassword = async (
 
     const clientIp = resolveRequestClientIp(req);
     const successAction = buildChangePasswordSuccessAction({ userId, clientIp });
-    console[successAction.log.level](successAction.log.message);
+    logger[successAction.log.level](successAction.log.message);
     applyAuthSideEffects(authSideEffectServices, successAction.sideEffects);
     eventService.emitEvent(AppEventType.PasswordChanged, {
       userId,

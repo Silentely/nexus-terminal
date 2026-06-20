@@ -27,19 +27,20 @@ const ensurePresetHtmlThemesDirExists = async () => {
   // Renamed
   try {
     await fs.access(PRESET_HTML_THEMES_DIR);
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     // 目录不存在，尝试创建（Docker 非 root 用户可能无权限）
     try {
       await fs.mkdir(PRESET_HTML_THEMES_DIR, { recursive: true });
       logger.debug(
-        `[AppearanceService] Created preset html-themes directory at ${PRESET_HTML_THEMES_DIR}`
+        `[AppearanceService] Created preset html-themes directory at ${PRESET_HTML_THEMES_DIR}`,
       );
     } catch (createErr: unknown) {
       const errCode = getNodeErrorCode(createErr);
       // 仅对权限/只读文件系统错误降级，其它错误上抛
       if (errCode === 'EACCES' || errCode === 'EROFS' || errCode === 'EPERM') {
         logger.warn(
-          `[AppearanceService] 无法创建预设主题目录 ${PRESET_HTML_THEMES_DIR}（${errCode}），降级跳过`
+          `[AppearanceService] 无法创建预设主题目录 ${PRESET_HTML_THEMES_DIR}（${errCode}），降级跳过`,
         );
       } else {
         throw createErr;
@@ -54,11 +55,12 @@ ensurePresetHtmlThemesDirExists();
 const ensureUserCustomHtmlThemesDirExists = async () => {
   try {
     await fs.access(USER_CUSTOM_HTML_THEMES_DIR);
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     // 目录不存在，创建它
     await fs.mkdir(USER_CUSTOM_HTML_THEMES_DIR, { recursive: true });
     logger.debug(
-      `[AppearanceService] Created user custom_html_theme directory at ${USER_CUSTOM_HTML_THEMES_DIR}`
+      `[AppearanceService] Created user custom_html_theme directory at ${USER_CUSTOM_HTML_THEMES_DIR}`,
     );
   }
 };
@@ -96,7 +98,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
     // 验证 ID 是否为有效的数字
     if (typeof themeIdNum !== 'number') {
       logger.error(
-        `[AppearanceService] 收到的 activeTerminalThemeId 不是有效的数字: ${themeIdNum}`
+        `[AppearanceService] 收到的 activeTerminalThemeId 不是有效的数字: ${themeIdNum}`,
       );
       throw new Error(`无效的终端主题 ID 类型，应为数字。`);
     }
@@ -111,12 +113,12 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
     } catch (error: unknown) {
       logger.error(
         `[AppearanceService] 验证终端主题数字 ID (${themeIdNum}) 时出错:`,
-        getErrorMessage(error)
+        getErrorMessage(error),
       );
       throw new Error(`验证终端主题 ID 时出错: ${getErrorMessage(error) || themeIdNum}`);
     }
   } else if (
-    settingsDto.hasOwnProperty('activeTerminalThemeId') &&
+    Object.hasOwn(settingsDto, 'activeTerminalThemeId') &&
     settingsDto.activeTerminalThemeId === null
   ) {
     // 处理显式设置为 null (表示重置为默认/无用户主题)
@@ -142,7 +144,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
     const size = Number(settingsDto.terminalFontSizeMobile);
     if (Number.isNaN(size) || size <= 0) {
       throw new Error(
-        `无效的移动端终端字体大小: ${settingsDto.terminalFontSizeMobile}。必须是一个正数。`
+        `无效的移动端终端字体大小: ${settingsDto.terminalFontSizeMobile}。必须是一个正数。`,
       );
     }
     // 确保类型正确传递给仓库层
@@ -164,7 +166,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
     const size = Number(settingsDto.mobileEditorFontSize);
     if (Number.isNaN(size) || size <= 0) {
       throw new Error(
-        `无效的移动端编辑器字体大小: ${settingsDto.mobileEditorFontSize}。必须是一个正数。`
+        `无效的移动端编辑器字体大小: ${settingsDto.mobileEditorFontSize}。必须是一个正数。`,
       );
     }
     // 确保类型正确传递给仓库层
@@ -172,7 +174,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
   }
 
   // 验证 editorFontFamily (如果提供了)
-  if (settingsDto.hasOwnProperty('editorFontFamily')) {
+  if (Object.hasOwn(settingsDto, 'editorFontFamily')) {
     if (settingsDto.editorFontFamily === null) {
       // 允许用户将字体设置为空 (null)，表示重置或使用默认
       // 无需额外操作，仓库层会处理 null
@@ -199,14 +201,14 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
     const opacity = Number(settingsDto.terminalBackgroundOverlayOpacity);
     if (Number.isNaN(opacity) || opacity < 0 || opacity > 1) {
       throw new Error(
-        `无效的终端背景蒙版透明度: ${settingsDto.terminalBackgroundOverlayOpacity}。必须是一个 0 到 1 之间的数字。`
+        `无效的终端背景蒙版透明度: ${settingsDto.terminalBackgroundOverlayOpacity}。必须是一个 0 到 1 之间的数字。`,
       );
     }
     settingsDto.terminalBackgroundOverlayOpacity = opacity; // 确保类型正确
   }
 
   // 验证 terminal_custom_html (如果提供了)
-  if (settingsDto.hasOwnProperty('terminal_custom_html')) {
+  if (Object.hasOwn(settingsDto, 'terminal_custom_html')) {
     if (
       settingsDto.terminal_custom_html === null ||
       settingsDto.terminal_custom_html === undefined ||
@@ -226,7 +228,7 @@ export const updateSettings = async (settingsDto: UpdateAppearanceDto): Promise<
   }
 
   // 验证 remoteHtmlPresetsUrl (如果提供了)
-  if (settingsDto.hasOwnProperty('remoteHtmlPresetsUrl')) {
+  if (Object.hasOwn(settingsDto, 'remoteHtmlPresetsUrl')) {
     const url = settingsDto.remoteHtmlPresetsUrl;
     if (url === null || url === undefined) {
       // 允许设置为 null 或 undefined (将被视为空)
@@ -350,7 +352,7 @@ const sanitizeThemeNameInternal = (themeName: string): string => {
     // Sanitize 会移除或替换非法字符，如果清理后的名字和原名不同，或原名包含路径字符，则认为非法。
     // 额外检查 '..' 防止即使 sanitize 未移除（不太可能）的情况。
     logger.warn(
-      `[AppearanceService] 检测到潜在不安全的主题文件名: ${themeName}, 清理后: ${safeName}`
+      `[AppearanceService] 检测到潜在不安全的主题文件名: ${themeName}, 清理后: ${safeName}`,
     );
     throw new Error(`主题文件名 "${themeName}" 包含非法字符或路径。`);
   }
@@ -426,7 +428,7 @@ export const listUserCustomHtmlThemes = async (): Promise<
     logger.error('[AppearanceService] 列出用户自定义 HTML 主题失败:', error);
     if (getNodeErrorCode(error) === 'ENOENT') {
       logger.warn(
-        `[AppearanceService] 用户自定义 HTML 主题目录 (${USER_CUSTOM_HTML_THEMES_DIR}) 未找到。`
+        `[AppearanceService] 用户自定义 HTML 主题目录 (${USER_CUSTOM_HTML_THEMES_DIR}) 未找到。`,
       );
       return [];
     }
@@ -448,7 +450,7 @@ export const getUserCustomHtmlThemeContent = async (themeName: string): Promise<
   } catch (error: unknown) {
     logger.error(
       `[AppearanceService] 获取用户自定义 HTML 主题 "${safeThemeName}" 内容失败:`,
-      error
+      error,
     );
     if (getNodeErrorCode(error) === 'ENOENT') {
       throw new Error(`用户自定义 HTML 主题 "${safeThemeName}" 未找到。`);
@@ -465,7 +467,7 @@ export const getUserCustomHtmlThemeContent = async (themeName: string): Promise<
  */
 export const createUserCustomHtmlTheme = async (
   themeName: string,
-  content: string
+  content: string,
 ): Promise<void> => {
   const safeThemeName = sanitizeThemeNameInternal(themeName);
   const filePath = path.join(USER_CUSTOM_HTML_THEMES_DIR, safeThemeName);
@@ -498,7 +500,7 @@ export const createUserCustomHtmlTheme = async (
  */
 export const updateUserCustomHtmlTheme = async (
   themeName: string,
-  content: string
+  content: string,
 ): Promise<void> => {
   const safeThemeName = sanitizeThemeNameInternal(themeName);
   const filePath = path.join(USER_CUSTOM_HTML_THEMES_DIR, safeThemeName);
@@ -571,7 +573,7 @@ export const listAllHtmlThemes = async (): Promise<
  */
 export const createLocalHtmlPreset = async (themeName: string, content: string): Promise<void> => {
   logger.warn(
-    '[AppearanceService] createLocalHtmlPreset is deprecated and now operates on user custom themes. Consider using createUserCustomHtmlTheme.'
+    '[AppearanceService] createLocalHtmlPreset is deprecated and now operates on user custom themes. Consider using createUserCustomHtmlTheme.',
   );
   return createUserCustomHtmlTheme(themeName, content);
 };
@@ -582,7 +584,7 @@ export const createLocalHtmlPreset = async (themeName: string, content: string):
  */
 export const updateLocalHtmlPreset = async (themeName: string, content: string): Promise<void> => {
   logger.warn(
-    '[AppearanceService] updateLocalHtmlPreset is deprecated and now operates on user custom themes. Consider using updateUserCustomHtmlTheme.'
+    '[AppearanceService] updateLocalHtmlPreset is deprecated and now operates on user custom themes. Consider using updateUserCustomHtmlTheme.',
   );
   return updateUserCustomHtmlTheme(themeName, content);
 };
@@ -593,7 +595,7 @@ export const updateLocalHtmlPreset = async (themeName: string, content: string):
  */
 export const deleteLocalHtmlPreset = async (themeName: string): Promise<void> => {
   logger.warn(
-    '[AppearanceService] deleteLocalHtmlPreset is deprecated and now operates on user custom themes. Consider using deleteUserCustomHtmlTheme.'
+    '[AppearanceService] deleteLocalHtmlPreset is deprecated and now operates on user custom themes. Consider using deleteUserCustomHtmlTheme.',
   );
   return deleteUserCustomHtmlTheme(themeName);
 };
@@ -650,7 +652,7 @@ export const updateRemoteHtmlPresetsRepositoryUrl = async (url: string | null): 
  * @returns { user: string, repo: string, path: string, ref: string } 或 null
  */
 const parseGitHubRepoUrl = (
-  repoUrl: string
+  repoUrl: string,
 ): { user: string; repo: string; repoPath: string; ref: string } | null => {
   // 改进的正则表达式以更好地处理不同的 GitHub URL 格式
   const githubUrlRegex =
@@ -686,7 +688,7 @@ const parseGitHubRepoUrl = (
  * @returns Promise<Array<{ name: string, downloadUrl: string | null }>> 主题对象列表
  */
 export const listRemoteHtmlPresets = async (
-  repoUrl?: string
+  repoUrl?: string,
 ): Promise<Array<{ name: string; downloadUrl: string | null }>> => {
   let urlToFetch = repoUrl;
   if (!urlToFetch) {
@@ -715,7 +717,7 @@ export const listRemoteHtmlPresets = async (
         headers: { Accept: 'application/vnd.github.v3+json' },
         timeout: 10000,
       },
-      'Appearance listRemoteHtmlPresets'
+      'Appearance listRemoteHtmlPresets',
     );
 
     if (response.status === 200 && Array.isArray(response.data)) {
@@ -730,7 +732,7 @@ export const listRemoteHtmlPresets = async (
     }
     logger.error(
       `[AppearanceService] 从 GitHub API 获取主题列表失败: 状态 ${response.status}`,
-      response.data
+      response.data,
     );
     throw new Error(`无法从 GitHub (${urlToFetch}) 获取主题列表。状态: ${response.status}`);
   } catch (error: unknown) {
@@ -795,7 +797,7 @@ export const getRemoteHtmlPresetContent = async (fileUrl: string): Promise<strin
         responseType: 'text',
         timeout: 5000,
       },
-      'Appearance getRemoteHtmlPresetContent'
+      'Appearance getRemoteHtmlPresetContent',
     );
 
     if (response.status === 200 && typeof response.data === 'string') {
@@ -804,13 +806,13 @@ export const getRemoteHtmlPresetContent = async (fileUrl: string): Promise<strin
     }
     logger.error(
       `[AppearanceService] 从 ${fileUrl} 获取内容失败: 状态 ${response.status}`,
-      response.data
+      response.data,
     );
     throw new Error(`无法从远程 URL (${fileUrl}) 获取内容。状态: ${response.status}`);
   } catch (error: unknown) {
     logger.error(
       `[AppearanceService] 请求远程文件内容 (${fileUrl}) 时出错:`,
-      getErrorMessage(error)
+      getErrorMessage(error),
     );
     throw new Error(`请求远程文件内容时出错: ${getErrorMessage(error)}`);
   }

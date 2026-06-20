@@ -32,3 +32,10 @@ jobs:
 
       - name: Run quality gate
         run: npm run -s quality:check
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Check coverage thresholds
+        run: npm run test:coverage
+        continue-on-error: true

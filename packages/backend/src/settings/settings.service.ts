@@ -14,6 +14,7 @@ import {
   CaptchaProvider,
 } from '../types/settings.types';
 import { logger } from '../utils/logger';
+import { ErrorFactory } from '../utils/AppError';
 import eventService, { AppEventType } from '../services/event.service';
 
 // +++ 定义焦点切换完整配置接口 (与前端 store 保持一致) +++
@@ -98,7 +99,7 @@ export const settingsService = {
   async setMultipleSettings(settings: Record<string, string>): Promise<void> {
     logger.debug(
       '[Service] Calling repository.setMultipleSettings with:',
-      JSON.stringify(settings)
+      JSON.stringify(settings),
     );
     await settingsRepository.setMultipleSettings(settings);
     eventService.emitEvent(AppEventType.SettingsUpdated, {
@@ -150,14 +151,14 @@ export const settingsService = {
       const enabledStr = await settingsRepository.getSetting(IP_BLACKLIST_ENABLED_KEY);
       logger.debug(
         `[Service] Raw value from repository for ${IP_BLACKLIST_ENABLED_KEY}:`,
-        enabledStr
+        enabledStr,
       );
       // 如果设置存在且值为 'false'，则返回 false，否则都返回 true (包括未设置的情况)
       return enabledStr !== 'false';
     } catch (error: unknown) {
       logger.error(
         `[Service] Error getting IP blacklist enabled setting (key: ${IP_BLACKLIST_ENABLED_KEY}):`,
-        error
+        error,
       );
       // 出错时返回默认值 true (安全起见，默认启用)
       return true;
@@ -176,7 +177,7 @@ export const settingsService = {
       const configJson = await settingsRepository.getSetting(FOCUS_SEQUENCE_KEY);
       logger.debug(
         { key: FOCUS_SEQUENCE_KEY, raw: configJson },
-        '[Service] Raw value from repository'
+        '[Service] Raw value from repository',
       );
       if (configJson) {
         const config = JSON.parse(configJson);
@@ -192,14 +193,14 @@ export const settingsService = {
             (sc: unknown) =>
               typeof sc === 'object' &&
               sc !== null &&
-              (!('shortcut' in sc) || typeof (sc as { shortcut?: unknown }).shortcut === 'string')
+              (!('shortcut' in sc) || typeof (sc as { shortcut?: unknown }).shortcut === 'string'),
           )
         ) {
           logger.debug({ config }, '[Service] Fetched and validated full focus switcher config');
           return config as FocusSwitcherFullConfig;
         }
         logger.warn(
-          '[Service] Invalid full focus switcher config format found in settings. Returning default.'
+          '[Service] Invalid full focus switcher config format found in settings. Returning default.',
         );
       } else {
         logger.debug('[Service] No focus switcher config found in settings. Returning default.');
@@ -207,7 +208,7 @@ export const settingsService = {
     } catch (error: unknown) {
       logger.error(
         `[Service] Error parsing full focus switcher config from settings (key: ${FOCUS_SEQUENCE_KEY}):`,
-        error
+        error,
       );
     }
     logger.debug({ config: defaultConfig }, '[Service] Returning default focus config');
@@ -222,7 +223,7 @@ export const settingsService = {
     // +++ 更新参数类型 +++
     logger.debug(
       '[Service] setFocusSwitcherSequence called with full config:',
-      JSON.stringify(fullConfig)
+      JSON.stringify(fullConfig),
     );
     // +++ 验证 FocusSwitcherFullConfig 结构 (控制器层已做基本验证) +++
     if (
@@ -237,37 +238,41 @@ export const settingsService = {
           (sc: unknown) =>
             typeof sc === 'object' &&
             sc !== null &&
-            (!('shortcut' in sc) || typeof (sc as { shortcut?: unknown }).shortcut === 'string')
+            (!('shortcut' in sc) || typeof (sc as { shortcut?: unknown }).shortcut === 'string'),
         )
       )
     ) {
       logger.error(
         '[Service] Attempted to save invalid full focus switcher config format:',
-        fullConfig
+        fullConfig,
       );
-      throw new Error('Invalid full config format provided.');
+      throw ErrorFactory.badRequest('无效的焦点切换配置格式。');
     }
 
     // +++ 验证 sequence 中的每个 id 是否为有效的焦点输入 ID +++
     const invalidSequenceIds = fullConfig.sequence.filter(
-      (id) => !(VALID_FOCUS_INPUT_IDS as readonly string[]).includes(id)
+      (id) => !(VALID_FOCUS_INPUT_IDS as readonly string[]).includes(id),
     );
     if (invalidSequenceIds.length > 0) {
       logger.error(
-        `[Service] Invalid focus input IDs in sequence: ${invalidSequenceIds.join(', ')}`
+        `[Service] Invalid focus input IDs in sequence: ${invalidSequenceIds.join(', ')}`,
       );
-      throw new Error(`Invalid focus input ID(s) in sequence: ${invalidSequenceIds.join(', ')}`);
+      throw ErrorFactory.badRequest(
+        `序列中包含无效的焦点输入 ID: ${invalidSequenceIds.join(', ')}`,
+      );
     }
 
     // +++ 验证 shortcuts 中的每个 key 是否为有效的焦点输入 ID +++
     const invalidShortcutKeys = Object.keys(fullConfig.shortcuts).filter(
-      (key) => !(VALID_FOCUS_INPUT_IDS as readonly string[]).includes(key)
+      (key) => !(VALID_FOCUS_INPUT_IDS as readonly string[]).includes(key),
     );
     if (invalidShortcutKeys.length > 0) {
       logger.error(
-        `[Service] Invalid focus input IDs in shortcuts: ${invalidShortcutKeys.join(', ')}`
+        `[Service] Invalid focus input IDs in shortcuts: ${invalidShortcutKeys.join(', ')}`,
       );
-      throw new Error(`Invalid focus input ID(s) in shortcuts: ${invalidShortcutKeys.join(', ')}`);
+      throw ErrorFactory.badRequest(
+        `快捷键中包含无效的焦点输入 ID: ${invalidShortcutKeys.join(', ')}`,
+      );
     }
 
     // +++ 验证 shortcuts 中的快捷键格式是否有效 +++
@@ -279,7 +284,7 @@ export const settingsService = {
     }
     if (invalidShortcuts.length > 0) {
       logger.warn(
-        `[Service] Invalid shortcut format(s): ${invalidShortcuts.join(', ')}. Shortcuts should follow pattern like "Ctrl+K", "Alt+Shift+F", etc.`
+        `[Service] Invalid shortcut format(s): ${invalidShortcuts.join(', ')}. Shortcuts should follow pattern like "Ctrl+K", "Alt+Shift+F", etc.`,
       );
       // 对于快捷键格式，仅警告而不阻止保存（允许用户自定义格式）
     }
@@ -287,16 +292,16 @@ export const settingsService = {
     try {
       const configJson = JSON.stringify(fullConfig); // +++ 序列化完整结构 +++
       logger.debug(
-        `[Service] Attempting to save setting. Key: ${FOCUS_SEQUENCE_KEY}, Value: ${configJson}`
+        `[Service] Attempting to save setting. Key: ${FOCUS_SEQUENCE_KEY}, Value: ${configJson}`,
       );
       await settingsRepository.setSetting(FOCUS_SEQUENCE_KEY, configJson);
       logger.debug(`[Service] Successfully saved setting for key: ${FOCUS_SEQUENCE_KEY}`);
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${FOCUS_SEQUENCE_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save focus switcher sequence.');
+      throw ErrorFactory.databaseError('保存焦点切换序列失败');
     }
   },
 
@@ -310,14 +315,14 @@ export const settingsService = {
       const visibleStr = await settingsRepository.getSetting(NAV_BAR_VISIBLE_KEY);
       logger.debug(
         { key: NAV_BAR_VISIBLE_KEY, raw: visibleStr },
-        '[Service] Raw value from repository'
+        '[Service] Raw value from repository',
       );
       // 如果设置存在且值为 'false'，则返回 false，否则都返回 true (包括未设置的情况)
       return visibleStr !== 'false';
     } catch (error: unknown) {
       logger.error(
         `[Service] Error getting nav bar visibility setting (key: ${NAV_BAR_VISIBLE_KEY}):`,
-        error
+        error,
       );
       // 出错时返回默认值 true
       return true;
@@ -333,16 +338,16 @@ export const settingsService = {
     try {
       const visibleStr = String(visible); // 将布尔值转换为 'true' 或 'false'
       logger.debug(
-        `[Service] Attempting to save setting. Key: ${NAV_BAR_VISIBLE_KEY}, Value: ${visibleStr}`
+        `[Service] Attempting to save setting. Key: ${NAV_BAR_VISIBLE_KEY}, Value: ${visibleStr}`,
       );
       await settingsRepository.setSetting(NAV_BAR_VISIBLE_KEY, visibleStr);
       logger.debug(`[Service] Successfully saved setting for key: ${NAV_BAR_VISIBLE_KEY}`);
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${NAV_BAR_VISIBLE_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save nav bar visibility setting.');
+      throw ErrorFactory.databaseError('保存导航栏可见性设置失败');
     }
   },
 
@@ -356,7 +361,7 @@ export const settingsService = {
       const layoutJson = await settingsRepository.getSetting(LAYOUT_TREE_KEY);
       logger.debug(
         { key: LAYOUT_TREE_KEY, raw: layoutJson ? `${layoutJson.substring(0, 100)}...` : null },
-        '[Service] Raw value from repository (truncated)'
+        '[Service] Raw value from repository (truncated)',
       );
       return layoutJson; // 直接返回 JSON 字符串或 null
     } catch (error: unknown) {
@@ -371,14 +376,14 @@ export const settingsService = {
    */
   async setLayoutTree(layoutJson: string): Promise<void> {
     logger.debug(
-      `[Service] setLayoutTree called with JSON (first 100 chars): ${layoutJson.substring(0, 100)}...`
+      `[Service] setLayoutTree called with JSON (first 100 chars): ${layoutJson.substring(0, 100)}...`,
     );
     // 可选：在这里添加 JSON 格式验证
     try {
       JSON.parse(layoutJson); // 尝试解析以验证格式
     } catch (error: unknown) {
       logger.error('[Service] Invalid JSON format provided for layout tree:', error);
-      throw new Error('Invalid layout tree JSON format.');
+      throw ErrorFactory.badRequest('无效的布局树 JSON 格式。');
     }
 
     try {
@@ -388,9 +393,9 @@ export const settingsService = {
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${LAYOUT_TREE_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save layout tree setting.');
+      throw ErrorFactory.databaseError('保存布局树设置失败');
     }
   },
 
@@ -404,14 +409,14 @@ export const settingsService = {
       const enabledStr = await settingsRepository.getSetting(AUTO_COPY_ON_SELECT_KEY);
       logger.debug(
         `[Service] Raw value from repository for ${AUTO_COPY_ON_SELECT_KEY}:`,
-        enabledStr
+        enabledStr,
       );
       // 如果设置存在且值为 'true'，则返回 true，否则都返回 false (包括未设置或值为 'false' 的情况)
       return enabledStr === 'true';
     } catch (error: unknown) {
       logger.error(
         `[Service] Error getting auto copy on select setting (key: ${AUTO_COPY_ON_SELECT_KEY}):`,
-        error
+        error,
       );
       // 出错时返回默认值 false
       return false;
@@ -427,16 +432,16 @@ export const settingsService = {
     try {
       const enabledStr = String(enabled); // 将布尔值转换为 'true' 或 'false'
       logger.debug(
-        `[Service] Attempting to save setting. Key: ${AUTO_COPY_ON_SELECT_KEY}, Value: ${enabledStr}`
+        `[Service] Attempting to save setting. Key: ${AUTO_COPY_ON_SELECT_KEY}, Value: ${enabledStr}`,
       );
       await settingsRepository.setSetting(AUTO_COPY_ON_SELECT_KEY, enabledStr);
       logger.debug(`[Service] Successfully saved setting for key: ${AUTO_COPY_ON_SELECT_KEY}`);
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${AUTO_COPY_ON_SELECT_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save auto copy on select setting.');
+      throw ErrorFactory.databaseError('保存自动复制设置失败');
     }
   },
 
@@ -446,13 +451,13 @@ export const settingsService = {
    */
   async getStatusMonitorIntervalSeconds(): Promise<number> {
     logger.debug(
-      `[Service] Attempting to get setting for key: ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}`
+      `[Service] Attempting to get setting for key: ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}`,
     );
     try {
       const intervalStr = await settingsRepository.getSetting(STATUS_MONITOR_INTERVAL_SECONDS_KEY);
       logger.debug(
         `[Service] Raw value from repository for ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}:`,
-        intervalStr
+        intervalStr,
       );
       if (intervalStr) {
         const intervalNum = parseInt(intervalStr, 10);
@@ -461,7 +466,7 @@ export const settingsService = {
           return intervalNum;
         }
         logger.warn(
-          `[Service] Invalid status monitor interval value found ('${intervalStr}'). Returning default.`
+          `[Service] Invalid status monitor interval value found ('${intervalStr}'). Returning default.`,
         );
       } else {
         logger.debug(`[Service] No status monitor interval found in settings. Returning default.`);
@@ -469,7 +474,7 @@ export const settingsService = {
     } catch (error: unknown) {
       logger.error(
         `[Service] Error getting status monitor interval setting (key: ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}):`,
-        error
+        error,
       );
     }
     // 返回默认值
@@ -485,23 +490,23 @@ export const settingsService = {
     // 验证输入是否为正整数
     if (!Number.isInteger(interval) || interval <= 0) {
       logger.error(`[Service] Attempted to save invalid status monitor interval: ${interval}`);
-      throw new Error('Invalid interval value provided. Must be a positive integer.');
+      throw ErrorFactory.badRequest('无效的间隔值，必须为正整数。');
     }
     try {
       const intervalStr = String(interval);
       logger.debug(
-        `[Service] Attempting to save setting. Key: ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}, Value: ${intervalStr}`
+        `[Service] Attempting to save setting. Key: ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}, Value: ${intervalStr}`,
       );
       await settingsRepository.setSetting(STATUS_MONITOR_INTERVAL_SECONDS_KEY, intervalStr);
       logger.debug(
-        `[Service] Successfully saved setting for key: ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}`
+        `[Service] Successfully saved setting for key: ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}`,
       );
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${STATUS_MONITOR_INTERVAL_SECONDS_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save status monitor interval setting.');
+      throw ErrorFactory.databaseError('保存状态监控间隔设置失败');
     }
   },
 
@@ -534,7 +539,7 @@ export const settingsService = {
       !Array.isArray(configDto.left) ||
       !Array.isArray(configDto.right)
     ) {
-      throw new Error('无效的侧栏配置格式。必须包含 left 和 right 数组。');
+      throw ErrorFactory.badRequest('无效的侧栏配置格式。必须包含 left 和 right 数组。');
     }
 
     // Validate PaneName (using the type imported)
@@ -556,9 +561,11 @@ export const settingsService = {
     const validatePaneArray = (arr: unknown[], side: string) => {
       if (!arr.every((item) => typeof item === 'string' && validPaneNames.has(item as PaneName))) {
         const invalidItems = arr.filter(
-          (item) => typeof item !== 'string' || !validPaneNames.has(item as PaneName)
+          (item) => typeof item !== 'string' || !validPaneNames.has(item as PaneName),
         );
-        throw new Error(`侧栏配置 (${side}) 包含无效的面板名称: ${invalidItems.join(', ')}`);
+        throw ErrorFactory.badRequest(
+          `侧栏配置 (${side}) 包含无效的面板名称: ${invalidItems.join(', ')}`,
+        );
       }
     };
 
@@ -613,7 +620,7 @@ export const settingsService = {
 
     // --- Validation ---
     if (!configDto || typeof configDto !== 'object') {
-      throw new Error('无效的 CAPTCHA 配置格式。');
+      throw ErrorFactory.badRequest('无效的 CAPTCHA 配置格式。');
     }
 
     // Fetch the current settings to merge with the DTO
@@ -622,33 +629,34 @@ export const settingsService = {
 
     // Validate and update individual fields from DTO
     if (configDto.enabled !== undefined) {
-      if (typeof configDto.enabled !== 'boolean') throw new Error('captcha.enabled 必须是布尔值。');
+      if (typeof configDto.enabled !== 'boolean')
+        throw ErrorFactory.badRequest('captcha.enabled 必须是布尔值。');
       configToSave.enabled = configDto.enabled;
     }
     if (configDto.provider !== undefined) {
       const validProviders: CaptchaProvider[] = ['hcaptcha', 'recaptcha', 'none'];
       if (!validProviders.includes(configDto.provider))
-        throw new Error(`无效的 CAPTCHA 提供商: ${configDto.provider}`);
+        throw ErrorFactory.badRequest(`无效的 CAPTCHA 提供商: ${configDto.provider}`);
       configToSave.provider = configDto.provider;
     }
     if (configDto.hcaptchaSiteKey !== undefined) {
       if (typeof configDto.hcaptchaSiteKey !== 'string')
-        throw new Error('hcaptchaSiteKey 必须是字符串。');
+        throw ErrorFactory.badRequest('hcaptchaSiteKey 必须是字符串。');
       configToSave.hcaptchaSiteKey = configDto.hcaptchaSiteKey;
     }
     if (configDto.hcaptchaSecretKey !== undefined) {
       if (typeof configDto.hcaptchaSecretKey !== 'string')
-        throw new Error('hcaptchaSecretKey 必须是字符串。');
+        throw ErrorFactory.badRequest('hcaptchaSecretKey 必须是字符串。');
       configToSave.hcaptchaSecretKey = configDto.hcaptchaSecretKey;
     }
     if (configDto.recaptchaSiteKey !== undefined) {
       if (typeof configDto.recaptchaSiteKey !== 'string')
-        throw new Error('recaptchaSiteKey 必须是字符串。');
+        throw ErrorFactory.badRequest('recaptchaSiteKey 必须是字符串。');
       configToSave.recaptchaSiteKey = configDto.recaptchaSiteKey;
     }
     if (configDto.recaptchaSecretKey !== undefined) {
       if (typeof configDto.recaptchaSecretKey !== 'string')
-        throw new Error('recaptchaSecretKey 必须是字符串。');
+        throw ErrorFactory.badRequest('recaptchaSecretKey 必须是字符串。');
       configToSave.recaptchaSecretKey = configDto.recaptchaSecretKey;
     }
 
@@ -669,14 +677,14 @@ export const settingsService = {
       const valueStr = await settingsRepository.getSetting(SHOW_CONNECTION_TAGS_KEY);
       logger.debug(
         `[Service] Raw value from repository for ${SHOW_CONNECTION_TAGS_KEY}:`,
-        valueStr
+        valueStr,
       );
       // 默认显示，所以只有当值为 'false' 时才返回 false
       return valueStr !== 'false';
     } catch (error: unknown) {
       logger.error(
         `[Service] Error getting show connection tags setting (key: ${SHOW_CONNECTION_TAGS_KEY}):`,
-        error
+        error,
       );
       return true;
     }
@@ -687,16 +695,16 @@ export const settingsService = {
     try {
       const valueStr = String(enabled);
       logger.debug(
-        `[Service] Attempting to save setting. Key: ${SHOW_CONNECTION_TAGS_KEY}, Value: ${valueStr}`
+        `[Service] Attempting to save setting. Key: ${SHOW_CONNECTION_TAGS_KEY}, Value: ${valueStr}`,
       );
       await settingsRepository.setSetting(SHOW_CONNECTION_TAGS_KEY, valueStr);
       logger.debug(`[Service] Successfully saved setting for key: ${SHOW_CONNECTION_TAGS_KEY}`);
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${SHOW_CONNECTION_TAGS_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save show connection tags setting.');
+      throw ErrorFactory.databaseError('保存连接标签显示设置失败');
     }
   },
 
@@ -707,14 +715,14 @@ export const settingsService = {
       const valueStr = await settingsRepository.getSetting(SHOW_QUICK_COMMAND_TAGS_KEY);
       logger.debug(
         `[Service] Raw value from repository for ${SHOW_QUICK_COMMAND_TAGS_KEY}:`,
-        valueStr
+        valueStr,
       );
       // 默认显示，所以只有当值为 'false' 时才返回 false
       return valueStr !== 'false';
     } catch (error: unknown) {
       logger.error(
         `[Service] Error getting show quick command tags setting (key: ${SHOW_QUICK_COMMAND_TAGS_KEY}):`,
-        error
+        error,
       );
       return true;
     }
@@ -725,23 +733,23 @@ export const settingsService = {
     try {
       const valueStr = String(enabled);
       logger.debug(
-        `[Service] Attempting to save setting. Key: ${SHOW_QUICK_COMMAND_TAGS_KEY}, Value: ${valueStr}`
+        `[Service] Attempting to save setting. Key: ${SHOW_QUICK_COMMAND_TAGS_KEY}, Value: ${valueStr}`,
       );
       await settingsRepository.setSetting(SHOW_QUICK_COMMAND_TAGS_KEY, valueStr);
       logger.debug(`[Service] Successfully saved setting for key: ${SHOW_QUICK_COMMAND_TAGS_KEY}`);
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${SHOW_QUICK_COMMAND_TAGS_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save show quick command tags setting.');
+      throw ErrorFactory.databaseError('保存快捷指令标签显示设置失败');
     }
   },
 
   // --- Show Status Monitor IP Address ---
   async getShowStatusMonitorIpAddress(): Promise<boolean> {
     logger.debug(
-      `[Service] Attempting to get setting for key: ${SHOW_STATUS_MONITOR_IP_ADDRESS_KEY}`
+      `[Service] Attempting to get setting for key: ${SHOW_STATUS_MONITOR_IP_ADDRESS_KEY}`,
     );
     try {
       const valueStr = await settingsRepository.getSetting(SHOW_STATUS_MONITOR_IP_ADDRESS_KEY);
@@ -750,7 +758,7 @@ export const settingsService = {
     } catch (error: unknown) {
       logger.error(
         `[Service] Error getting show status monitor IP address setting (key: ${SHOW_STATUS_MONITOR_IP_ADDRESS_KEY}):`,
-        error
+        error,
       );
       return true;
     }
@@ -763,9 +771,9 @@ export const settingsService = {
     } catch (error: unknown) {
       logger.error(
         `[Service] Error calling settingsRepository.setSetting for key ${SHOW_STATUS_MONITOR_IP_ADDRESS_KEY}:`,
-        error
+        error,
       );
-      throw new Error('Failed to save show status monitor IP address setting.');
+      throw ErrorFactory.databaseError('保存状态监控 IP 地址显示设置失败');
     }
   },
 
@@ -795,13 +803,15 @@ export const settingsService = {
   async setLogLevel(level: string): Promise<void> {
     const validLevels = ['debug', 'info', 'warn', 'error', 'silent'];
     if (!validLevels.includes(level)) {
-      throw new Error(`Invalid log level: ${level}. Must be one of: ${validLevels.join(', ')}`);
+      throw ErrorFactory.badRequest(
+        `无效的日志级别: ${level}，必须是以下之一: ${validLevels.join(', ')}`,
+      );
     }
     try {
       await settingsRepository.setSetting(LOG_LEVEL_KEY, level);
     } catch (error: unknown) {
       logger.error(`[Service] Error setting log level:`, error);
-      throw new Error('Failed to save log level setting.');
+      throw ErrorFactory.databaseError('保存日志级别设置失败');
     }
   },
 
@@ -832,13 +842,13 @@ export const settingsService = {
    */
   async setAuditLogMaxEntries(maxEntries: number): Promise<void> {
     if (!Number.isInteger(maxEntries) || maxEntries <= 0) {
-      throw new Error('Invalid max entries value. Must be a positive integer.');
+      throw ErrorFactory.badRequest('无效的最大条目值，必须为正整数。');
     }
     try {
       await settingsRepository.setSetting(AUDIT_LOG_MAX_ENTRIES_KEY, String(maxEntries));
     } catch (error: unknown) {
       logger.error(`[Service] Error setting audit log max entries:`, error);
-      throw new Error('Failed to save audit log max entries setting.');
+      throw ErrorFactory.databaseError('保存审计日志最大条目设置失败');
     }
   },
 }; // <-- End of settingsService object definition

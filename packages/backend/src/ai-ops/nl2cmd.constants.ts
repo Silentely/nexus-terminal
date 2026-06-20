@@ -4,6 +4,7 @@
  */
 
 import crypto from 'crypto';
+import { logger } from '../utils/logger';
 
 /**
  * 创建 Trace ID
@@ -46,7 +47,8 @@ export function shouldLogTiming(totalMs: number): boolean {
 export function safeBaseUrlForLog(baseUrl: string): string {
   try {
     return new URL(baseUrl).host;
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     return baseUrl;
   }
 }

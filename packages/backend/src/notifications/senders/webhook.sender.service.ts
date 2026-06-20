@@ -21,7 +21,7 @@ class WebhookSenderService implements INotificationSender {
       new URL(url);
     } catch (error: unknown) {
       logger.error(
-        `[WebhookSender] Invalid webhook URL format: ${url} (${getErrorMessage(error)})`
+        `[WebhookSender] Invalid webhook URL format: ${url} (${getErrorMessage(error)})`,
       );
       throw new Error(`Invalid webhook URL format: ${url}`);
     }
@@ -53,8 +53,8 @@ class WebhookSenderService implements INotificationSender {
             logger.warn(
               `[WebhookSender] Failed to parse request body as JSON for Content-Type application/json. Sending as raw string. Parse error: ${getErrorMessage(parseError)}. Body: ${requestBody.substring(
                 0,
-                100
-              )}...`
+                100,
+              )}...`,
             );
             requestData = requestBody;
           }
@@ -63,7 +63,7 @@ class WebhookSenderService implements INotificationSender {
         }
       } else if (requestMethod === 'GET') {
         logger.warn(
-          `[WebhookSender] Sending data in body for GET request might not be standard. URL: ${url}`
+          `[WebhookSender] Sending data in body for GET request might not be standard. URL: ${url}`,
         );
       }
 
@@ -79,7 +79,7 @@ class WebhookSenderService implements INotificationSender {
           url,
           requestData,
           { ...baseOptions, method: requestMethod },
-          'Webhook'
+          'Webhook',
         );
       } else {
         response = await safeHttpGet(url, { ...baseOptions, method: requestMethod }, 'Webhook');
@@ -87,21 +87,22 @@ class WebhookSenderService implements INotificationSender {
 
       if (response.status >= 200 && response.status < 300) {
         logger.info(
-          `[WebhookSender] Successfully sent notification to webhook. Status: ${response.status}`
+          `[WebhookSender] Successfully sent notification to webhook. Status: ${response.status}`,
         );
       } else {
         logger.warn(
           `[WebhookSender] Webhook endpoint responded with status: ${response.status}`,
-          response.data
+          response.data,
         );
         let dataSummary: string;
         try {
           dataSummary = JSON.stringify(response.data).substring(0, 200);
-        } catch {
+        } catch (err: unknown) {
+          logger.debug({ err }, '操作失败，已忽略');
           dataSummary = String(response.data).substring(0, 200);
         }
         throw new Error(
-          `Webhook endpoint rejected the request (HTTP ${response.status}): ${dataSummary}`
+          `Webhook endpoint rejected the request (HTTP ${response.status}): ${dataSummary}`,
         );
       }
     } catch (error: unknown) {
@@ -109,15 +110,15 @@ class WebhookSenderService implements INotificationSender {
         logger.error(
           `[WebhookSender] Axios error sending notification to ${url}: ${getErrorMessage(error)}`,
           error.response?.status,
-          error.response?.data
+          error.response?.data,
         );
         throw new Error(
-          `Failed to send webhook notification (Axios Error): ${getErrorMessage(error)}`
+          `Failed to send webhook notification (Axios Error): ${getErrorMessage(error)}`,
         );
       } else {
         logger.error(`[WebhookSender] Unexpected error sending notification to ${url}:`, error);
         throw new Error(
-          `Failed to send webhook notification (Unexpected Error): ${getErrorMessage(error)}`
+          `Failed to send webhook notification (Unexpected Error): ${getErrorMessage(error)}`,
         );
       }
     }

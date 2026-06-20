@@ -47,7 +47,7 @@ type RateLimiter = ReturnType<typeof import('express-rate-limit').default>;
 export const registerRoutes = (
   app: express.Application,
   apiLimiter: RateLimiter,
-  settingsLimiter: RateLimiter
+  settingsLimiter: RateLimiter,
 ) => {
   // 请求级日志（为每个请求生成 requestId）
   app.use(requestLogger);
@@ -111,7 +111,8 @@ export const registerRoutes = (
         });
       });
       checks.database = 'ok';
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       checks.database = 'fail';
     }
 

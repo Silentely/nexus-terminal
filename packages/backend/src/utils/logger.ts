@@ -54,7 +54,8 @@ function createPinoInstance(): pino.Logger {
       second: '2-digit',
       hour12: false,
     });
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     // 时区无效时回退到 ISO 格式
   }
 
@@ -87,7 +88,8 @@ function createPinoInstance(): pino.Logger {
             }
           : undefined,
     });
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     // LOG_LEVEL 非法值（如 verbose）会导致 pino 崩溃，回退到 info 级别
     return pino({ level: 'info', timestamp });
   }

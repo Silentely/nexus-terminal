@@ -94,7 +94,7 @@ export const registerSecurityMiddleware = (app: express.Application) => {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-    })
+    }),
   );
 
   // 2. CORS - 跨域资源共享
@@ -106,7 +106,7 @@ export const registerSecurityMiddleware = (app: express.Application) => {
 
   if (!process.env.ALLOWED_ORIGINS && process.env.NODE_ENV === 'production') {
     logger.warn(
-      '[CORS] 生产环境未设置 ALLOWED_ORIGINS，正在使用默认值（localhost）。请配置 ALLOWED_ORIGINS 环境变量以限制允许的跨域来源。'
+      '[CORS] 生产环境未设置 ALLOWED_ORIGINS，正在使用默认值（localhost）。请配置 ALLOWED_ORIGINS 环境变量以限制允许的跨域来源。',
     );
   }
 
@@ -120,8 +120,8 @@ export const registerSecurityMiddleware = (app: express.Application) => {
     new Set(
       [...baseAllowedOrigins, ...rpConfiguredOrigins]
         .map((origin) => normalizeOrigin(origin) || origin)
-        .filter(Boolean)
-    )
+        .filter(Boolean),
+    ),
   );
 
   app.use(
@@ -135,7 +135,7 @@ export const registerSecurityMiddleware = (app: express.Application) => {
         return callback(null, false);
       },
       credentials: true,
-    })
+    }),
   );
 
   // 3. IP 白名单、JSON 解析、指标采集
@@ -149,7 +149,7 @@ export const registerSecurityMiddleware = (app: express.Application) => {
   app.use((_req, res, next) => {
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:"
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:",
     );
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');

@@ -40,7 +40,11 @@ const mockSsh2 = vi.hoisted(() => {
 });
 
 // Mock 依赖模块
-vi.mock('uuid', () => mockUuid);
+vi.mock('crypto', () => ({
+  default: mockUuid,
+  ...mockUuid,
+  randomUUID: mockUuid.v4,
+}));
 vi.mock('../connections/connection.service', () => mockConnectionService);
 vi.mock('ssh2', () => mockSsh2);
 
@@ -90,7 +94,7 @@ describe('TransfersService', () => {
         if (connId === 1 || connId === '1') return Promise.resolve(mockSourceConnection);
         if (connId === 2 || connId === '2') return Promise.resolve(mockTargetConnection);
         return Promise.resolve(null);
-      }
+      },
     );
   });
 
@@ -425,7 +429,7 @@ describe('TransfersService', () => {
         (connId: number | string) => {
           if (connId === 3 || connId === '3') return Promise.resolve(keyConnection);
           return Promise.resolve(mockSourceConnection);
-        }
+        },
       );
 
       const payload: InitiateTransferPayload = {

@@ -8,7 +8,7 @@ const options = {
     openapi: '3.0.0',
     info: {
       title: '星枢终端 API',
-      version: '1.0.0',
+      version: '1.5.5',
       description: `
 # 星枢终端 - RESTful API 文档
 
@@ -64,8 +64,8 @@ const options = {
         url: 'https://github.com/Silentely/nexus-terminal',
       },
       license: {
-        name: 'MIT',
-        url: 'https://opensource.org/licenses/MIT',
+        name: 'GPL-3.0',
+        url: 'https://www.gnu.org/licenses/gpl-3.0.html',
       },
     },
     servers: [
@@ -129,6 +129,12 @@ const options = {
                     'INTERNAL_SERVER_ERROR',
                     'DATABASE_ERROR',
                     'SERVICE_UNAVAILABLE',
+                    'INVALID_CREDENTIALS',
+                    'CAPTCHA_REQUIRED',
+                    'CAPTCHA_INVALID',
+                    'PASSWORD_MISMATCH',
+                    'PASSWORD_TOO_SHORT',
+                    'SETUP_ALREADY_COMPLETE',
                   ],
                 },
                 message: {
@@ -187,7 +193,7 @@ const options = {
 export const buildSwaggerSpec = () => {
   // eslint-disable-next-line global-require, import/no-extraneous-dependencies
   const swaggerJsdoc = require('swagger-jsdoc') as (
-    opts: typeof options
+    opts: typeof options,
   ) => Record<string, unknown>;
   return swaggerJsdoc(options);
 };

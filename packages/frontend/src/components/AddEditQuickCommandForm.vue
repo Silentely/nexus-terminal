@@ -213,7 +213,7 @@ watch(
     } else {
       commandError.value = null;
     }
-  }
+  },
 );
 
 // 初始化表单数据 (如果是编辑模式)
@@ -302,7 +302,7 @@ const handleSubmit = async () => {
       }
       return acc;
     },
-    {} as Record<string, string>
+    {} as Record<string, string>,
   );
 
   if (isEditing.value && props.commandToEdit) {
@@ -311,14 +311,14 @@ const handleSubmit = async () => {
       finalName,
       formData.command.trim(),
       formData.tagIds,
-      variablesToSave
+      variablesToSave,
     );
   } else {
     success = await quickCommandsStore.addQuickCommand(
       finalName,
       formData.command.trim(),
       formData.tagIds,
-      variablesToSave
+      variablesToSave,
     );
   }
 
@@ -356,7 +356,7 @@ const handleExecute = () => {
       }
       return acc;
     },
-    {} as Record<string, string>
+    {} as Record<string, string>,
   );
 
   // 执行变量替换
@@ -370,7 +370,7 @@ const handleExecute = () => {
   const undefinedVariables: string[] = [];
   variablePlaceholders.forEach((placeholder) => {
     const varName = placeholder.substring(2, placeholder.length - 1);
-    if (!currentVariables.hasOwnProperty(varName)) {
+    if (!Object.hasOwn(currentVariables, varName)) {
       undefinedVariables.push(varName);
     }
   });
@@ -379,20 +379,20 @@ const handleExecute = () => {
     uiNotificationsStore.showWarning(
       t('quickCommands.form.warningUndefinedVariables', {
         variables: undefinedVariables.join(', '),
-      })
+      }),
     );
   }
 
   const activeSessionId = sessionStore.activeSessionId;
   if (!activeSessionId) {
     uiNotificationsStore.showError(
-      t('quickCommands.form.errorNoActiveSession', '没有活动的SSH会话可执行指令。')
+      t('quickCommands.form.errorNoActiveSession', '没有活动的SSH会话可执行指令。'),
     );
     return;
   }
 
   log.info(
-    `[QuickCmdForm] Executing processed command: "${processedCommand}" on session ${activeSessionId}`
+    `[QuickCmdForm] Executing processed command: "${processedCommand}" on session ${activeSessionId}`,
   );
   emitWorkspaceEvent('quickCommand:executeProcessed', {
     command: processedCommand,

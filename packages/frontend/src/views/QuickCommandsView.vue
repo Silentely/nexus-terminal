@@ -341,7 +341,7 @@ const handleWheel = (event: WheelEvent) => {
       settingsStore.updateQuickCommandRowSizeMultiplier(quickCommandRowSizeMultiplier.value);
     } else {
       log.warn(
-        '[QuickCmdView] settingsStore.updateQuickCommandRowSizeMultiplier action not found.'
+        '[QuickCmdView] settingsStore.updateQuickCommandRowSizeMultiplier action not found.',
       );
     }
   }
@@ -414,7 +414,7 @@ const scrollToSelected = async (index: number) => {
 
   // Find the element using the data attribute (works for both views)
   const selectedElement = listContainer.querySelector(
-    `li[data-command-id="${selectedCommandId}"]`
+    `li[data-command-id="${selectedCommandId}"]`,
   ) as HTMLLIElement;
 
   if (selectedElement) {
@@ -424,7 +424,7 @@ const scrollToSelected = async (index: number) => {
     });
   } else {
     log.warn(
-      `[QuickCmdView] scrollToSelected: Could not find element for command ID ${selectedCommandId}`
+      `[QuickCmdView] scrollToSelected: Could not find element for command ID ${selectedCommandId}`,
     );
   }
 };
@@ -592,7 +592,7 @@ const executeCommand = (cmd: QuickCommandFE) => {
   const undefinedVariables: string[] = [];
   variablePlaceholders.forEach((placeholder) => {
     const varName = placeholder.substring(2, placeholder.length - 1);
-    if (!savedVariables.hasOwnProperty(varName)) {
+    if (!Object.hasOwn(savedVariables, varName)) {
       undefinedVariables.push(varName);
     }
   });
@@ -601,7 +601,7 @@ const executeCommand = (cmd: QuickCommandFE) => {
   const activeSessionId = sessionStore.activeSessionId;
   if (!activeSessionId) {
     uiNotificationsStore.showError(
-      t('quickCommands.form.errorNoActiveSession', '没有活动的SSH会话可执行指令。')
+      t('quickCommands.form.errorNoActiveSession', '没有活动的SSH会话可执行指令。'),
     );
     return;
   }
@@ -639,7 +639,7 @@ const handleQuickCommandMenuAction = (actionName: 'sendToAllSessions', command: 
         if (s.wsManager.connectionStatus.value !== 'connected') return false;
         const connInfo = connectionsStore.connections.find((c) => c.id === Number(s.connectionId));
         return connInfo?.type === 'SSH';
-      }
+      },
     );
 
     if (activeSshSessions.length > 0) {
