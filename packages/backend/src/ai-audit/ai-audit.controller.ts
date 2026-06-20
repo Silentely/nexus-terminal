@@ -5,7 +5,6 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { AiAuditService } from './ai-audit.service';
-import { logger } from '../utils/logger';
 import { ErrorFactory } from '../utils/AppError';
 import type { GetReportsQuery, GetAnomaliesQuery } from './ai-audit.types';
 

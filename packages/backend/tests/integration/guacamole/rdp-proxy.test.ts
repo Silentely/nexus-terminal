@@ -158,7 +158,7 @@ describe('RDP 代理测试', () => {
           JSON.stringify({
             type: 'rdp:error',
             payload: 'Failed to connect to remote desktop',
-          })
+          }),
         );
         mockClientWs.close(1011, 'RDP error');
       });
@@ -173,7 +173,7 @@ describe('RDP 代理测试', () => {
   describe('Guacamole 协议', () => {
     it('应该正确解析 Guacamole 指令', () => {
       const parseGuacInstruction = (
-        instruction: string
+        instruction: string,
       ): { opcode: string; args: string[] } | null => {
         const match = instruction.match(/^(\d+)\.([^,;]+)((?:,[^,;]*)*);\s*$/);
         if (!match) return null;

@@ -29,7 +29,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -68,7 +68,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -99,7 +99,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       await expect(connection).toBeVisible({ timeout: 5000 });
       await connection.dblclick();
@@ -130,7 +130,7 @@ test.describe('文件管理边缘场景测试', () => {
         await context.setOffline(false);
 
         const retryButton = authenticatedPage.locator(
-          'button:has-text("重试"), button:has-text("Retry")'
+          'button:has-text("重试"), button:has-text("Retry")',
         );
         if (await retryButton.isVisible({ timeout: 3000 }).catch(() => false)) {
           await retryButton.click();
@@ -156,7 +156,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -171,7 +171,7 @@ test.describe('文件管理边缘场景测试', () => {
           .catch(() => false);
         if (hasPermissionError) {
           await expect(fileManager.errorMessage).toContainText(
-            /Permission denied|无权限|拒绝|Access denied/i
+            /Permission denied|无权限|拒绝|Access denied/i,
           );
         }
       }
@@ -183,7 +183,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       await expect(connection).toBeVisible({ timeout: 5000 });
       await connection.dblclick();
@@ -227,7 +227,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       if (hasPermissionError) {
         await expect(fileManager.errorMessage).toContainText(
-          /Permission denied|无权限|拒绝|Access denied/i
+          /Permission denied|无权限|拒绝|Access denied/i,
         );
       }
       expect(hasPermissionError || !fileStillExists).toBeTruthy();
@@ -241,7 +241,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -263,12 +263,12 @@ test.describe('文件管理边缘场景测试', () => {
 
         // 兼容两种行为：出现覆盖确认框，或直接按策略处理同名上传
         const confirmDialog = authenticatedPage.locator(
-          '.el-message-box:has-text("覆盖"), .el-message-box:has-text("Overwrite")'
+          '.el-message-box:has-text("覆盖"), .el-message-box:has-text("Overwrite")',
         );
         if (await confirmDialog.isVisible({ timeout: 3000 }).catch(() => false)) {
           await authenticatedPage
             .locator(
-              '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")'
+              '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")',
             )
             .click();
         }
@@ -285,7 +285,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -319,7 +319,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -334,7 +334,7 @@ test.describe('文件管理边缘场景测试', () => {
 
         // 验证文件存在
         await expect(
-          await fileManager.fileExists(EDGE_CASE_DATA.specialCharsFile.name)
+          await fileManager.fileExists(EDGE_CASE_DATA.specialCharsFile.name),
         ).toBeTruthy();
       }
     });
@@ -345,7 +345,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -362,7 +362,7 @@ test.describe('文件管理边缘场景测试', () => {
 
         // 应该找到包含中文的文件
         await expect(
-          await fileManager.fileExists(EDGE_CASE_DATA.specialCharsFile.name)
+          await fileManager.fileExists(EDGE_CASE_DATA.specialCharsFile.name),
         ).toBeTruthy();
       }
     });
@@ -375,7 +375,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -396,7 +396,7 @@ test.describe('文件管理边缘场景测试', () => {
         // 批量删除
         await fileManager.deleteButton.click();
         const confirmButton = authenticatedPage.locator(
-          '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")'
+          '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")',
         );
         await confirmButton.click();
 
@@ -415,7 +415,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -451,7 +451,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -476,7 +476,7 @@ test.describe('文件管理边缘场景测试', () => {
 
         // 点击重试按钮
         const retryButton = authenticatedPage.locator(
-          'button:has-text("重试"), button:has-text("Retry")'
+          'button:has-text("重试"), button:has-text("Retry")',
         );
         const hasRetryButton = await retryButton.isVisible({ timeout: 3000 }).catch(() => false);
         if (!hasRetryButton) {
@@ -498,7 +498,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -518,7 +518,7 @@ test.describe('文件管理边缘场景测试', () => {
 
         // 点击取消
         const cancelButton = authenticatedPage.locator(
-          'button:has-text("取消"), button:has-text("Cancel")'
+          'button:has-text("取消"), button:has-text("Cancel")',
         );
         if (!(await cancelButton.isVisible({ timeout: 3000 }).catch(() => false))) {
           return;
@@ -544,7 +544,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -577,7 +577,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -594,7 +594,7 @@ test.describe('文件管理边缘场景测试', () => {
 
         // 应该打开编辑器或预览区域
         const editor = authenticatedPage.locator(
-          '.monaco-editor, [data-testid="monaco-editor"], .file-editor'
+          '.monaco-editor, [data-testid="monaco-editor"], .file-editor',
         );
         await expect(editor).toBeVisible({ timeout: 10000 });
       }
@@ -606,7 +606,7 @@ test.describe('文件管理边缘场景测试', () => {
 
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -623,7 +623,7 @@ test.describe('文件管理边缘场景测试', () => {
 
         // 应该显示无法预览的提示
         await expect(
-          authenticatedPage.locator('text=/无法预览|Cannot preview|Binary file/i')
+          authenticatedPage.locator('text=/无法预览|Cannot preview|Binary file/i'),
         ).toBeVisible({
           timeout: 5000,
         });

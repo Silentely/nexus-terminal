@@ -64,7 +64,7 @@ function createTestServer(): { app: Express; server: Server } {
  */
 async function runBenchmark(
   url: string,
-  options: autocannon.Options = {}
+  options: autocannon.Options = {},
 ): Promise<autocannon.Result> {
   return new Promise((resolve, reject) => {
     const instance = autocannon(
@@ -81,7 +81,7 @@ async function runBenchmark(
         } else {
           resolve(result);
         }
-      }
+      },
     );
 
     autocannon.track(instance);

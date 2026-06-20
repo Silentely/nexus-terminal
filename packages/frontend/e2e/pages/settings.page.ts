@@ -17,10 +17,10 @@ export class SettingsPage {
     this.sidebar = page.locator('.settings-sidebar, [data-testid="settings-sidebar"]');
     this.generalSettings = page.locator('[data-testid="general-settings"], :has-text("常规设置")');
     this.securitySettings = page.locator(
-      '[data-testid="security-settings"], :has-text("安全设置")'
+      '[data-testid="security-settings"], :has-text("安全设置")',
     );
     this.appearanceSettings = page.locator(
-      '[data-testid="appearance-settings"], :has-text("外观设置")'
+      '[data-testid="appearance-settings"], :has-text("外观设置")',
     );
     this.saveButton = page.locator('button:has-text("保存"), button[type="submit"]');
     this.successMessage = page.locator('.el-message--success');
@@ -57,7 +57,7 @@ export class SettingsPage {
   async enable2FA() {
     await this.navigateToSecurity();
     const enable2FAButton = this.page.locator(
-      'button:has-text("启用两步验证"), button:has-text("Enable 2FA")'
+      'button:has-text("启用两步验证"), button:has-text("Enable 2FA")',
     );
     await enable2FAButton.click();
   }
@@ -78,7 +78,7 @@ export class SettingsPage {
   async addPasskey() {
     await this.navigateToSecurity();
     const addPasskeyButton = this.page.locator(
-      'button:has-text("添加 Passkey"), button:has-text("Add Passkey")'
+      'button:has-text("添加 Passkey"), button:has-text("Add Passkey")',
     );
     await addPasskeyButton.click();
   }

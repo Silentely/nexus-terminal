@@ -25,7 +25,7 @@ export class FileManagerPage {
     this.downloadButton = page.locator('button:has-text("下载"), button:has-text("Download")');
     this.deleteButton = page.locator('button:has-text("删除"), button:has-text("Delete")');
     this.newFolderButton = page.locator(
-      'button:has-text("新建文件夹"), button:has-text("New Folder")'
+      'button:has-text("新建文件夹"), button:has-text("New Folder")',
     );
     this.pathInput = page.locator('input[name="path"], .path-input');
     this.searchInput = page.locator('input[placeholder*="搜索"], input[type="search"]');
@@ -82,7 +82,7 @@ export class FileManagerPage {
 
     // 确认删除
     const confirmButton = this.page.locator(
-      '.el-message-box__btns button:has-text("确定"), button:has-text("OK")'
+      '.el-message-box__btns button:has-text("确定"), button:has-text("OK")',
     );
     await confirmButton.click();
   }

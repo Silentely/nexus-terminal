@@ -177,7 +177,7 @@ describe('Concurrent Connections Stress Tests', () => {
             ws.on('open', () => resolve(ws));
             ws.on('error', reject);
             clients.push(ws);
-          })
+          }),
       );
 
       await Promise.all(connectionPromises);
@@ -193,7 +193,7 @@ describe('Concurrent Connections Stress Tests', () => {
               resolve();
             });
             ws.send(`test-${i}`);
-          })
+          }),
       );
 
       await Promise.all(messagePromises);
@@ -226,7 +226,7 @@ describe('Concurrent Connections Stress Tests', () => {
 
       // 验证所有连接都处于活跃状态
       expect(pool.getActiveConnectionCount()).toBe(
-        PERFORMANCE_THRESHOLDS.concurrent.sshConnections
+        PERFORMANCE_THRESHOLDS.concurrent.sshConnections,
       );
       connections.forEach((conn) => {
         expect(conn.isConnected()).toBe(true);
@@ -261,7 +261,7 @@ describe('Concurrent Connections Stress Tests', () => {
     const totalTime = Date.now() - startTime;
 
     console.log(
-      `${PERFORMANCE_THRESHOLDS.concurrent.sftpTransfers} 个并发传输任务完成，总耗时 ${totalTime}ms`
+      `${PERFORMANCE_THRESHOLDS.concurrent.sftpTransfers} 个并发传输任务完成，总耗时 ${totalTime}ms`,
     );
 
     // 验证所有任务都完成
@@ -291,7 +291,7 @@ describe('Concurrent Connections Stress Tests', () => {
     const totalTime = Date.now() - startTime;
 
     console.log(
-      `${PERFORMANCE_THRESHOLDS.concurrent.batchSubtasks} 个并发子任务完成，总耗时 ${totalTime}ms`
+      `${PERFORMANCE_THRESHOLDS.concurrent.batchSubtasks} 个并发子任务完成，总耗时 ${totalTime}ms`,
     );
 
     // 并发执行应该比串行快很多（串行至少需要 50 * 20 = 1000ms）
@@ -320,7 +320,7 @@ describe('Concurrent Connections Stress Tests', () => {
               ws.on('open', () => resolve(ws));
               ws.on('error', reject);
               wsClients.push(ws);
-            })
+            }),
         ),
       ]);
 

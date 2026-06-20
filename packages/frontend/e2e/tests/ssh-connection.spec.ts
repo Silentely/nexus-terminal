@@ -5,11 +5,11 @@ import { Page } from '@playwright/test';
 
 async function connectFirstVisibleConnection(
   page: Page,
-  workspace: WorkspacePage
+  workspace: WorkspacePage,
 ): Promise<boolean> {
   const connectionItem = page.locator(
     `.connection-list [data-testid="connection-item"]:first-child,
-     .connection-list .connection-item:first-child`
+     .connection-list .connection-item:first-child`,
   );
 
   if (!(await connectionItem.isVisible())) {
@@ -24,12 +24,12 @@ async function connectFirstVisibleConnection(
 async function connectVisibleConnectionByIndex(
   page: Page,
   workspace: WorkspacePage,
-  index: number
+  index: number,
 ): Promise<boolean> {
   const connectionItem = page
     .locator(
       `.connection-list [data-testid="connection-item"],
-       .connection-list .connection-item`
+       .connection-list .connection-item`,
     )
     .nth(index);
 
@@ -51,7 +51,7 @@ test.describe('SSH 连接测试', () => {
       // 如果有预配置的连接，尝试连接
       const connectionItem = authenticatedPage.locator(
         `.connection-list [data-testid="connection-item"]:first-child,
-         .connection-list .connection-item:first-child`
+         .connection-list .connection-item:first-child`,
       );
 
       if (await connectionItem.isVisible()) {
@@ -71,19 +71,19 @@ test.describe('SSH 连接测试', () => {
       // 填写连接信息
       await authenticatedPage.fill(
         'input[name="host"], input[placeholder*="主机"]',
-        SSH_CONNECTION.host
+        SSH_CONNECTION.host,
       );
       await authenticatedPage.fill(
         'input[name="port"], input[placeholder*="端口"]',
-        SSH_CONNECTION.port.toString()
+        SSH_CONNECTION.port.toString(),
       );
       await authenticatedPage.fill(
         'input[name="username"], input[placeholder*="用户名"]',
-        SSH_CONNECTION.username
+        SSH_CONNECTION.username,
       );
       await authenticatedPage.fill(
         'input[name="password"], input[type="password"]',
-        SSH_CONNECTION.password
+        SSH_CONNECTION.password,
       );
 
       // 点击连接按钮
@@ -129,7 +129,7 @@ test.describe('SSH 连接测试', () => {
       const secondConnected = await connectVisibleConnectionByIndex(
         authenticatedPage,
         workspace,
-        1
+        1,
       );
       if (!firstConnected || !secondConnected) return;
 
