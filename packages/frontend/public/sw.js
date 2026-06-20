@@ -37,7 +37,7 @@ self.addEventListener('install', (event) => {
       caches.open(CACHE_STATIC).then((cache) => cache.addAll(APP_SHELL_URLS)),
       // 预缓存图标
       caches.open(CACHE_ICONS).then((cache) => cache.addAll(ICON_URLS)),
-    ]).then(() => self.skipWaiting())
+    ]).then(() => self.skipWaiting()),
   );
 });
 
@@ -99,9 +99,9 @@ self.addEventListener('activate', (event) => {
         Promise.all(
           cacheNames
             .filter((name) => !currentCaches.includes(name))
-            .map((name) => caches.delete(name))
-        )
-      )
+            .map((name) => caches.delete(name)),
+        ),
+      ),
   );
   self.clients.claim();
 });
@@ -129,10 +129,10 @@ self.addEventListener('message', (event) => {
               })
               .catch(() => {
                 // 单个 URL 失败不影响其他 URL 的缓存
-              })
-          )
-        )
-      )
+              }),
+          ),
+        ),
+      ),
     );
   }
 });
