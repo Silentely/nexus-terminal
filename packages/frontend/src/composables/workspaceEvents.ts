@@ -96,7 +96,7 @@ export function useWorkspaceEventOff() {
  */
 export function useOnWorkspaceEvent<K extends keyof WorkspaceEventPayloads>(
   event: K,
-  handler: (payload: WorkspaceEventPayloads[K]) => void
+  handler: (payload: WorkspaceEventPayloads[K]) => void,
 ): void {
   workspaceEmitter.on(event, handler);
   onBeforeUnmount(() => {

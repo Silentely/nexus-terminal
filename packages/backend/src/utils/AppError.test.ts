@@ -23,7 +23,7 @@ describe('AppError', () => {
         400,
         ErrorSeverity.LOW,
         true,
-        '详细信息'
+        '详细信息',
       );
 
       expect(error.message).toBe('连接失败');
@@ -73,7 +73,7 @@ describe('AppError', () => {
         404,
         ErrorSeverity.HIGH,
         false,
-        '详情'
+        '详情',
       );
 
       // readonly 属性在 TypeScript 编译期检查，运行时可以尝试赋值
@@ -107,7 +107,7 @@ describe('AppError', () => {
         '致命错误',
         ErrorCode.INTERNAL_SERVER_ERROR,
         500,
-        ErrorSeverity.CRITICAL
+        ErrorSeverity.CRITICAL,
       );
       expect(error.severity).toBe(ErrorSeverity.CRITICAL);
     });

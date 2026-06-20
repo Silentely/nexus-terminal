@@ -155,7 +155,7 @@ describe('useNL2CMD', () => {
           shellType: 'bash',
           currentPath: '/home/user',
         },
-        { timeout: AI_REQUEST_TIMEOUT_MS }
+        { timeout: AI_REQUEST_TIMEOUT_MS },
       );
     });
 
@@ -191,7 +191,7 @@ describe('useNL2CMD', () => {
       expect(ElMessage.warning).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining('危险命令警告'),
-        })
+        }),
       );
     });
 

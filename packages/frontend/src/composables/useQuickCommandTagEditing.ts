@@ -58,7 +58,7 @@ export function useQuickCommandTagEditing() {
    */
   const finishEditingTag = async (
     filteredAndGroupedCommands: GroupedQuickCommands[],
-    expandedGroups: Record<string, boolean>
+    expandedGroups: Record<string, boolean>,
   ) => {
     const currentEditingId = editingTagId.value;
     const newName = editedTagName.value.trim();
@@ -86,11 +86,11 @@ export function useQuickCommandTagEditing() {
 
           if (commandIdsToAssign.length > 0) {
             log.info(
-              `[useQuickCommandTagEditing] Assigning ${commandIdsToAssign.length} commands to new tag ID: ${newTag.id}`
+              `[useQuickCommandTagEditing] Assigning ${commandIdsToAssign.length} commands to new tag ID: ${newTag.id}`,
             );
             const assignSuccess = await quickCommandsStore.assignCommandsToTagAction(
               commandIdsToAssign,
-              newTag.id
+              newTag.id,
             );
             if (assignSuccess) {
               log.info(`[useQuickCommandTagEditing] assignCommandsToTagAction reported success.`);
@@ -114,7 +114,7 @@ export function useQuickCommandTagEditing() {
         const originalTagName = originalGroup?.groupName;
         if (!originalTagName) {
           log.error(
-            `[useQuickCommandTagEditing] Cannot find original group name for tag ID ${currentEditingId}`
+            `[useQuickCommandTagEditing] Cannot find original group name for tag ID ${currentEditingId}`,
           );
           cancelEditingTag();
           return;
@@ -123,7 +123,7 @@ export function useQuickCommandTagEditing() {
           // 名称未变化
         } else {
           log.info(
-            `[useQuickCommandTagEditing] Updating tag ID ${currentEditingId} from "${originalTagName}" to "${newName}"`
+            `[useQuickCommandTagEditing] Updating tag ID ${currentEditingId} from "${originalTagName}" to "${newName}"`,
           );
           const updateResult = await quickCommandTagsStore.updateTag(currentEditingId, newName);
           if (updateResult) {

@@ -96,7 +96,7 @@ export const createProxy = async (input: CreateProxyInput): Promise<ProxyData> =
  */
 export const updateProxy = async (
   id: number,
-  input: UpdateProxyInput
+  input: UpdateProxyInput,
 ): Promise<ProxyData | null> => {
   // 1. 获取当前代理数据以进行比较（例如，用于认证方法更改逻辑）
   const currentProxy = await ProxyRepository.findProxyById(id);

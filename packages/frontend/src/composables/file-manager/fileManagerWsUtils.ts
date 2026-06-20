@@ -15,7 +15,7 @@ type SessionStore = ReturnType<typeof useSessionStore>;
  */
 export const getWsDepsFromSession = (
   sessionStore: SessionStore,
-  sessionId: string
+  sessionId: string,
 ): WebSocketDependencies | null => {
   const session = sessionStore.sessions.get(sessionId);
   if (!session?.wsManager) return null;

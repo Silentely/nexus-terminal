@@ -517,12 +517,12 @@ const filteredLocalHtmlPresets = computed(() => {
       preset.name
         .replace(/\.html$/, '')
         .toLowerCase()
-        .includes(searchTerm)
+        .includes(searchTerm),
     );
   }
   // Sort by name
   presets.sort((a, b) =>
-    a.name.replace(/\.html$/, '').localeCompare(b.name.replace(/\.html$/, ''))
+    a.name.replace(/\.html$/, '').localeCompare(b.name.replace(/\.html$/, '')),
   );
   return presets;
 });
@@ -535,11 +535,11 @@ const filteredRemoteHtmlPresets = computed(() => {
       preset.name
         .replace(/\.html$/, '')
         .toLowerCase()
-        .includes(searchTerm)
+        .includes(searchTerm),
     );
   }
   presets.sort((a, b) =>
-    a.name.replace(/\.html$/, '').localeCompare(b.name.replace(/\.html$/, ''))
+    a.name.replace(/\.html$/, '').localeCompare(b.name.replace(/\.html$/, '')),
   );
   return presets;
 });
@@ -837,7 +837,7 @@ const filteredRemoteHtmlPresets = computed(() => {
               :placeholder="
                 t(
                   'styleCustomizer.remoteRepoUrlPlaceholder',
-                  `${GITHUB_REPO_URL}/tree/main/doc/custom_html_theme`
+                  `${GITHUB_REPO_URL}/tree/main/doc/custom_html_theme`,
                 )
               "
             />

@@ -106,7 +106,7 @@ describe('MonacoEditor.vue', () => {
           fontFamily: 'Consolas',
           readOnly: true,
           automaticLayout: true,
-        })
+        }),
       );
     });
 
@@ -144,7 +144,7 @@ describe('MonacoEditor.vue', () => {
         expect.objectContaining({
           id: 'save-file',
           label: 'Save File',
-        })
+        }),
       );
     });
   });

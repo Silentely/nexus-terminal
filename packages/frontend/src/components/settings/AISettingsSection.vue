@@ -290,7 +290,7 @@ watch(
   (newSettings) => {
     localSettings.value = { ...newSettings };
   },
-  { deep: true }
+  { deep: true },
 );
 
 // Provider 切换时更新默认值

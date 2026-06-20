@@ -63,7 +63,7 @@ async function cleanupOldEventLogs(): Promise<void> {
 export const loggingMiddleware: EventMiddleware = (
   eventType: AppEventType,
   _payload: AppEventPayload,
-  next: () => void
+  next: () => void,
 ): void => {
   logger.debug(`[Event] ${eventType}`);
   next();
@@ -77,7 +77,7 @@ export const loggingMiddleware: EventMiddleware = (
 export const persistenceMiddleware: EventMiddleware = (
   eventType: AppEventType,
   payload: AppEventPayload,
-  next: () => void
+  next: () => void,
 ): void => {
   // 仅持久化关键事件
   if (!PERSISTENT_EVENTS.has(eventType)) {
@@ -174,7 +174,7 @@ async function flushEventBatch(): Promise<void> {
           (err: Error | null) => {
             if (err) reject(err);
             else resolve();
-          }
+          },
         );
       });
     }
@@ -204,7 +204,7 @@ async function flushEventBatch(): Promise<void> {
               (err: Error | null) => {
                 if (err) reject(err);
                 else resolve();
-              }
+              },
             );
           });
         } catch (singleErr) {

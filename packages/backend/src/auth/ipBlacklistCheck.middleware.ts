@@ -10,7 +10,7 @@ import { logger } from '../utils/logger';
 export const ipBlacklistCheckMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   // 获取客户端 IP (与 auth.controller 一致)
   const clientIp = req.ip || req.socket?.remoteAddress;

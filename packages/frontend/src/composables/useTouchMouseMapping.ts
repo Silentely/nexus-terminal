@@ -35,7 +35,7 @@ type GuacamoleRuntime = typeof GuacamoleDefault & {
       middle: boolean,
       right: boolean,
       up: boolean,
-      down: boolean
+      down: boolean,
     ) => MouseStateLike;
   };
 };
@@ -82,7 +82,7 @@ export function useTouchMouseMapping(options: TouchMouseMappingOptions) {
   const createMouseState = (
     x: number,
     y: number,
-    buttons: { left?: boolean; middle?: boolean; right?: boolean } = {}
+    buttons: { left?: boolean; middle?: boolean; right?: boolean } = {},
   ): MouseStateLike => {
     const roundedX = Math.round(x);
     const roundedY = Math.round(y);
@@ -109,7 +109,7 @@ export function useTouchMouseMapping(options: TouchMouseMappingOptions) {
 
   const sendState = (
     point: TouchPoint,
-    buttons: { left?: boolean; middle?: boolean; right?: boolean } = {}
+    buttons: { left?: boolean; middle?: boolean; right?: boolean } = {},
   ) => {
     const client = getClient();
     if (!client) return;

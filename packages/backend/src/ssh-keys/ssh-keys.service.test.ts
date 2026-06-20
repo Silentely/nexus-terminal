@@ -87,23 +87,23 @@ describe('SSH Key Service', () => {
 
     it('缺少名称应抛出异常', async () => {
       await expect(createSshKey({ name: '', private_key: 'key' })).rejects.toThrow(
-        '必须提供密钥名称和私钥内容。'
+        '必须提供密钥名称和私钥内容。',
       );
     });
 
     it('缺少私钥应抛出异常', async () => {
       await expect(createSshKey({ name: 'Test', private_key: '' })).rejects.toThrow(
-        '必须提供密钥名称和私钥内容。'
+        '必须提供密钥名称和私钥内容。',
       );
     });
 
     it('名称重复时应抛出友好异常', async () => {
       (SshKeyRepository.createSshKey as any).mockRejectedValueOnce(
-        new Error('UNIQUE constraint failed: ssh_keys.name')
+        new Error('UNIQUE constraint failed: ssh_keys.name'),
       );
 
       await expect(createSshKey({ name: 'Duplicate', private_key: 'key' })).rejects.toThrow(
-        'SSH 密钥名称 "Duplicate" 已存在。'
+        'SSH 密钥名称 "Duplicate" 已存在。',
       );
     });
   });
@@ -234,11 +234,11 @@ describe('SSH Key Service', () => {
     it('名称重复时应抛出友好异常', async () => {
       (SshKeyRepository.findSshKeyById as any).mockResolvedValueOnce(mockDbRow);
       (SshKeyRepository.updateSshKey as any).mockRejectedValueOnce(
-        new Error('UNIQUE constraint failed: ssh_keys.name')
+        new Error('UNIQUE constraint failed: ssh_keys.name'),
       );
 
       await expect(updateSshKey(1, { name: 'Duplicate' })).rejects.toThrow(
-        'SSH 密钥名称 "Duplicate" 已存在。'
+        'SSH 密钥名称 "Duplicate" 已存在。',
       );
     });
   });

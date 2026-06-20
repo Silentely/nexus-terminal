@@ -212,7 +212,7 @@ export class OutputEnhancerAddon implements ITerminalAddon {
         truncated
       }\n${ANSI_DIM}[... 内容过长已截断，已隐藏 ${hiddenLines - truncatedLines} 行]${ANSI_RESET}`;
       log.warn(
-        `[OutputEnhancerAddon] 折叠块内容过大（${(remainingBytes / 1024 / 1024).toFixed(2)}MB），已截断到 ${(actualBytes / 1024 / 1024).toFixed(2)}MB`
+        `[OutputEnhancerAddon] 折叠块内容过大（${(remainingBytes / 1024 / 1024).toFixed(2)}MB），已截断到 ${(actualBytes / 1024 / 1024).toFixed(2)}MB`,
       );
     }
 

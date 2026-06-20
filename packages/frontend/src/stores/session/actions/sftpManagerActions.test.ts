@@ -113,7 +113,7 @@ describe('session/actions/sftpManagerActions', () => {
         's1',
         expect.objectContaining({ value: '/home/user' }),
         expect.anything(),
-        t
+        t,
       );
     });
 
@@ -128,7 +128,7 @@ describe('session/actions/sftpManagerActions', () => {
         's1',
         expect.objectContaining({ value: '/' }),
         expect.anything(),
-        t
+        t,
       );
     });
   });

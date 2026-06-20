@@ -31,7 +31,7 @@ for (const path of Object.keys(localeModules)) {
 // 检查是否成功加载了任何语言文件
 if (availableLocales.length === 0) {
   log.error(
-    "[i18n] No language files found in './locales/'. Please ensure language files exist and the path is correct."
+    "[i18n] No language files found in './locales/'. Please ensure language files exist and the path is correct.",
   );
 }
 
@@ -110,7 +110,7 @@ export const setLocale = (lang: string) => {
     }
   } else {
     log.warn(
-      `[i18n] Locale "${lang}" is not available. Available locales: ${availableLocales.join(', ')}`
+      `[i18n] Locale "${lang}" is not available. Available locales: ${availableLocales.join(', ')}`,
     );
   }
 };

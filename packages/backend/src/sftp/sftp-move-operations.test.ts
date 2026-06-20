@@ -90,7 +90,7 @@ describe('sftp-move-operations', () => {
           return;
         }
         callback(createError(`unexpected path: ${path}`));
-      }
+      },
     );
 
     await executeMoveOperation(state, sessionId, ['/tmp/src/a.txt'], '/tmp/dest', requestId);
@@ -122,10 +122,10 @@ describe('sftp-move-operations', () => {
           return;
         }
         callback(createError(`unexpected path: ${path}`));
-      }
+      },
     );
     state.sftp.rename.mockImplementation(
-      (_oldPath: string, _newPath: string, callback: (err?: Error) => void) => callback()
+      (_oldPath: string, _newPath: string, callback: (err?: Error) => void) => callback(),
     );
 
     await executeMoveOperation(state, sessionId, ['/tmp/src/a.txt'], '/tmp/dest', requestId);
@@ -141,7 +141,7 @@ describe('sftp-move-operations', () => {
     expect(state.sftp.rename).toHaveBeenCalledWith(
       '/tmp/src/a.txt',
       '/tmp/dest/a.txt',
-      expect.any(Function)
+      expect.any(Function),
     );
   });
 
@@ -150,7 +150,7 @@ describe('sftp-move-operations', () => {
     state.sftp.lstat.mockImplementation(
       (_path: string, callback: (err: Error | null, stats?: MockStats) => void) => {
         callback(createError('permission denied', 'EACCES'));
-      }
+      },
     );
 
     await executeMoveOperation(state, sessionId, ['/tmp/src/a.txt'], '/tmp/dest', requestId);

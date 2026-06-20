@@ -70,7 +70,7 @@ export class SftpService {
       this.clientStates.get(sessionId),
       sessionId,
       path,
-      requestId
+      requestId,
     );
   }
 
@@ -79,14 +79,14 @@ export class SftpService {
     sessionId: string,
     path: string,
     requestId: string,
-    requestedEncoding?: string
+    requestedEncoding?: string,
   ): Promise<void> {
     await executeReadFileContentOperation(
       this.clientStates.get(sessionId),
       sessionId,
       path,
       requestId,
-      requestedEncoding
+      requestedEncoding,
     );
   }
 
@@ -97,7 +97,7 @@ export class SftpService {
     path: string,
     data: string,
     requestId: string,
-    encoding?: string
+    encoding?: string,
   ): Promise<void> {
     await executeWriteFileContentOperation(
       this.clientStates.get(sessionId),
@@ -105,7 +105,7 @@ export class SftpService {
       path,
       data,
       requestId,
-      encoding
+      encoding,
     );
   }
 
@@ -129,14 +129,14 @@ export class SftpService {
     sessionId: string,
     oldPath: string,
     newPath: string,
-    requestId: string
+    requestId: string,
   ): Promise<void> {
     await executeRenamePathOperation(
       this.clientStates.get(sessionId),
       sessionId,
       oldPath,
       newPath,
-      requestId
+      requestId,
     );
   }
 
@@ -147,7 +147,7 @@ export class SftpService {
       sessionId,
       path,
       mode,
-      requestId
+      requestId,
     );
   }
 
@@ -158,7 +158,7 @@ export class SftpService {
       sessionId,
       path,
       requestId,
-      () => this.clientStates.get(sessionId)
+      () => this.clientStates.get(sessionId),
     );
   }
 
@@ -167,14 +167,14 @@ export class SftpService {
     sessionId: string,
     sources: string[],
     destinationDir: string,
-    requestId: string
+    requestId: string,
   ): Promise<void> {
     await executeCopyOperation(
       this.clientStates.get(sessionId),
       sessionId,
       sources,
       destinationDir,
-      requestId
+      requestId,
     );
   }
 
@@ -183,14 +183,14 @@ export class SftpService {
     sessionId: string,
     sources: string[],
     destinationDir: string,
-    requestId: string
+    requestId: string,
   ): Promise<void> {
     await executeMoveOperation(
       this.clientStates.get(sessionId),
       sessionId,
       sources,
       destinationDir,
-      requestId
+      requestId,
     );
   }
 
@@ -221,7 +221,7 @@ export class SftpService {
     uploadId: string,
     remotePath: string,
     totalSize: number,
-    relativePath?: string
+    relativePath?: string,
   ): Promise<void> {
     return this.uploadManager.startUpload(sessionId, uploadId, remotePath, totalSize, relativePath);
   }
@@ -232,14 +232,14 @@ export class SftpService {
     uploadId: string,
     chunkIndex: number,
     dataBase64: string,
-    isLast?: boolean
+    isLast?: boolean,
   ): Promise<void> {
     return this.uploadManager.handleUploadChunk(
       sessionId,
       uploadId,
       chunkIndex,
       dataBase64,
-      isLast
+      isLast,
     );
   }
 

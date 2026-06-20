@@ -62,7 +62,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       const file = makeFile();
@@ -73,7 +73,7 @@ describe('useFileUploader', () => {
       expect(uploads[uploadIds[0]].filename).toBe('test.txt');
       expect(uploads[uploadIds[0]].status).toBe('pending');
       expect(wsDeps.value.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'sftp:upload:start' })
+        expect.objectContaining({ type: 'sftp:upload:start' }),
       );
     });
 
@@ -87,7 +87,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -111,7 +111,7 @@ describe('useFileUploader', () => {
           payload: expect.objectContaining({
             remotePath: '/home/subfolder/doc.txt',
           }),
-        })
+        }),
       );
     });
 
@@ -130,7 +130,7 @@ describe('useFileUploader', () => {
           payload: expect.objectContaining({
             remotePath: '/a.txt',
           }),
-        })
+        }),
       );
     });
 
@@ -149,7 +149,7 @@ describe('useFileUploader', () => {
           payload: expect.objectContaining({
             remotePath: '/home/user/a.txt',
           }),
-        })
+        }),
       );
     });
 
@@ -171,7 +171,7 @@ describe('useFileUploader', () => {
           payload: expect.objectContaining({
             remotePath: '/home/myfolder/doc.txt',
           }),
-        })
+        }),
       );
     });
   });
@@ -187,7 +187,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -208,7 +208,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -218,7 +218,7 @@ describe('useFileUploader', () => {
       cancelUpload(uploadId, true);
 
       expect(wsDeps.value.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'sftp:upload:cancel' })
+        expect.objectContaining({ type: 'sftp:upload:cancel' }),
       );
     });
 
@@ -232,7 +232,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -254,7 +254,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -290,7 +290,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -321,7 +321,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -349,7 +349,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -377,7 +377,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -409,7 +409,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -437,7 +437,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -465,7 +465,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());
@@ -493,7 +493,7 @@ describe('useFileUploader', () => {
         sessionId,
         currentPath,
         fileList,
-        wsDeps
+        wsDeps,
       );
 
       startFileUpload(makeFile());

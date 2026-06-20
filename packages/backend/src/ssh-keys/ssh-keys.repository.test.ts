@@ -76,7 +76,7 @@ describe('SSH Key Repository', () => {
         createSshKey({
           name: 'Test',
           encrypted_private_key: 'key',
-        })
+        }),
       ).rejects.toThrow('创建 SSH 密钥失败');
     });
 
@@ -87,7 +87,7 @@ describe('SSH Key Repository', () => {
         createSshKey({
           name: 'Test',
           encrypted_private_key: 'key',
-        })
+        }),
       ).rejects.toThrow('创建 SSH 密钥失败');
     });
   });

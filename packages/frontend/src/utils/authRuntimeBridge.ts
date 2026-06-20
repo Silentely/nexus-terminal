@@ -7,7 +7,7 @@ let unauthorizedLogoutHandler: UnauthorizedLogoutHandler | null = null;
 let logoutRedirectHandler: LogoutRedirectHandler | null = null;
 
 export const registerUnauthorizedLogoutHandler = (
-  handler: UnauthorizedLogoutHandler | null
+  handler: UnauthorizedLogoutHandler | null,
 ): void => {
   unauthorizedLogoutHandler = handler;
 };

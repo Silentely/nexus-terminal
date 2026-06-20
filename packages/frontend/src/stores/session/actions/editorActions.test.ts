@@ -58,7 +58,7 @@ import type { FileTab } from '../types';
 
 /** 创建模拟标签页 */
 const createMockTab = (
-  overrides: Partial<FileTab> & { id: string; filePath: string; filename: string }
+  overrides: Partial<FileTab> & { id: string; filePath: string; filename: string },
 ): FileTab => ({
   sessionId: 's1',
   content: '',
@@ -120,7 +120,7 @@ describe('session/actions/editorActions', () => {
       openFileInSession(
         'nonexistent',
         { name: 'test.ts', fullPath: '/test.ts' },
-        mockDependencies()
+        mockDependencies(),
       );
       expect(log.error).toHaveBeenCalledWith(expect.stringContaining('不存在的会话 nonexistent'));
     });
@@ -373,7 +373,7 @@ describe('session/actions/editorActions', () => {
 
       setActiveEditorTabInSession('s1', 'nonexistent');
       expect(log.warn).toHaveBeenCalledWith(
-        expect.stringContaining('不存在的标签页 ID: nonexistent')
+        expect.stringContaining('不存在的标签页 ID: nonexistent'),
       );
     });
 

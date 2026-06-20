@@ -72,7 +72,7 @@ watch(
       Object.assign(formData, initialFormData);
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 处理表单提交

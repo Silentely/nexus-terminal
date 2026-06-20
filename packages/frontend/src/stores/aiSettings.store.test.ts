@@ -116,7 +116,7 @@ describe('AI Settings Store', () => {
           baseUrl: 'url',
           apiKey: 'key',
           model: 'model',
-        })
+        }),
       ).rejects.toThrow('保存失败');
     });
   });

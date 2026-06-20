@@ -12,7 +12,7 @@ export interface SshTerminalDependencies {
   sendMessage: (message: WebSocketMessage) => void;
   onMessage: (
     type: string,
-    handler: (payload: unknown, fullMessage?: WebSocketMessage) => void
+    handler: (payload: unknown, fullMessage?: WebSocketMessage) => void,
   ) => () => void;
   isConnected: ComputedRef<boolean>;
 }
@@ -27,7 +27,7 @@ export interface SshTerminalDependencies {
 export function createSshTerminalManager(
   sessionId: string,
   wsDeps: SshTerminalDependencies,
-  t: ReturnType<typeof useI18n>['t']
+  t: ReturnType<typeof useI18n>['t'],
 ) {
   // +++ Update type of t +++
   // 使用依赖注入的 WebSocket 函数
@@ -71,7 +71,7 @@ export function createSshTerminalManager(
     // 缓冲区截断时向终端输出提示信息
     if (trimmedCount > 0 && terminalInstance.value) {
       terminalInstance.value.writeln(
-        `\r\n\x1b[33m[终端输出已截断：丢弃了 ${trimmedCount} 条旧数据以释放缓冲区]\x1b[0m`
+        `\r\n\x1b[33m[终端输出已截断：丢弃了 ${trimmedCount} 条旧数据以释放缓冲区]\x1b[0m`,
       );
     }
   };
@@ -102,7 +102,7 @@ export function createSshTerminalManager(
             requestAnimationFrame(callback);
           }
         },
-        { timeout }
+        { timeout },
       );
     } else {
       // Safari 等不支持 requestIdleCallback 的浏览器降级到 rAF
@@ -262,7 +262,7 @@ export function createSshTerminalManager(
     const { terminal: term, searchAddon: addon } = payload;
     log.info(
       `[会话 ${sessionId}][SSH终端模块] 终端实例已就绪。SearchAddon 实例:`,
-      addon ? '存在' : '不存在'
+      addon ? '存在' : '不存在',
     );
     terminalInstance.value = term;
     searchAddon.value = addon; // *** 存储 searchAddon 实例 ***
@@ -346,7 +346,7 @@ export function createSshTerminalManager(
           `[会话 ${sessionId}][SSH终端模块] Base64 解码失败:`,
           error,
           '原始数据:',
-          message.payload
+          message.payload,
         );
         outputData = `\r\n[解码错误: ${error}]\r\n`; // 在终端显示解码错误
       }
@@ -410,7 +410,7 @@ export function createSshTerminalManager(
       `[会话 ${sessionId}][SSH终端模块] SSH 会话已连接。 Payload:`,
       payload,
       'Full message:',
-      message
+      message,
     ); // 更详细的日志
     isSshConnected.value = true; // 更新状态
     // 连接成功后聚焦终端
@@ -425,18 +425,18 @@ export function createSshTerminalManager(
       if (currentDimensions.cols > 0 && currentDimensions.rows > 0) {
         log.info(
           `[会话 ${sessionId}][SSH终端模块] SSH 连接成功，主动发送初始尺寸:`,
-          currentDimensions
+          currentDimensions,
         );
         sendMessage({ type: 'ssh:resize', sessionId, payload: currentDimensions });
       } else {
         log.warn(
           `[会话 ${sessionId}][SSH终端模块] SSH 连接成功，但获取到的初始尺寸无效，跳过发送 resize:`,
-          currentDimensions
+          currentDimensions,
         );
       }
     } else {
       log.warn(
-        `[会话 ${sessionId}][SSH终端模块] SSH 连接成功，但 terminalInstance 不可用，无法发送初始 resize。`
+        `[会话 ${sessionId}][SSH终端模块] SSH 连接成功，但 terminalInstance 不可用，无法发送初始 resize。`,
       );
     }
 
@@ -460,7 +460,7 @@ export function createSshTerminalManager(
     log.info(`[会话 ${sessionId}][SSH终端模块] SSH 会话已断开:`, reason);
     isSshConnected.value = false; // 更新状态
     terminalInstance.value?.writeln(
-      `\r\n\x1b[31m${getTerminalText('disconnectMsg', { reason })}\x1b[0m`
+      `\r\n\x1b[31m${getTerminalText('disconnectMsg', { reason })}\x1b[0m`,
     );
     // 可以在这里添加其他清理逻辑，例如禁用输入
   };
@@ -476,7 +476,7 @@ export function createSshTerminalManager(
     log.error(`[会话 ${sessionId}][SSH终端模块] SSH 错误:`, errorMsg);
     isSshConnected.value = false; // 更新状态
     terminalInstance.value?.writeln(
-      `\r\n\x1b[31m${getTerminalText('genericErrorMsg', { message: errorMsg })}\x1b[0m`
+      `\r\n\x1b[31m${getTerminalText('genericErrorMsg', { message: errorMsg })}\x1b[0m`,
     );
   };
 
@@ -505,7 +505,7 @@ export function createSshTerminalManager(
     const infoText = typeof payload === 'string' ? payload : String(payload ?? '');
     log.info(`[会话 ${sessionId}][SSH终端模块] 收到后端信息:`, payload);
     terminalInstance.value?.writeln(
-      `\r\n\x1b[34m${getTerminalText('infoPrefix')} ${infoText}\x1b[0m`
+      `\r\n\x1b[34m${getTerminalText('infoPrefix')} ${infoText}\x1b[0m`,
     );
   };
 
@@ -520,7 +520,7 @@ export function createSshTerminalManager(
       (typeof payload === 'string' ? payload : null) || t('workspace.terminal.unknownGenericError'); // 使用 i18n
     log.error(`[会话 ${sessionId}][SSH终端模块] 收到后端通用错误:`, errorMsg);
     terminalInstance.value?.writeln(
-      `\r\n\x1b[31m${getTerminalText('errorPrefix')} ${errorMsg}\x1b[0m`
+      `\r\n\x1b[31m${getTerminalText('errorPrefix')} ${errorMsg}\x1b[0m`,
     );
   };
 

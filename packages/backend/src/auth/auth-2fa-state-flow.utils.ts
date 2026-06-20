@@ -69,7 +69,7 @@ export const resolveTwoFactorSetupRequestValidation = (payload: {
 
 export const saveTwoFactorSetupSessionSecret = async (
   req: Request,
-  secret: string
+  secret: string,
 ): Promise<
   | { ok: true }
   | {
@@ -181,7 +181,7 @@ export type TwoFactorVerifyFailureMapping =
     };
 
 export const mapTwoFactorVerifyFailure = (
-  verificationResult: TwoFactorTokenVerificationResult
+  verificationResult: TwoFactorTokenVerificationResult,
 ): TwoFactorVerifyFailureMapping | null => {
   if (verificationResult.status === 'verified') {
     return null;

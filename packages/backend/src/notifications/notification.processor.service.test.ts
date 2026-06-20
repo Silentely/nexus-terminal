@@ -159,7 +159,7 @@ describe('NotificationProcessorService', () => {
     it('不应再监听 TestNotification 事件', () => {
       expect(mockEventService.onEvent).not.toHaveBeenCalledWith(
         AppEventType.TestNotification,
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });
@@ -190,13 +190,13 @@ describe('NotificationProcessorService', () => {
         'sendNotification',
         expect.objectContaining({
           channelType: 'email',
-        })
+        }),
       );
       expect(emitSpy).toHaveBeenCalledWith(
         'sendNotification',
         expect.objectContaining({
           channelType: 'webhook',
-        })
+        }),
       );
     });
 
@@ -210,7 +210,7 @@ describe('NotificationProcessorService', () => {
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('LOGIN_SUCCESS'),
-        expect.any(Error)
+        expect.any(Error),
       );
     });
   });
@@ -442,7 +442,7 @@ describe('NotificationProcessorService', () => {
         'sendNotification',
         expect.objectContaining({
           channelType: 'webhook',
-        })
+        }),
       );
     });
   });

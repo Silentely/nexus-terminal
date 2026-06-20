@@ -23,13 +23,13 @@ const decodeWithDetectedFallback = (
   fileData: Buffer,
   normalizedDetected: string,
   sessionId: string,
-  remotePath: string
+  remotePath: string,
 ): DetectAndDecodeResult => {
   if (iconv.encodingExists(normalizedDetected)) {
     const encodingUsed = normalizedDetected;
     const decodedContent = iconv.decode(fileData, encodingUsed);
     logger.debug(
-      `[SFTP ${sessionId}] Falling back to decoding ${remotePath} as originally detected ${encodingUsed}.`
+      `[SFTP ${sessionId}] Falling back to decoding ${remotePath} as originally detected ${encodingUsed}.`,
     );
     return { encodingUsed, decodedContent };
   }
@@ -53,7 +53,7 @@ export const detectAndDecodeSftpFileContent = ({
   if (requestedEncoding) {
     encodingUsed = requestedEncoding;
     logger.debug(
-      `[SFTP ${sessionId}] Using requested encoding: ${encodingUsed} (ID: ${requestId})`
+      `[SFTP ${sessionId}] Using requested encoding: ${encodingUsed} (ID: ${requestId})`,
     );
     const normalizedEncoding = normalizeEncodingName(encodingUsed);
     if (iconv.encodingExists(normalizedEncoding)) {
@@ -61,7 +61,7 @@ export const detectAndDecodeSftpFileContent = ({
       encodingUsed = normalizedEncoding;
     } else {
       logger.warn(
-        `[SFTP ${sessionId}] Requested encoding "${requestedEncoding}" is not supported by iconv-lite. Falling back to UTF-8. (ID: ${requestId})`
+        `[SFTP ${sessionId}] Requested encoding "${requestedEncoding}" is not supported by iconv-lite. Falling back to UTF-8. (ID: ${requestId})`,
       );
       encodingUsed = 'utf-8';
       decodedContent = iconv.decode(fileData, encodingUsed);
@@ -72,7 +72,7 @@ export const detectAndDecodeSftpFileContent = ({
     const detectedEncodingRaw = detection.encoding ? detection.encoding.toLowerCase() : 'utf-8';
     const confidence = detection.confidence || 0;
     logger.debug(
-      `[SFTP ${sessionId}] Detected encoding: ${detectedEncodingRaw} (confidence: ${confidence})`
+      `[SFTP ${sessionId}] Detected encoding: ${detectedEncodingRaw} (confidence: ${confidence})`,
     );
 
     const chineseEncodings = ['gbk', 'gb2312', 'gb18030', 'big5', 'euc-tw'];
@@ -88,23 +88,23 @@ export const detectAndDecodeSftpFileContent = ({
       encodingUsed = 'gb18030';
       decodedContent = iconv.decode(fileData, encodingUsed);
       logger.debug(
-        `[SFTP ${sessionId}] Decoded ${remotePath} from detected Chinese encoding (${normalizedDetected}) as ${encodingUsed}.`
+        `[SFTP ${sessionId}] Decoded ${remotePath} from detected Chinese encoding (${normalizedDetected}) as ${encodingUsed}.`,
       );
     } else if (confidence < 0.9) {
       logger.warn(
-        `[SFTP ${sessionId}] Low confidence detection (${normalizedDetected}, ${confidence}) for ${remotePath}. Attempting GB18030 decode first.`
+        `[SFTP ${sessionId}] Low confidence detection (${normalizedDetected}, ${confidence}) for ${remotePath}. Attempting GB18030 decode first.`,
       );
       try {
         const gb18030Content = iconv.decode(fileData, 'gb18030');
         if (gb18030Content.includes('\uFFFD')) {
           logger.warn(
-            `[SFTP ${sessionId}] GB18030 decoding resulted in replacement characters. Falling back to original detection (${normalizedDetected}) or UTF-8.`
+            `[SFTP ${sessionId}] GB18030 decoding resulted in replacement characters. Falling back to original detection (${normalizedDetected}) or UTF-8.`,
           );
           const fallbackResult = decodeWithDetectedFallback(
             fileData,
             normalizedDetected,
             sessionId,
-            remotePath
+            remotePath,
           );
           encodingUsed = fallbackResult.encodingUsed;
           decodedContent = fallbackResult.decodedContent;
@@ -112,18 +112,18 @@ export const detectAndDecodeSftpFileContent = ({
           encodingUsed = 'gb18030';
           decodedContent = gb18030Content;
           logger.debug(
-            `[SFTP ${sessionId}] Decoded ${remotePath} as ${encodingUsed} due to low confidence detection.`
+            `[SFTP ${sessionId}] Decoded ${remotePath} as ${encodingUsed} due to low confidence detection.`,
           );
         }
       } catch (decodeError: unknown) {
         logger.warn(
-          `[SFTP ${sessionId}] Error decoding as GB18030, falling back to original detection (${normalizedDetected}) or UTF-8: ${getErrorMessage(decodeError)}`
+          `[SFTP ${sessionId}] Error decoding as GB18030, falling back to original detection (${normalizedDetected}) or UTF-8: ${getErrorMessage(decodeError)}`,
         );
         const fallbackResult = decodeWithDetectedFallback(
           fileData,
           normalizedDetected,
           sessionId,
-          remotePath
+          remotePath,
         );
         encodingUsed = fallbackResult.encodingUsed;
         decodedContent = fallbackResult.decodedContent;
@@ -132,11 +132,11 @@ export const detectAndDecodeSftpFileContent = ({
       encodingUsed = normalizedDetected;
       decodedContent = iconv.decode(fileData, encodingUsed);
       logger.debug(
-        `[SFTP ${sessionId}] Decoded ${remotePath} from ${encodingUsed} using iconv-lite (high confidence).`
+        `[SFTP ${sessionId}] Decoded ${remotePath} from ${encodingUsed} using iconv-lite (high confidence).`,
       );
     } else {
       logger.warn(
-        `[SFTP ${sessionId}] Unsupported or unknown encoding detected for ${remotePath}: ${normalizedDetected}. Falling back to UTF-8.`
+        `[SFTP ${sessionId}] Unsupported or unknown encoding detected for ${remotePath}: ${normalizedDetected}. Falling back to UTF-8.`,
       );
       encodingUsed = 'utf-8';
       decodedContent = fileData.toString('utf8');
@@ -145,7 +145,7 @@ export const detectAndDecodeSftpFileContent = ({
 
   if (decodedContent.includes('\uFFFD')) {
     logger.warn(
-      `[SFTP ${sessionId}] Final decoded content for ${remotePath} (using ${encodingUsed}) contains replacement characters (U+FFFD). Decoding might be incorrect. (ID: ${requestId})`
+      `[SFTP ${sessionId}] Final decoded content for ${remotePath} (using ${encodingUsed}) contains replacement characters (U+FFFD). Decoding might be incorrect. (ID: ${requestId})`,
     );
   }
 

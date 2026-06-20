@@ -95,7 +95,7 @@ export function useFileManagerSearch(options: UseFileManagerSearchOptions) {
         activateSearch();
       }
     },
-    { immediate: false }
+    { immediate: false },
   );
 
   return {

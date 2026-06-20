@@ -222,7 +222,7 @@ describe('DockerService', () => {
       mockExecAsync.mockRejectedValueOnce(new Error('docker not found'));
 
       await expect(service.executeContainerCommand('abc123', 'start')).rejects.toThrow(
-        'Docker is not available.'
+        'Docker is not available.',
       );
     });
 
@@ -256,13 +256,13 @@ describe('DockerService', () => {
 
     it('应拒绝无效的容器 ID 格式', async () => {
       await expect(service.executeContainerCommand('', 'start')).rejects.toThrow(
-        'Invalid container ID format.'
+        'Invalid container ID format.',
       );
     });
 
     it('应拒绝包含特殊字符的容器 ID', async () => {
       await expect(service.executeContainerCommand('abc123!@#$%^&*()', 'start')).rejects.toThrow(
-        'Invalid container ID format.'
+        'Invalid container ID format.',
       );
     });
 
@@ -273,7 +273,7 @@ describe('DockerService', () => {
       });
 
       await expect(service.executeContainerCommand('notfound', 'start')).rejects.toThrow(
-        'Docker command failed: Error: No such container'
+        'Docker command failed: Error: No such container',
       );
     });
 
@@ -284,13 +284,13 @@ describe('DockerService', () => {
       });
 
       await expect(service.executeContainerCommand('abc123', 'start')).rejects.toThrow(
-        'Failed to execute Docker command "start": container not found'
+        'Failed to execute Docker command "start": container not found',
       );
     });
 
     it('不支持的命令应抛出错误', async () => {
       await expect(
-        service.executeContainerCommand('abc123', 'invalid' as DockerCommand)
+        service.executeContainerCommand('abc123', 'invalid' as DockerCommand),
       ).rejects.toThrow('Unsupported Docker command: invalid');
     });
 

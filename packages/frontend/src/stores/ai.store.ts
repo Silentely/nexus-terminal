@@ -96,7 +96,7 @@ export const useAIStore = defineStore('ai', () => {
           context,
           debug: debugMode.value || undefined,
         },
-        { timeout: AI_REQUEST_TIMEOUT_MS }
+        { timeout: AI_REQUEST_TIMEOUT_MS },
       );
 
       // 调试模式：记录响应

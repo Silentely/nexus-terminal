@@ -45,7 +45,7 @@ export interface MultiplexChannel {
   sendMessage: (message: WebSocketMessage) => void;
   onMessage: (
     type: string,
-    handler: (payload: MessagePayload, message: WebSocketMessage) => void
+    handler: (payload: MessagePayload, message: WebSocketMessage) => void,
   ) => () => void;
 }
 
@@ -246,7 +246,7 @@ function scheduleReconnect(): void {
 export function createChannel(
   sid: string,
   dbConnectionId: string,
-  options?: { isResumeFlow?: boolean }
+  options?: { isResumeFlow?: boolean },
 ): MultiplexChannel {
   if (channels.has(sid)) {
     log.warn(`[MultiplexTransport] 通道 ${sid} 已存在，将覆盖`);
@@ -302,7 +302,7 @@ export function createChannel(
 
     onMessage: (
       type: string,
-      handler: (payload: MessagePayload, message: WebSocketMessage) => void
+      handler: (payload: MessagePayload, message: WebSocketMessage) => void,
     ) => {
       let existingHandlers = channelState.messageHandlers.get(type);
       if (!existingHandlers) {

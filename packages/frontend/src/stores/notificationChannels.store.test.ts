@@ -42,7 +42,7 @@ const createMockSetting = (overrides: Partial<NotificationSetting> = {}): Notifi
 });
 
 const createMockSettingData = (
-  overrides: Partial<NotificationSettingData> = {}
+  overrides: Partial<NotificationSettingData> = {},
 ): NotificationSettingData => ({
   channel_type: overrides.channel_type ?? 'email',
   name: overrides.name ?? '测试邮件通知',
@@ -164,7 +164,7 @@ describe('notificationChannels.store', () => {
         () =>
           new Promise((resolve) => {
             resolvePromise = resolve;
-          })
+          }),
       );
 
       const store = useNotificationsStore();
@@ -372,7 +372,7 @@ describe('notificationChannels.store', () => {
       const store = useNotificationsStore();
 
       await expect(store.testSetting(1, {} as NotificationChannelConfig)).rejects.toThrow(
-        '测试失败'
+        '测试失败',
       );
     });
 
@@ -455,7 +455,7 @@ describe('notificationChannels.store', () => {
       const store = useNotificationsStore();
 
       await expect(
-        store.testUnsavedSetting('telegram', { botToken: 'token', chatId: '123' })
+        store.testUnsavedSetting('telegram', { botToken: 'token', chatId: '123' }),
       ).rejects.toThrow('连接超时');
     });
 

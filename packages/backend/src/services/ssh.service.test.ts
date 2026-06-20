@@ -280,7 +280,7 @@ describe('SSH Service', () => {
         force_keyboard_interactive: true,
       };
       (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(
-        keyboardInteractiveConnection
+        keyboardInteractiveConnection,
       );
 
       const result = await getConnectionDetails(1);
@@ -332,7 +332,7 @@ describe('SSH Service', () => {
         expect.objectContaining({
           authMethod: 'keyboard-interactive',
           keyboardInteractive: expect.any(Function),
-        })
+        }),
       );
     });
 
@@ -345,7 +345,7 @@ describe('SSH Service', () => {
       let capturedCallback: ((responses: string[]) => void) | null = null;
       mockClient.connect.mockImplementation(function captureKeyboardInteractive(
         this: MockSshClient,
-        config: { keyboardInteractive?: (...args: unknown[]) => void }
+        config: { keyboardInteractive?: (...args: unknown[]) => void },
       ) {
         // 保存回调函数以便后续测试
         if (config.keyboardInteractive) {
@@ -384,12 +384,12 @@ describe('SSH Service', () => {
       expect(mockClient.connect).toHaveBeenCalledWith(
         expect.objectContaining({
           password: 'testpass',
-        })
+        }),
       );
       expect(mockClient.connect).not.toHaveBeenCalledWith(
         expect.objectContaining({
           authMethod: 'keyboard-interactive',
-        })
+        }),
       );
     });
 
@@ -432,7 +432,7 @@ describe('SSH Service', () => {
           // 最终目标客户端 - 检查 keyboardInteractive 配置
           client.connect.mockImplementation(function captureFinalKeyboardInteractive(
             this: MockSshClient,
-            config: { keyboardInteractive?: (...args: unknown[]) => void }
+            config: { keyboardInteractive?: (...args: unknown[]) => void },
           ) {
             finalClientKeyboardInteractive = config.keyboardInteractive;
             setTimeout(() => this.emit('ready'), 10);
@@ -482,7 +482,7 @@ describe('SSH Service', () => {
           port: 22,
           username: 'testuser',
           password: 'testpass',
-        })
+        }),
       );
       expect(ConnectionRepository.updateLastConnected).toHaveBeenCalled();
     });
@@ -507,7 +507,7 @@ describe('SSH Service', () => {
         expect.objectContaining({
           privateKey: '-----BEGIN RSA-----',
           passphrase: 'keypass',
-        })
+        }),
       );
     });
 
@@ -553,12 +553,12 @@ describe('SSH Service', () => {
             password: 'proxypass',
           }),
           destination: { host: '192.168.1.1', port: 22 },
-        })
+        }),
       );
       expect(mockClient.connect).toHaveBeenCalledWith(
         expect.objectContaining({
           sock: mockSocket,
-        })
+        }),
       );
     });
 
@@ -578,7 +578,7 @@ describe('SSH Service', () => {
       (SocksClient.createConnection as any).mockRejectedValue(new Error('Proxy timeout'));
 
       await expect(establishSshConnection(proxyConnDetails)).rejects.toThrow(
-        '通过 SOCKS5 代理 10.0.0.1:1080'
+        '通过 SOCKS5 代理 10.0.0.1:1080',
       );
     });
 
@@ -621,7 +621,7 @@ describe('SSH Service', () => {
           host: '10.0.0.2',
           port: 8080,
           path: '192.168.1.1:22',
-        })
+        }),
       );
     });
 
@@ -678,7 +678,7 @@ describe('SSH Service', () => {
       }, 5);
 
       await expect(connectionPromise).rejects.toThrow(
-        'HTTP 代理 10.0.0.2:8080 请求错误: Network error'
+        'HTTP 代理 10.0.0.2:8080 请求错误: Network error',
       );
     });
 
@@ -700,7 +700,7 @@ describe('SSH Service', () => {
         expect.objectContaining({
           host: '192.168.1.1',
           port: 22,
-        })
+        }),
       );
     });
 
@@ -721,7 +721,7 @@ describe('SSH Service', () => {
       expect(mockClient.connect).toHaveBeenCalledWith(
         expect.objectContaining({
           host: '192.168.1.1',
-        })
+        }),
       );
     });
 
@@ -783,7 +783,7 @@ describe('SSH Service', () => {
       mockClient.shell.mockImplementation(
         (callback: (err: Error | null, stream?: EventEmitter) => void) => {
           callback(null, mockStream);
-        }
+        },
       );
 
       const result = await openShell(mockClient as any);
@@ -796,7 +796,7 @@ describe('SSH Service', () => {
       mockClient.shell.mockImplementation(
         (callback: (err: Error | null, stream?: EventEmitter) => void) => {
           callback(new Error('Shell error'));
-        }
+        },
       );
 
       await expect(openShell(mockClient as any)).rejects.toThrow('打开 Shell 失败: Shell error');
@@ -890,7 +890,7 @@ describe('SSH Service', () => {
           port: 22,
           username: 'admin',
           password: 'adminpass',
-        })
+        }),
       );
       expect(mockClient.end).toHaveBeenCalled();
     });
@@ -915,7 +915,7 @@ describe('SSH Service', () => {
         expect.objectContaining({
           privateKey: '-----BEGIN RSA-----',
           passphrase: 'keypass',
-        })
+        }),
       );
     });
 
@@ -942,7 +942,7 @@ describe('SSH Service', () => {
         expect.objectContaining({
           privateKey: '-----BEGIN RSA STORED-----',
           passphrase: 'storedpass',
-        })
+        }),
       );
     });
 
@@ -956,7 +956,7 @@ describe('SSH Service', () => {
           username: 'deploy',
           auth_method: 'key',
           ssh_key_id: 999,
-        })
+        }),
       ).rejects.toThrow('选择的 SSH 密钥 (ID: 999) 未找到');
     });
 
@@ -1003,7 +1003,7 @@ describe('SSH Service', () => {
           auth_method: 'password',
           password: 'adminpass',
           proxy_id: 999,
-        })
+        }),
       ).rejects.toThrow('代理 ID 999 未找到');
     });
 
@@ -1025,7 +1025,7 @@ describe('SSH Service', () => {
           auth_method: 'password',
           password: 'adminpass',
           proxy_id: 7,
-        })
+        }),
       ).rejects.toThrow('Proxy ID 7 has invalid type: INVALID');
     });
 
@@ -1041,7 +1041,7 @@ describe('SSH Service', () => {
           username: 'admin',
           auth_method: 'password',
           password: 'wrongpass',
-        })
+        }),
       ).rejects.toThrow();
 
       // 连接应该被清理
@@ -1073,7 +1073,7 @@ describe('SSH Service', () => {
       expect(mockClient.connect).toHaveBeenCalledWith(
         expect.objectContaining({
           readyTimeout: 30000,
-        })
+        }),
       );
     });
 
@@ -1125,7 +1125,7 @@ describe('SSH Service', () => {
         expect.objectContaining({
           keepaliveInterval: 5000,
           keepaliveCountMax: 10,
-        })
+        }),
       );
     });
 

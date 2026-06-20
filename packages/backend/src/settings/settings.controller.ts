@@ -183,7 +183,7 @@ export const settingsController = {
         logger.warn('[SettingsController] 收到无效的完整焦点配置格式:', fullConfig);
         throw ErrorFactory.badRequest(
           '无效的请求体，必须是包含 sequence (string[]) 和 shortcuts (Record<string, {shortcut?: string}>) 的对象',
-          'INVALID_REQUEST_BODY'
+          'INVALID_REQUEST_BODY',
         );
       }
 
@@ -258,7 +258,7 @@ export const settingsController = {
         logger.warn('[SettingsController] 收到无效的布局树格式 (非对象):', layoutTree);
         throw ErrorFactory.badRequest(
           '无效的请求体，应为 JSON 对象格式的布局树',
-          'INVALID_REQUEST_BODY'
+          'INVALID_REQUEST_BODY',
         );
       }
 
@@ -361,7 +361,7 @@ export const settingsController = {
         logger.warn('[SettingsController] 收到无效的侧边栏配置格式:', configDto);
         throw ErrorFactory.badRequest(
           '无效的请求体，应为包含 left 和 right 数组的 JSON 对象',
-          'INVALID_REQUEST_BODY'
+          'INVALID_REQUEST_BODY',
         );
       }
 

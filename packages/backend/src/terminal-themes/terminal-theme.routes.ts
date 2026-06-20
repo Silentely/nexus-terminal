@@ -26,7 +26,7 @@ router.delete('/:id', themeController.deleteThemeController);
 router.post(
   '/import',
   themeController.uploadMiddleware.single('themeFile'),
-  themeController.importThemeController
+  themeController.importThemeController,
 );
 
 // GET /api/v1/terminal-themes/:id/export - 导出主题

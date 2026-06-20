@@ -89,7 +89,7 @@ describe('CaptchaService', () => {
         expect(axios.post).toHaveBeenCalledWith(
           'https://api.hcaptcha.com/siteverify',
           expect.any(URLSearchParams),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
@@ -117,7 +117,7 @@ describe('CaptchaService', () => {
         });
 
         await expect(service.verifyToken('test-token')).rejects.toThrow(
-          'hCaptcha 配置无效：缺少 Secret Key'
+          'hCaptcha 配置无效：缺少 Secret Key',
         );
       });
     });
@@ -140,7 +140,7 @@ describe('CaptchaService', () => {
         expect(axios.post).toHaveBeenCalledWith(
           'https://www.google.com/recaptcha/api/siteverify',
           expect.any(URLSearchParams),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
@@ -168,7 +168,7 @@ describe('CaptchaService', () => {
         });
 
         await expect(service.verifyToken('test-token')).rejects.toThrow(
-          'Google reCAPTCHA 配置无效：缺少 Secret Key'
+          'Google reCAPTCHA 配置无效：缺少 Secret Key',
         );
       });
     });
@@ -180,7 +180,7 @@ describe('CaptchaService', () => {
       });
 
       await expect(service.verifyToken('test-token')).rejects.toThrow(
-        '未知的 CAPTCHA 提供商配置: unknown'
+        '未知的 CAPTCHA 提供商配置: unknown',
       );
     });
   });
@@ -206,7 +206,7 @@ describe('CaptchaService', () => {
       const result = await service.verifyCredentials(
         'hcaptcha',
         'valid-site-key',
-        'valid-secret-key'
+        'valid-secret-key',
       );
 
       expect(result).toBe(true);
@@ -220,7 +220,7 @@ describe('CaptchaService', () => {
       const result = await service.verifyCredentials(
         'hcaptcha',
         'invalid-site-key',
-        'invalid-secret-key'
+        'invalid-secret-key',
       );
 
       expect(result).toBe(false);
@@ -234,7 +234,7 @@ describe('CaptchaService', () => {
       const result = await service.verifyCredentials(
         'recaptcha',
         'valid-site-key',
-        'valid-secret-key'
+        'valid-secret-key',
       );
 
       expect(result).toBe(true);

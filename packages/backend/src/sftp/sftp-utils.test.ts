@@ -52,7 +52,7 @@ describe('SftpUtils', () => {
     it('应成功获取文件状态', async () => {
       const mockStats = createMockStats();
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(null, mockStats)
+        cb(null, mockStats),
       );
 
       const result = await SftpUtils.getStats(mockSftp, '/test/file.txt');
@@ -64,7 +64,7 @@ describe('SftpUtils', () => {
     it('应拒绝并抛出错误当 lstat 失败', async () => {
       const error = new Error('No such file');
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(error, null)
+        cb(error, null),
       );
 
       await expect(SftpUtils.getStats(mockSftp, '/nonexistent')).rejects.toThrow('No such file');
@@ -82,7 +82,7 @@ describe('SftpUtils', () => {
         },
       ];
       mockSftp.readdir.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(null, mockList)
+        cb(null, mockList),
       );
 
       const result = await SftpUtils.listDirectory(mockSftp, '/test');
@@ -94,7 +94,7 @@ describe('SftpUtils', () => {
     it('应拒绝并抛出错误当 readdir 失败', async () => {
       const error = new Error('Permission denied');
       mockSftp.readdir.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(error, null)
+        cb(error, null),
       );
 
       await expect(SftpUtils.listDirectory(mockSftp, '/test')).rejects.toThrow('Permission denied');
@@ -104,7 +104,7 @@ describe('SftpUtils', () => {
   describe('performRename', () => {
     it('应成功执行重命名', async () => {
       mockSftp.rename.mockImplementation(
-        (_old: string, _new: string, cb: (...args: unknown[]) => void) => cb(null)
+        (_old: string, _new: string, cb: (...args: unknown[]) => void) => cb(null),
       );
 
       await SftpUtils.performRename(mockSftp, '/old/path', '/new/path');
@@ -115,11 +115,11 @@ describe('SftpUtils', () => {
     it('应拒绝并抛出错误当重命名失败', async () => {
       const error = new Error('Device busy');
       mockSftp.rename.mockImplementation(
-        (_old: string, _new: string, cb: (...args: unknown[]) => void) => cb(error)
+        (_old: string, _new: string, cb: (...args: unknown[]) => void) => cb(error),
       );
 
       await expect(SftpUtils.performRename(mockSftp, '/old/path', '/new/path')).rejects.toThrow(
-        'Device busy'
+        'Device busy',
       );
     });
   });
@@ -196,7 +196,7 @@ describe('SftpUtils', () => {
     it('目录已存在时应直接返回', async () => {
       const mockStats = createMockStats({ isDirectory: () => true });
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(null, mockStats)
+        cb(null, mockStats),
       );
 
       await SftpUtils.ensureDirectoryExists(mockSftp, '/existing/dir');
@@ -209,7 +209,7 @@ describe('SftpUtils', () => {
       const enoentError = Object.assign(new Error('No such file'), { code: 'ENOENT' });
 
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(enoentError, null)
+        cb(enoentError, null),
       );
       mockSftp.mkdir.mockImplementation(
         (_path: string, _opts: unknown, cb: (...args: unknown[]) => void) => {
@@ -218,7 +218,7 @@ describe('SftpUtils', () => {
           } else {
             cb(null);
           }
-        }
+        },
       );
 
       await SftpUtils.ensureDirectoryExists(mockSftp, '/new/dir');
@@ -251,7 +251,7 @@ describe('SftpUtils', () => {
             const cb = typeof _optsOrCb === 'function' ? _optsOrCb : cbOrUndefined;
             cb?.(null);
           }
-        }
+        },
       );
 
       await SftpUtils.ensureDirectoryExists(mockSftp, '/parent/child');
@@ -263,18 +263,18 @@ describe('SftpUtils', () => {
       const permError = Object.assign(new Error('Permission denied'), { code: 'EACCES' });
 
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(permError, null)
+        cb(permError, null),
       );
 
       await expect(SftpUtils.ensureDirectoryExists(mockSftp, '/restricted')).rejects.toThrow(
-        '检查目录失败 /restricted'
+        '检查目录失败 /restricted',
       );
     });
 
     it('stat 错误消息包含 No such file 时应尝试创建目录', async () => {
       const error = new Error('No such file or directory');
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(error, null)
+        cb(error, null),
       );
       mockSftp.mkdir.mockImplementation(
         (_path: string, _opts: unknown, cb: (...args: unknown[]) => void) => {
@@ -283,7 +283,7 @@ describe('SftpUtils', () => {
           } else {
             cb(null);
           }
-        }
+        },
       );
 
       await SftpUtils.ensureDirectoryExists(mockSftp, '/missing/path');
@@ -311,7 +311,7 @@ describe('SftpUtils', () => {
       mockReadStream.pipe.mockImplementation(() => {
         // 模拟 pipe 完成后触发 writeStream 的 close 事件
         const closeCallback = mockWriteStream.on.mock.calls.find(
-          (call: unknown[]) => call[0] === 'close'
+          (call: unknown[]) => call[0] === 'close',
         )?.[1];
         if (closeCallback) closeCallback();
       });
@@ -348,7 +348,7 @@ describe('SftpUtils', () => {
       });
 
       await expect(
-        SftpUtils.copyFile(mockSftp, '/source/file.txt', '/dest/file.txt')
+        SftpUtils.copyFile(mockSftp, '/source/file.txt', '/dest/file.txt'),
       ).rejects.toThrow('复制文件失败: Read failed');
     });
 
@@ -374,7 +374,7 @@ describe('SftpUtils', () => {
       });
 
       await expect(
-        SftpUtils.copyFile(mockSftp, '/source/file.txt', '/dest/file.txt')
+        SftpUtils.copyFile(mockSftp, '/source/file.txt', '/dest/file.txt'),
       ).rejects.toThrow('复制文件失败: Write failed');
     });
   });
@@ -407,13 +407,13 @@ describe('SftpUtils', () => {
           } else {
             cb(null);
           }
-        }
+        },
       );
 
       // listDirectory 返回一个文件
       const mockList = [{ filename: 'file.txt', longname: '-rw-r--r--', attrs: mockFileStats }];
       mockSftp.readdir.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(null, mockList)
+        cb(null, mockList),
       );
 
       // copyFile 的 mock
@@ -435,7 +435,7 @@ describe('SftpUtils', () => {
 
       mockReadStream.pipe.mockImplementation(() => {
         const closeCallback = mockWriteStream.on.mock.calls.find(
-          (call: unknown[]) => call[0] === 'close'
+          (call: unknown[]) => call[0] === 'close',
         )?.[1];
         if (closeCallback) closeCallback();
       });
@@ -453,7 +453,7 @@ describe('SftpUtils', () => {
 
       let readdirCallCount = 0;
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(null, mockDirStats)
+        cb(null, mockDirStats),
       );
 
       mockSftp.readdir.mockImplementation((_path: string, cb: (...args: unknown[]) => void) => {
@@ -482,7 +482,7 @@ describe('SftpUtils', () => {
       mockSftp.createWriteStream.mockReturnValue(mockWriteStream);
       mockReadStream.pipe.mockImplementation(() => {
         const closeCallback = mockWriteStream.on.mock.calls.find(
-          (call: unknown[]) => call[0] === 'close'
+          (call: unknown[]) => call[0] === 'close',
         )?.[1];
         if (closeCallback) closeCallback();
       });
@@ -502,7 +502,7 @@ describe('SftpUtils', () => {
       });
 
       mockSftp.lstat.mockImplementation((_path: string, cb: (...args: unknown[]) => void) =>
-        cb(null, mockDirStats)
+        cb(null, mockDirStats),
       );
       mockSftp.readdir.mockImplementation((_path: string, cb: (...args: unknown[]) => void) => {
         cb(null, [{ filename: 'link', longname: 'lrwxrwxrwx', attrs: mockLinkStats }]);

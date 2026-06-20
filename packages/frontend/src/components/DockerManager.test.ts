@@ -58,7 +58,7 @@ function createMockActiveSession(
     error?: string | null;
     isDockerAvailable?: boolean;
     expandedContainerIds?: Set<string>;
-  } = {}
+  } = {},
 ) {
   const {
     connectionStatus = 'connected',

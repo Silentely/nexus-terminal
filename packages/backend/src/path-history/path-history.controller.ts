@@ -28,7 +28,7 @@ export const addPath = async (req: Request, res: Response, next: NextFunction): 
 export const getAllPaths = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const history = await PathHistoryService.getAllPathHistory();
@@ -46,7 +46,7 @@ export const getAllPaths = async (
 export const deletePath = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
@@ -74,7 +74,7 @@ export const deletePath = async (
 export const clearAllPaths = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const count = await PathHistoryService.clearAllPathHistory();

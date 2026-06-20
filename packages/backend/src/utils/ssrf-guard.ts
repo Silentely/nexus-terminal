@@ -39,7 +39,7 @@ const dnsCache = new Map<string, DnsCacheEntry>();
  */
 async function getOrResolveHost(
   targetUrl: string,
-  sourceTag: string
+  sourceTag: string,
 ): Promise<SsrfValidationResult> {
   const urlObj = new URL(targetUrl);
 
@@ -81,7 +81,7 @@ export function createPinnedLookup(allowedAddresses: string[]) {
   return (
     _hostname: string,
     _options: unknown,
-    callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
+    callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void,
   ): void => {
     const address = allowedAddresses[0];
     const family = address.includes(':') ? 6 : 4;
@@ -106,7 +106,7 @@ async function handleRedirect(
   sourceTag: string,
   maxRedirects: number,
   redirectCount: number,
-  config: AxiosRequestConfig
+  config: AxiosRequestConfig,
 ): Promise<AxiosResponse> {
   const statusCode = response.status;
   // 显式限定需要跟随重定向的状态码集合，避免跟随 304 等非重定向 3xx
@@ -123,7 +123,7 @@ async function handleRedirect(
 
   // 重定向目标二次验证（关键安全检查）
   logger.debug(
-    `[SSRF Guard] ${sourceTag} 跟随重定向 ${redirectCount + 1}/${maxRedirects}: ${redirectUrl}`
+    `[SSRF Guard] ${sourceTag} 跟随重定向 ${redirectCount + 1}/${maxRedirects}: ${redirectUrl}`,
   );
 
   const { addresses } = await getOrResolveHost(redirectUrl, sourceTag);
@@ -147,7 +147,7 @@ async function handleRedirect(
     sourceTag,
     maxRedirects,
     redirectCount + 1,
-    config
+    config,
   );
 }
 
@@ -164,7 +164,7 @@ async function handleRedirect(
 export async function safeHttpGet(
   url: string,
   options: AxiosRequestConfig = {},
-  sourceTag = 'SSRF-Guard'
+  sourceTag = 'SSRF-Guard',
 ): Promise<AxiosResponse> {
   // 1. 预验证目标地址（DNS 解析 + 私有地址拦截 + DNS 绑定）
   const { addresses } = await getOrResolveHost(url, sourceTag);
@@ -206,7 +206,7 @@ export async function safeHttpPost(
   url: string,
   data?: unknown,
   options: AxiosRequestConfig = {},
-  sourceTag = 'SSRF-Guard'
+  sourceTag = 'SSRF-Guard',
 ): Promise<AxiosResponse> {
   return safeHttpGet(url, { ...options, method: 'POST', data }, sourceTag);
 }

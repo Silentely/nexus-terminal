@@ -107,7 +107,7 @@ const initializeSftpManager = (sessionId: string, instanceId: string, initialPat
   if (!manager) {
     // 抛出错误或显示错误消息，阻止组件进一步渲染
     log.error(
-      `[FileManager ${sessionId}-${instanceId}] Failed to get or create SFTP manager instance.`
+      `[FileManager ${sessionId}-${instanceId}] Failed to get or create SFTP manager instance.`,
     );
     // 可以设置一个错误状态 ref 在模板中显示
     // managerError.value = `Failed to get SFTP manager for instance ${instanceId}`;
@@ -133,7 +133,7 @@ const _onSessionRemapped = (payload: { oldSessionId: string; newSessionId: strin
     // 此时 sessionActions 已从 sessions Map 中删除旧 key，无法通过 store 查找
     const savedPath = currentSftpManager.value?.currentPath.value || '/';
     log.info(
-      `[FileManager ${effectiveSessionId.value}-${props.instanceId}] 收到 session:remapped 事件，旧ID: ${payload.oldSessionId} → 新ID: ${payload.newSessionId}，保存路径: ${savedPath}，重新初始化 SFTP 管理器。`
+      `[FileManager ${effectiveSessionId.value}-${props.instanceId}] 收到 session:remapped 事件，旧ID: ${payload.oldSessionId} → 新ID: ${payload.newSessionId}，保存路径: ${savedPath}，重新初始化 SFTP 管理器。`,
     );
     // 清理旧 manager 的监听器
     currentSftpManager.value?.cleanup?.();
@@ -161,17 +161,17 @@ watch(
       // 避免此处 loadDirectory('/') 与 watchEffect 的 loadDirectory(absolutePath) 产生竞争导致 UI 闪烁
       if (justRemapped.value || !currentSftpManager.value.initialLoadDone.value) {
         log.info(
-          `[FileManager ${effectiveSessionId.value}-${props.instanceId}] SFTP 已就绪，但跳过自动加载（初始加载由 watchEffect 处理）`
+          `[FileManager ${effectiveSessionId.value}-${props.instanceId}] SFTP 已就绪，但跳过自动加载（初始加载由 watchEffect 处理）`,
         );
         return;
       }
       log.info(
-        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] SFTP 已就绪，自动加载根目录`
+        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] SFTP 已就绪，自动加载根目录`,
       );
       currentSftpManager.value.loadDirectory(currentSftpManager.value.currentPath.value || '/');
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // --- 文件上传模块 ---
@@ -181,7 +181,7 @@ const { uploads, startFileUpload, cancelUpload } = useFileUploader(
   // 传递 manager 的 currentPath 和 fileList ref
   computed(() => currentSftpManager.value?.currentPath.value ?? '/'),
   computed(() => currentSftpManager.value?.fileList.value ?? []),
-  computed(() => props.wsDeps)
+  computed(() => props.wsDeps),
 );
 
 // 实例化其他 Stores
@@ -304,7 +304,7 @@ watch(
     if (!val) return;
     fileListContainerRef.value = val as HTMLDivElement;
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // --- 文件项操作 Composable（在 Selection 之前实例化，因为 Selection 回调依赖 handleItemAction）---
@@ -376,7 +376,7 @@ const handleItemLongPress = (event: TouchEvent, item: FileListItem) => {
   if (touch) {
     showContextMenu(
       { preventDefault: () => {}, clientX: touch.clientX, clientY: touch.clientY } as MouseEvent,
-      item
+      item,
     );
   }
 };
@@ -458,13 +458,13 @@ const { triggerDownload, triggerDownloadDirectory } = useFileManagerDownload({
 const handleCompress = (items: FileListItem[], format: CompressFormat) => {
   if (!currentSftpManager.value) {
     log.error(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Cannot compress: SFTP manager not available.`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Cannot compress: SFTP manager not available.`,
     );
     uiNotificationsStore.showError(t('fileManager.errors.sftpManagerUnavailable'));
     return;
   }
   log.info(
-    `[FileManager ${props.sessionId}-${props.instanceId}] Requesting compression for ${items.length} items, format: ${format}`
+    `[FileManager ${props.sessionId}-${props.instanceId}] Requesting compression for ${items.length} items, format: ${format}`,
   );
   // 调用 SFTP 管理器上的新方法 (将在 useSftpActions.ts 中实现)
   currentSftpManager.value.compressItems(items, format);
@@ -473,13 +473,13 @@ const handleCompress = (items: FileListItem[], format: CompressFormat) => {
 const handleDecompress = (item: FileListItem) => {
   if (!currentSftpManager.value) {
     log.error(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Cannot decompress: SFTP manager not available.`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Cannot decompress: SFTP manager not available.`,
     );
     uiNotificationsStore.showError(t('fileManager.errors.sftpManagerUnavailable'));
     return;
   }
   log.info(
-    `[FileManager ${props.sessionId}-${props.instanceId}] Requesting decompression for item: ${item.filename}`
+    `[FileManager ${props.sessionId}-${props.instanceId}] Requesting decompression for item: ${item.filename}`,
   );
   // 调用 SFTP 管理器上的新方法 (将在 useSftpActions.ts 中实现)
   currentSftpManager.value.decompressItem(item);
@@ -490,16 +490,16 @@ const handleCopyPath = async (item: FileListItem) => {
   if (!currentSftpManager.value) return;
   const fullPath = currentSftpManager.value.joinPath(
     currentSftpManager.value.currentPath.value,
-    item.filename
+    item.filename,
   );
   try {
     await navigator.clipboard.writeText(fullPath);
     // 可选：显示成功通知
     log.info(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Copied path to clipboard: ${fullPath}`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Copied path to clipboard: ${fullPath}`,
     );
     uiNotificationsStore.showSuccess(
-      t('fileManager.notifications.pathCopied', 'Path copied to clipboard')
+      t('fileManager.notifications.pathCopied', 'Path copied to clipboard'),
     );
   } catch (err: unknown) {
     log.error(`[FileManager ${props.sessionId}-${props.instanceId}] Failed to copy path: `, err);
@@ -636,7 +636,7 @@ watch(
   () => {
     selectedIndex.value = -1;
     clearSelection();
-  }
+  },
 );
 watch(searchQuery, () => {
   selectedIndex.value = -1;
@@ -685,7 +685,7 @@ watchEffect((onCleanup) => {
     !currentSftpManager.value.initialLoadDone.value
   ) {
     log.info(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Connection ready for manager, fetching initial path for the first time (isLoading: ${currentSftpManager.value.isLoading.value}, initialLoadDone: ${currentSftpManager.value.initialLoadDone.value}).`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Connection ready for manager, fetching initial path for the first time (isLoading: ${currentSftpManager.value.isLoading.value}, initialLoadDone: ${currentSftpManager.value.initialLoadDone.value}).`,
     );
     // isFetchingInitialPath 状态移除, 使用 isLoading 状态
 
@@ -707,20 +707,20 @@ watchEffect((onCleanup) => {
           if (!absolutePath) {
             log.error(
               `[FileManager ${props.sessionId}-${props.instanceId}] Missing absolutePath for initial realpath response.`,
-              payload
+              payload,
             );
             cleanupListeners();
             return;
           }
           log.info(
-            `[FileManager ${props.sessionId}-${props.instanceId}] Received initial absolute path for '.': ${absolutePath}. Loading directory.`
+            `[FileManager ${props.sessionId}-${props.instanceId}] Received initial absolute path for '.': ${absolutePath}. Loading directory.`,
           );
           // 修改：添加 ?. 访问 loadDirectory 和 setInitialLoadDone
           currentSftpManager.value?.loadDirectory(absolutePath);
           currentSftpManager.value?.setInitialLoadDone(true); // 设置 manager 内部状态
           cleanupListeners();
         }
-      }
+      },
     );
 
     unregisterError = wsOnMessage(
@@ -733,23 +733,23 @@ watchEffect((onCleanup) => {
         if (message.requestId === requestId && p?.requestedPath === requestedPath) {
           log.error(
             `[FileManager ${props.sessionId}-${props.instanceId}] Failed to get realpath for '${requestedPath}':`,
-            payload
+            payload,
           );
           // 获取 realpath 失败时仅记录日志，标记初始加载完成以避免重复尝试
           currentSftpManager.value?.setInitialLoadDone(true);
           cleanupListeners();
         }
-      }
+      },
     );
 
     log.info(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Sending initial sftp:realpath request (ID: ${requestId}) for path: ${requestedPath}`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Sending initial sftp:realpath request (ID: ${requestId}) for path: ${requestedPath}`,
     );
     wsSend({ type: 'sftp:realpath', requestId: requestId, payload: { path: requestedPath } });
 
     timeoutId = setTimeout(() => {
       log.error(
-        `[FileManager ${props.sessionId}-${props.instanceId}] Timeout getting initial realpath for '.' (ID: ${requestId}).`
+        `[FileManager ${props.sessionId}-${props.instanceId}] Timeout getting initial realpath for '.' (ID: ${requestId}).`,
       );
       // 超时也标记初始加载尝试完成
       currentSftpManager.value?.setInitialLoadDone(true);
@@ -768,14 +768,14 @@ watchEffect((onCleanup) => {
     if (pathBeforeReconnect !== lastReconnectPath.value) {
       lastReconnectPath.value = pathBeforeReconnect;
       log.info(
-        `[FileManager ${props.sessionId}-${props.instanceId}] Connection re-established. Explicitly reloading previous path: ${pathBeforeReconnect}`
+        `[FileManager ${props.sessionId}-${props.instanceId}] Connection re-established. Explicitly reloading previous path: ${pathBeforeReconnect}`,
       );
       // 检查是否正在加载，避免并发请求
       if (!currentSftpManager.value.isLoading.value) {
         currentSftpManager.value.loadDirectory(pathBeforeReconnect, false);
       } else {
         log.info(
-          `[FileManager ${props.sessionId}-${props.instanceId}] SFTP manager is currently loading, skipping explicit path reload on reconnect.`
+          `[FileManager ${props.sessionId}-${props.instanceId}] SFTP manager is currently loading, skipping explicit path reload on reconnect.`,
         );
       }
     }
@@ -785,7 +785,7 @@ watchEffect((onCleanup) => {
     // 连接丢失，不需要重置 initialLoadDone，因为我们希望在重连时恢复状态
     // 只需要清理监听器
     log.info(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Connection lost (was previously loaded).`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Connection lost (was previously loaded).`,
     );
     // clearSelection(); // 可以在连接丢失时不清空选择，看产品需求
     // currentSftpManager.value?.setInitialLoadDone(false); // 不再重置，保持状态
@@ -824,7 +824,7 @@ watch(
       sortDirection.value = 'asc';
     }
   },
-  { immediate: false }
+  { immediate: false },
 ); // immediate: false 避免初始挂载时触发
 
 // +++ 注册/注销自定义聚焦动作 +++
@@ -836,41 +836,41 @@ onMounted(() => {
   const focusSearchActionWrapper = async (): Promise<boolean | undefined> => {
     if (effectiveSessionId.value === sessionStore.activeSessionId) {
       log.info(
-        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Executing search focus action for active session.`
+        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Executing search focus action for active session.`,
       );
       closePathHistory(); // Close path history if open
       return focusSearchInput();
     } else {
       log.info(
-        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Search focus action skipped for inactive session.`
+        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Search focus action skipped for inactive session.`,
       );
       return undefined;
     }
   };
   unregisterSearchFocusAction = focusSwitcherStore.registerFocusAction(
     'fileManagerSearch',
-    focusSearchActionWrapper
+    focusSearchActionWrapper,
   );
 
   // 注册路径编辑框聚焦动作
   const focusPathActionWrapper = async (): Promise<boolean | undefined> => {
     if (effectiveSessionId.value === sessionStore.activeSessionId) {
       log.info(
-        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Executing path edit focus action for active session.`
+        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Executing path edit focus action for active session.`,
       );
       // startPathEdit 本身不是 async，但注册时需要包装成 async 以匹配类型
       startPathEdit(); // 调用暴露的方法
       return true;
     } else {
       log.info(
-        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Path edit focus action skipped for inactive session.`
+        `[FileManager ${effectiveSessionId.value}-${props.instanceId}] Path edit focus action skipped for inactive session.`,
       );
       return undefined;
     }
   };
   unregisterPathFocusAction = focusSwitcherStore.registerFocusAction(
     'fileManagerPathInput',
-    focusPathActionWrapper
+    focusPathActionWrapper,
   );
 });
 
@@ -879,7 +879,7 @@ onBeforeUnmount(() => {
   if (unregisterSearchFocusAction) {
     unregisterSearchFocusAction();
     log.info(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Unregistered search focus action on unmount.`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Unregistered search focus action on unmount.`,
     );
   }
   unregisterSearchFocusAction = null;
@@ -888,7 +888,7 @@ onBeforeUnmount(() => {
   if (unregisterPathFocusAction) {
     unregisterPathFocusAction();
     log.info(
-      `[FileManager ${props.sessionId}-${props.instanceId}] Unregistered path edit focus action on unmount.`
+      `[FileManager ${props.sessionId}-${props.instanceId}] Unregistered path edit focus action on unmount.`,
     );
   }
   unregisterPathFocusAction = null;
@@ -917,7 +917,7 @@ const openPopupEditor = () => {
     return;
   }
   log.info(
-    `[FileManager ${props.sessionId}-${props.instanceId}] Triggering popup editor without specific file.`
+    `[FileManager ${props.sessionId}-${props.instanceId}] Triggering popup editor without specific file.`,
   );
   fileEditorStore.triggerPopup('', props.sessionId); // 修复：使用空字符串触发空编辑器
 };
@@ -961,7 +961,7 @@ const handleOpenEditorClick = () => {
     return;
   }
   log.info(
-    `[FileManager ${props.sessionId}-${props.instanceId}] Triggering popup editor directly.`
+    `[FileManager ${props.sessionId}-${props.instanceId}] Triggering popup editor directly.`,
   );
   fileEditorStore.triggerPopup('', props.sessionId); // 修复：传递空字符串而不是 null
 };

@@ -84,7 +84,7 @@ import type { ConnectionInfo } from '../../connections.store';
 /** 创建模拟会话（完整 SessionState 结构） */
 const createMockSession = (
   sessionId: string,
-  overrides: { connectionId?: string; connectionName?: string; isMarkedForSuspend?: boolean } = {}
+  overrides: { connectionId?: string; connectionName?: string; isMarkedForSuspend?: boolean } = {},
 ) => ({
   sessionId,
   connectionId: overrides.connectionId ?? '1',
@@ -304,7 +304,7 @@ describe('session/actions/sessionActions', () => {
 
   describe('handleConnectRequest', () => {
     const createMockConnection = (
-      overrides: { type?: string; id?: number; name?: string; host?: string } = {}
+      overrides: { type?: string; id?: number; name?: string; host?: string } = {},
     ) => ({
       id: overrides.id ?? 1,
       name: overrides.name ?? '测试连接',
@@ -339,7 +339,7 @@ describe('session/actions/sessionActions', () => {
 
       handleConnectRequest(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       expect(deps.openRdpModalAction).toHaveBeenCalledWith(conn);
@@ -352,7 +352,7 @@ describe('session/actions/sessionActions', () => {
 
       handleConnectRequest(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       expect(deps.openVncModalAction).toHaveBeenCalledWith(conn);
@@ -365,7 +365,7 @@ describe('session/actions/sessionActions', () => {
 
       handleConnectRequest(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       expect(deps.router.push).toHaveBeenCalledWith({ name: 'Workspace' });
@@ -382,7 +382,7 @@ describe('session/actions/sessionActions', () => {
 
       handleConnectRequest(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       expect(session.wsManager.connect).toHaveBeenCalled();
@@ -392,7 +392,7 @@ describe('session/actions/sessionActions', () => {
 
   describe('openNewSession', () => {
     const createMockConnection = (
-      overrides: { id?: number; name?: string; host?: string; type?: string } = {}
+      overrides: { id?: number; name?: string; host?: string; type?: string } = {},
     ) => ({
       id: overrides.id ?? 1,
       name: overrides.name ?? '测试连接',
@@ -432,7 +432,7 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       expect(mockSessions.value.size).toBe(1);
@@ -457,7 +457,7 @@ describe('session/actions/sessionActions', () => {
       openNewSession(
         conn as unknown as ConnectionInfo,
         deps as unknown as Parameters<typeof handleConnectRequest>[1],
-        'custom-id'
+        'custom-id',
       );
 
       expect(mockSessions.value.has('custom-id')).toBe(true);
@@ -470,7 +470,7 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
@@ -483,7 +483,7 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
@@ -496,7 +496,7 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       const session = Array.from(mockSessions.value.values())[0];
@@ -514,7 +514,7 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       expect(mockSessions.value.size).toBe(1);
@@ -522,7 +522,7 @@ describe('session/actions/sessionActions', () => {
       const session = Array.from(mockSessions.value.values())[0];
       expect(session.wsManager.onMessage).not.toHaveBeenCalledWith(
         'SSH_SUSPEND_TERMINATED',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -532,7 +532,7 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       const session = Array.from(mockSessions.value.values())[0];
@@ -545,12 +545,12 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
       const connectedHandler = wsManager.onMessage.mock.calls.find(
-        (c: unknown[]) => c[0] === 'ssh:connected'
+        (c: unknown[]) => c[0] === 'ssh:connected',
       )?.[1];
 
       expect(connectedHandler).toBeDefined();
@@ -569,12 +569,12 @@ describe('session/actions/sessionActions', () => {
 
       openNewSession(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
       const connectedHandler = wsManager.onMessage.mock.calls.find(
-        (c: unknown[]) => c[0] === 'ssh:connected'
+        (c: unknown[]) => c[0] === 'ssh:connected',
       )?.[1];
 
       // connectionId 不匹配
@@ -592,12 +592,12 @@ describe('session/actions/sessionActions', () => {
       openNewSession(
         conn as unknown as ConnectionInfo,
         deps as unknown as Parameters<typeof handleConnectRequest>[1],
-        'same-sid'
+        'same-sid',
       );
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
       const connectedHandler = wsManager.onMessage.mock.calls.find(
-        (c: unknown[]) => c[0] === 'ssh:connected'
+        (c: unknown[]) => c[0] === 'ssh:connected',
       )?.[1];
 
       // 后端 SID 与前端相同
@@ -615,7 +615,7 @@ describe('session/actions/sessionActions', () => {
       openNewSession(
         conn as unknown as ConnectionInfo,
         deps as unknown as Parameters<typeof handleConnectRequest>[1],
-        'frontend-sid'
+        'frontend-sid',
       );
 
       // 预先创建一个冲突的会话
@@ -624,7 +624,7 @@ describe('session/actions/sessionActions', () => {
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
       const connectedHandler = wsManager.onMessage.mock.calls.find(
-        (c: unknown[]) => c[0] === 'ssh:connected'
+        (c: unknown[]) => c[0] === 'ssh:connected',
       )?.[1];
 
       // 尝试重映射到已存在的 SID
@@ -641,12 +641,12 @@ describe('session/actions/sessionActions', () => {
       openNewSession(
         conn as unknown as ConnectionInfo,
         deps as unknown as Parameters<typeof handleConnectRequest>[1],
-        'temp-sid'
+        'temp-sid',
       );
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
       const connectedHandler = wsManager.onMessage.mock.calls.find(
-        (c: unknown[]) => c[0] === 'ssh:connected'
+        (c: unknown[]) => c[0] === 'ssh:connected',
       )?.[1];
 
       // 清空 sessions（模拟会话被删除）
@@ -664,12 +664,12 @@ describe('session/actions/sessionActions', () => {
       openNewSession(
         conn as unknown as ConnectionInfo,
         deps as unknown as Parameters<typeof handleConnectRequest>[1],
-        'test-sid'
+        'test-sid',
       );
 
       const wsManager = vi.mocked(createWebSocketConnectionManager).mock.results[0].value;
       const connectedHandler = wsManager.onMessage.mock.calls.find(
-        (c: unknown[]) => c[0] === 'ssh:connected'
+        (c: unknown[]) => c[0] === 'ssh:connected',
       )?.[1];
 
       expect(() => {
@@ -714,7 +714,7 @@ describe('session/actions/sessionActions', () => {
 
   describe('handleConnectRequest 特殊分支', () => {
     const createMockConnection = (
-      overrides: { type?: string; id?: number; name?: string; host?: string } = {}
+      overrides: { type?: string; id?: number; name?: string; host?: string } = {},
     ) => ({
       id: overrides.id ?? 1,
       name: overrides.name ?? '测试连接',
@@ -754,7 +754,7 @@ describe('session/actions/sessionActions', () => {
 
       handleConnectRequest(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       expect(session.wsManager.connect).toHaveBeenCalled();
@@ -771,7 +771,7 @@ describe('session/actions/sessionActions', () => {
 
       handleConnectRequest(
         conn as unknown as ConnectionInfo,
-        deps as unknown as Parameters<typeof handleConnectRequest>[1]
+        deps as unknown as Parameters<typeof handleConnectRequest>[1],
       );
 
       // 不同 connectionId → 不走重连，走 openNewSession

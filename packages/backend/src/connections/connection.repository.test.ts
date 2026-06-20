@@ -287,7 +287,7 @@ describe('Connection Repository', () => {
           auth_method: 'password',
           proxy_id: null,
           jump_chain: null,
-        })
+        }),
       ).rejects.toThrow('创建连接记录失败');
     });
   });

@@ -122,7 +122,7 @@ async function initVideoDecoderIfNeeded(): Promise<void> {
   videoDecoderCanvas.value = decoderCanvas;
   const initialized = await videoDecoder.init();
   log.info(
-    `[RemoteDesktopModal] WebCodecs supported=${videoDecoder.isSupported.value}, offscreen=${videoDecoder.isUsingOffscreen.value}, initialized=${initialized}`
+    `[RemoteDesktopModal] WebCodecs supported=${videoDecoder.isSupported.value}, offscreen=${videoDecoder.isUsingOffscreen.value}, initialized=${initialized}`,
   );
 }
 
@@ -296,7 +296,7 @@ const trySyncClipboardOnDisplayFocus = async () => {
       writer.sendEnd();
       log.info(
         '[RemoteDesktopModal] Sent clipboard to RDP on display focus:',
-        currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : '')
+        currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : ''),
       );
     }
   } catch (err: unknown) {
@@ -305,7 +305,7 @@ const trySyncClipboardOnDisplayFocus = async () => {
     } else {
       log.warn(
         '[RemoteDesktopModal] Could not read clipboard on display focus, or other error:',
-        err
+        err,
       );
     }
   }
@@ -412,7 +412,7 @@ const setupInputListeners = () => {
             await navigator.clipboard.writeText(text);
             log.info(
               '[RemoteDesktopModal] Received clipboard from RDP and wrote to host:',
-              text.substring(0, 50) + (text.length > 50 ? '...' : '')
+              text.substring(0, 50) + (text.length > 50 ? '...' : ''),
             );
           } catch (err: unknown) {
             log.warn('[RemoteDesktopModal] Could not write to host clipboard:', err);
@@ -442,7 +442,7 @@ const removeInputListeners = () => {
     } catch (error: unknown) {
       log.warn(
         'Could not reset cursor or remove listeners on display element during listener removal:',
-        error
+        error,
       );
     }
   }
@@ -570,7 +570,7 @@ const handleWidthInputBlur = () => {
       log.info(`[RDP Modal] Saved width to store: ${validatedValue}`);
     } else {
       log.info(
-        `[RDP Modal] Debounced save - width ${validatedValue} matches store value. Skipped redundant save.`
+        `[RDP Modal] Debounced save - width ${validatedValue} matches store value. Skipped redundant save.`,
       );
     }
   }, DEBOUNCE_DELAY);
@@ -591,7 +591,7 @@ const handleHeightInputBlur = () => {
       log.info(`[RDP Modal] Saved height to store: ${validatedValue}`);
     } else {
       log.info(
-        `[RDP Modal] Debounced save - height ${validatedValue} matches store value. Skipped redundant save.`
+        `[RDP Modal] Debounced save - height ${validatedValue} matches store value. Skipped redundant save.`,
       );
     }
   }, DEBOUNCE_DELAY);
@@ -623,11 +623,11 @@ watchEffect(() => {
   // 根据最小值进行验证
   const finalWidth = Math.min(
     Math.max(MIN_MODAL_WIDTH, isNaN(initialWidth) ? MIN_MODAL_WIDTH : initialWidth),
-    maxAllowedWidth.value
+    maxAllowedWidth.value,
   );
   const finalHeight = Math.min(
     Math.max(MIN_MODAL_HEIGHT, isNaN(initialHeight) ? MIN_MODAL_HEIGHT : initialHeight),
-    maxAllowedHeight.value
+    maxAllowedHeight.value,
   );
   log.info(`[RDP 模态框] 应用验证后的尺寸 - 宽度: ${finalWidth}, 高度: ${finalHeight}`);
   desiredModalWidth.value = finalWidth;
@@ -679,7 +679,7 @@ watch(
       statusMessage.value = t('remoteDesktopModal.errors.noConnection');
       connectionStatus.value = 'error';
     }
-  }
+  },
 );
 
 // 直接使用所需的模态框尺寸作为样式
@@ -687,11 +687,11 @@ const computedModalStyle = computed(() => {
   // 在此处为实际模态框样式应用最小约束
   const actualWidth = Math.min(
     Math.max(MIN_MODAL_WIDTH, desiredModalWidth.value),
-    maxAllowedWidth.value
+    maxAllowedWidth.value,
   );
   const actualHeight = Math.min(
     Math.max(MIN_MODAL_HEIGHT, desiredModalHeight.value),
-    maxAllowedHeight.value
+    maxAllowedHeight.value,
   );
   return {
     width: `${actualWidth}px`,

@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
 const auditLogService = new AuditLogService();
 
 const sanitizeProxy = (
-  proxy: ProxyService.ProxyData | null
+  proxy: ProxyService.ProxyData | null,
 ): Partial<ProxyService.ProxyData> | null => {
   if (!proxy) return null;
   const {

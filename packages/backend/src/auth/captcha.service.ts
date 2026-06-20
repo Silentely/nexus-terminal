@@ -60,7 +60,7 @@ export class CaptchaService {
   async verifyCredentials(
     provider: 'hcaptcha' | 'recaptcha',
     siteKey: string,
-    secretKey: string
+    secretKey: string,
   ): Promise<boolean> {
     if (!siteKey || !secretKey) {
       logger.warn(`[CaptchaService] 凭据验证失败：${provider} 的 Site Key 或 Secret Key 为空。`);
@@ -71,7 +71,7 @@ export class CaptchaService {
     const testToken = 'static_test_token_for_credential_verification_NexusTerminal';
 
     logger.debug(
-      `[CaptchaService] 正在验证 ${provider} 凭据 (SiteKey: ${siteKey.substring(0, 5)}...)`
+      `[CaptchaService] 正在验证 ${provider} 凭据 (SiteKey: ${siteKey.substring(0, 5)}...)`,
     );
 
     try {
@@ -103,7 +103,7 @@ export class CaptchaService {
     token: string,
     secretKey: string,
     siteKey?: string,
-    isCredentialVerification = false
+    isCredentialVerification = false,
   ): Promise<boolean> {
     const mode = isCredentialVerification ? '凭据' : '令牌';
     logger.debug(`[CaptchaService] 正在验证 hCaptcha ${mode}...`);
@@ -120,7 +120,7 @@ export class CaptchaService {
         HCAPTCHA_VERIFY_URL,
         params,
         { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
-        'Captcha'
+        'Captcha',
       );
 
       logger.debug(`[CaptchaService] hCaptcha ${mode}验证响应:`, response.data);
@@ -132,7 +132,7 @@ export class CaptchaService {
       }
       logger.warn(
         `[CaptchaService] hCaptcha ${mode}验证失败:`,
-        errorCodes.join(', ') || '未知错误'
+        errorCodes.join(', ') || '未知错误',
       );
       if (isCredentialVerification) {
         // 对于凭据验证，如果错误不是关于密钥本身的，我们可能仍然认为密钥"可能"有效。
@@ -160,7 +160,7 @@ export class CaptchaService {
           // 如果是 'invalid-input-response' 这类关于测试令牌的错误，我们认为密钥"可能"是对的。
           // 但前端期望布尔值，如果不是 success:true，这里就返回false，表示"未严格验证通过"
           logger.warn(
-            `[CaptchaService] hCaptcha ${mode}验证失败，但错误可能与测试令牌有关而非密钥本身: ${errorCodes.join(', ')}`
+            `[CaptchaService] hCaptcha ${mode}验证失败，但错误可能与测试令牌有关而非密钥本身: ${errorCodes.join(', ')}`,
           );
           return false; // 对于凭据验证，如果不是true，就严格返回false
         }
@@ -175,7 +175,7 @@ export class CaptchaService {
       logger.error(
         `[CaptchaService] 调用 hCaptcha ${mode}验证 API 时出错:`,
         errorMessage,
-        isAxiosError(error) && error.response?.data ? error.response.data : ''
+        isAxiosError(error) && error.response?.data ? error.response.data : '',
       );
       // 抛出错误，让上层处理
       throw new Error(`hCaptcha ${mode}验证请求失败: ${errorMessage}`);
@@ -194,11 +194,11 @@ export class CaptchaService {
     token: string,
     secretKey: string,
     siteKey?: string,
-    isCredentialVerification = false
+    isCredentialVerification = false,
   ): Promise<boolean> {
     const mode = isCredentialVerification ? '凭据' : '令牌';
     logger.debug(
-      `[CaptchaService] 正在验证 Google reCAPTCHA ${mode}... (SiteKey: ${siteKey ? `${siteKey.substring(0, 5)}...` : 'N/A'})`
+      `[CaptchaService] 正在验证 Google reCAPTCHA ${mode}... (SiteKey: ${siteKey ? `${siteKey.substring(0, 5)}...` : 'N/A'})`,
     );
     try {
       const params = new URLSearchParams();
@@ -211,7 +211,7 @@ export class CaptchaService {
         RECAPTCHA_VERIFY_URL,
         params,
         { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
-        'Captcha'
+        'Captcha',
       );
 
       logger.debug(`[CaptchaService] Google reCAPTCHA ${mode}验证响应:`, response.data);
@@ -223,7 +223,7 @@ export class CaptchaService {
       }
       logger.warn(
         `[CaptchaService] Google reCAPTCHA ${mode}验证失败:`,
-        errorCodes.join(', ') || '未知错误'
+        errorCodes.join(', ') || '未知错误',
       );
       if (isCredentialVerification) {
         // 对于凭据验证，关注与密钥相关的错误
@@ -239,7 +239,7 @@ export class CaptchaService {
         // reCAPTCHA 倾向于对无效密钥返回 success: false 和 "invalid-input-secret"
         // 如果没有明确的密钥错误，并且不是 success，严格返回 false
         logger.warn(
-          `[CaptchaService] Google reCAPTCHA ${mode}验证失败，但错误可能与测试令牌有关而非密钥本身: ${errorCodes.join(', ')}`
+          `[CaptchaService] Google reCAPTCHA ${mode}验证失败，但错误可能与测试令牌有关而非密钥本身: ${errorCodes.join(', ')}`,
         );
         return false; // 对于凭据验证，如果不是true，就严格返回false
       }
@@ -252,7 +252,7 @@ export class CaptchaService {
       logger.error(
         `[CaptchaService] 调用 Google reCAPTCHA ${mode}验证 API 时出错:`,
         errorMessage,
-        isAxiosError(error) && error.response?.data ? error.response.data : ''
+        isAxiosError(error) && error.response?.data ? error.response.data : '',
       );
       throw new Error(`Google reCAPTCHA ${mode}验证请求失败: ${errorMessage}`);
     }

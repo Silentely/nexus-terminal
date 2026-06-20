@@ -108,14 +108,14 @@ describe('Terminal Theme Service', () => {
         createNewTheme({
           name: 'Test',
           themeData: {} as any,
-        })
+        }),
       ).rejects.toThrow('无效的主题数据格式');
 
       await expect(
         createNewTheme({
           name: 'Test',
           themeData: { foreground: '#fff' } as any,
-        })
+        }),
       ).rejects.toThrow('无效的主题数据格式');
     });
   });
@@ -141,7 +141,7 @@ describe('Terminal Theme Service', () => {
         updateExistingTheme(NaN, {
           name: 'Test',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('无效的主题 ID');
     });
 
@@ -150,14 +150,14 @@ describe('Terminal Theme Service', () => {
         updateExistingTheme(1, {
           name: '',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('无效的主题更新数据');
 
       await expect(
         updateExistingTheme(1, {
           name: 'Test',
           themeData: {} as any,
-        })
+        }),
       ).rejects.toThrow('无效的主题更新数据');
     });
 
@@ -215,13 +215,13 @@ describe('Terminal Theme Service', () => {
 
     it('缺少名称应抛出异常', async () => {
       await expect(importTheme({ foreground: '#fff', background: '#000' }, '')).rejects.toThrow(
-        '导入主题时必须提供名称'
+        '导入主题时必须提供名称',
       );
     });
 
     it('无效的主题数据格式应抛出异常', async () => {
       await expect(importTheme({ foreground: '#fff' } as any, 'Test')).rejects.toThrow(
-        '导入的主题数据格式无效'
+        '导入的主题数据格式无效',
       );
 
       await expect(importTheme({} as any, 'Test')).rejects.toThrow('导入的主题数据格式无效');

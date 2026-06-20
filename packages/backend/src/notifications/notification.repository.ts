@@ -33,14 +33,14 @@ export class NotificationSettingsRepository {
       const db = await getDbInstance();
       const rows = await allDb<RawNotificationSetting>(
         db,
-        'SELECT * FROM notification_settings ORDER BY created_at ASC'
+        'SELECT * FROM notification_settings ORDER BY created_at ASC',
       );
       return rows.map(parseRawSetting);
     } catch (err: unknown) {
       logger.error(`获取通知设置时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '获取通知设置失败',
-        `获取通知设置时出错: ${getErrorMessage(err)}`
+        `获取通知设置时出错: ${getErrorMessage(err)}`,
       );
     }
   }
@@ -51,14 +51,14 @@ export class NotificationSettingsRepository {
       const row = await getDbRow<RawNotificationSetting>(
         db,
         'SELECT * FROM notification_settings WHERE id = ?',
-        [id]
+        [id],
       );
       return row ? parseRawSetting(row) : null;
     } catch (err: unknown) {
       logger.error(`通过 ID ${id} 获取通知设置时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '获取通知设置失败',
-        `通过 ID ${id} 获取通知设置时出错: ${getErrorMessage(err)}`
+        `通过 ID ${id} 获取通知设置时出错: ${getErrorMessage(err)}`,
       );
     }
   }
@@ -84,7 +84,7 @@ export class NotificationSettingsRepository {
       const db = await getDbInstance();
       const rows = await allDb<RawNotificationSetting>(
         db,
-        'SELECT * FROM notification_settings WHERE enabled = 1'
+        'SELECT * FROM notification_settings WHERE enabled = 1',
       );
       const parsedRows = rows.map(parseRawSetting);
       const filteredRows = parsedRows.filter((setting) => setting.enabled_events.includes(event));
@@ -97,13 +97,13 @@ export class NotificationSettingsRepository {
       logger.error(`获取启用的通知设置时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '获取通知设置失败',
-        `获取启用的通知设置时出错: ${getErrorMessage(err)}`
+        `获取启用的通知设置时出错: ${getErrorMessage(err)}`,
       );
     }
   }
 
   async create(
-    setting: Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>
+    setting: Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>,
   ): Promise<number> {
     const sql = `
             INSERT INTO notification_settings (channel_type, name, enabled, config, enabled_events, created_at, updated_at)
@@ -125,7 +125,7 @@ export class NotificationSettingsRepository {
       if (typeof result.lastID !== 'number' || result.lastID <= 0) {
         throw ErrorFactory.databaseError(
           '创建通知设置后未能获取有效的 lastID',
-          '创建通知设置后未能获取有效的 lastID'
+          '创建通知设置后未能获取有效的 lastID',
         );
       }
       return result.lastID;
@@ -133,14 +133,14 @@ export class NotificationSettingsRepository {
       logger.error(`创建通知设置时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '创建通知设置失败',
-        `创建通知设置时出错: ${getErrorMessage(err)}`
+        `创建通知设置时出错: ${getErrorMessage(err)}`,
       );
     }
   }
 
   async update(
     id: number,
-    setting: Partial<Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>>
+    setting: Partial<Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>>,
   ): Promise<boolean> {
     const fields: string[] = [];
     const params: (string | number | null)[] = [];
@@ -185,7 +185,7 @@ export class NotificationSettingsRepository {
       logger.error(`更新通知设置 ID ${id} 时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '更新通知设置失败',
-        `更新通知设置 ID ${id} 时出错: ${getErrorMessage(err)}`
+        `更新通知设置 ID ${id} 时出错: ${getErrorMessage(err)}`,
       );
     }
   }
@@ -201,7 +201,7 @@ export class NotificationSettingsRepository {
       logger.error(`删除通知设置 ID ${id} 时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '删除通知设置失败',
-        `删除通知设置 ID ${id} 时出错: ${getErrorMessage(err)}`
+        `删除通知设置 ID ${id} 时出错: ${getErrorMessage(err)}`,
       );
     }
   }

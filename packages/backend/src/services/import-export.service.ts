@@ -112,12 +112,12 @@ const getPlaintextConnectionsData = async (): Promise<PlaintextExportConnectionD
                 p.encrypted_passphrase as proxy_encrypted_passphrase
              FROM connections c
              LEFT JOIN proxies p ON c.proxy_id = p.id
-             ORDER BY c.name ASC`
+             ORDER BY c.name ASC`,
     );
 
     const tagRows = await allDb<{ connection_id: number; tag_id: number }>(
       db,
-      'SELECT connection_id, tag_id FROM connection_tags'
+      'SELECT connection_id, tag_id FROM connection_tags',
     );
 
     const tagsMap: { [connId: number]: number[] } = {};
@@ -245,7 +245,7 @@ function escapeCliArgument(value: string | number | null | undefined): string {
 
 export const exportConnectionsAsEncryptedZip = async (
   includeSshKeys: boolean = false,
-  customPassword?: string
+  customPassword?: string,
 ): Promise<Buffer> => {
   try {
     const connectionsData = await getPlaintextConnectionsData(); // This now returns PlaintextExportConnectionData[]
@@ -277,11 +277,11 @@ export const exportConnectionsAsEncryptedZip = async (
             }
           } else if (conn.private_key) {
             logger.warn(
-              `Connection ${conn.name} uses an SSH key by content (not by reference), which cannot be directly represented by '-k <keyname>' in script export.`
+              `Connection ${conn.name} uses an SSH key by content (not by reference), which cannot be directly represented by '-k <keyname>' in script export.`,
             );
             if (conn.passphrase) {
               logger.warn(
-                `The passphrase for the direct SSH key of connection ${conn.name} (from connections table) is also not exported as direct key content export is not supported.`
+                `The passphrase for the direct SSH key of connection ${conn.name} (from connections table) is also not exported as direct key content export is not supported.`,
               );
             }
           }
@@ -317,7 +317,7 @@ export const exportConnectionsAsEncryptedZip = async (
     if (!zipPassword || zipPassword.trim() === '') {
       logger.error('错误：未提供密码且 ENCRYPTION_KEY 环境变量未设置或为空！');
       throw new Error(
-        'No password provided and ENCRYPTION_KEY is not set or empty, cannot password-protect the ZIP file.'
+        'No password provided and ENCRYPTION_KEY is not set or empty, cannot password-protect the ZIP file.',
       );
     }
 
@@ -451,7 +451,7 @@ export const importConnections = async (fileBuffer: Buffer): Promise<ImportResul
               proxyData.name,
               proxyData.type,
               proxyData.host,
-              proxyData.port
+              proxyData.port,
             );
             if (existingProxy) {
               proxyIdToUse = existingProxy.id;
@@ -472,7 +472,7 @@ export const importConnections = async (fileBuffer: Buffer): Promise<ImportResul
               };
               proxyIdToUse = await ProxyRepository.createProxy(newProxyData);
               logger.info(
-                `Service: 导入连接 ${connData.name}: 新代理 ${proxyData.name} 创建成功 (ID: ${proxyIdToUse})`
+                `Service: 导入连接 ${connData.name}: 新代理 ${proxyData.name} 创建成功 (ID: ${proxyIdToUse})`,
               );
             }
             if (proxyIdToUse) proxyCache[cacheKey] = proxyIdToUse;
@@ -517,15 +517,15 @@ export const importConnections = async (fileBuffer: Buffer): Promise<ImportResul
       const originalTagIds = result.originalData?.tag_ids;
       if (Array.isArray(originalTagIds) && originalTagIds.length > 0) {
         const validTagIds = originalTagIds.filter(
-          (id: unknown): id is number => typeof id === 'number' && id > 0
+          (id: unknown): id is number => typeof id === 'number' && id > 0,
         );
         if (validTagIds.length > 0) {
           const tagPromises = validTagIds.map((tagId) =>
             runDb(db, insertTagSql, [result.connectionId, tagId]).catch((tagError: unknown) => {
               logger.warn(
-                `Service: 导入连接 ${result.originalData.name}: 关联标签 ID ${tagId} 失败: ${getErrorMessage(tagError)}`
+                `Service: 导入连接 ${result.originalData.name}: 关联标签 ID ${tagId} 失败: ${getErrorMessage(tagError)}`,
               );
-            })
+            }),
           );
           await Promise.all(tagPromises);
         }

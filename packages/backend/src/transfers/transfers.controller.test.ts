@@ -61,7 +61,7 @@ describe('transfers.controller', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('请求参数验证失败') })
+        expect.objectContaining({ message: expect.stringContaining('请求参数验证失败') }),
       );
     });
 
@@ -76,7 +76,7 @@ describe('transfers.controller', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('请求参数验证失败') })
+        expect.objectContaining({ message: expect.stringContaining('请求参数验证失败') }),
       );
     });
 
@@ -103,13 +103,13 @@ describe('transfers.controller', () => {
       // 验证 service 收到的是经过 schema 验证和转换后的数据
       expect(mockTransfersService.initiateNewTransfer).toHaveBeenCalledWith(
         expect.objectContaining({ sourceConnectionId: 1 }),
-        1
+        1,
       );
     });
 
     it('服务异常应返回 500', async () => {
       mockTransfersService.initiateNewTransfer.mockRejectedValue(
-        new Error('SSH connection failed')
+        new Error('SSH connection failed'),
       );
 
       const req = mockReq({
@@ -127,7 +127,7 @@ describe('transfers.controller', () => {
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Failed to initiate transfer.' })
+        expect.objectContaining({ message: 'Failed to initiate transfer.' }),
       );
     });
   });

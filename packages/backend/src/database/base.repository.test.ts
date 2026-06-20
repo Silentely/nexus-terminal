@@ -85,7 +85,7 @@ describe('RepositoryUtils', () => {
       const result = await RepositoryUtils.executeWithErrorHandling(
         async () => 'success',
         '测试上下文',
-        '测试错误消息'
+        '测试错误消息',
       );
       expect(result).toBe('success');
     });
@@ -99,8 +99,8 @@ describe('RepositoryUtils', () => {
             throw new Error('原始错误');
           },
           '测试上下文',
-          '用户友好消息'
-        )
+          '用户友好消息',
+        ),
       ).rejects.toThrow(AppError);
 
       expect(mockLogger.error).toHaveBeenCalledWith('[仓库] 测试上下文:', '原始错误');
@@ -115,8 +115,8 @@ describe('RepositoryUtils', () => {
             throw appError;
           },
           '测试上下文',
-          '用户友好消息'
-        )
+          '用户友好消息',
+        ),
       ).rejects.toBe(appError);
     });
 
@@ -132,8 +132,8 @@ describe('RepositoryUtils', () => {
           },
           '测试上下文',
           '用户友好消息',
-          customHandler
-        )
+          customHandler,
+        ),
       ).rejects.toThrow('自定义验证错误');
 
       expect(customHandler).toHaveBeenCalled();
@@ -151,7 +151,7 @@ describe('RepositoryUtils', () => {
           },
           '测试上下文',
           '用户友好消息',
-          customHandler
+          customHandler,
         );
         expect.fail('应该抛出错误');
       } catch (err: unknown) {
@@ -171,7 +171,7 @@ describe('RepositoryUtils', () => {
       const result = await RepositoryUtils.executeInTransaction(
         async () => 'transaction result',
         '测试事务',
-        '事务失败'
+        '事务失败',
       );
 
       expect(result).toBe('transaction result');
@@ -192,8 +192,8 @@ describe('RepositoryUtils', () => {
             throw new Error('操作失败');
           },
           '测试事务',
-          '事务失败'
-        )
+          '事务失败',
+        ),
       ).rejects.toThrow(AppError);
 
       expect(runDb).toHaveBeenCalledWith(mockDb, 'BEGIN TRANSACTION');
@@ -214,8 +214,8 @@ describe('RepositoryUtils', () => {
             throw appError;
           },
           '测试事务',
-          '事务失败'
-        )
+          '事务失败',
+        ),
       ).rejects.toBe(appError);
     });
   });

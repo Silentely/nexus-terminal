@@ -27,13 +27,13 @@ export interface EditorEventsDependencies {
     changeLineEndingInSession: (
       sessionId: string,
       tabId: string,
-      lineEnding: 'lf' | 'crlf' | 'cr'
+      lineEnding: 'lf' | 'crlf' | 'cr',
     ) => void;
     updateTabScrollPositionInSession: (
       sessionId: string,
       tabId: string,
       scrollTop: number,
-      scrollLeft: number
+      scrollLeft: number,
     ) => void;
   };
   activeSessionId: Ref<string | null>;
@@ -94,7 +94,7 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
         sessionStore.closeEditorTabInSession(currentActiveSessionId, tabId);
       } else {
         log.warn(
-          '[useEditorEvents] Cannot close editor tab: No active session in independent mode.'
+          '[useEditorEvents] Cannot close editor tab: No active session in independent mode.',
         );
       }
     }
@@ -114,7 +114,7 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
         sessionStore.setActiveEditorTabInSession(currentActiveSessionId, tabId);
       } else {
         log.warn(
-          '[useEditorEvents] Cannot activate editor tab: No active session in independent mode.'
+          '[useEditorEvents] Cannot activate editor tab: No active session in independent mode.',
         );
       }
     }
@@ -126,7 +126,7 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
   const handleUpdateEditorContent = (payload: { tabId: string; content: string }) => {
     const isShared = shareFileEditorTabsBoolean.value;
     log.info(
-      `[useEditorEvents] handleUpdateEditorContent for tab ${payload.tabId}, Shared mode: ${isShared}`
+      `[useEditorEvents] handleUpdateEditorContent for tab ${payload.tabId}, Shared mode: ${isShared}`,
     );
     if (isShared) {
       fileEditorStore.updateFileContent(payload.tabId, payload.content);
@@ -136,11 +136,11 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
         sessionStore.updateFileContentInSession(
           currentActiveSessionId,
           payload.tabId,
-          payload.content
+          payload.content,
         );
       } else {
         log.warn(
-          '[useEditorEvents] Cannot update editor content: No active session in independent mode.'
+          '[useEditorEvents] Cannot update editor content: No active session in independent mode.',
         );
       }
     }
@@ -160,7 +160,7 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
         sessionStore.saveFileInSession(currentActiveSessionId, tabId);
       } else {
         log.warn(
-          '[useEditorEvents] Cannot save editor tab: No active session in independent mode.'
+          '[useEditorEvents] Cannot save editor tab: No active session in independent mode.',
         );
       }
     }
@@ -172,7 +172,7 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
   const handleChangeEncoding = (payload: { tabId: string; encoding: string }) => {
     const isShared = shareFileEditorTabsBoolean.value;
     log.info(
-      `[useEditorEvents] handleChangeEncoding for tab ${payload.tabId} to ${payload.encoding}, Shared mode: ${isShared}`
+      `[useEditorEvents] handleChangeEncoding for tab ${payload.tabId} to ${payload.encoding}, Shared mode: ${isShared}`,
     );
     if (isShared) {
       fileEditorStore.changeEncoding(payload.tabId, payload.encoding);
@@ -182,11 +182,11 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
         sessionStore.changeEncodingInSession(
           currentActiveSessionId,
           payload.tabId,
-          payload.encoding
+          payload.encoding,
         );
       } else {
         log.warn(
-          '[useEditorEvents] Cannot change editor encoding: No active session in independent mode.'
+          '[useEditorEvents] Cannot change editor encoding: No active session in independent mode.',
         );
       }
     }
@@ -198,7 +198,7 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
   const handleChangeLineEnding = (payload: { tabId: string; lineEnding: 'lf' | 'crlf' | 'cr' }) => {
     const isShared = shareFileEditorTabsBoolean.value;
     log.info(
-      `[useEditorEvents] handleChangeLineEnding for tab ${payload.tabId} to ${payload.lineEnding}, Shared mode: ${isShared}`
+      `[useEditorEvents] handleChangeLineEnding for tab ${payload.tabId} to ${payload.lineEnding}, Shared mode: ${isShared}`,
     );
     if (isShared) {
       fileEditorStore.changeLineEnding(payload.tabId, payload.lineEnding);
@@ -208,11 +208,11 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
         sessionStore.changeLineEndingInSession(
           currentActiveSessionId,
           payload.tabId,
-          payload.lineEnding
+          payload.lineEnding,
         );
       } else {
         log.warn(
-          '[useEditorEvents] Cannot change editor line ending: No active session in independent mode.'
+          '[useEditorEvents] Cannot change editor line ending: No active session in independent mode.',
         );
       }
     }
@@ -236,12 +236,12 @@ export function useEditorEvents(deps: EditorEventsDependencies) {
           currentActiveSession.sessionId,
           tabId,
           scrollTop,
-          scrollLeft
+          scrollLeft,
         );
       } else {
         log.warn(
           '[useEditorEvents] Cannot update editor scroll position: No active session in independent mode for tab:',
-          tabId
+          tabId,
         );
       }
     }

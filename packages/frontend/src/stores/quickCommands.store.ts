@@ -259,7 +259,7 @@ export const useQuickCommandsStore = defineStore('quickCommands', () => {
           parsedData.every(
             (item) =>
               Array.isArray(item.tagIds) &&
-              (item.variables === undefined || typeof item.variables === 'object')
+              (item.variables === undefined || typeof item.variables === 'object'),
           )
         ) {
           quickCommandsList.value = parsedData;
@@ -323,7 +323,7 @@ export const useQuickCommandsStore = defineStore('quickCommands', () => {
     name: string | null,
     command: string,
     tagIds?: number[],
-    variables?: Record<string, string>
+    variables?: Record<string, string>,
   ): Promise<boolean> => {
     try {
       // 在请求体中包含 tagIds 和 variables
@@ -352,7 +352,7 @@ export const useQuickCommandsStore = defineStore('quickCommands', () => {
     name: string | null,
     command: string,
     tagIds?: number[],
-    variables?: Record<string, string>
+    variables?: Record<string, string>,
   ): Promise<boolean> => {
     try {
       // 在请求体中包含 tagIds 和 variables (即使是 undefined 也要发送，让后端知道是否要更新)
@@ -474,7 +474,7 @@ export const useQuickCommandsStore = defineStore('quickCommands', () => {
         });
         if (response.data.success) {
           log.info(
-            `[Store] Successfully assigned tag ${tagId} to ${commandIds.length} commands via API.`
+            `[Store] Successfully assigned tag ${tagId} to ${commandIds.length} commands via API.`,
           );
 
           // --- Manual state update for immediate UI feedback ---
@@ -493,7 +493,7 @@ export const useQuickCommandsStore = defineStore('quickCommands', () => {
               }
             } else {
               log.warn(
-                `[Store] assignCommandsToTagAction: Command ID ${cmdId} not found in local list for manual update.`
+                `[Store] assignCommandsToTagAction: Command ID ${cmdId} not found in local list for manual update.`,
               );
             }
           });

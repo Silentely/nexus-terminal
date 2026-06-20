@@ -65,7 +65,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
       const parsed = parseScriptLine(line, t);
       if (parsed.error) {
         uiNotificationsStore.showError(
-          t('connections.form.scriptErrorInLine', { line, error: parsed.error })
+          t('connections.form.scriptErrorInLine', { line, error: parsed.error }),
         );
         allConnectionsValid = false;
         break;
@@ -95,7 +95,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
 
       if (!username || !host) {
         uiNotificationsStore.showError(
-          t('connections.form.scriptErrorInvalidUserHostFormat', { line })
+          t('connections.form.scriptErrorInvalidUserHostFormat', { line }),
         );
         allConnectionsValid = false;
         break;
@@ -105,7 +105,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
           t('connections.form.scriptErrorInvalidPort', {
             line,
             port: portStr || defaultPortLabel,
-          })
+          }),
         );
         allConnectionsValid = false;
         break;
@@ -127,7 +127,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
         if (connectionData.auth_method === 'password') {
           if (!parsed.password) {
             uiNotificationsStore.showError(
-              t('connections.form.scriptErrorMissingPasswordForSsh', { line })
+              t('connections.form.scriptErrorMissingPasswordForSsh', { line }),
             );
             allConnectionsValid = false;
             break;
@@ -136,7 +136,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
         } else {
           if (!parsed.keyName) {
             uiNotificationsStore.showError(
-              t('connections.form.scriptErrorMissingKeyNameForSsh', { line })
+              t('connections.form.scriptErrorMissingKeyNameForSsh', { line }),
             );
             allConnectionsValid = false;
             break;
@@ -146,7 +146,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
       } else if (parsed.type === 'RDP' || parsed.type === 'VNC') {
         if (!parsed.password) {
           uiNotificationsStore.showError(
-            t('connections.form.scriptErrorMissingPasswordForType', { line, type: parsed.type })
+            t('connections.form.scriptErrorMissingPasswordForType', { line, type: parsed.type }),
           );
           allConnectionsValid = false;
           break;
@@ -176,7 +176,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
               await tagsStore.fetchTags();
             } else {
               uiNotificationsStore.showError(
-                t('connections.form.scriptErrorTagCreationFailed', { tagName })
+                t('connections.form.scriptErrorTagCreationFailed', { tagName }),
               );
               resolutionErrorOccurred = true;
               break;
@@ -195,7 +195,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
         // Telnet 使用密码认证
         if (!connData.password) {
           uiNotificationsStore.showError(
-            t('connections.form.scriptErrorMissingPasswordForTelnet', { host: connData.host })
+            t('connections.form.scriptErrorMissingPasswordForTelnet', { host: connData.host }),
           );
           allConnectionsValid = false;
         }
@@ -209,7 +209,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
           connData.ssh_key_id = foundKey.id;
         } else {
           uiNotificationsStore.showError(
-            t('connections.form.scriptErrorSshKeyNotFound', { keyName: connData.ssh_key_name })
+            t('connections.form.scriptErrorSshKeyNotFound', { keyName: connData.ssh_key_name }),
           );
           resolutionErrorOccurred = true;
           break;
@@ -223,7 +223,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
           connData.proxy_id = foundProxy.id;
         } else {
           uiNotificationsStore.showError(
-            t('proxies.errors.notFound', { name: connData.proxy_name })
+            t('proxies.errors.notFound', { name: connData.proxy_name }),
           );
           resolutionErrorOccurred = true;
           break;
@@ -246,7 +246,9 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
     }
 
     uiNotificationsStore.showInfo(
-      t('connections.form.scriptModeAddingConnections', { count: fullyProcessedConnections.length })
+      t('connections.form.scriptModeAddingConnections', {
+        count: fullyProcessedConnections.length,
+      }),
     );
 
     let successCount = 0;
@@ -281,7 +283,7 @@ export function createScriptModeSubmit(deps: ScriptModeDeps) {
     if (successCount > 0) {
       if (errorCount === 0) {
         uiNotificationsStore.showSuccess(
-          t('connections.form.successBatchAddResult', { successCount })
+          t('connections.form.successBatchAddResult', { successCount }),
         );
       }
       emit('connection-added');

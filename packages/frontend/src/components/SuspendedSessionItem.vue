@@ -136,7 +136,7 @@ watch(
       await nextTick();
       nameInputRef.value?.focus();
     }
-  }
+  },
 );
 
 const formatDateTime = (isoString?: string) => {

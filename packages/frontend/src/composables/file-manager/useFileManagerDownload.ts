@@ -55,14 +55,14 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
     let manager = currentSftpManager.value;
     if (!manager) {
       log.warn(
-        `${logPrefix.value} SFTP manager not available for download, attempting recovery...`
+        `${logPrefix.value} SFTP manager not available for download, attempting recovery...`,
       );
       if (recoverManager?.()) {
         manager = currentSftpManager.value;
       }
       if (!manager) {
         log.error(
-          `${logPrefix.value} Cannot download: SFTP manager is not available after recovery.`
+          `${logPrefix.value} Cannot download: SFTP manager is not available after recovery.`,
         );
         showError('SFTP manager is not available.');
         return;
@@ -106,14 +106,14 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
     let manager = currentSftpManager.value;
     if (!manager) {
       log.warn(
-        `${logPrefix.value} SFTP manager not available for directory download, attempting recovery...`
+        `${logPrefix.value} SFTP manager not available for directory download, attempting recovery...`,
       );
       if (recoverManager?.()) {
         manager = currentSftpManager.value;
       }
       if (!manager) {
         log.error(
-          `${logPrefix.value} Cannot download directory: SFTP manager is not available after recovery.`
+          `${logPrefix.value} Cannot download directory: SFTP manager is not available after recovery.`,
         );
         showError('SFTP manager is not available.');
         return;
@@ -122,7 +122,7 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
 
     if (!item.attrs.isDirectory) {
       log.warn(
-        `${logPrefix.value} Skipping directory download for non-directory item: ${item.filename}`
+        `${logPrefix.value} Skipping directory download for non-directory item: ${item.filename}`,
       );
       return;
     }
@@ -131,7 +131,7 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
     const downloadUrl = `/api/v1/sftp/download-directory?connectionId=${dbConnectionId}&remotePath=${encodeURIComponent(directoryPath)}`;
 
     log.info(
-      `${logPrefix.value} Attempting directory download for ${item.filename}: ${downloadUrl}`
+      `${logPrefix.value} Attempting directory download for ${item.filename}: ${downloadUrl}`,
     );
 
     fetch(downloadUrl)
@@ -158,7 +158,7 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
           log.info(`${logPrefix.value} Directory download triggered for: ${filename}`);
         } else {
           log.error(
-            `${logPrefix.value} Directory download failed: ${response.status} ${response.statusText}`
+            `${logPrefix.value} Directory download failed: ${response.status} ${response.statusText}`,
           );
           let errorMsg = `Server responded with status ${response.status}`;
           try {
@@ -171,7 +171,7 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
             } catch (textParseError: unknown) {
               log.debug(
                 '[FileManager] 读取错误响应文本失败:',
-                textParseError instanceof Error ? textParseError.message : textParseError
+                textParseError instanceof Error ? textParseError.message : textParseError,
               );
             }
           }

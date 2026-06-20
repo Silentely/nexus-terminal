@@ -90,7 +90,7 @@ describe('auth-2fa-state-flow.utils', () => {
     const result = await saveTwoFactorSetupSessionSecret(req, 'SECRET');
 
     expect((req.session as unknown as { tempTwoFactorSecret?: string }).tempTwoFactorSecret).toBe(
-      'SECRET'
+      'SECRET',
     );
     expect(result).toEqual({ ok: true });
   });

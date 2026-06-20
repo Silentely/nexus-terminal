@@ -48,7 +48,7 @@ const {
   mockGetSetting: vi.fn(),
   mockI18nT: vi.fn((key: string, options?: I18nOptions) => options?.defaultValue || key),
   mockFormatInTimeZone: vi.fn(
-    (_date: Date, _tz: string, _format: string) => '2024-01-01T12:00:00+08:00'
+    (_date: Date, _tz: string, _format: string) => '2024-01-01T12:00:00+08:00',
   ),
 }));
 
@@ -263,7 +263,7 @@ describe('NotificationService', () => {
             host: 'smtp.example.com',
             port: 587,
             secure: true,
-          })
+          }),
         );
         expect(mockTransporter.sendMail).toHaveBeenCalled();
       });
@@ -303,7 +303,7 @@ describe('NotificationService', () => {
         expect(mockAxiosPost).toHaveBeenCalledWith(
           'https://webhook.example.com/notify',
           expect.any(String),
-          expect.objectContaining({ method: 'POST' })
+          expect.objectContaining({ method: 'POST' }),
         );
       });
 
@@ -344,7 +344,7 @@ describe('NotificationService', () => {
             chat_id: '-1001234567890',
             parse_mode: 'Markdown',
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
@@ -373,7 +373,7 @@ describe('NotificationService', () => {
         expect(mockAxiosPost).toHaveBeenCalledWith(
           expect.stringContaining('custom-telegram-api.example.com'),
           expect.any(Object),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
@@ -467,7 +467,7 @@ describe('NotificationService', () => {
         expect.objectContaining({
           chat_id: '-1001234567890',
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -548,7 +548,7 @@ describe('NotificationService', () => {
       expect(mockAxiosPost).toHaveBeenCalledWith(
         'https://example.com',
         expect.stringContaining('SETTINGS_UPDATED'),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -651,7 +651,7 @@ describe('NotificationService', () => {
       expect(nodemailer.createTransport).toHaveBeenCalledWith(
         expect.objectContaining({
           auth: undefined,
-        })
+        }),
       );
     });
 
@@ -678,7 +678,7 @@ describe('NotificationService', () => {
       expect(mockAxiosPost).toHaveBeenCalledWith(
         expect.stringContaining('api.telegram.org'),
         expect.any(Object),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });

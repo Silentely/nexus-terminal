@@ -14,7 +14,7 @@ describe('auth-init-status-flow.utils', () => {
           userId: 1,
           username: 'alice',
           requiresTwoFactor: true,
-        })
+        }),
       ).toBe(false);
     });
 
@@ -24,7 +24,7 @@ describe('auth-init-status-flow.utils', () => {
           userId: 2,
           username: 'bob',
           requiresTwoFactor: false,
-        })
+        }),
       ).toBe(true);
     });
   });

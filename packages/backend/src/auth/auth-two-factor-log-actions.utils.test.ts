@@ -53,7 +53,7 @@ describe('auth-two-factor-log-actions.utils', () => {
         userId: 10,
         delta: 3,
         skewWarnThreshold: 2,
-      })
+      }),
     ).toEqual({
       level: 'warn',
       message:
@@ -64,7 +64,7 @@ describe('auth-two-factor-log-actions.utils', () => {
         userId: 10,
         delta: 2,
         skewWarnThreshold: 2,
-      })
+      }),
     ).toBeNull();
   });
 
@@ -86,7 +86,7 @@ describe('auth-two-factor-log-actions.utils', () => {
         username: 'alice',
         delta: 3,
         skewWarnThreshold: 2,
-      })
+      }),
     ).toEqual({
       level: 'warn',
       message:
@@ -97,7 +97,7 @@ describe('auth-two-factor-log-actions.utils', () => {
         username: 'alice',
         delta: 2,
         skewWarnThreshold: 2,
-      })
+      }),
     ).toBeNull();
     expect(buildLoginTwoFactorSkewWarnLogActionAlways('alice', -4)).toEqual({
       level: 'warn',

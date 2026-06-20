@@ -135,7 +135,7 @@ const initTerminal = async () => {
         () => {
           createTerminalInstance();
         },
-        { timeout: 2000 }
+        { timeout: 2000 },
       );
     } else {
       // 降级方案：使用 setTimeout 延迟初始化
@@ -243,7 +243,7 @@ watch(
   () => {
     debouncedUpdateTerminal();
   },
-  { deep: false } // 改为 false，避免深度遍历对象
+  { deep: false }, // 改为 false，避免深度遍历对象
 );
 
 onMounted(() => {
@@ -265,7 +265,7 @@ onMounted(() => {
     {
       threshold: 0.1, // 10% 可见时触发
       rootMargin: '50px', // 提前 50px 开始加载，提升用户体验
-    }
+    },
   );
 
   // 开始观察 DOM 元素

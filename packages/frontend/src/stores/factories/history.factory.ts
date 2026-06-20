@@ -40,7 +40,7 @@ export type HistoryEntryFE = HistoryEntryBE;
  *   - backward-compatible aliases: `addCommand`, `deleteCommand`, `clearAllHistory`, `selectNextCommand`, `selectPreviousCommand`, `addPath`, `deletePath`, `selectNextPath`, `selectPreviousPath`
  */
 export function createHistoryStore<T extends HistoryEntryFE = HistoryEntryFE>(
-  config: HistoryStoreConfig
+  config: HistoryStoreConfig,
 ) {
   const {
     storeId,

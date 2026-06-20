@@ -55,20 +55,20 @@ export function useAboutSection() {
           log.error('GitHub API 访问频率受限:', error);
           versionCheckError.value = t(
             'settings.about.error.rateLimit',
-            'API 访问频率受限，请稍后再试。'
+            'API 访问频率受限，请稍后再试。',
           );
         } else {
           log.error('检查最新版本失败:', error);
           versionCheckError.value = t(
             'settings.about.error.checkFailed',
-            '检查更新失败，请检查网络连接或稍后再试。'
+            '检查更新失败，请检查网络连接或稍后再试。',
           );
         }
       } else {
         log.error('检查最新版本失败:', error);
         versionCheckError.value = t(
           'settings.about.error.checkFailed',
-          '检查更新失败，请检查网络连接或稍后再试。'
+          '检查更新失败，请检查网络连接或稍后再试。',
         );
       }
     } finally {

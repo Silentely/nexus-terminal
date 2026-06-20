@@ -281,7 +281,7 @@ describe('Terminal.vue', () => {
         expect.objectContaining({
           fontSize: 16,
           fontFamily: 'Fira Code',
-        })
+        }),
       );
     });
 
@@ -337,7 +337,7 @@ describe('Terminal.vue', () => {
         'terminal:ready',
         expect.objectContaining({
           sessionId: 'session-1',
-        })
+        }),
       );
     });
 
@@ -436,7 +436,7 @@ describe('Terminal.vue', () => {
       expect(TerminalMock).toHaveBeenCalledWith(
         expect.objectContaining({
           scrollback: Infinity,
-        })
+        }),
       );
     });
 
@@ -453,7 +453,7 @@ describe('Terminal.vue', () => {
       expect(TerminalMock).toHaveBeenCalledWith(
         expect.objectContaining({
           scrollback: 5000,
-        })
+        }),
       );
     });
   });

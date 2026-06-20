@@ -41,7 +41,7 @@ export const getStats = async (req: Request, res: Response, next: NextFunction):
 export const getAssetHealth = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const health = await Service.getAssetHealth();
@@ -58,7 +58,7 @@ export const getAssetHealth = async (
 export const getTimeline = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const limit = parseInt(req.query.limit as string, 10) || 20;
@@ -87,7 +87,7 @@ export const getTimeline = async (
 export const getStorage = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const stats = await Service.getStorageStats();
@@ -112,7 +112,7 @@ export const getStorage = async (
 export const getSystemResources = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const resources = await Service.getSystemResources();

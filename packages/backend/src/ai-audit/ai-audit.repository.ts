@@ -3,6 +3,7 @@
  */
 
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
+import { logger } from '../utils/logger';
 import type {
   AuditReport,
   AuditAnomaly,
@@ -89,7 +90,12 @@ export class AiAuditRepository {
       await runDb(db, 'DELETE FROM audit_reports WHERE id = ? AND user_id = ?', [reportId, userId]);
       await runDb(db, 'COMMIT');
     } catch (err) {
-      await runDb(db, 'ROLLBACK');
+      // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
+      try {
+        await runDb(db, 'ROLLBACK');
+      } catch (rollbackErr) {
+        logger.error('[AiAudit] deleteReport rollback 失败:', rollbackErr);
+      }
       throw err;
     }
 

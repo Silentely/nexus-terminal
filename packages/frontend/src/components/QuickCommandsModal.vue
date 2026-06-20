@@ -37,7 +37,7 @@ watch(
     } else {
       document.removeEventListener('keydown', handleKeydown);
     }
-  }
+  },
 );
 
 const onWorkspaceEvent = useWorkspaceEventSubscriber(); // 获取事件订阅器

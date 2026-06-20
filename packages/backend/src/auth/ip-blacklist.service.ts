@@ -65,7 +65,7 @@ export class IpBlacklistService {
       // 检查封禁时间是否已过
       if (entry.blocked_until && entry.blocked_until > Math.floor(Date.now() / 1000)) {
         logger.debug(
-          `[IP Blacklist] IP ${ip} 当前被封禁，直到 ${new Date(entry.blocked_until * 1000).toISOString()}`
+          `[IP Blacklist] IP ${ip} 当前被封禁，直到 ${new Date(entry.blocked_until * 1000).toISOString()}`,
         );
         return true; // 仍在封禁期内
       }
@@ -118,7 +118,7 @@ export class IpBlacklistService {
           blockedUntil = now + banDuration;
           shouldNotify = true;
           logger.warn(
-            `[IP Blacklist] IP ${ip} 登录失败次数达到 ${newAttempts} 次 (阈值 ${maxAttempts})，将被封禁 ${banDuration} 秒。`
+            `[IP Blacklist] IP ${ip} 登录失败次数达到 ${newAttempts} 次 (阈值 ${maxAttempts})，将被封禁 ${banDuration} 秒。`,
           );
         } else if (newAttempts >= maxAttempts && entry.blocked_until) {
           logger.debug(`[IP Blacklist] IP ${ip} 再次登录失败，当前已处于封禁状态。`);
@@ -127,7 +127,7 @@ export class IpBlacklistService {
         await runDb(
           db,
           'UPDATE ip_blacklist SET attempts = ?, last_attempt_at = ?, blocked_until = ? WHERE ip = ?',
-          [newAttempts, now, blockedUntil, ip]
+          [newAttempts, now, blockedUntil, ip],
         );
 
         if (shouldNotify && blockedUntil) {
@@ -151,14 +151,14 @@ export class IpBlacklistService {
           blockedUntil = now + banDuration;
           shouldNotify = true;
           logger.warn(
-            `[IP Blacklist] IP ${ip} 首次登录失败即达到阈值 ${maxAttempts}，将被封禁 ${banDuration} 秒。`
+            `[IP Blacklist] IP ${ip} 首次登录失败即达到阈值 ${maxAttempts}，将被封禁 ${banDuration} 秒。`,
           );
         }
 
         await runDb(
           db,
           'INSERT INTO ip_blacklist (ip, attempts, last_attempt_at, blocked_until) VALUES (?, ?, ?, ?)',
-          [ip, attempts, now, blockedUntil]
+          [ip, attempts, now, blockedUntil],
         );
 
         if (shouldNotify && blockedUntil) {
@@ -199,18 +199,18 @@ export class IpBlacklistService {
    */
   async getBlacklist(
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ entries: IpBlacklistEntry[]; total: number }> {
     try {
       const db = await getDbInstance();
       const entries = await allDb<DbIpBlacklistRow>(
         db,
         'SELECT * FROM ip_blacklist ORDER BY last_attempt_at DESC LIMIT ? OFFSET ?',
-        [limit, offset]
+        [limit, offset],
       );
       const countRow = await getDbRow<{ count: number }>(
         db,
-        'SELECT COUNT(*) as count FROM ip_blacklist'
+        'SELECT COUNT(*) as count FROM ip_blacklist',
       );
       const total = countRow?.count ?? 0;
       return { entries, total };

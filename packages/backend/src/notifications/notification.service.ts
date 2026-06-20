@@ -42,14 +42,14 @@ export class NotificationService {
   }
 
   async createSetting(
-    settingData: Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>
+    settingData: Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>,
   ): Promise<number> {
     return this.repository.create(settingData);
   }
 
   async updateSetting(
     id: number,
-    settingData: Partial<Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>>
+    settingData: Partial<Omit<NotificationSetting, 'id' | 'created_at' | 'updated_at'>>,
   ): Promise<boolean> {
     return this.repository.update(id, settingData);
   }
@@ -60,7 +60,7 @@ export class NotificationService {
 
   async testSetting(
     channelType: NotificationChannelType,
-    config: NotificationChannelConfig
+    config: NotificationChannelConfig,
   ): Promise<{ success: boolean; message: string }> {
     switch (channelType) {
       case 'email':
@@ -79,7 +79,7 @@ export class NotificationService {
   }
 
   private async _testEmailSetting(
-    config: EmailConfig
+    config: EmailConfig,
   ): Promise<{ success: boolean; message: string }> {
     logger.debug('[通知测试 - 邮件] 开始测试...');
     if (!config.to || !config.smtpHost || !config.smtpPort || !config.from) {
@@ -145,7 +145,7 @@ export class NotificationService {
 
     try {
       logger.debug(
-        `[通知测试 - 邮件] 尝试通过 ${config.smtpHost}:${config.smtpPort} 发送测试邮件至 ${config.to}`
+        `[通知测试 - 邮件] 尝试通过 ${config.smtpHost}:${config.smtpPort} 发送测试邮件至 ${config.to}`,
       );
       const info = await transporter.sendMail(mailOptions);
       logger.debug(`[通知测试 - 邮件] 测试邮件发送成功: ${info.messageId}`);
@@ -160,7 +160,7 @@ export class NotificationService {
   }
 
   private async _testWebhookSetting(
-    config: WebhookConfig
+    config: WebhookConfig,
   ): Promise<{ success: boolean; message: string }> {
     logger.debug('[通知测试 - Webhook] 开始测试...');
     if (!config.url) {
@@ -195,7 +195,7 @@ export class NotificationService {
         : 'Details 不是带有 message 属性的对象';
     logger.debug(
       `[通知测试 - Webhook] 测试负载已创建。翻译后的 details.message:`,
-      translatedWebhookMessage
+      translatedWebhookMessage,
     );
 
     const eventDisplayName = i18next.t(`event.${testPayload.event}`, {
@@ -214,7 +214,7 @@ export class NotificationService {
     const requestBody = this._renderTemplate(
       config.bodyTemplate || defaultBodyTemplate,
       templateDataWebhookTest,
-      defaultBody
+      defaultBody,
     );
 
     const requestConfig: AxiosRequestConfig = {
@@ -241,15 +241,15 @@ export class NotificationService {
             config.url,
             requestBody,
             { ...baseOptions, method: requestMethod },
-            'Notification-Webhook-Test'
+            'Notification-Webhook-Test',
           )
         : await safeHttpGet(
             config.url,
             { ...baseOptions, method: requestMethod },
-            'Notification-Webhook-Test'
+            'Notification-Webhook-Test',
           );
       logger.debug(
-        `[通知测试 - Webhook] 测试 Webhook 成功发送到 ${config.url}。状态: ${response.status}`
+        `[通知测试 - Webhook] 测试 Webhook 成功发送到 ${config.url}。状态: ${response.status}`,
       );
       return {
         success: true,
@@ -269,7 +269,7 @@ export class NotificationService {
   }
 
   private async _testTelegramSetting(
-    config: TelegramConfig
+    config: TelegramConfig,
   ): Promise<{ success: boolean; message: string }> {
     logger.debug('[通知测试 - Telegram] 开始测试...');
     if (!config.botToken || !config.chatId) {
@@ -315,7 +315,7 @@ export class NotificationService {
         : 'Details is not an object with message property';
     logger.debug(
       `[Notification Test - Telegram] Test payload created. Final details.message in payload:`,
-      messageFromPayload
+      messageFromPayload,
     );
 
     const templateKeyWithNamespace = `notifications:${testTelegramBodyTemplateKey}`;
@@ -325,7 +325,7 @@ export class NotificationService {
     });
     logger.debug(
       `[通知测试 - Telegram] 来自 i18n 的默认模板 (使用语言 '${userLang}', 键 '${templateKeyWithNamespace}'):`,
-      defaultMessageTemplateFromI18n
+      defaultMessageTemplateFromI18n,
     );
 
     const templateToUse = config.messageTemplate || defaultMessageTemplateFromI18n;
@@ -347,7 +347,7 @@ export class NotificationService {
     const messageText = this._renderTemplate(
       templateToUse,
       templateDataTelegramTest,
-      defaultMessageTemplateFromI18n
+      defaultMessageTemplateFromI18n,
     );
     logger.debug(`[通知测试 - Telegram] 渲染的消息文本:`, messageText);
 
@@ -359,7 +359,7 @@ export class NotificationService {
         logger.debug(`[通知测试 - Telegram] 使用自定义域名: ${baseApiUrl}`);
       } catch (error: unknown) {
         logger.warn(
-          `[通知测试 - Telegram] 无效的自定义域名 URL: ${config.customDomain}。将回退到默认 Telegram API。(${getErrorMessage(error)})`
+          `[通知测试 - Telegram] 无效的自定义域名 URL: ${config.customDomain}。将回退到默认 Telegram API。(${getErrorMessage(error)})`,
         );
       }
     }
@@ -376,7 +376,7 @@ export class NotificationService {
           parse_mode: 'Markdown',
         },
         { timeout: 15000 },
-        'Notification-Telegram-Test'
+        'Notification-Telegram-Test',
       );
 
       if (response.data?.ok) {
@@ -403,7 +403,7 @@ export class NotificationService {
 
   async sendNotification(
     event: NotificationEvent,
-    details?: Record<string, unknown> | string
+    details?: Record<string, unknown> | string,
   ): Promise<void> {
     // logger.debug(`[通知] 事件触发: ${event}`, details || "");
 
@@ -424,7 +424,7 @@ export class NotificationService {
     } catch (error: unknown) {
       logger.error(
         `[通知] 获取事件 ${event} 的语言或时区设置时出错: ${getErrorMessage(error)}`,
-        isError(error) ? error.stack : undefined
+        isError(error) ? error.stack : undefined,
       );
     }
     logger.debug(`[通知] 事件 ${event} 使用语言 '${userLang}', 时区 '${userTimezone}'`);
@@ -473,7 +473,7 @@ export class NotificationService {
   private _renderTemplate(
     template: string | undefined,
     data: Record<string, string>,
-    defaultText: string
+    defaultText: string,
   ): string {
     if (!template) return defaultText;
     let rendered = template;
@@ -487,7 +487,7 @@ export class NotificationService {
     setting: NotificationSetting,
     payload: NotificationPayload,
     userLang: string,
-    userTimezone: string
+    userTimezone: string,
   ): Promise<void> {
     const config = setting.config as WebhookConfig;
     if (!config.url) {
@@ -513,7 +513,7 @@ export class NotificationService {
       timestamp: formatInTimeZone(
         new Date(translatedPayload.timestamp),
         userTimezone,
-        "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+        "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
       ),
 
       details: this._formatTemplateDetails(translatedPayload.details),
@@ -524,17 +524,17 @@ export class NotificationService {
     if (isCustomTemplate) {
       logger.debug(
         `[_sendWebhook] Original custom body template for event ${payload.event}:`,
-        templateToRender
+        templateToRender,
       );
 
       templateToRender = templateToRender.replace(/\{event\}/g, '{eventDisplay}');
       logger.debug(
         `[_sendWebhook] Pre-processed body template (replaced {event} with {eventDisplay}):`,
-        templateToRender
+        templateToRender,
       );
     } else {
       logger.debug(
-        `[_sendWebhook] No custom body template found. Using default template for event ${payload.event}`
+        `[_sendWebhook] No custom body template found. Using default template for event ${payload.event}`,
       );
     }
 
@@ -564,12 +564,12 @@ export class NotificationService {
             config.url,
             requestBody,
             { ...baseOptions, method: requestMethod },
-            'Notification-Webhook'
+            'Notification-Webhook',
           )
         : await safeHttpGet(
             config.url,
             { ...baseOptions, method: requestMethod },
-            'Notification-Webhook'
+            'Notification-Webhook',
           );
       logger.debug(`[通知] Webhook 成功发送到 ${config.url}。状态: ${response.status}`);
     } catch (error: unknown) {
@@ -579,7 +579,7 @@ export class NotificationService {
           : getErrorMessage(error);
       logger.error(
         `[通知] 发送 Webhook 到 ${config.url} (设置 ID: ${setting.id}) 时出错:`,
-        errorMessage
+        errorMessage,
       );
     }
   }
@@ -588,12 +588,12 @@ export class NotificationService {
     setting: NotificationSetting,
     payload: NotificationPayload,
     userLang: string,
-    userTimezone: string
+    userTimezone: string,
   ): Promise<void> {
     const config = setting.config as EmailConfig;
     if (!config.to || !config.smtpHost || !config.smtpPort || !config.from) {
       logger.error(
-        `[通知] 邮件设置 ID ${setting.id} 缺少必要的 SMTP 配置 (to, smtpHost, smtpPort, from)。`
+        `[通知] 邮件设置 ID ${setting.id} 缺少必要的 SMTP 配置 (to, smtpHost, smtpPort, from)。`,
       );
       return;
     }
@@ -631,7 +631,7 @@ export class NotificationService {
     const formattedTimestampForEmail = formatInTimeZone(
       new Date(payload.timestamp),
       userTimezone,
-      'yyyy-MM-dd HH:mm:ss zzz'
+      'yyyy-MM-dd HH:mm:ss zzz',
     );
     const detailsString =
       typeof payload.details === 'string'
@@ -651,12 +651,12 @@ export class NotificationService {
           }
           return acc;
         },
-        {} as Record<string, string>
+        {} as Record<string, string>,
       ),
     };
     logger.debug(
       `[_sendEmail] Prepared templateDataEmailBody for event ${payload.event}:`,
-      templateDataEmailBody
+      templateDataEmailBody,
     );
 
     let body = '';
@@ -666,19 +666,19 @@ export class NotificationService {
       let templateToRender = config.bodyTemplate;
       logger.debug(
         `[_sendEmail] Original custom body template for event ${payload.event}:`,
-        templateToRender
+        templateToRender,
       );
 
       templateToRender = templateToRender.replace(/\{event\}/g, '{eventDisplay}');
       logger.debug(
         `[_sendEmail] Pre-processed body template (replaced {event} with {eventDisplay}):`,
-        templateToRender
+        templateToRender,
       );
 
       body = this._renderTemplate(templateToRender, templateDataEmailBody, defaultBodyText);
     } else {
       logger.debug(
-        `[_sendEmail] No custom body template found. Using default constructed body text for event ${payload.event}`
+        `[_sendEmail] No custom body template found. Using default constructed body text for event ${payload.event}`,
       );
       body = defaultBodyText;
     }
@@ -696,16 +696,16 @@ export class NotificationService {
 
     try {
       logger.debug(
-        `[通知] 通过 ${config.smtpHost}:${config.smtpPort} 发送邮件至 ${config.to} (事件: ${payload.event}, 主题: ${subject})`
+        `[通知] 通过 ${config.smtpHost}:${config.smtpPort} 发送邮件至 ${config.to} (事件: ${payload.event}, 主题: ${subject})`,
       );
       const info = await transporter.sendMail(mailOptions);
       logger.debug(
-        `[通知] 邮件成功发送至 ${config.to} (设置 ID: ${setting.id})。消息 ID: ${info.messageId}`
+        `[通知] 邮件成功发送至 ${config.to} (设置 ID: ${setting.id})。消息 ID: ${info.messageId}`,
       );
     } catch (error: unknown) {
       logger.error(
         `[通知] 通过 ${config.smtpHost} 发送邮件 (设置 ID: ${setting.id}) 时出错:`,
-        error
+        error,
       );
     }
   }
@@ -714,10 +714,10 @@ export class NotificationService {
     setting: NotificationSetting,
     payload: NotificationPayload,
     userLang: string,
-    userTimezone: string
+    userTimezone: string,
   ): Promise<void> {
     logger.debug(
-      `[_sendTelegram] Initiating for event: ${payload.event}, Setting ID: ${setting.id}, Lang: ${userLang}, Timezone: ${userTimezone}`
+      `[_sendTelegram] Initiating for event: ${payload.event}, Setting ID: ${setting.id}, Lang: ${userLang}, Timezone: ${userTimezone}`,
     );
     logger.debug('[_sendTelegram] Received payload', {
       event: payload.event,
@@ -755,13 +755,13 @@ export class NotificationService {
       timestamp: formatInTimeZone(
         new Date(payload.timestamp),
         userTimezone,
-        'yyyy-MM-dd HH:mm:ss zzz'
+        'yyyy-MM-dd HH:mm:ss zzz',
       ),
       details: detailsText,
     };
     logger.debug(
       `[_sendTelegram] Prepared templateData (NO escaping):`,
-      JSON.stringify(templateData, null, 2)
+      JSON.stringify(templateData, null, 2),
     );
 
     let messageText = '';
@@ -789,7 +789,7 @@ export class NotificationService {
         logger.debug(`[_sendTelegram] 使用自定义域名: ${baseApiUrlSend} (事件: ${payload.event})`);
       } catch (error: unknown) {
         logger.warn(
-          `[_sendTelegram] 无效的自定义域名 URL: ${config.customDomain} (事件: ${payload.event})。将回退到默认 Telegram API。(${getErrorMessage(error)})`
+          `[_sendTelegram] 无效的自定义域名 URL: ${config.customDomain} (事件: ${payload.event})。将回退到默认 Telegram API。(${getErrorMessage(error)})`,
         );
       }
     }
@@ -804,7 +804,7 @@ export class NotificationService {
       };
       logger.debug(
         `[_sendTelegram] Sending request to Telegram API:`,
-        JSON.stringify(requestBody, null, 2)
+        JSON.stringify(requestBody, null, 2),
       );
       // 使用安全 HTTP 客户端，自动进行 SSRF 验证和 DNS 绑定
       const response = await safeHttpPost(
@@ -813,7 +813,7 @@ export class NotificationService {
         {
           timeout: 10000,
         },
-        'Telegram'
+        'Telegram',
       );
       logger.debug(`[通知] Telegram 消息发送成功。响应 OK:`, response.data?.ok);
     } catch (error: unknown) {

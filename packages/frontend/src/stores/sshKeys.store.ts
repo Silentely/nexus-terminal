@@ -55,7 +55,7 @@ export const useSshKeysStore = defineStore('sshKeys', () => {
     try {
       const response = await apiClient.post<{ message: string; key: SshKeyBasicInfo }>(
         '/ssh-keys',
-        keyInput
+        keyInput,
       );
       // Add the new key to the local list
       sshKeys.value.push(response.data.key);
@@ -98,7 +98,7 @@ export const useSshKeysStore = defineStore('sshKeys', () => {
     try {
       const response = await apiClient.put<{ message: string; key: SshKeyBasicInfo }>(
         `/ssh-keys/${id}`,
-        keyInput
+        keyInput,
       );
       // Update the key in the local list
       const index = sshKeys.value.findIndex((key) => key.id === id);

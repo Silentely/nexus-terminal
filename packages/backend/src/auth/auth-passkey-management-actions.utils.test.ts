@@ -62,7 +62,7 @@ describe('auth-passkey-management-actions.utils', () => {
     const action = resolveDeletePasskeyErrorAction(
       actor,
       credentialId,
-      new Error('Unauthorized to delete this passkey.')
+      new Error('Unauthorized to delete this passkey.'),
     );
 
     expect(action).toMatchObject({
@@ -138,7 +138,7 @@ describe('auth-passkey-management-actions.utils', () => {
     const action = resolveUpdatePasskeyNameErrorAction(
       actor,
       credentialId,
-      new Error('Unauthorized to update this passkey name.')
+      new Error('Unauthorized to update this passkey name.'),
     );
 
     expect(action).toMatchObject({

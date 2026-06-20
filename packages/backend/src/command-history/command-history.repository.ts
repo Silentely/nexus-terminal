@@ -35,7 +35,7 @@ export const upsertCommand = async (command: string): Promise<number> => {
     }
     throw ErrorFactory.databaseError(
       '命令历史 UPSERT 后未能获取记录 ID',
-      '命令历史 UPSERT 后未能获取记录 ID'
+      '命令历史 UPSERT 后未能获取记录 ID',
     );
   } catch (err: unknown) {
     logger.error('UPSERT 命令历史记录时出错:', getErrorMessage(err));

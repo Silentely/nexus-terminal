@@ -16,7 +16,7 @@ export const getOrCreateSftpManager = (
   dependencies: {
     t: ReturnType<typeof useI18n>['t'];
   },
-  initialPath?: string // 可选：指定初始路径，用于 session 重映射时恢复之前的导航路径
+  initialPath?: string, // 可选：指定初始路径，用于 session 重映射时恢复之前的导航路径
 ): SftpManagerInstance | null => {
   const session = sessions.value.get(sessionId);
 
@@ -30,7 +30,7 @@ export const getOrCreateSftpManager = (
   if (!manager) {
     log.info(
       `[SftpManagerActions] 为会话 ${sessionId} 创建新的 SFTP 管理器实例: ${instanceId}` +
-        (initialPath ? `，恢复路径: ${initialPath}` : '')
+        (initialPath ? `，恢复路径: ${initialPath}` : ''),
     );
     const currentSftpPath = ref<string>(initialPath || '/'); // 每个实例有自己的路径，支持恢复之前路径
     const wsDeps: WebSocketDependencies = {
@@ -53,7 +53,7 @@ export const removeSftpManager = (sessionId: string, instanceId: string) => {
       manager.cleanup();
       session.sftpManagers.delete(instanceId);
       log.info(
-        `[SftpManagerActions] 已移除并清理会话 ${sessionId} 的 SFTP 管理器实例: ${instanceId}`
+        `[SftpManagerActions] 已移除并清理会话 ${sessionId} 的 SFTP 管理器实例: ${instanceId}`,
       );
     }
   }

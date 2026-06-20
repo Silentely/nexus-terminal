@@ -45,7 +45,7 @@ describe('sftp-session-operations', () => {
     } as unknown as MockState;
 
     mockSshClient.sftp.mockImplementation(
-      (callback: (err?: Error, sftp?: MockSftpWrapper) => void) => callback(undefined, mockSftp)
+      (callback: (err?: Error, sftp?: MockSftpWrapper) => void) => callback(undefined, mockSftp),
     );
 
     await executeInitializeSftpSessionOperation(state, sessionId);
@@ -67,11 +67,11 @@ describe('sftp-session-operations', () => {
     } as unknown as MockState;
 
     mockSshClient.sftp.mockImplementation((callback: (err?: Error) => void) =>
-      callback(new Error('SFTP 初始化失败'))
+      callback(new Error('SFTP 初始化失败')),
     );
 
     await expect(executeInitializeSftpSessionOperation(state, sessionId)).rejects.toThrow(
-      'SFTP 初始化失败'
+      'SFTP 初始化失败',
     );
     const payload = parseLastPayload(send);
     expect(payload.type).toBe('sftp_error');
@@ -80,7 +80,7 @@ describe('sftp-session-operations', () => {
 
   it('状态无效或已初始化时不处理', async () => {
     await expect(
-      executeInitializeSftpSessionOperation(undefined, sessionId)
+      executeInitializeSftpSessionOperation(undefined, sessionId),
     ).resolves.toBeUndefined();
 
     const mockSftp = new MockSftpWrapper();

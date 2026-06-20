@@ -48,7 +48,7 @@ const childrenList = computed({
     // emit('update:node', { ...props.node, children: newChildren });
     // 添加日志以确认 setter 被调用，并依赖 vuedraggable 的直接修改
     log.info(
-      '[LayoutNodeEditor] childrenList setter called, relying on v-model/vuedraggable mutation.'
+      '[LayoutNodeEditor] childrenList setter called, relying on v-model/vuedraggable mutation.',
     );
   },
 });

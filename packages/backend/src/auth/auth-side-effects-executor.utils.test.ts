@@ -28,7 +28,7 @@ describe('auth-side-effects-executor.utils', () => {
         auditLogService: { logAction },
         notificationService: { sendNotification },
       },
-      sideEffects
+      sideEffects,
     );
 
     expect(logAction).toHaveBeenCalledTimes(2);

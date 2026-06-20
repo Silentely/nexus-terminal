@@ -114,7 +114,7 @@ watch(
       computedRenderPosition.value = { ...newPosition };
     }
   },
-  { deep: true, immediate: true } // immediate 确保初始状态（如果isVisible为true）也设置正确
+  { deep: true, immediate: true }, // immediate 确保初始状态（如果isVisible为true）也设置正确
 );
 
 // 点击其他地方自动关闭菜单
@@ -133,7 +133,7 @@ watch(
       document.removeEventListener('click', handleClickOutside, { capture: true });
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onUnmounted(() => {

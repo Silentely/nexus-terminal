@@ -91,7 +91,7 @@ export function useTelnetTerminal() {
         JSON.stringify({
           type: 'telnet:connect',
           payload: { connectionId: options.connectionId },
-        })
+        }),
       );
     };
 
@@ -191,7 +191,7 @@ export function useTelnetTerminal() {
       JSON.stringify({
         type: 'telnet:input',
         payload: { sessionId: sessionId.value, data: encoded },
-      })
+      }),
     );
   }
 
@@ -211,7 +211,7 @@ export function useTelnetTerminal() {
       JSON.stringify({
         type: 'telnet:resize',
         payload: { sessionId: sessionId.value, cols, rows },
-      })
+      }),
     );
   }
 
@@ -239,7 +239,7 @@ export function useTelnetTerminal() {
         JSON.stringify({
           type: 'telnet:disconnect',
           payload: { sessionId: sessionId.value },
-        })
+        }),
       );
     }
     ws?.close();

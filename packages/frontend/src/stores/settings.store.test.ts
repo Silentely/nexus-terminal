@@ -946,7 +946,7 @@ describe('settings.store', () => {
       const store = useSettingsStore();
 
       await expect(store.updateSetting('invalidKey' as any, 'value')).rejects.toThrow(
-        "不允许更新设置项 'invalidKey'"
+        "不允许更新设置项 'invalidKey'",
       );
     });
 
@@ -984,7 +984,7 @@ describe('settings.store', () => {
       });
 
       await expect(store.updateSetting('language', 'zh-CN')).rejects.toThrow(
-        '请求过于频繁，请稍后再试'
+        '请求过于频繁，请稍后再试',
       );
     });
 
@@ -1189,7 +1189,7 @@ describe('settings.store', () => {
       });
 
       await expect(store.updateMultipleSettings({ language: 'zh-CN' })).rejects.toThrow(
-        '批量更新失败'
+        '批量更新失败',
       );
     });
 
@@ -1200,7 +1200,7 @@ describe('settings.store', () => {
       });
 
       await expect(store.updateMultipleSettings({ language: 'zh-CN' })).rejects.toThrow(
-        '请求过于频繁'
+        '请求过于频繁',
       );
     });
 
@@ -1211,7 +1211,7 @@ describe('settings.store', () => {
       });
 
       await expect(store.updateMultipleSettings({ language: 'zh-CN' })).rejects.toThrow(
-        '服务器错误'
+        '服务器错误',
       );
     });
 
@@ -1222,7 +1222,7 @@ describe('settings.store', () => {
       });
 
       await expect(store.updateMultipleSettings({ language: 'zh-CN' })).rejects.toThrow(
-        '请求过于频繁，请稍后再试'
+        '请求过于频繁，请稍后再试',
       );
     });
 

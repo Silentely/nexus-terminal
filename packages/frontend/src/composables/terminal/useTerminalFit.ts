@@ -9,7 +9,7 @@ export function useTerminalFit(
   terminalRef: Ref<HTMLElement | null>,
   sessionId: string,
   isActive: Ref<boolean>,
-  shouldFitByWidth: Ref<boolean>
+  shouldFitByWidth: Ref<boolean>,
 ) {
   const emitWorkspaceEvent = useWorkspaceEventEmitter();
   const fitAddon = new FitAddon();

@@ -44,7 +44,7 @@ const mapRowToTerminalTheme = (row: DbTerminalThemeRow): TerminalTheme => {
     logger.error('mapRowToTerminalTheme received invalid row:', row);
     throw ErrorFactory.databaseError(
       'Invalid database row provided to mapRowToTerminalTheme',
-      'Invalid database row provided to mapRowToTerminalTheme'
+      'Invalid database row provided to mapRowToTerminalTheme',
     );
   }
   try {
@@ -84,11 +84,11 @@ const mapRowToTerminalTheme = (row: DbTerminalThemeRow): TerminalTheme => {
       `Error mapping theme data for theme ID ${row.id}:`,
       getErrorMessage(error),
       'Raw row:',
-      row
+      row,
     );
     throw ErrorFactory.databaseError(
       '主题数据映射失败',
-      `Failed to map theme data for theme ID ${row.id}: ${getErrorMessage(error)}`
+      `Failed to map theme data for theme ID ${row.id}: ${getErrorMessage(error)}`,
     );
   }
 };
@@ -102,7 +102,7 @@ export const findAllThemes = async (): Promise<TerminalTheme[]> => {
     const db = await getDbInstance();
     const rows = await allDb<DbTerminalThemeRow>(
       db,
-      "SELECT * FROM terminal_themes ORDER BY CASE theme_type WHEN 'preset' THEN 0 ELSE 1 END ASC, name ASC"
+      "SELECT * FROM terminal_themes ORDER BY CASE theme_type WHEN 'preset' THEN 0 ELSE 1 END ASC, name ASC",
     );
     return rows
       .map((row) => {
@@ -221,7 +221,7 @@ export const createTheme = async (themeDto: CreateTerminalThemeDto): Promise<Ter
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
       throw ErrorFactory.databaseError(
         '创建主题后未能获取有效的 lastID',
-        '创建主题后未能获取有效的 lastID'
+        '创建主题后未能获取有效的 lastID',
       );
     }
     const newTheme = await findThemeById(result.lastID);
@@ -230,7 +230,7 @@ export const createTheme = async (themeDto: CreateTerminalThemeDto): Promise<Ter
     }
     throw ErrorFactory.databaseError(
       '创建主题失败',
-      `创建主题后未能检索到 ID 为 ${result.lastID} 的主题`
+      `创建主题后未能检索到 ID 为 ${result.lastID} 的主题`,
     );
   } catch (err: unknown) {
     const errMsg = getErrorMessage(err);
@@ -238,7 +238,7 @@ export const createTheme = async (themeDto: CreateTerminalThemeDto): Promise<Ter
     if (errMsg.includes('UNIQUE constraint failed')) {
       throw ErrorFactory.validationError(
         `主题名称 "${themeDto.name}" 已存在`,
-        `field: name, value: ${themeDto.name}`
+        `field: name, value: ${themeDto.name}`,
       );
     } else {
       throw ErrorFactory.databaseError('创建终端主题失败', `创建终端主题失败: ${errMsg}`);
@@ -254,7 +254,7 @@ export const createTheme = async (themeDto: CreateTerminalThemeDto): Promise<Ter
  */
 export const updateTheme = async (
   id: number,
-  themeDto: UpdateTerminalThemeDto
+  themeDto: UpdateTerminalThemeDto,
 ): Promise<boolean> => {
   const nowSeconds = Math.floor(Date.now() / 1000);
   const theme = themeDto.themeData;
@@ -328,7 +328,7 @@ export const updateTheme = async (
     if (errMsg.includes('UNIQUE constraint failed')) {
       throw ErrorFactory.validationError(
         `主题名称 "${themeDto.name}" 已存在`,
-        `field: name, value: ${themeDto.name}`
+        `field: name, value: ${themeDto.name}`,
       );
     } else {
       throw ErrorFactory.databaseError('更新终端主题失败', `更新终端主题失败: ${errMsg}`);
@@ -362,7 +362,7 @@ export const initializePresetThemes = async (
   db: Database,
   presets: Array<
     Omit<TerminalTheme, '_id' | 'createdAt' | 'updatedAt' | 'isSystemDefault'> & { name: string }
-  >
+  >,
 ) => {
   logger.info('[DB Init] 开始检查并初始化预设主题...');
   // 在这里添加日志，显示总共要处理多少个预设主题
@@ -376,7 +376,7 @@ export const initializePresetThemes = async (
       const existing = await getDb<{ id: number }>(
         db,
         `SELECT id FROM terminal_themes WHERE name = ? AND theme_type = 'preset'`,
-        [preset.name]
+        [preset.name],
       );
 
       if (!existing) {

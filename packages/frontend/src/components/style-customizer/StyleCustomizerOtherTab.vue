@@ -41,7 +41,7 @@ watch(
         newSettings?.editorFontFamily || 'Consolas, "Noto Sans SC", "Microsoft YaHei"';
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 保存编辑器字体大小

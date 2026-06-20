@@ -59,7 +59,7 @@ export function createEventHandlers(deps: EventHandlerDeps) {
     const { terminal: term, searchAddon: addon } = payload;
     log.info(
       `[会话 ${sessionId}][SSH终端模块] 终端实例已就绪。SearchAddon 实例:`,
-      addon ? '存在' : '不存在'
+      addon ? '存在' : '不存在',
     );
     terminalInstance.value = term;
     searchAddon.value = addon;
@@ -172,7 +172,7 @@ export function createEventHandlers(deps: EventHandlerDeps) {
       (typeof payload === 'string' ? payload : null) || t('workspace.terminal.unknownReason');
     isSshConnected.value = false;
     terminalInstance.value?.writeln(
-      `\r\n\x1b[31m${getTerminalText('disconnectMsg', { reason })}\x1b[0m`
+      `\r\n\x1b[31m${getTerminalText('disconnectMsg', { reason })}\x1b[0m`,
     );
   };
 
@@ -186,7 +186,7 @@ export function createEventHandlers(deps: EventHandlerDeps) {
       (typeof payload === 'string' ? payload : null) || t('workspace.terminal.unknownSshError');
     isSshConnected.value = false;
     terminalInstance.value?.writeln(
-      `\r\n\x1b[31m${getTerminalText('genericErrorMsg', { message: errorMsg })}\x1b[0m`
+      `\r\n\x1b[31m${getTerminalText('genericErrorMsg', { message: errorMsg })}\x1b[0m`,
     );
   };
 
@@ -217,7 +217,7 @@ export function createEventHandlers(deps: EventHandlerDeps) {
 
     const infoText = typeof payload === 'string' ? payload : String(payload ?? '');
     terminalInstance.value?.writeln(
-      `\r\n\x1b[34m${getTerminalText('infoPrefix')} ${infoText}\x1b[0m`
+      `\r\n\x1b[34m${getTerminalText('infoPrefix')} ${infoText}\x1b[0m`,
     );
   };
 
@@ -230,7 +230,7 @@ export function createEventHandlers(deps: EventHandlerDeps) {
     const errorMsg =
       (typeof payload === 'string' ? payload : null) || t('workspace.terminal.unknownGenericError');
     terminalInstance.value?.writeln(
-      `\r\n\x1b[31m${getTerminalText('errorPrefix')} ${errorMsg}\x1b[0m`
+      `\r\n\x1b[31m${getTerminalText('errorPrefix')} ${errorMsg}\x1b[0m`,
     );
   };
 

@@ -173,7 +173,7 @@ export function useTagEditing(deps: TagEditingDependencies) {
         inputRef.select();
       } else {
         log.error(
-          `[useTagEditing] Watcher: Input ref for ID ${newId} not found in map after nextTick.`
+          `[useTagEditing] Watcher: Input ref for ID ${newId} not found in map after nextTick.`,
         );
       }
     }

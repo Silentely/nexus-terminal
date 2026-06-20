@@ -52,7 +52,7 @@ export const getTags = async (req: Request, res: Response, next: NextFunction): 
 export const getTagById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const tagId = parseInt(req.params.id, 10);
 
@@ -144,7 +144,7 @@ export const deleteTag = async (req: Request, res: Response, next: NextFunction)
 export const updateTagConnections = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const tagId = parseInt(req.params.id, 10);
   const { connection_ids } = req.body; // 前端发送的是 connection_ids

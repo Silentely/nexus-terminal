@@ -46,7 +46,7 @@ export interface DockerManagerDependencies {
   sendMessage: (message: WebSocketMessage) => void;
   onMessage: (
     type: string,
-    handler: (payload: unknown, fullMessage?: WebSocketMessage) => void
+    handler: (payload: unknown, fullMessage?: WebSocketMessage) => void,
   ) => () => void;
   isConnected: ComputedRef<boolean>;
   // We might need isSshReady or similar if Docker commands depend on SSH being fully ready
@@ -101,7 +101,7 @@ const parseDockerStatusErrorPayload = (payload: unknown): DockerStatusErrorPaylo
 export function createDockerManager(
   sessionId: string,
   wsDeps: DockerManagerDependencies,
-  i18n: { t: (key: string, params?: unknown) => string }
+  i18n: { t: (key: string, params?: unknown) => string },
 ) {
   const { sendMessage, onMessage, isConnected } = wsDeps;
   const { t } = i18n; // Use the passed i18n instance
@@ -245,14 +245,14 @@ export function createDockerManager(
       unsubStatusError,
       unsubCommandError,
       unsubStatsError,
-      unsubRequestUpdate
+      unsubRequestUpdate,
     );
   };
 
   // Send command for a specific container via WebSocket
   const sendDockerCommand = (
     containerId: string,
-    command: 'start' | 'stop' | 'restart' | 'remove'
+    command: 'start' | 'stop' | 'restart' | 'remove',
   ) => {
     if (!isConnected.value) {
       log.warn(`[DockerManager ${sessionId}] Cannot send command, WebSocket not connected.`);
@@ -326,7 +326,7 @@ export function createDockerManager(
         isDockerAvailable.value = false; // Assume unavailable when disconnected
       }
     },
-    { immediate: false }
+    { immediate: false },
   ); // Don't run immediately, let initial connect trigger it
 
   // Cleanup function to be called when the session ends

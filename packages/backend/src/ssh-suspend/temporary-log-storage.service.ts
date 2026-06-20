@@ -107,7 +107,7 @@ export class TemporaryLogStorageService {
       if (stat && stat.size >= MAX_LOG_SIZE_BYTES) {
         // 文件过大，执行环形缓冲轮替：保留尾部数据，丢弃头部旧数据
         logger.info(
-          `日志文件 '${filePath}' 大小达到 ${MAX_LOG_SIZE_BYTES / (1024 * 1024)}MB，执行环形缓冲轮替（保留尾部 ${RING_BUFFER_RETAIN_BYTES / (1024 * 1024)}MB）。`
+          `日志文件 '${filePath}' 大小达到 ${MAX_LOG_SIZE_BYTES / (1024 * 1024)}MB，执行环形缓冲轮替（保留尾部 ${RING_BUFFER_RETAIN_BYTES / (1024 * 1024)}MB）。`,
         );
         const fileContent = (await fs.readFile(filePath, 'utf8')) ?? '';
         const retainContent = fileContent.slice(-RING_BUFFER_RETAIN_BYTES);

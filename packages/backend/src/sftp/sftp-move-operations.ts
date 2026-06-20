@@ -21,7 +21,7 @@ const performRename = (sftp: SFTPWrapper, oldPath: string, newPath: string): Pro
 
 const ensureMoveTargetNotExists = async (
   sftp: SFTPWrapper,
-  targetPath: string
+  targetPath: string,
 ): Promise<boolean> => {
   try {
     await getStats(sftp, targetPath);
@@ -41,14 +41,14 @@ const moveSingleItem = async (
   oldPath: string,
   destinationDir: string,
   sessionId: string,
-  requestId: string
+  requestId: string,
 ): Promise<FileListItem | null> => {
   const sourceName = pathModule.basename(oldPath);
   const newPath = pathModule.join(destinationDir, sourceName).replace(/\\/g, '/');
 
   if (oldPath === newPath) {
     logger.warn(
-      `[SFTP ${sessionId}] Skipping move: source and destination are the same (${oldPath}) (ID: ${requestId})`
+      `[SFTP ${sessionId}] Skipping move: source and destination are the same (${oldPath}) (ID: ${requestId})`,
     );
     return null;
   }
@@ -56,7 +56,7 @@ const moveSingleItem = async (
   const targetExists = await ensureMoveTargetNotExists(sftp, newPath);
   if (targetExists) {
     logger.error(
-      `[SFTP ${sessionId}] Move failed: Target path ${newPath} already exists (ID: ${requestId})`
+      `[SFTP ${sessionId}] Move failed: Target path ${newPath} already exists (ID: ${requestId})`,
     );
     throw new Error(`目标路径 ${pathModule.basename(newPath)} 已存在`);
   }
@@ -72,7 +72,7 @@ export const executeMoveOperation = async (
   sessionId: string,
   sources: string[],
   destinationDir: string,
-  requestId: string
+  requestId: string,
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP Move] SFTP 未准备好，无法在 ${sessionId} 上执行 move (ID: ${requestId})`);
@@ -81,14 +81,14 @@ export const executeMoveOperation = async (
         type: 'sftp:move:error',
         payload: 'SFTP 会话未就绪',
         requestId,
-      })
+      }),
     );
     return;
   }
 
   const { sftp } = state;
   logger.debug(
-    `[SFTP ${sessionId}] Received move request (ID: ${requestId}) Sources: ${sources.join(', ')}, Dest: ${destinationDir}`
+    `[SFTP ${sessionId}] Received move request (ID: ${requestId}) Sources: ${sources.join(', ')}, Dest: ${destinationDir}`,
   );
 
   const movedItemsDetails: FileListItem[] = [];
@@ -100,7 +100,7 @@ export const executeMoveOperation = async (
     } catch (ensureErr: unknown) {
       logger.error(
         `[SFTP ${sessionId}] Failed to ensure destination directory ${destinationDir} exists for move (ID: ${requestId}):`,
-        ensureErr
+        ensureErr,
       );
       throw new Error(`无法创建或访问目标目录: ${getErrorMessage(ensureErr)}`);
     }
@@ -116,7 +116,7 @@ export const executeMoveOperation = async (
         const newPath = pathModule.join(destinationDir, sourceName).replace(/\\/g, '/');
         logger.error(
           `[SFTP ${sessionId}] Error moving ${oldPath} to ${newPath} (ID: ${requestId}):`,
-          moveErr
+          moveErr,
         );
         firstError = moveErr instanceof Error ? moveErr : new Error(getErrorMessage(moveErr));
         break;
@@ -128,14 +128,14 @@ export const executeMoveOperation = async (
     }
 
     logger.info(
-      `[SFTP ${sessionId}] Move operation completed successfully (ID: ${requestId}). Moved items: ${movedItemsDetails.length}`
+      `[SFTP ${sessionId}] Move operation completed successfully (ID: ${requestId}). Moved items: ${movedItemsDetails.length}`,
     );
     state.ws.send(
       JSON.stringify({
         type: 'sftp:move:success',
         payload: { sources, destination: destinationDir, items: movedItemsDetails },
         requestId,
-      })
+      }),
     );
   } catch (error: unknown) {
     logger.error(`[SFTP ${sessionId}] Move operation failed (ID: ${requestId}):`, error);
@@ -144,7 +144,7 @@ export const executeMoveOperation = async (
         type: 'sftp:move:error',
         payload: `移动操作失败: ${getErrorMessage(error)}`,
         requestId,
-      })
+      }),
     );
   }
 };

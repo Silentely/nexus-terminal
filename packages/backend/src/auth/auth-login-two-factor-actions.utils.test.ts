@@ -86,7 +86,7 @@ describe('auth-login-two-factor-actions.utils', () => {
         userId: 7,
         username: 'alice',
         clientIp: '127.0.0.1',
-      })
+      }),
     ).toEqual({
       userId: 7,
       username: 'alice',
@@ -99,7 +99,7 @@ describe('auth-login-two-factor-actions.utils', () => {
         hasPendingAuth: true,
         hasTempToken: false,
         forwardedProto: 'https',
-      })
+      }),
     ).toEqual([
       {
         level: 'debug',
@@ -119,7 +119,7 @@ describe('auth-login-two-factor-actions.utils', () => {
       buildLoginTwoFactorPendingValidationFailedDebugLogAction({
         hasPendingAuth: false,
         hasTempToken: true,
-      })
+      }),
     ).toEqual({
       level: 'debug',
       message: '[AuthController] verifyLogin2FA - FAILED: pendingAuth=false, tempToken=true',
@@ -132,7 +132,7 @@ describe('auth-login-two-factor-actions.utils', () => {
         userId: 1,
         username: 'alice',
         clientIp: '10.0.0.1',
-      })
+      }),
     ).toEqual({
       kind: 'success',
       payload: {
@@ -148,7 +148,7 @@ describe('auth-login-two-factor-actions.utils', () => {
         userId: 1,
         username: 'alice',
         clientIp: '10.0.0.2',
-      })
+      }),
     ).toEqual({
       kind: 'failure',
       payload: {
@@ -163,7 +163,7 @@ describe('auth-login-two-factor-actions.utils', () => {
       buildLoginTwoFactorSessionCompletionAction({
         user: { id: 1, username: 'alice' },
         rememberMe: true,
-      })
+      }),
     ).toEqual({
       user: { id: 1, username: 'alice' },
       rememberMe: true,
@@ -173,7 +173,7 @@ describe('auth-login-two-factor-actions.utils', () => {
     expect(
       buildLoginTwoFactorMissingSecretFailureAction({
         pendingUserId: 9,
-      })
+      }),
     ).toEqual({
       response: {
         statusCode: 400,
@@ -201,7 +201,7 @@ describe('auth-login-two-factor-actions.utils', () => {
       resolveLoginTwoFactorUserLookupAction({
         pendingUserId: 18,
         user: null,
-      })
+      }),
     ).toEqual({
       ok: false,
       failureAction: {
@@ -224,7 +224,7 @@ describe('auth-login-two-factor-actions.utils', () => {
           username: 'alice',
           two_factor_secret: 'JBSWY3DPEHPK3PXP',
         },
-      })
+      }),
     ).toEqual({
       ok: true,
       actor: {

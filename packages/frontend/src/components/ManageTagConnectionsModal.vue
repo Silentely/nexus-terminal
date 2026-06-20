@@ -39,7 +39,7 @@ watch(
       // 关闭时重置搜索词
       modalSearchTerm.value = '';
     }
-  }
+  },
 );
 
 // 监听 internalVisible 变化来 emit update:visible
@@ -70,7 +70,7 @@ watch(
       });
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 const filteredConnectionsInModal = computed(() => {
@@ -84,7 +84,7 @@ const filteredConnectionsInModal = computed(() => {
     .filter(
       (conn) =>
         (conn.name && conn.name.toLowerCase().includes(lowerSearchTerm)) ||
-        conn.host.toLowerCase().includes(lowerSearchTerm)
+        conn.host.toLowerCase().includes(lowerSearchTerm),
     )
     .sort((a, b) => (a.name || a.host).localeCompare(b.name || b.host));
 });

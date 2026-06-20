@@ -235,7 +235,7 @@ describe('useSshTerminal (createSshTerminalManager)', () => {
       manager.handleTerminalResize({ cols: 120, rows: 40 });
 
       expect(mockSendMessage).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'ssh:resize' })
+        expect.objectContaining({ type: 'ssh:resize' }),
       );
     });
   });

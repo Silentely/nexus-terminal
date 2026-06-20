@@ -10,7 +10,7 @@ vi.mock('jschardet', () => ({
 vi.mock('iconv-lite', () => ({
   decode: vi.fn((_buf: Buffer, _enc: string) => _buf.toString('utf8')),
   encodingExists: vi.fn((enc: string) =>
-    ['utf-8', 'utf8', 'ascii', 'gbk', 'gb18030', 'big5', 'cp1252'].includes(enc)
+    ['utf-8', 'utf8', 'ascii', 'gbk', 'gb18030', 'big5', 'cp1252'].includes(enc),
   ),
 }));
 

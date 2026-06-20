@@ -82,7 +82,7 @@ export function acquireSessionLock(sessionId: string): {
   // 链接前一个锁，确保串行执行
   sessionLocks.set(
     sessionId,
-    prev.then(() => next)
+    prev.then(() => next),
   );
   return { lock: prev, release };
 }

@@ -124,7 +124,7 @@ const createMockConnection = (
     port: number;
     username: string;
     auth_method: 'password' | 'key';
-  }> = {}
+  }> = {},
 ) => ({
   id: overrides.id ?? 1,
   name: overrides.name ?? 'Test Connection',
@@ -437,7 +437,7 @@ describe('session.store', () => {
       expect(editorActions.updateFileContentInSession).toHaveBeenCalledWith(
         'session-1',
         'tab-1',
-        'new content'
+        'new content',
       );
     });
 
@@ -483,7 +483,7 @@ describe('session.store', () => {
       expect(editorActions.changeEncodingInSession).toHaveBeenCalledWith(
         'session-1',
         'tab-1',
-        'gbk'
+        'gbk',
       );
     });
 
@@ -531,7 +531,7 @@ describe('session.store', () => {
         'session-1',
         'tab-1',
         100,
-        50
+        50,
       );
     });
   });
@@ -572,7 +572,7 @@ describe('session.store', () => {
 
       expect(sftpManagerActions.removeSftpManager).toHaveBeenCalledWith(
         'session-123',
-        'instance-1'
+        'instance-1',
       );
     });
   });
@@ -587,7 +587,7 @@ describe('session.store', () => {
 
       expect(commandInputActions.updateSessionCommandInput).toHaveBeenCalledWith(
         'session-123',
-        'ls -la'
+        'ls -la',
       );
     });
 

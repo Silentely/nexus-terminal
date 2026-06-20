@@ -92,7 +92,7 @@ describe('WebSocket 初始化', () => {
     expect(mockInitializeUpgradeHandler).toHaveBeenCalledWith(
       mockServer,
       expect.anything(),
-      mockSessionParser
+      mockSessionParser,
     );
     expect(mockInitializeConnectionHandler).toHaveBeenCalledTimes(1);
   });
@@ -142,7 +142,7 @@ describe('WebSocket 初始化', () => {
     // 重新初始化以捕获 close 事件
     const wss2 = await initializeWebSocket(mockServer, mockSessionParser);
     const closeHandler = (wss2.on as unknown).mock?.calls?.find(
-      (call: unknown[]) => call[0] === 'close'
+      (call: unknown[]) => call[0] === 'close',
     )?.[1];
 
     if (closeHandler) {

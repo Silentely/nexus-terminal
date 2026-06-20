@@ -94,7 +94,7 @@ export class TransfersController {
     } catch (error: unknown) {
       logger.error(
         `[TransfersController] Error getting status for task ${req.params.taskId}:`,
-        error
+        error,
       );
       res.status(500).json({
         message: 'Failed to retrieve task status.',

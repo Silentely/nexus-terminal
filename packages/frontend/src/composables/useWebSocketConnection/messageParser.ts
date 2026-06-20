@@ -145,7 +145,7 @@ export const payloadValidators: PayloadValidatorSchema = {
  * @returns 解析后的消息对象，或 null（解析失败时）
  */
 export function parseWebSocketMessage(
-  rawData: string | ArrayBuffer | Blob
+  rawData: string | ArrayBuffer | Blob,
 ): WebSocketMessage | null {
   try {
     const message: WebSocketMessage = JSON.parse(rawData.toString());

@@ -24,10 +24,10 @@ function createTestApp(): TestableApp {
 
 // Mock 外部依赖 — 使用 vi.hoisted 确保 mock 函数在 vi.mock 提升前可用
 const mockRateLimitFn = vi.hoisted(() =>
-  vi.fn(() => (_req: Request, _res: Response, next: NextFunction) => next())
+  vi.fn(() => (_req: Request, _res: Response, next: NextFunction) => next()),
 );
 const mockHelmetFn = vi.hoisted(() =>
-  vi.fn(() => (_req: Request, _res: Response, next: NextFunction) => next())
+  vi.fn(() => (_req: Request, _res: Response, next: NextFunction) => next()),
 );
 
 // Logger mock for console replacement migration
@@ -106,7 +106,7 @@ describe('config/middleware', () => {
           message: '请求过于频繁，请稍后再试',
           standardHeaders: true,
           legacyHeaders: false,
-        })
+        }),
       );
     });
 
@@ -118,7 +118,7 @@ describe('config/middleware', () => {
         expect.objectContaining({
           windowMs: 60000,
           max: 100,
-        })
+        }),
       );
     });
 
@@ -130,7 +130,7 @@ describe('config/middleware', () => {
         expect.objectContaining({
           windowMs: 15 * 60 * 1000,
           max: 300,
-        })
+        }),
       );
     });
   });
@@ -149,7 +149,7 @@ describe('config/middleware', () => {
         expect.objectContaining({
           windowMs: 15 * 60 * 1000,
           max: 500,
-        })
+        }),
       );
     });
 
@@ -161,7 +161,7 @@ describe('config/middleware', () => {
         expect.objectContaining({
           windowMs: 30000,
           max: 200,
-        })
+        }),
       );
     });
   });

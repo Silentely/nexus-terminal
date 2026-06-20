@@ -36,7 +36,7 @@ export class SftpArchiveManager {
 
     if (!state || !state.sshClient) {
       logger.warn(
-        `[SFTP Compress] SSH 客户端未准备好，无法在 ${sessionId} 上执行 compress (ID: ${requestId})`
+        `[SFTP Compress] SSH 客户端未准备好，无法在 ${sessionId} 上执行 compress (ID: ${requestId})`,
       );
       this.sendCompressError(state?.ws, 'SSH 会话未就绪', requestId);
       return;
@@ -50,7 +50,7 @@ export class SftpArchiveManager {
           state.ws,
           `命令 '${requiredCommand}' 在服务器上未找到`,
           requestId,
-          `Command '${requiredCommand}' not found on server.`
+          `Command '${requiredCommand}' not found on server.`,
         );
         return;
       }
@@ -59,13 +59,13 @@ export class SftpArchiveManager {
         state.ws,
         `检查命令 '${requiredCommand}' 时出错`,
         requestId,
-        getErrorMessage(checkError)
+        getErrorMessage(checkError),
       );
       return;
     }
 
     logger.debug(
-      `[SFTP Compress ${sessionId}] Request (ID: ${requestId}). Sources: ${sources.join(', ')}, Format: ${format}`
+      `[SFTP Compress ${sessionId}] Request (ID: ${requestId}). Sources: ${sources.join(', ')}, Format: ${format}`,
     );
 
     // 构建命令
@@ -160,7 +160,7 @@ export class SftpArchiveManager {
                   type: 'sftp:compress:success',
                   requestId,
                   payload: successPayload,
-                })
+                }),
               );
             }
           } else {
@@ -183,7 +183,7 @@ export class SftpArchiveManager {
       this.sendCompressError(
         state.ws,
         `执行压缩时发生意外错误: ${getErrorMessage(execError)}`,
-        requestId
+        requestId,
       );
     }
   }
@@ -197,7 +197,7 @@ export class SftpArchiveManager {
 
     if (!state || !state.sshClient) {
       logger.warn(
-        `[SFTP Decompress] SSH 客户端未准备好，无法在 ${sessionId} 上执行 decompress (ID: ${requestId})`
+        `[SFTP Decompress] SSH 客户端未准备好，无法在 ${sessionId} 上执行 decompress (ID: ${requestId})`,
       );
       this.sendDecompressError(state?.ws, 'SSH 会话未就绪', requestId);
       return;
@@ -227,7 +227,7 @@ export class SftpArchiveManager {
           state.ws,
           `命令 '${requiredCommand}' 在服务器上未找到`,
           requestId,
-          `Command '${requiredCommand}' not found on server.`
+          `Command '${requiredCommand}' not found on server.`,
         );
         return;
       }
@@ -236,7 +236,7 @@ export class SftpArchiveManager {
         state.ws,
         `检查命令 '${requiredCommand}' 时出错`,
         requestId,
-        getErrorMessage(checkError)
+        getErrorMessage(checkError),
       );
       return;
     }
@@ -313,7 +313,7 @@ export class SftpArchiveManager {
             this.sendProgress(state.ws, 'decompress', requestId, fileCount, lastSeenFileName);
           }
           logger.info(
-            `[SFTP Decompress ${sessionId}] Finished with code ${code} (ID: ${requestId})`
+            `[SFTP Decompress ${sessionId}] Finished with code ${code} (ID: ${requestId})`,
           );
           if (code === 0 && !this.isErrorInStdErr(stderrData)) {
             const successPayload: SftpDecompressSuccessPayload = {
@@ -326,13 +326,13 @@ export class SftpArchiveManager {
                   type: 'sftp:decompress:success',
                   requestId,
                   payload: successPayload,
-                })
+                }),
               );
             }
           } else {
             const errorDetails = stderrData.trim() || `解压命令退出，代码: ${code ?? 'N/A'}`;
             logger.error(
-              `[SFTP Decompress ${sessionId}] Failed (ID: ${requestId}): ${errorDetails}`
+              `[SFTP Decompress ${sessionId}] Failed (ID: ${requestId}): ${errorDetails}`,
             );
             this.sendDecompressError(state.ws, '解压失败', requestId, errorDetails);
           }
@@ -342,7 +342,7 @@ export class SftpArchiveManager {
           clearInterval(heartbeatInterval);
           logger.error(
             `[SFTP Decompress ${sessionId}] Stream error (ID: ${requestId}):`,
-            streamErr
+            streamErr,
           );
           if (!stderrData && code === null) {
             this.sendDecompressError(state.ws, '解压命令流错误', requestId, streamErr.message);
@@ -352,12 +352,12 @@ export class SftpArchiveManager {
     } catch (execError: unknown) {
       logger.error(
         `[SFTP Decompress ${sessionId}] Unexpected error (ID: ${requestId}):`,
-        execError
+        execError,
       );
       this.sendDecompressError(
         state.ws,
         `执行解压时发生意外错误: ${getErrorMessage(execError)}`,
-        requestId
+        requestId,
       );
     }
   }
@@ -366,7 +366,7 @@ export class SftpArchiveManager {
   private checkCommandExists(
     state: ClientState,
     sessionId: string,
-    commandName: string
+    commandName: string,
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       if (!state.sshClient) {
@@ -414,7 +414,7 @@ export class SftpArchiveManager {
     ws: AuthenticatedWebSocket | undefined,
     error: string,
     requestId: string,
-    details?: string
+    details?: string,
   ): void {
     if (ws && ws.readyState === WebSocket.OPEN) {
       const payload: SftpCompressErrorPayload = { error, requestId };
@@ -429,7 +429,7 @@ export class SftpArchiveManager {
               message: details || error,
             },
             requestId,
-          })
+          }),
         );
       } else {
         ws.send(JSON.stringify({ type: 'sftp:compress:error', payload }));
@@ -442,7 +442,7 @@ export class SftpArchiveManager {
     ws: AuthenticatedWebSocket | undefined,
     error: string,
     requestId: string,
-    details?: string
+    details?: string,
   ): void {
     if (ws && ws.readyState === WebSocket.OPEN) {
       const payload: SftpDecompressErrorPayload = { error, requestId };
@@ -457,7 +457,7 @@ export class SftpArchiveManager {
               message: details || error,
             },
             requestId,
-          })
+          }),
         );
       } else {
         ws.send(JSON.stringify({ type: 'sftp:decompress:error', payload }));
@@ -475,7 +475,7 @@ export class SftpArchiveManager {
    */
   private parseArchiveFileName(
     line: string,
-    format: 'zip' | 'targz' | 'tarbz2' | 'decompress'
+    format: 'zip' | 'targz' | 'tarbz2' | 'decompress',
   ): string | null {
     const trimmed = line.trim();
     if (!trimmed) return null;
@@ -520,7 +520,7 @@ export class SftpArchiveManager {
     operation: 'compress' | 'decompress',
     requestId: string,
     fileCount: number,
-    currentFile?: string
+    currentFile?: string,
   ): void {
     if (ws && ws.readyState === WebSocket.OPEN) {
       const progressPayload: SftpArchiveProgressPayload = {
@@ -533,7 +533,7 @@ export class SftpArchiveManager {
           type: `sftp:${operation}:progress`,
           requestId,
           payload: progressPayload,
-        })
+        }),
       );
     }
   }

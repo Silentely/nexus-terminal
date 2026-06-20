@@ -171,7 +171,7 @@ const handleTimeRangeChange = async () => {
   } catch (error: unknown) {
     log.error('[Dashboard] 时间范围变更失败:', error);
     uiNotifications.showError(
-      t('dashboard.errors.timeRangeFailed') || '时间范围变更失败，请稍后重试'
+      t('dashboard.errors.timeRangeFailed') || '时间范围变更失败，请稍后重试',
     );
   }
 };
@@ -237,7 +237,7 @@ onMounted(async () => {
   } catch (error: unknown) {
     log.error('[Dashboard] 初始化失败:', error);
     uiNotifications.showError(
-      t('dashboard.errors.initFailed') || '仪表盘初始化失败，请刷新页面重试'
+      t('dashboard.errors.initFailed') || '仪表盘初始化失败，请刷新页面重试',
     );
   }
 });
@@ -255,7 +255,7 @@ watch(
       log.error('[Dashboard] 认证完成后初始化失败:', error);
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const openAddConnectionForm = () => {
@@ -285,7 +285,7 @@ const handleConnectionModified = async () => {
   } catch (error: unknown) {
     log.error('[Dashboard] 连接列表更新失败:', error);
     uiNotifications.showError(
-      t('dashboard.errors.connectionsFailed') || '连接列表更新失败，请稍后重试'
+      t('dashboard.errors.connectionsFailed') || '连接列表更新失败，请稍后重试',
     );
   }
 };

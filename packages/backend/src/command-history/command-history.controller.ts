@@ -8,7 +8,7 @@ import { logger } from '../utils/logger';
 export const addCommand = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { command } = req.body;
 
@@ -32,7 +32,7 @@ export const addCommand = async (
 export const getAllCommands = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const history = await CommandHistoryService.getAllCommandHistory();
@@ -50,7 +50,7 @@ export const getAllCommands = async (
 export const deleteCommand = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
@@ -78,7 +78,7 @@ export const deleteCommand = async (
 export const clearAllCommands = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const count = await CommandHistoryService.clearAllCommandHistory();

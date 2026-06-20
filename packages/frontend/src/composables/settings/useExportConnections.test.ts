@@ -98,7 +98,7 @@ describe('useExportConnections', () => {
       '/settings/export-connections',
       expect.objectContaining({
         headers: { 'x-export-password': 'mypassword' },
-      })
+      }),
     );
   });
 

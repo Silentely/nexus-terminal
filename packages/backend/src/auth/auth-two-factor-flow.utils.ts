@@ -18,7 +18,7 @@ const buildTwoFactorOtpAuthUrl = (username: string, secret: string): string =>
 
 export const buildTwoFactorSetupPayload = async (
   username: string,
-  secret: string
+  secret: string,
 ): Promise<SetupPayload> => {
   const qrCodeUrl = await qrcode.toDataURL(buildTwoFactorOtpAuthUrl(username, secret));
   return { secret, qrCodeUrl };

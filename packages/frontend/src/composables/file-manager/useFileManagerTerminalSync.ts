@@ -77,7 +77,7 @@ export function useFileManagerTerminalSync(options: UseFileManagerTerminalSyncOp
     const wsDeps = getWsDepsFromSession(sessionStore, sessionId.value);
     if (!manager || !wsDeps?.isConnected.value) {
       log.warn(
-        `${logPrefix.value} Cannot send CD command: SFTP manager not ready or not connected.`
+        `${logPrefix.value} Cannot send CD command: SFTP manager not ready or not connected.`,
       );
       return;
     }
@@ -95,13 +95,13 @@ export function useFileManagerTerminalSync(options: UseFileManagerTerminalSyncOp
       const targetSession = sessionStore.sessions.get(sessionId.value);
       if (!targetSession) {
         log.error(
-          `${logPrefix.value} Failed to send command: Session ${sessionId.value} not found.`
+          `${logPrefix.value} Failed to send command: Session ${sessionId.value} not found.`,
         );
         return;
       }
       if (!targetSession.terminalManager) {
         log.error(
-          `${logPrefix.value} Failed to send command: Terminal manager not found for session ${sessionId.value}.`
+          `${logPrefix.value} Failed to send command: Terminal manager not found for session ${sessionId.value}.`,
         );
         return;
       }
@@ -158,13 +158,13 @@ export function useFileManagerTerminalSync(options: UseFileManagerTerminalSyncOp
 
         if (!path) {
           uiNotificationsStore.showError(
-            t('fileManager.errors.pathReadFailed', '读取终端路径失败')
+            t('fileManager.errors.pathReadFailed', '读取终端路径失败'),
           );
           return;
         }
 
         currentSftpManager.value?.loadDirectory(path);
-      }
+      },
     );
 
     unregisterSilentExecError = onMessage(
@@ -177,7 +177,7 @@ export function useFileManagerTerminalSync(options: UseFileManagerTerminalSyncOp
             ? p.error
             : t('fileManager.errors.pathReadFailed', '读取终端路径失败');
         finishWithError(errorMessage);
-      }
+      },
     );
 
     unregisterSilentExecDisconnect = onMessage('ssh:disconnected', () => {

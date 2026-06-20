@@ -73,7 +73,7 @@ export function createSftpActionsManager(
   sessionId: string,
   currentPathRef: Ref<string>,
   wsDeps: WebSocketDependencies,
-  t: TranslateFn
+  t: TranslateFn,
 ): SftpManagerInstance {
   const { sendMessage, onMessage, isSftpReady } = wsDeps;
 
@@ -157,7 +157,7 @@ export function createSftpActionsManager(
         if (currentPathRef.value === path && !isLoading.value) {
           loadDirectory(path, true);
         }
-      }, delay)
+      }, delay),
     );
   };
 

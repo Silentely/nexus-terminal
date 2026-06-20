@@ -48,7 +48,7 @@ vi.mock('../utils/cacheManager', () => ({
 
 // 辅助：创建模拟标签数据
 const createMockTag = (
-  overrides: Partial<{ id: number; name: string; created_at: number; updated_at: number }> = {}
+  overrides: Partial<{ id: number; name: string; created_at: number; updated_at: number }> = {},
 ) => ({
   id: overrides.id ?? 1,
   name: overrides.name ?? '测试标签',
@@ -66,12 +66,12 @@ const backingStore: Record<string, string> = {};
  */
 function setupLocalStorageMock() {
   (localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation(
-    (key: string) => backingStore[key] ?? null
+    (key: string) => backingStore[key] ?? null,
   );
   (localStorage.setItem as ReturnType<typeof vi.fn>).mockImplementation(
     (key: string, value: string) => {
       backingStore[key] = value;
-    }
+    },
   );
   (localStorage.removeItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) => {
     delete backingStore[key];

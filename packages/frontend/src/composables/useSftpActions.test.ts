@@ -181,7 +181,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:readdir',
           payload: { path: '/home/user' },
-        })
+        }),
       );
       expect(manager.isLoading.value).toBe(true);
     });
@@ -220,7 +220,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       triggerMessage(
         'sftp:readdir:success',
         [createFileItem('file1.txt'), createFileItem('dir1', true)],
-        { path: '/home/user', requestId }
+        { path: '/home/user', requestId },
       );
 
       mockSendMessage.mockClear();
@@ -253,7 +253,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:readdir',
           payload: { path: '/home/user' },
-        })
+        }),
       );
     });
   });
@@ -342,7 +342,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:mkdir',
           payload: { path: '/home/user/new_folder' },
-        })
+        }),
       );
     });
 
@@ -367,7 +367,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:writefile',
           payload: { path: '/home/user/new_file.txt', content: '', encoding: 'utf8' },
-        })
+        }),
       );
     });
 
@@ -392,7 +392,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:unlink',
           payload: { path: '/home/user/file.txt' },
-        })
+        }),
       );
     });
 
@@ -405,7 +405,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:rmdir',
           payload: { path: '/home/user/folder' },
-        })
+        }),
       );
     });
 
@@ -453,7 +453,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
             oldPath: '/home/user/old_name.txt',
             newPath: '/home/user/new_name.txt',
           },
-        })
+        }),
       );
     });
 
@@ -469,7 +469,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
             oldPath: '/home/user/file.txt',
             newPath: '/other/path/file.txt',
           },
-        })
+        }),
       );
     });
 
@@ -513,7 +513,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
             path: '/home/user/file.txt',
             mode: 0o755,
           },
-        })
+        }),
       );
     });
 
@@ -538,7 +538,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:readfile',
           payload: { path: '/home/user/test.txt' },
-        })
+        }),
       );
 
       // 模拟成功响应
@@ -546,7 +546,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       triggerMessage(
         'sftp:readfile:success',
         { rawContentBase64: btoa('Hello World'), encodingUsed: 'utf8' },
-        { requestId, path: '/home/user/test.txt' }
+        { requestId, path: '/home/user/test.txt' },
       );
 
       const result = await readPromise;
@@ -563,7 +563,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:readfile',
           payload: { path: '/home/user/test.txt', encoding: 'gbk' },
-        })
+        }),
       );
     });
 
@@ -612,7 +612,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:writefile',
           payload: { path: '/home/user/test.txt', content: 'Hello World', encoding: 'utf8' },
-        })
+        }),
       );
 
       // 模拟成功响应
@@ -634,7 +634,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
         expect.objectContaining({
           type: 'sftp:writefile',
           payload: { path: '/home/user/test.txt', content: 'content', encoding: 'gbk' },
-        })
+        }),
       );
     });
 
@@ -685,7 +685,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
             sources: ['/home/user/file1.txt', '/home/user/file2.txt'],
             destination: '/home/user/backup',
           },
-        })
+        }),
       );
     });
 
@@ -721,7 +721,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
             sources: ['/home/user/file1.txt', '/home/user/file2.txt'],
             destination: '/home/user/archive',
           },
-        })
+        }),
       );
     });
 
@@ -757,7 +757,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
             sources: ['/home/user/file.txt'],
             format: 'zip',
           }),
-        })
+        }),
       );
 
       // 模拟成功响应
@@ -796,7 +796,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       triggerMessage(
         'sftp:compress:error',
         { error: 'Compression failed', details: 'Out of space' },
-        { requestId }
+        { requestId },
       );
 
       await expect(compressPromise).rejects.toThrow('Out of space');
@@ -816,7 +816,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
             source: '/home/user/archive.zip',
             destination: '/home/user',
           },
-        })
+        }),
       );
 
       // 模拟成功响应
@@ -855,7 +855,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       triggerMessage(
         'sftp:decompress:error',
         { error: 'Decompression failed', details: 'Corrupted archive' },
-        { requestId }
+        { requestId },
       );
 
       await expect(decompressPromise).rejects.toThrow('Corrupted archive');
@@ -915,7 +915,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       triggerMessage(
         'sftp:readdir:success',
         [createFileItem('folder', true), createFileItem('file.txt')],
-        { path: '/home/user', requestId }
+        { path: '/home/user', requestId },
       );
 
       expect(manager.fileList.value.length).toBe(2);
@@ -947,7 +947,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
           newPath: '/home/user/new_name.txt',
           newItem: renamedItem,
         },
-        {}
+        {},
       );
 
       expect(manager.fileList.value.some((f) => f.filename === 'old_name.txt')).toBe(false);
@@ -968,7 +968,7 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       triggerMessage(
         'sftp:move:success',
         { sources: ['/home/user/file.txt'], destination: '/home/user/archive', items: null },
-        {}
+        {},
       );
 
       expect(mockShowSuccess).toHaveBeenCalled();

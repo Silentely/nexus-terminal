@@ -37,7 +37,7 @@ export function useVisualViewport() {
     const vp = window.visualViewport;
     if (!vp) {
       log.debug(
-        '[useVisualViewport] window.visualViewport not available, keyboard tracking disabled'
+        '[useVisualViewport] window.visualViewport not available, keyboard tracking disabled',
       );
       return;
     }

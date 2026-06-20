@@ -6,11 +6,11 @@ import eventService, { AppEventType } from '../services/event.service';
 
 export const executeInitializeSftpSessionOperation = async (
   state: ClientState | undefined,
-  sessionId: string
+  sessionId: string,
 ): Promise<void> => {
   if (!state || !state.sshClient || state.sftp) {
     logger.warn(
-      `[SFTP] 无法为会话 ${sessionId} 初始化 SFTP：状态无效、SSH客户端不存在或 SFTP 已初始化。`
+      `[SFTP] 无法为会话 ${sessionId} 初始化 SFTP：状态无效、SSH客户端不存在或 SFTP 已初始化。`,
     );
     return;
   }
@@ -28,7 +28,7 @@ export const executeInitializeSftpSessionOperation = async (
           state.ws,
           'sftp_error',
           { connectionId: state.dbConnectionId, message: 'SFTP 初始化失败' },
-          sessionId
+          sessionId,
         );
         eventService.emitEvent(AppEventType.SftpConnectFailure, {
           details: {
@@ -69,7 +69,7 @@ export const executeInitializeSftpSessionOperation = async (
           JSON.stringify({
             type: 'sftp_error',
             payload: { connectionId: state.dbConnectionId, message: 'SFTP 会话错误' },
-          })
+          }),
         );
       });
       resolve();
@@ -79,7 +79,7 @@ export const executeInitializeSftpSessionOperation = async (
 
 export const executeCleanupSftpSessionOperation = (
   state: ClientState | undefined,
-  sessionId: string
+  sessionId: string,
 ): void => {
   if (state?.sftp) {
     logger.debug(`[SFTP] 正在清理 ${sessionId} 的 SFTP 会话...`);

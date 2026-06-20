@@ -229,7 +229,7 @@ describe('appearance.store', () => {
         () =>
           new Promise((resolve) => {
             resolveFirst = resolve;
-          })
+          }),
       );
       mockGet.mockResolvedValueOnce({ data: [] });
 
@@ -328,7 +328,7 @@ describe('appearance.store', () => {
       await store.loadInitialAppearanceData();
 
       await expect(store.updateAppearanceSettings({ terminalFontSize: 20 })).rejects.toThrow(
-        '保存失败'
+        '保存失败',
       );
     });
 
@@ -343,7 +343,7 @@ describe('appearance.store', () => {
       await store.loadInitialAppearanceData();
 
       await expect(store.updateAppearanceSettings({ terminalFontSize: -1 })).rejects.toThrow(
-        '参数无效'
+        '参数无效',
       );
     });
 

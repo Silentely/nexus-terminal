@@ -53,7 +53,7 @@ const backgroundUpload = multer({
 export const getAppearanceSettingsController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const settings = await appearanceService.getSettings();
@@ -70,7 +70,7 @@ export const getAppearanceSettingsController = async (
 export const updateAppearanceSettingsController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const settingsDto: UpdateAppearanceDto = req.body;
@@ -93,7 +93,7 @@ export const updateAppearanceSettingsController = async (
 export const uploadPageBackgroundController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ message: '没有上传文件' });
@@ -132,7 +132,7 @@ export const uploadPageBackgroundController = async (
 export const uploadTerminalBackgroundController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ message: '没有上传文件' });
@@ -171,7 +171,7 @@ export const uploadTerminalBackgroundController = async (
 export const getBackgroundFileController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { filename } = req.params;
 
@@ -232,7 +232,7 @@ export const uploadTerminalBackgroundMiddleware = backgroundUpload.single('termi
 export const removePageBackgroundController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     await appearanceService.removePageBackground();
@@ -249,7 +249,7 @@ export const removePageBackgroundController = async (
 export const removeTerminalBackgroundController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     await appearanceService.removeTerminalBackground();
@@ -266,7 +266,7 @@ export const removeTerminalBackgroundController = async (
 export const listLocalHtmlPresetsController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     // 现在获取所有主题，包括预设和自定义，它们将带有 type 属性
@@ -282,7 +282,7 @@ export const listLocalHtmlPresetsController = async (
 export const getLocalHtmlPresetContentController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { themeName } = req.params;
@@ -330,7 +330,7 @@ export const getLocalHtmlPresetContentController = async (
 export const createLocalHtmlPresetController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { name, content } = req.body;
@@ -351,7 +351,7 @@ export const createLocalHtmlPresetController = async (
 export const updateLocalHtmlPresetController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { themeName } = req.params;
@@ -377,7 +377,7 @@ export const updateLocalHtmlPresetController = async (
 export const deleteLocalHtmlPresetController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { themeName } = req.params;
@@ -398,7 +398,7 @@ export const deleteLocalHtmlPresetController = async (
 export const getRemoteHtmlPresetsRepositoryUrlController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const url = await appearanceService.getRemoteHtmlPresetsRepositoryUrl();
@@ -413,7 +413,7 @@ export const getRemoteHtmlPresetsRepositoryUrlController = async (
 export const updateRemoteHtmlPresetsRepositoryUrlController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { url } = req.body;
@@ -434,7 +434,7 @@ export const updateRemoteHtmlPresetsRepositoryUrlController = async (
 export const listRemoteHtmlPresetsController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const repoUrl = req.query.repoUrl as string | undefined;
@@ -450,7 +450,7 @@ export const listRemoteHtmlPresetsController = async (
 export const getRemoteHtmlPresetContentController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const fileUrl = req.query.fileUrl as string;

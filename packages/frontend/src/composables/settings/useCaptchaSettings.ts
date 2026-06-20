@@ -54,7 +54,7 @@ export function useCaptchaSettings() {
         captchaForm.recaptchaSecretKey = '';
       }
     },
-    { immediate: true, deep: true }
+    { immediate: true, deep: true },
   ); // deep: true might be useful if captchaSettings structure is complex
 
   const handleUpdateCaptchaSettings = async () => {

@@ -69,7 +69,7 @@ describe('GuacamoleService', () => {
           'password123',
           1920,
           1080,
-          '96'
+          '96',
         );
 
         expect(token).toBe('rdp-token-123');
@@ -85,13 +85,13 @@ describe('GuacamoleService', () => {
               password: 'password123',
             }),
           }),
-          expect.objectContaining({ timeout: 10000 })
+          expect.objectContaining({ timeout: 10000 }),
         );
       });
 
       it('RDP 连接缺少密码时应抛出错误', async () => {
         await expect(
-          getRemoteDesktopToken('rdp', mockRdpConnection, undefined, 1920, 1080)
+          getRemoteDesktopToken('rdp', mockRdpConnection, undefined, 1920, 1080),
         ).rejects.toThrow('RDP 连接使用密码认证，但密码解密失败或未提供密码');
       });
 
@@ -111,7 +111,7 @@ describe('GuacamoleService', () => {
               height: '768',
             }),
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
@@ -132,7 +132,7 @@ describe('GuacamoleService', () => {
               ignoreCert: 'true',
             }),
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
     });
@@ -149,7 +149,7 @@ describe('GuacamoleService', () => {
           mockVncConnection,
           'vnc-password',
           1280,
-          720
+          720,
         );
 
         expect(token).toBe('vnc-token-456');
@@ -163,13 +163,13 @@ describe('GuacamoleService', () => {
               password: 'vnc-password',
             }),
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
       it('VNC 连接缺少密码时应抛出错误', async () => {
         await expect(
-          getRemoteDesktopToken('vnc', mockVncConnection, undefined, 1280, 720)
+          getRemoteDesktopToken('vnc', mockVncConnection, undefined, 1280, 720),
         ).rejects.toThrow('VNC 连接使用密码认证，但密码解密失败或未提供密码');
       });
 
@@ -193,7 +193,7 @@ describe('GuacamoleService', () => {
               username: 'vnc-user',
             }),
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
     });
@@ -206,7 +206,7 @@ describe('GuacamoleService', () => {
         });
 
         await expect(getRemoteDesktopToken('rdp', mockRdpConnection, 'password')).rejects.toThrow(
-          '从 RDP 后端获取令牌失败'
+          '从 RDP 后端获取令牌失败',
         );
       });
 
@@ -217,7 +217,7 @@ describe('GuacamoleService', () => {
         });
 
         await expect(getRemoteDesktopToken('rdp', mockRdpConnection, 'password')).rejects.toThrow(
-          '从 RDP 后端获取令牌失败'
+          '从 RDP 后端获取令牌失败',
         );
       });
 
@@ -233,7 +233,7 @@ describe('GuacamoleService', () => {
         mockAxios.isAxiosError.mockReturnValue(true);
 
         await expect(getRemoteDesktopToken('rdp', mockRdpConnection, 'password')).rejects.toThrow(
-          '调用 RDP 后端服务失败 (状态: 403)'
+          '调用 RDP 后端服务失败 (状态: 403)',
         );
       });
 
@@ -243,7 +243,7 @@ describe('GuacamoleService', () => {
         mockAxios.isAxiosError.mockReturnValue(false);
 
         await expect(getRemoteDesktopToken('vnc', mockVncConnection, 'password')).rejects.toThrow(
-          '调用 VNC 后端服务时发生错误: Network Error'
+          '调用 VNC 后端服务时发生错误: Network Error',
         );
       });
 
@@ -256,7 +256,7 @@ describe('GuacamoleService', () => {
         mockAxios.isAxiosError.mockReturnValue(false);
 
         await expect(getRemoteDesktopToken('rdp', mockRdpConnection, 'password')).rejects.toThrow(
-          'timeout'
+          'timeout',
         );
       });
     });
@@ -282,7 +282,7 @@ describe('GuacamoleService', () => {
               username: '',
             }),
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
 
@@ -307,7 +307,7 @@ describe('GuacamoleService', () => {
               password: '',
             }),
           }),
-          expect.any(Object)
+          expect.any(Object),
         );
       });
     });

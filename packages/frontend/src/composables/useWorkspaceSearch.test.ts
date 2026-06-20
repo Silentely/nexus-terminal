@@ -24,7 +24,7 @@ describe('useWorkspaceSearch', () => {
               clearTerminalSearch: mockClearTerminalSearch,
             },
           }
-        : null
+        : null,
     ),
     isMobile: ref(false),
   });

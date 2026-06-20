@@ -362,7 +362,7 @@ const filteredGroupedConnections = computed<GroupedConnection[]>(() => {
       const isTagMatch = groupDisplayName.toLowerCase().includes(lowerSearchTerm);
 
       const connsMatchingSearchByName = group.connections.filter(
-        (conn) => conn.name.toLowerCase().includes(lowerSearchTerm)
+        (conn) => conn.name.toLowerCase().includes(lowerSearchTerm),
         // conn.type filtering is already handled in groupedConnections
       );
 
@@ -389,7 +389,7 @@ const isTagGroupSelected = (group: GroupedConnection): boolean => {
 const isTagGroupIndeterminate = (group: GroupedConnection): boolean => {
   if (group.connections.length === 0) return false;
   const selectedCount = group.connections.filter((conn) =>
-    selectedConnectionIds.value.includes(conn.id)
+    selectedConnectionIds.value.includes(conn.id),
   ).length;
   return selectedCount > 0 && selectedCount < group.connections.length;
 };
@@ -399,7 +399,7 @@ const toggleTagGroupSelection = (group: GroupedConnection) => {
   if (isTagGroupSelected(group)) {
     // Deselect all
     selectedConnectionIds.value = selectedConnectionIds.value.filter(
-      (id) => !groupConnectionIds.includes(id)
+      (id) => !groupConnectionIds.includes(id),
     );
   } else {
     // Select all (or add to selection if partially selected)
@@ -426,7 +426,7 @@ watch(
           .catch((error) => log.error(t('sendFilesModal.errorFetchingTags'), error));
       }
     }
-  }
+  },
 );
 
 const handleSend = async () => {
@@ -451,8 +451,8 @@ const handleSend = async () => {
     uiNotificationsStore.showError(
       t(
         'sendFilesModal.errorSourceConnectionMissing',
-        'Source server information is missing. Cannot initiate transfer.'
-      )
+        'Source server information is missing. Cannot initiate transfer.',
+      ),
     );
     return;
   }
@@ -462,7 +462,7 @@ const handleSend = async () => {
     // Assuming the backend returns something like { taskId: "some-id" } on success
     if (response.data && response.data.taskId) {
       uiNotificationsStore.showSuccess(
-        t('sendFilesModal.transferInitiated', { taskId: response.data.taskId })
+        t('sendFilesModal.transferInitiated', { taskId: response.data.taskId }),
       );
     } else {
       uiNotificationsStore.showSuccess(t('sendFilesModal.transferInitiatedGeneric'));

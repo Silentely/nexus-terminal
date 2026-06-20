@@ -76,7 +76,7 @@ const handleHostIconMouseLeave = () => {
       {{
         t(
           'connections.form.hostTooltip',
-          '支持 IP 范围, 例如 192.168.1.10~192.168.1.15 (仅限添加模式)'
+          '支持 IP 范围, 例如 192.168.1.10~192.168.1.15 (仅限添加模式)',
         )
       }}
     </div>

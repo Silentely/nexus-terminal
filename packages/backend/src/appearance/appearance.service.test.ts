@@ -8,7 +8,8 @@ vi.mock('axios', () => ({
   default: {
     get: mockAxiosGet,
     isAxiosError: vi.fn(
-      (val: unknown) => val !== null && typeof val === 'object' && 'isAxiosError' in (val as object)
+      (val: unknown) =>
+        val !== null && typeof val === 'object' && 'isAxiosError' in (val as object),
     ),
   },
 }));
@@ -80,7 +81,7 @@ describe('appearance.service', () => {
     const { service, appearanceRepository, terminalThemeRepository } = await loadService();
 
     await expect(service.updateSettings({ activeTerminalThemeId: '1' as any })).rejects.toThrow(
-      '无效的终端主题 ID 类型'
+      '无效的终端主题 ID 类型',
     );
     expect(terminalThemeRepository.findThemeById).not.toHaveBeenCalled();
     expect(appearanceRepository.updateAppearanceSettings).not.toHaveBeenCalled();
@@ -91,7 +92,7 @@ describe('appearance.service', () => {
     (terminalThemeRepository.findThemeById as any).mockResolvedValueOnce(null);
 
     await expect(service.updateSettings({ activeTerminalThemeId: 123 })).rejects.toThrow(
-      '验证终端主题 ID 时出错'
+      '验证终端主题 ID 时出错',
     );
     expect(appearanceRepository.updateAppearanceSettings).not.toHaveBeenCalled();
   });
@@ -99,7 +100,7 @@ describe('appearance.service', () => {
   it('updateSettings 终端背景蒙版透明度超出范围应抛错', async () => {
     const { service, appearanceRepository } = await loadService();
     await expect(
-      service.updateSettings({ terminalBackgroundOverlayOpacity: 2 as any })
+      service.updateSettings({ terminalBackgroundOverlayOpacity: 2 as any }),
     ).rejects.toThrow('无效的终端背景蒙版透明度');
     expect(appearanceRepository.updateAppearanceSettings).not.toHaveBeenCalled();
   });
@@ -185,7 +186,7 @@ describe('appearance.service', () => {
     });
 
     const list = await service.listRemoteHtmlPresets(
-      'https://github.com/user/repo/tree/main/themes'
+      'https://github.com/user/repo/tree/main/themes',
     );
     expect(list).toEqual([{ name: 'a.html', downloadUrl: 'https://example.com/a.html' }]);
     expect(axios.get).toHaveBeenCalled();
@@ -194,7 +195,7 @@ describe('appearance.service', () => {
   it('getRemoteHtmlPresetContent fileUrl 非 http/https 时应抛错', async () => {
     const { service } = await loadService();
     await expect(service.getRemoteHtmlPresetContent('file:///etc/passwd')).rejects.toThrow(
-      'HTTP/HTTPS'
+      'HTTP/HTTPS',
     );
   });
 

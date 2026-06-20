@@ -128,7 +128,7 @@ describe('Quick Command Tag Repository', () => {
       (runDb as any).mockRejectedValueOnce(new Error('UNIQUE constraint failed'));
 
       await expect(createQuickCommandTag('Duplicate')).rejects.toThrow(
-        '快捷指令标签名称 "Duplicate" 已存在'
+        '快捷指令标签名称 "Duplicate" 已存在',
       );
     });
 
@@ -162,7 +162,7 @@ describe('Quick Command Tag Repository', () => {
       (runDb as any).mockRejectedValueOnce(new Error('UNIQUE constraint failed'));
 
       await expect(updateQuickCommandTag(1, 'Duplicate')).rejects.toThrow(
-        '快捷指令标签名称 "Duplicate" 已存在'
+        '快捷指令标签名称 "Duplicate" 已存在',
       );
     });
 

@@ -263,6 +263,19 @@ export function handleSftpUploadStart(
     );
     return;
   }
+  // 校验上传目标路径，防止路径穿越和 Shell 注入（与 handleSftpOperation 保持一致）
+  if (!validateSafePath(payload.remotePath)) {
+    logger.warn(
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:start 请求，但 remotePath 不安全: ${payload.remotePath}`,
+    );
+    sendWsMessage(
+      ws,
+      'sftp:upload:error',
+      { uploadId: payload.uploadId, message: '无效或不安全的上传路径' },
+      sessionId,
+    );
+    return;
+  }
   const relativePath = payload?.relativePath;
   logger.info(
     `WebSocket: SFTP Upload Start - Session: ${sessionId}, UploadID: ${payload.uploadId}, RemotePath: ${payload.remotePath}, Size: ${payload.size}, RelativePath: ${relativePath}`,

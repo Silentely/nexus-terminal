@@ -39,7 +39,7 @@ describe('error.middleware', () => {
             code: ErrorCode.NOT_FOUND,
             message: '测试错误',
           }),
-        })
+        }),
       );
     });
 
@@ -56,7 +56,7 @@ describe('error.middleware', () => {
             code: ErrorCode.INTERNAL_SERVER_ERROR,
             message: '服务器内部错误，请稍后重试或联系管理员。',
           }),
-        })
+        }),
       );
     });
 

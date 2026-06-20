@@ -165,7 +165,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         params.set('end', String(effectiveRange.end));
       }
       const response = await apiClient.get<{ events: TimelineEvent[] }>(
-        `/dashboard/timeline?${params.toString()}`
+        `/dashboard/timeline?${params.toString()}`,
       );
       state.value.timeline = response.data.events;
     } catch (err: unknown) {

@@ -44,7 +44,7 @@ export function sendFileChunks(
   deps: ChunkManagerDeps,
   uploadId: string,
   file: File,
-  startByte = 0
+  startByte = 0,
 ): void {
   const { uploads, wsDeps, sessionIdForLog, t } = deps;
 
@@ -52,7 +52,7 @@ export function sendFileChunks(
   // 在继续之前检查连接和上传状态
   if (!wsDeps.value.isConnected.value || !upload || upload.status !== 'uploading') {
     log.warn(
-      `[FileUploader ${sessionIdForLog.value}] Cannot send chunk for ${uploadId}. Connection: ${wsDeps.value.isConnected.value}, Upload status: ${upload?.status}`
+      `[FileUploader ${sessionIdForLog.value}] Cannot send chunk for ${uploadId}. Connection: ${wsDeps.value.isConnected.value}, Upload status: ${upload?.status}`,
     );
     return;
   }
@@ -81,7 +81,7 @@ export function sendFileChunks(
         currentUpload.status !== 'uploading'
       ) {
         log.warn(
-          `[FileUploader ${sessionIdForLog.value}] Upload ${uploadId} status changed or disconnected before sending chunk at offset ${currentOffset}.`
+          `[FileUploader ${sessionIdForLog.value}] Upload ${uploadId} status changed or disconnected before sending chunk at offset ${currentOffset}.`,
         );
         inFlight = Math.max(0, inFlight - 1);
         return;
@@ -100,7 +100,7 @@ export function sendFileChunks(
       } else {
         log.error(
           `[FileUploader ${sessionIdForLog.value}] FileReader returned unexpected result for ${uploadId}:`,
-          chunkResult
+          chunkResult,
         );
         currentUpload.status = 'error';
         currentUpload.error = t('fileManager.errors.readFileError');
@@ -110,7 +110,7 @@ export function sendFileChunks(
 
     reader.onerror = () => {
       log.error(
-        `[FileUploader ${sessionIdForLog.value}] FileReader error for upload ID: ${uploadId}`
+        `[FileUploader ${sessionIdForLog.value}] FileReader error for upload ID: ${uploadId}`,
       );
       const failedUpload = uploads[uploadId];
       if (failedUpload) {
@@ -129,7 +129,7 @@ export function sendFileChunks(
     ackFallbackTimer = setTimeout(() => {
       if (!ackReceived && uploads[uploadId]?.status === 'uploading') {
         log.warn(
-          `[FileUploader ${sessionIdForLog.value}] ACK timeout for ${uploadId}, using fallback (treating as implicit ack).`
+          `[FileUploader ${sessionIdForLog.value}] ACK timeout for ${uploadId}, using fallback (treating as implicit ack).`,
         );
         // 旧后端不支持 ack，回退为每确认一个就补一个
         inFlight = Math.max(0, inFlight - 1);

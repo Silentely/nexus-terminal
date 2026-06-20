@@ -24,7 +24,7 @@ export const useAuditLogStore = defineStore('auditLog', () => {
       sortOrder?: 'asc' | 'desc';
       // 新增一个标志，明确指示是否为仪表盘调用，以启用缓存
       isDashboardRequest?: boolean;
-    } = {}
+    } = {},
   ) => {
     const {
       page = 1,
@@ -75,7 +75,7 @@ export const useAuditLogStore = defineStore('auditLog', () => {
 
       log.info(
         `[AuditLogStore] Fetching logs from server (isDashboard: ${isDashboardRequest}). Params:`,
-        params
+        params,
       );
       const response = await apiClient.get<AuditLogApiResponse>('/audit-logs', { params });
       const freshLogs = response.data.logs;
@@ -106,7 +106,7 @@ export const useAuditLogStore = defineStore('auditLog', () => {
       const isUpstreamUnavailable = statusCode === 502 || statusCode === 503 || statusCode === 504;
       if (isDashboardRequest && isUpstreamUnavailable) {
         log.warn(
-          `[AuditLogStore] Dashboard logs fetch skipped due to upstream unavailable (${statusCode}), using cache if present.`
+          `[AuditLogStore] Dashboard logs fetch skipped due to upstream unavailable (${statusCode}), using cache if present.`,
         );
         error.value = null;
       } else {

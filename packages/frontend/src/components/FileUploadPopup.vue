@@ -16,7 +16,7 @@ const { t } = useI18n();
 // 计算是否有可见的上传任务（非已完成或已取消的）
 const hasVisibleUploads = computed(() => {
   return Object.values(props.uploads).some(
-    (upload) => upload.status !== 'success' && upload.status !== 'cancelled'
+    (upload) => upload.status !== 'success' && upload.status !== 'cancelled',
   );
 });
 
@@ -27,7 +27,7 @@ const uploadList = computed(() =>
     const isEffectivelySuccess =
       upload.status === 'success' || (upload.status === 'uploading' && upload.progress === 100);
     return !isEffectivelySuccess && upload.status !== 'cancelled';
-  })
+  }),
 );
 
 const handleCancel = (uploadId: string) => {

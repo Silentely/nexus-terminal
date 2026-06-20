@@ -27,7 +27,7 @@ export class SshSuspendController {
     } catch (error: unknown) {
       logger.error(
         `[SshSuspendController] Error fetching suspended SSH sessions for user ID: ${req.session.userId}:`,
-        error
+        error,
       );
       if (error instanceof Error) {
         res
@@ -56,7 +56,7 @@ export class SshSuspendController {
       }
 
       logger.info(
-        `[SshSuspendController] terminateAndRemoveSession called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}`
+        `[SshSuspendController] terminateAndRemoveSession called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}`,
       );
 
       const success = await sshSuspendService.terminateSuspendedSession(userId, suspendSessionId);
@@ -75,7 +75,7 @@ export class SshSuspendController {
     } catch (error: unknown) {
       logger.error(
         `[SshSuspendController] Error terminating session for user ID: ${req.session.userId}, suspendSessionId: ${req.params.suspendSessionId}:`,
-        error
+        error,
       );
       if (error instanceof Error) {
         res
@@ -104,12 +104,12 @@ export class SshSuspendController {
       }
 
       logger.info(
-        `[SshSuspendController] removeSessionEntry called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}`
+        `[SshSuspendController] removeSessionEntry called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}`,
       );
 
       const success = await sshSuspendService.removeDisconnectedSessionEntry(
         userId,
-        suspendSessionId
+        suspendSessionId,
       );
       if (success) {
         res
@@ -125,7 +125,7 @@ export class SshSuspendController {
     } catch (error: unknown) {
       logger.error(
         `[SshSuspendController] Error removing session entry for user ID: ${req.session.userId}, suspendSessionId: ${req.params.suspendSessionId}:`,
-        error
+        error,
       );
       if (error instanceof Error) {
         res
@@ -162,13 +162,13 @@ export class SshSuspendController {
       }
 
       logger.info(
-        `[SshSuspendController] editSessionNameHttp called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}, newName: "${customName}"`
+        `[SshSuspendController] editSessionNameHttp called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}, newName: "${customName}"`,
       );
 
       const success = await sshSuspendService.editSuspendedSessionName(
         userId,
         suspendSessionId,
-        customName
+        customName,
       );
       if (success) {
         res.status(200).json({
@@ -184,7 +184,7 @@ export class SshSuspendController {
     } catch (error: unknown) {
       logger.error(
         `[SshSuspendController] Error editing session name for user ID: ${req.session.userId}, suspendSessionId: ${req.params.suspendSessionId}:`,
-        error
+        error,
       );
       if (error instanceof Error) {
         res
@@ -213,7 +213,7 @@ export class SshSuspendController {
       }
 
       logger.info(
-        `[SshSuspendController] exportSessionLog called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}`
+        `[SshSuspendController] exportSessionLog called for user ID: ${userId}, suspendSessionId: ${suspendSessionId}`,
       );
 
       const logData = await sshSuspendService.getSessionLogContent(userId, suspendSessionId);
@@ -232,7 +232,7 @@ export class SshSuspendController {
     } catch (error: unknown) {
       logger.error(
         `[SshSuspendController] Error exporting session log for user ID: ${req.session.userId}, suspendSessionId: ${req.params.suspendSessionId}:`,
-        error
+        error,
       );
       if (error instanceof Error) {
         res

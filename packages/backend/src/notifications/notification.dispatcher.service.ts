@@ -41,7 +41,7 @@ class NotificationDispatcherService {
   registerSender(channelType: NotificationChannelType, sender: INotificationSender) {
     if (this.senders.has(channelType)) {
       logger.warn(
-        `[NotificationDispatcher] 通道类型 '${channelType}' 的发送器已注册。将进行覆盖。`
+        `[NotificationDispatcher] 通道类型 '${channelType}' 的发送器已注册。将进行覆盖。`,
       );
     }
     this.senders.set(channelType, sender);
@@ -61,11 +61,11 @@ class NotificationDispatcherService {
           this.dispatchNotification(processedNotification).catch((error: unknown) => {
             logger.error(
               `[NotificationDispatcher] 分发通道 ${processedNotification.channelType} 的通知时出错:`,
-              error
+              error,
             );
           });
         });
-      }
+      },
     );
     logger.info('[NotificationDispatcher] 正在监听处理后的通知。');
   }
@@ -79,7 +79,7 @@ class NotificationDispatcherService {
 
     if (!sender) {
       logger.error(
-        `[NotificationDispatcher] 没有为通道类型注册发送器: ${notification.channelType}。跳过通知。`
+        `[NotificationDispatcher] 没有为通道类型注册发送器: ${notification.channelType}。跳过通知。`,
       );
       return;
     }
@@ -91,7 +91,7 @@ class NotificationDispatcherService {
     } catch (error: unknown) {
       logger.error(
         `[NotificationDispatcher] 通过 ${notification.channelType} 发送通知失败:`,
-        error
+        error,
       );
       // 这里可以添加失败重试或记录失败状态的逻辑
     }
@@ -123,7 +123,7 @@ class NotificationDispatcherService {
     } catch (error: unknown) {
       logger.error(
         `[NotificationDispatcher] 测试 ${notification.channelType} 通知发送失败:`,
-        error
+        error,
       );
       const message = error instanceof Error ? error.message : String(error);
       return {

@@ -74,7 +74,7 @@ watch(
     // Create a shallow copy to avoid modifying the prop directly
     draggableSessions.value = [...newSessions];
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 // +++ 右键菜单状态 +++
@@ -100,12 +100,12 @@ const handlePopupConnect = (connectionId: number) => {
   // --- 修改：根据类型决定调用哪个 Action ---
   if (connectionInfo.type === 'RDP') {
     log.info(
-      `[TabBar] Popup RDP connect request for ID: ${connectionId}. Calling sessionStore.openRdpModal.`
+      `[TabBar] Popup RDP connect request for ID: ${connectionId}. Calling sessionStore.openRdpModal.`,
     );
     sessionStore.openRdpModal(connectionInfo);
   } else {
     log.info(
-      `[TabBar] Popup non-RDP connect request for ID: ${connectionId}. Calling sessionStore.handleConnectRequest.`
+      `[TabBar] Popup non-RDP connect request for ID: ${connectionId}. Calling sessionStore.handleConnectRequest.`,
     );
     sessionStore.handleConnectRequest(connectionInfo); // 非 RDP 保持原逻辑
   }
@@ -124,7 +124,7 @@ const handleRequestEditFromPopup = (connection: ConnectionInfo) => {
   // 假设 WorkspaceConnectionList 传递了连接对象
   log.info(
     '[TabBar] Received request-edit-connection from popup component for connection:',
-    connection
+    connection,
   );
   showConnectionListPopup.value = false; // 关闭弹窗
   // 向上发出事件，并携带连接信息
@@ -192,7 +192,7 @@ const handleContextMenuAction = (payload: { action: string; targetId: string | n
     case 'mark-for-suspend': // +++ 修改 action 名称 +++
       if (typeof targetId === 'string') {
         log.info(
-          `[TabBar] Context menu action 'mark-for-suspend' requested for session ID: ${targetId}`
+          `[TabBar] Context menu action 'mark-for-suspend' requested for session ID: ${targetId}`,
         );
         sessionStore.requestStartSshSuspend(targetId); // 这个 action 现在是标记
       } else {
@@ -202,7 +202,7 @@ const handleContextMenuAction = (payload: { action: string; targetId: string | n
     case 'unmark-for-suspend':
       if (typeof targetId === 'string') {
         log.info(
-          `[TabBar] Context menu action 'unmark-for-suspend' requested for session ID: ${targetId}`
+          `[TabBar] Context menu action 'unmark-for-suspend' requested for session ID: ${targetId}`,
         );
         sessionStore.requestUnmarkSshSuspend(targetId);
       } else {
@@ -291,7 +291,7 @@ watch(
       // 进入 /workspace 时，不需要在这里加载 Header 状态，App.vue 会处理
       log.info('[TabBar] Entered /workspace route. Header toggle button is now active.');
     }
-  }
+  },
 );
 
 // 组件挂载时检查一次

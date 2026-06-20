@@ -73,7 +73,7 @@ describe('MetricsController', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.end).toHaveBeenCalledWith('指标采集失败');
       expect(mockLoggerError).toHaveBeenCalledWith(
-        expect.stringContaining('[Metrics] 生成指标数据失败')
+        expect.stringContaining('[Metrics] 生成指标数据失败'),
       );
     });
 
@@ -87,7 +87,7 @@ describe('MetricsController', () => {
 
       expect(res.setHeader).toHaveBeenCalledWith(
         'Content-Type',
-        expect.stringContaining('text/plain')
+        expect.stringContaining('text/plain'),
       );
     });
   });

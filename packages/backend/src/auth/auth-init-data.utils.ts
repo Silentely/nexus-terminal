@@ -42,7 +42,7 @@ export const resolveRequiresSetup = async (db: Database): Promise<boolean> => {
 
 export const resolveInitAuthState = async (
   db: Database,
-  session: InitSessionSnapshot
+  session: InitSessionSnapshot,
 ): Promise<InitAuthState> => {
   const { userId, username, requiresTwoFactor } = session;
   if (!userId || !username || requiresTwoFactor) {
@@ -55,7 +55,7 @@ export const resolveInitAuthState = async (
   const userRow = await getDb<{ two_factor_secret: string | null }>(
     db,
     'SELECT two_factor_secret FROM users WHERE id = ?',
-    [userId]
+    [userId],
   );
 
   if (!userRow) {

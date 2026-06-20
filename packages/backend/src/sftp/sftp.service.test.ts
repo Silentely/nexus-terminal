@@ -587,7 +587,7 @@ describe('SftpService', () => {
 
       expect(mockSshClient.exec).toHaveBeenCalledWith(
         expect.stringContaining('rm -rf'),
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('sftp:rmdir:success'));
     });

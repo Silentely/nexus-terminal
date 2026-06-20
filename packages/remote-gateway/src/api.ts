@@ -21,7 +21,7 @@ export function createRemoteGatewayApiApp(options: CreateRemoteGatewayApiAppOpti
       cors({
         origin: options.allowedOrigins,
         credentials: true,
-      })
+      }),
     );
   }
 
@@ -127,7 +127,7 @@ export function createRemoteGatewayApiApp(options: CreateRemoteGatewayApiAppOpti
         console.error('[Remote Gateway] /api/remote-desktop/token 接口出错:', error);
         res.status(500).json({ error: '生成令牌失败' });
       }
-    }
+    },
   );
 
   return app;

@@ -27,7 +27,7 @@ const { mockEmailSender, mockTelegramSender, mockWebhookSender, mockProcessorEmi
       },
       mockProcessorEmitter: new EE(),
     };
-  }
+  },
 );
 
 // Mock 依赖模块
@@ -200,7 +200,7 @@ describe('NotificationDispatcherService', () => {
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('email'),
-        expect.any(Error)
+        expect.any(Error),
       );
     });
   });

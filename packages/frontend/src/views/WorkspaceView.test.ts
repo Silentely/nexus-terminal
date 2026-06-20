@@ -377,7 +377,7 @@ describe('WorkspaceView', () => {
       // 找到 connection:openNewSession 事件的注册处理器并直接调用
       const subscribeCalls = mockSubscribe.mock.calls;
       const openNewSessionCall = subscribeCalls.find(
-        (call: unknown[]) => call[0] === 'connection:openNewSession'
+        (call: unknown[]) => call[0] === 'connection:openNewSession',
       );
       expect(openNewSessionCall).toBeDefined();
       const handler = (openNewSessionCall as unknown[])[1] as (payload: {

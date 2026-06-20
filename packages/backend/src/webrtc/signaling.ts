@@ -123,7 +123,7 @@ function handleSignalingConnection(clientWs: WebSocket): void {
  */
 async function handleOffer(
   clientWs: WebSocket,
-  message: SignalingMessage
+  message: SignalingMessage,
 ): Promise<ActiveWebRTCSession | null> {
   const offer = message.payload as RTCSessionDescriptionInit;
 
@@ -174,7 +174,7 @@ async function handleOffer(
           type: 'ice-candidate',
           payload: candidate,
           sessionId,
-        })
+        }),
       );
     }
   };
@@ -207,7 +207,7 @@ async function handleOffer(
         type: 'answer',
         payload: answer,
         sessionId,
-      })
+      }),
     );
   }
 

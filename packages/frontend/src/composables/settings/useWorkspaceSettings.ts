@@ -49,7 +49,7 @@ export function useWorkspaceSettings() {
       popupEditorEnabled.value = showPopupFileEditorBoolean.value;
       popupEditorMessage.value = extractErrorMessage(
         error,
-        t('settings.popupEditor.error.saveFailed')
+        t('settings.popupEditor.error.saveFailed'),
       );
       popupEditorSuccess.value = false;
     } finally {
@@ -77,7 +77,7 @@ export function useWorkspaceSettings() {
       shareTabsEnabled.value = shareFileEditorTabsBoolean.value;
       shareTabsMessage.value = extractErrorMessage(
         error,
-        t('settings.shareEditorTabs.error.saveFailed')
+        t('settings.shareEditorTabs.error.saveFailed'),
       );
       shareTabsSuccess.value = false;
     } finally {
@@ -104,7 +104,7 @@ export function useWorkspaceSettings() {
       autoCopyEnabled.value = autoCopyOnSelectBoolean.value;
       autoCopyMessage.value = extractErrorMessage(
         error,
-        t('settings.autoCopyOnSelect.error.saveFailed')
+        t('settings.autoCopyOnSelect.error.saveFailed'),
       );
       autoCopySuccess.value = false;
     } finally {
@@ -126,7 +126,7 @@ export function useWorkspaceSettings() {
       const valueToSave = workspaceSidebarPersistentEnabled.value ? 'true' : 'false';
       await settingsStore.updateSetting('workspaceSidebarPersistent', valueToSave);
       workspaceSidebarPersistentMessage.value = t(
-        'settings.workspace.success.sidebarPersistentSaved'
+        'settings.workspace.success.sidebarPersistentSaved',
       );
       workspaceSidebarPersistentSuccess.value = true;
     } catch (error: unknown) {
@@ -134,7 +134,7 @@ export function useWorkspaceSettings() {
       workspaceSidebarPersistentEnabled.value = workspaceSidebarPersistentBoolean.value;
       workspaceSidebarPersistentMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.error.sidebarPersistentSaveFailed')
+        t('settings.workspace.error.sidebarPersistentSaveFailed'),
       );
       workspaceSidebarPersistentSuccess.value = false;
     } finally {
@@ -155,18 +155,18 @@ export function useWorkspaceSettings() {
     try {
       await settingsStore.updateSetting(
         'commandInputSyncTarget',
-        commandInputSyncTargetLocal.value
+        commandInputSyncTargetLocal.value,
       );
       commandInputSyncMessage.value = t(
         'settings.commandInputSync.success.saved',
-        '同步目标已保存'
+        '同步目标已保存',
       );
       commandInputSyncSuccess.value = true;
     } catch (error: unknown) {
       log.error('更新命令输入同步目标失败:', error);
       commandInputSyncMessage.value = extractErrorMessage(
         error,
-        t('settings.commandInputSync.error.saveFailed', '保存同步目标失败')
+        t('settings.commandInputSync.error.saveFailed', '保存同步目标失败'),
       );
       commandInputSyncSuccess.value = false;
     } finally {
@@ -188,14 +188,14 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('showConnectionTags', showConnectionTagsLocal.value);
       showConnectionTagsMessage.value = t(
         'settings.workspace.success.showConnectionTagsSaved',
-        '连接标签显示设置已保存'
+        '连接标签显示设置已保存',
       );
       showConnectionTagsSuccess.value = true;
     } catch (error: unknown) {
       log.error('更新显示连接标签设置失败:', error);
       showConnectionTagsMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.error.showConnectionTagsSaveFailed', '保存连接标签显示设置失败')
+        t('settings.workspace.error.showConnectionTagsSaveFailed', '保存连接标签显示设置失败'),
       );
       showConnectionTagsSuccess.value = false;
     } finally {
@@ -217,14 +217,17 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('showQuickCommandTags', showQuickCommandTagsLocal.value);
       showQuickCommandTagsMessage.value = t(
         'settings.workspace.success.showQuickCommandTagsSaved',
-        '快捷指令标签显示设置已保存'
+        '快捷指令标签显示设置已保存',
       );
       showQuickCommandTagsSuccess.value = true;
     } catch (error: unknown) {
       log.error('更新显示快捷指令标签设置失败:', error);
       showQuickCommandTagsMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.error.showQuickCommandTagsSaveFailed', '保存快捷指令标签显示设置失败')
+        t(
+          'settings.workspace.error.showQuickCommandTagsSaveFailed',
+          '保存快捷指令标签显示设置失败',
+        ),
       );
       showQuickCommandTagsSuccess.value = false;
     } finally {
@@ -250,7 +253,7 @@ export function useWorkspaceSettings() {
         (Number.isNaN(limitValue) || !Number.isInteger(limitValue) || limitValue < 0)
       ) {
         throw new Error(
-          t('settings.terminalScrollback.error.invalidInput', '请输入一个有效的非负整数。')
+          t('settings.terminalScrollback.error.invalidInput', '请输入一个有效的非负整数。'),
         );
       }
       const valueToSave =
@@ -258,14 +261,14 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('terminalScrollbackLimit', valueToSave);
       terminalScrollbackLimitMessage.value = t(
         'settings.terminalScrollback.success.saved',
-        '终端回滚行数设置已保存。'
+        '终端回滚行数设置已保存。',
       );
       terminalScrollbackLimitSuccess.value = true;
     } catch (error: unknown) {
       log.error('更新终端回滚行数设置失败:', error);
       terminalScrollbackLimitMessage.value = extractErrorMessage(
         error,
-        t('settings.terminalScrollback.error.saveFailed', '保存终端回滚行数设置失败。')
+        t('settings.terminalScrollback.error.saveFailed', '保存终端回滚行数设置失败。'),
       );
       terminalScrollbackLimitSuccess.value = false;
     } finally {
@@ -288,7 +291,7 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('terminalAutoWrapEnabled', valueToSave);
       terminalAutoWrapMessage.value = t(
         'settings.workspace.terminalAutoWrapSuccess',
-        '终端自动换行设置已保存。'
+        '终端自动换行设置已保存。',
       );
       terminalAutoWrapSuccess.value = true;
     } catch (error: unknown) {
@@ -296,7 +299,7 @@ export function useWorkspaceSettings() {
       terminalAutoWrapEnabled.value = terminalAutoWrapEnabledBoolean.value;
       terminalAutoWrapMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.terminalAutoWrapError', '保存终端自动换行设置失败。')
+        t('settings.workspace.terminalAutoWrapError', '保存终端自动换行设置失败。'),
       );
       terminalAutoWrapSuccess.value = false;
     } finally {
@@ -324,8 +327,8 @@ export function useWorkspaceSettings() {
         throw new Error(
           t(
             'settings.workspace.sshSuspendKeepAliveInvalidInput',
-            '请输入一个有效的非负整数，0 表示永久保活。'
-          )
+            '请输入一个有效的非负整数，0 表示永久保活。',
+          ),
         );
       }
       const valueToSave =
@@ -333,14 +336,14 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('sshSuspendKeepAliveSeconds', valueToSave);
       sshSuspendKeepAliveSecondsMessage.value = t(
         'settings.workspace.sshSuspendKeepAliveSuccess',
-        '挂起会话保活时长设置已保存。'
+        '挂起会话保活时长设置已保存。',
       );
       sshSuspendKeepAliveSecondsSuccess.value = true;
     } catch (error: unknown) {
       log.error('更新挂起会话保活时长设置失败:', error);
       sshSuspendKeepAliveSecondsMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.sshSuspendKeepAliveError', '保存挂起会话保活时长设置失败。')
+        t('settings.workspace.sshSuspendKeepAliveError', '保存挂起会话保活时长设置失败。'),
       );
       sshSuspendKeepAliveSecondsSuccess.value = false;
     } finally {
@@ -363,7 +366,7 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('fileManagerShowDeleteConfirmation', valueToSave);
       fileManagerShowDeleteConfirmationMessage.value = t(
         'settings.workspace.fileManagerDeleteConfirmSuccess',
-        '文件管理器删除确认设置已保存。'
+        '文件管理器删除确认设置已保存。',
       );
       fileManagerShowDeleteConfirmationSuccess.value = true;
     } catch (error: unknown) {
@@ -371,7 +374,7 @@ export function useWorkspaceSettings() {
       fileManagerShowDeleteConfirmationLocal.value = fileManagerShowDeleteConfirmationBoolean.value;
       fileManagerShowDeleteConfirmationMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.fileManagerDeleteConfirmError', '保存文件管理器删除确认设置失败。')
+        t('settings.workspace.fileManagerDeleteConfirmError', '保存文件管理器删除确认设置失败。'),
       );
       fileManagerShowDeleteConfirmationSuccess.value = false;
     } finally {
@@ -394,7 +397,7 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('fileManagerSingleClickOpenFile', valueToSave);
       fileManagerSingleClickOpenFileMessage.value = t(
         'settings.workspace.fileManagerSingleClickOpenFileSuccess',
-        '文件管理器文件打开方式设置已保存。'
+        '文件管理器文件打开方式设置已保存。',
       );
       fileManagerSingleClickOpenFileSuccess.value = true;
     } catch (error: unknown) {
@@ -404,8 +407,8 @@ export function useWorkspaceSettings() {
         error,
         t(
           'settings.workspace.fileManagerSingleClickOpenFileError',
-          '保存文件管理器文件打开方式设置失败。'
-        )
+          '保存文件管理器文件打开方式设置失败。',
+        ),
       );
       fileManagerSingleClickOpenFileSuccess.value = false;
     } finally {
@@ -428,7 +431,7 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('terminalEnableRightClickPaste', valueToSave);
       terminalEnableRightClickPasteMessage.value = t(
         'settings.workspace.terminalRightClickPasteSuccess',
-        '终端右键粘贴设置已保存。'
+        '终端右键粘贴设置已保存。',
       );
       terminalEnableRightClickPasteSuccess.value = true;
     } catch (error: unknown) {
@@ -436,7 +439,7 @@ export function useWorkspaceSettings() {
       terminalEnableRightClickPasteLocal.value = terminalEnableRightClickPasteBoolean.value;
       terminalEnableRightClickPasteMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.terminalRightClickPasteError', '保存终端右键粘贴设置失败。')
+        t('settings.workspace.terminalRightClickPasteError', '保存终端右键粘贴设置失败。'),
       );
       terminalEnableRightClickPasteSuccess.value = false;
     } finally {
@@ -459,7 +462,7 @@ export function useWorkspaceSettings() {
       await settingsStore.updateSetting('terminalEnableBracketedPaste', valueToSave);
       terminalEnableBracketedPasteMessage.value = t(
         'settings.workspace.terminalBracketedPasteSuccess',
-        '终端粘贴模式设置已保存。'
+        '终端粘贴模式设置已保存。',
       );
       terminalEnableBracketedPasteSuccess.value = true;
     } catch (error: unknown) {
@@ -467,7 +470,7 @@ export function useWorkspaceSettings() {
       terminalEnableBracketedPasteLocal.value = terminalEnableBracketedPasteBoolean.value;
       terminalEnableBracketedPasteMessage.value = extractErrorMessage(
         error,
-        t('settings.workspace.terminalBracketedPasteError', '保存终端粘贴模式设置失败。')
+        t('settings.workspace.terminalBracketedPasteError', '保存终端粘贴模式设置失败。'),
       );
       terminalEnableBracketedPasteSuccess.value = false;
     } finally {
@@ -495,7 +498,7 @@ export function useWorkspaceSettings() {
       showPopupFileManagerLocal.value = showPopupFileManagerBoolean.value;
       showPopupFileManagerMessage.value = extractErrorMessage(
         error,
-        t('settings.popupFileManager.error.saveFailed')
+        t('settings.popupFileManager.error.saveFailed'),
       );
       showPopupFileManagerSuccess.value = false;
     } finally {
@@ -525,8 +528,8 @@ export function useWorkspaceSettings() {
         error,
         t(
           'settings.statusMonitorShowIp.error.saveFailed',
-          'Failed to save status monitor IP display setting.'
-        )
+          'Failed to save status monitor IP display setting.',
+        ),
       ); //  需要添加相应的i18n键
       statusMonitorShowIpSuccess.value = false;
     } finally {
@@ -554,7 +557,7 @@ export function useWorkspaceSettings() {
       terminalOutputEnhancerEnabled.value = terminalOutputEnhancerEnabledBoolean.value;
       terminalOutputEnhancerMessage.value = extractErrorMessage(
         error,
-        t('settings.terminalOutputEnhancer.error.saveFailed')
+        t('settings.terminalOutputEnhancer.error.saveFailed'),
       );
       terminalOutputEnhancerSuccess.value = false;
     } finally {
@@ -568,119 +571,119 @@ export function useWorkspaceSettings() {
     (newValue) => {
       popupEditorEnabled.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     shareFileEditorTabsBoolean,
     (newValue) => {
       shareTabsEnabled.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     autoCopyOnSelectBoolean,
     (newValue) => {
       autoCopyEnabled.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     workspaceSidebarPersistentBoolean,
     (newValue) => {
       workspaceSidebarPersistentEnabled.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     commandInputSyncTarget,
     (newValue) => {
       commandInputSyncTargetLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     showConnectionTagsBoolean,
     (newValue) => {
       showConnectionTagsLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     showQuickCommandTagsBoolean,
     (newValue) => {
       showQuickCommandTagsLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     terminalScrollbackLimitNumber,
     (newValue) => {
       terminalScrollbackLimitLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     terminalAutoWrapEnabledBoolean,
     (newValue) => {
       terminalAutoWrapEnabled.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     sshSuspendKeepAliveSecondsNumber,
     (newValue) => {
       sshSuspendKeepAliveSecondsLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     fileManagerShowDeleteConfirmationBoolean,
     (newValue) => {
       fileManagerShowDeleteConfirmationLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     fileManagerSingleClickOpenFileBoolean,
     (newValue) => {
       fileManagerSingleClickOpenFileLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     terminalEnableRightClickPasteBoolean,
     (newValue) => {
       terminalEnableRightClickPasteLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     terminalEnableBracketedPasteBoolean,
     (newValue) => {
       terminalEnableBracketedPasteLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     showPopupFileManagerBoolean,
     (newValue) => {
       showPopupFileManagerLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   ); // +++ Watch for popup file manager +++
   watch(
     statusMonitorShowIpBoolean,
     (newValue) => {
       statusMonitorShowIpEnabled.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
   watch(
     terminalOutputEnhancerEnabledBoolean,
     (newValue) => {
       terminalOutputEnhancerEnabled.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   return {

@@ -47,7 +47,7 @@ export const settingsRepository = {
       const row = await getDbRow<{ value: string }>(
         db,
         'SELECT value FROM settings WHERE key = ?',
-        [key]
+        [key],
       );
       const value = row ? row.value : null;
 
@@ -61,7 +61,7 @@ export const settingsRepository = {
       logger.error(`[Repository] 获取设置项 ${key} 时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '获取设置项失败',
-        `获取设置项 ${key} 失败: ${getErrorMessage(err)}`
+        `获取设置项 ${key} 失败: ${getErrorMessage(err)}`,
       );
     }
   },
@@ -84,7 +84,7 @@ export const settingsRepository = {
       logger.error(`[Repository] 设置设置项 ${key} 时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '设置设置项失败',
-        `设置设置项 ${key} 失败: ${getErrorMessage(err)}`
+        `设置设置项 ${key} 失败: ${getErrorMessage(err)}`,
       );
     }
   },
@@ -103,7 +103,7 @@ export const settingsRepository = {
       logger.error(`[Repository] 删除设置项 ${key} 时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '删除设置项失败',
-        `删除设置项 ${key} 失败: ${getErrorMessage(err)}`
+        `删除设置项 ${key} 失败: ${getErrorMessage(err)}`,
       );
     }
   },
@@ -158,7 +158,7 @@ export const setSidebarConfig = async (config: SidebarConfig): Promise<void> => 
     ) {
       throw ErrorFactory.databaseError(
         '提供了无效的侧边栏配置对象。',
-        '提供了无效的侧边栏配置对象。'
+        '提供了无效的侧边栏配置对象。',
       );
     }
     const jsonString = JSON.stringify(config);
@@ -221,7 +221,7 @@ export const setCaptchaConfig = async (config: CaptchaSettings): Promise<void> =
     ) {
       throw ErrorFactory.databaseError(
         '提供了无效的 CAPTCHA 配置对象。',
-        '提供了无效的 CAPTCHA 配置对象。'
+        '提供了无效的 CAPTCHA 配置对象。',
       );
     }
     config.hcaptchaSecretKey = config.hcaptchaSecretKey || '';
@@ -334,7 +334,7 @@ export const ensureDefaultSettingsExist = async (db: sqlite3.Database): Promise<
     logger.error(`[设置仓库] 确保默认设置时出错:`, getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '确保默认设置失败',
-      `确保默认设置失败: ${getErrorMessage(err)}`
+      `确保默认设置失败: ${getErrorMessage(err)}`,
     );
   }
 };

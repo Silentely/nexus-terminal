@@ -35,7 +35,7 @@ const DEFAULT_COL_WIDTHS: ColumnWidths = {
 };
 
 export const useFileManagerLayoutSettings = (
-  options: UseFileManagerLayoutSettingsOptions
+  options: UseFileManagerLayoutSettingsOptions,
 ): UseFileManagerLayoutSettingsReturn => {
   const { storeMultiplier, storeWidths, onSaveSettings } = options;
 
@@ -85,7 +85,7 @@ export const useFileManagerLayoutSettings = (
         }
       }
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   return {

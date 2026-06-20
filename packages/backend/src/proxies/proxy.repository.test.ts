@@ -54,7 +54,7 @@ describe('Proxy Repository', () => {
       (getDb as any).mockRejectedValueOnce(new Error('Database error'));
 
       await expect(
-        findProxyByNameTypeHostPort('Test', 'SOCKS5', '127.0.0.1', 1080)
+        findProxyByNameTypeHostPort('Test', 'SOCKS5', '127.0.0.1', 1080),
       ).rejects.toThrow('查找代理失败');
     });
   });
@@ -91,7 +91,7 @@ describe('Proxy Repository', () => {
           host: '127.0.0.1',
           port: 1080,
           auth_method: 'none',
-        })
+        }),
       ).rejects.toThrow('创建代理失败');
     });
 
@@ -105,7 +105,7 @@ describe('Proxy Repository', () => {
           host: '127.0.0.1',
           port: 1080,
           auth_method: 'none',
-        })
+        }),
       ).rejects.toThrow('创建代理失败');
     });
   });

@@ -387,7 +387,7 @@ describe('ConnectionList.vue', () => {
       await vm.handleTestConnection(1);
 
       expect(mockShowAlertDialog).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'common.success' })
+        expect.objectContaining({ title: 'common.success' }),
       );
     });
 
@@ -402,7 +402,7 @@ describe('ConnectionList.vue', () => {
       await vm.handleTestConnection(1);
 
       expect(mockShowAlertDialog).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'common.error' })
+        expect.objectContaining({ title: 'common.error' }),
       );
     });
 

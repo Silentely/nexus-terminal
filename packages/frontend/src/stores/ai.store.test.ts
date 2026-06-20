@@ -165,7 +165,7 @@ describe('ai.store', () => {
           query: '查询',
           context: { connectionIds: [1, 2], currentPath: '/home' },
         }),
-        { timeout: 30000 }
+        { timeout: 30000 },
       );
     });
   });

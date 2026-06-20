@@ -40,7 +40,7 @@ const createMockProxy = (
     username: string | null;
     created_at: number;
     updated_at: number;
-  }> = {}
+  }> = {},
 ) => ({
   id: overrides.id ?? 1,
   name: overrides.name ?? '测试代理',
@@ -98,7 +98,7 @@ describe('proxies.store', () => {
         () =>
           new Promise((resolve) => {
             resolveGet = resolve;
-          })
+          }),
       );
 
       const { useProxiesStore } = await import('./proxies.store');
@@ -185,7 +185,7 @@ describe('proxies.store', () => {
         () =>
           new Promise((resolve) => {
             resolvePost = resolve;
-          })
+          }),
       );
 
       const { useProxiesStore } = await import('./proxies.store');
@@ -351,7 +351,7 @@ describe('proxies.store', () => {
         () =>
           new Promise((resolve) => {
             resolvePut = resolve;
-          })
+          }),
       );
 
       const { useProxiesStore } = await import('./proxies.store');
@@ -438,7 +438,7 @@ describe('proxies.store', () => {
         () =>
           new Promise((resolve) => {
             resolveDelete = resolve;
-          })
+          }),
       );
 
       const { useProxiesStore } = await import('./proxies.store');
@@ -480,13 +480,13 @@ describe('proxies.store', () => {
           () =>
             new Promise((resolve) => {
               resolveFirst = resolve;
-            })
+            }),
         )
         .mockImplementationOnce(
           () =>
             new Promise((resolve) => {
               resolveSecond = resolve;
-            })
+            }),
         );
 
       const { useProxiesStore } = await import('./proxies.store');

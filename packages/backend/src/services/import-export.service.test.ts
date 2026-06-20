@@ -159,7 +159,7 @@ describe('ImportExportService', () => {
       expect(result).toBeInstanceOf(Buffer);
       expect(mockArchive.append).toHaveBeenCalledWith(
         expect.stringContaining('user1@192.168.1.1:22'),
-        { name: 'connections.txt' }
+        { name: 'connections.txt' },
       );
       expect(mockArchive.finalize).toHaveBeenCalled();
     });
@@ -191,7 +191,7 @@ describe('ImportExportService', () => {
       mockDbConnection.allDb.mockResolvedValueOnce(mockConnections).mockResolvedValueOnce([]);
 
       await expect(exportConnectionsAsEncryptedZip(false)).rejects.toThrow(
-        'ENCRYPTION_KEY is not set or empty'
+        'ENCRYPTION_KEY is not set or empty',
       );
     });
 
@@ -335,7 +335,7 @@ describe('ImportExportService', () => {
           type: 'SOCKS5',
           host: '192.168.1.1',
           port: 1080,
-        })
+        }),
       );
     });
 
@@ -392,12 +392,12 @@ describe('ImportExportService', () => {
       expect(mockDbConnection.runDb).toHaveBeenCalledWith(
         mockDb,
         'INSERT OR IGNORE INTO connection_tags (connection_id, tag_id) VALUES (?, ?)',
-        [1, 1]
+        [1, 1],
       );
       expect(mockDbConnection.runDb).toHaveBeenCalledWith(
         mockDb,
         'INSERT OR IGNORE INTO connection_tags (connection_id, tag_id) VALUES (?, ?)',
-        [1, 2]
+        [1, 2],
       );
     });
 
@@ -437,7 +437,7 @@ describe('ImportExportService', () => {
           expect.objectContaining({
             auth_method: 'password', // 应该是 password
           }),
-        ])
+        ]),
       );
     });
   });

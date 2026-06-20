@@ -90,7 +90,7 @@ export function useSidebarResize({
         newHandle.addEventListener('mousedown', handleMouseDown);
       }
     },
-    { immediate: true }
+    { immediate: true },
   ); // immediate: true 确保初始时也能尝试附加
 
   onUnmounted(() => {

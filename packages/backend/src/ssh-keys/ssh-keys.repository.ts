@@ -35,7 +35,7 @@ export const createSshKey = async (data: CreateSshKeyData): Promise<number> => {
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
       throw ErrorFactory.databaseError(
         '创建 SSH 密钥后未能获取有效的 lastID',
-        '创建 SSH 密钥后未能获取有效的 lastID'
+        '创建 SSH 密钥后未能获取有效的 lastID',
       );
     }
     logger.info(`Repository: SSH 密钥创建成功，ID: ${result.lastID}`);
@@ -45,7 +45,7 @@ export const createSshKey = async (data: CreateSshKeyData): Promise<number> => {
     logger.error('Repository: 创建 SSH 密钥失败:', getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '创建 SSH 密钥失败',
-      `创建 SSH 密钥失败: ${getErrorMessage(err)}`
+      `创建 SSH 密钥失败: ${getErrorMessage(err)}`,
     );
   }
 };
@@ -65,7 +65,7 @@ export const findSshKeyById = async (id: number): Promise<SshKeyDbRow | null> =>
     logger.error(`Repository: 查找 SSH 密钥 ${id} 失败:`, getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '查找 SSH 密钥失败',
-      `查找 SSH 密钥失败: ${getErrorMessage(err)}`
+      `查找 SSH 密钥失败: ${getErrorMessage(err)}`,
     );
   }
 };
@@ -84,7 +84,7 @@ export const findAllSshKeyNames = async (): Promise<{ id: number; name: string }
     logger.error('Repository: 查找所有 SSH 密钥名称失败:', getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '查找所有 SSH 密钥名称失败',
-      `查找所有 SSH 密钥名称失败: ${getErrorMessage(err)}`
+      `查找所有 SSH 密钥名称失败: ${getErrorMessage(err)}`,
     );
   }
 };
@@ -103,7 +103,7 @@ export const findAllSshKeys = async (): Promise<SshKeyDbRow[]> => {
     logger.error('Repository: 查找所有 SSH 密钥记录失败:', getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '查找所有 SSH 密钥记录失败',
-      `查找所有 SSH 密钥记录失败: ${getErrorMessage(err)}`
+      `查找所有 SSH 密钥记录失败: ${getErrorMessage(err)}`,
     );
   }
 };
@@ -123,7 +123,7 @@ export const updateSshKey = async (id: number, data: UpdateSshKeyData): Promise<
         obj[key] = value;
         return obj;
       },
-      {} as Record<string, unknown>
+      {} as Record<string, unknown>,
     ); // Type assertion for index signature
 
   if (Object.keys(fieldsToUpdate).length === 0) {
@@ -150,7 +150,7 @@ export const updateSshKey = async (id: number, data: UpdateSshKeyData): Promise<
     logger.error(`Repository: 更新 SSH 密钥 ${id} 失败:`, getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '更新 SSH 密钥失败',
-      `更新 SSH 密钥失败: ${getErrorMessage(err)}`
+      `更新 SSH 密钥失败: ${getErrorMessage(err)}`,
     );
   }
 };
@@ -170,7 +170,7 @@ export const deleteSshKey = async (id: number): Promise<boolean> => {
     logger.error(`Repository: 删除 SSH 密钥 ${id} 失败:`, getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '删除 SSH 密钥失败',
-      `删除 SSH 密钥失败: ${getErrorMessage(err)}`
+      `删除 SSH 密钥失败: ${getErrorMessage(err)}`,
     );
   }
 };

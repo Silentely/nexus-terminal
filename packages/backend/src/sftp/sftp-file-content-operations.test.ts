@@ -163,7 +163,7 @@ describe('sftp-file-content-operations', () => {
         '/tmp/a.txt',
         'content',
         requestId,
-        'bad-enc'
+        'bad-enc',
       );
 
       const payload = parseLastPayload(state.ws.send);
@@ -179,18 +179,18 @@ describe('sftp-file-content-operations', () => {
         .mockImplementationOnce(
           (
             _path: string,
-            callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+            callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
           ) => {
             callback(null, createMockStats());
-          }
+          },
         )
         .mockImplementationOnce(
           (
             _path: string,
-            callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+            callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
           ) => {
             callback(null, createMockStats());
-          }
+          },
         );
 
       await executeWriteFileContentOperation(state, sessionId, '/tmp/a.txt', 'content', requestId);
@@ -217,10 +217,10 @@ describe('sftp-file-content-operations', () => {
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
         ) => {
           callback(null, createMockStats());
-        }
+        },
       );
 
       const testContent = '你好世界 Hello World こんにちは';
@@ -229,7 +229,7 @@ describe('sftp-file-content-operations', () => {
         sessionId,
         '/tmp/a.txt',
         testContent,
-        requestId
+        requestId,
       );
       await flushAsync();
 
@@ -250,10 +250,10 @@ describe('sftp-file-content-operations', () => {
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
         ) => {
           callback(null, createMockStats());
-        }
+        },
       );
 
       const contentWithCRLF = 'line1\r\nline2\rline3\nline4';
@@ -262,7 +262,7 @@ describe('sftp-file-content-operations', () => {
         sessionId,
         '/tmp/a.txt',
         contentWithCRLF,
-        requestId
+        requestId,
       );
       await flushAsync();
 
@@ -285,10 +285,10 @@ describe('sftp-file-content-operations', () => {
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
         ) => {
           callback(null, createMockStats());
-        }
+        },
       );
 
       // iconv.encode mock 返回 Buffer.from(content, 'utf8')
@@ -299,7 +299,7 @@ describe('sftp-file-content-operations', () => {
         '/tmp/a.txt',
         testContent,
         requestId,
-        'gbk'
+        'gbk',
       );
       await flushAsync();
 
@@ -338,10 +338,10 @@ describe('sftp-file-content-operations', () => {
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
         ) => {
           callback(null, createMockStats());
-        }
+        },
       );
 
       await executeWriteFileContentOperation(state, sessionId, '/tmp/a.txt', 'content', requestId);

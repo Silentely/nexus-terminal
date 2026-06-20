@@ -83,7 +83,7 @@ watch(
         sshKeysStore.fetchSshKeys();
       }
     }
-  }
+  },
 );
 
 watch(internalVisible, (newVal) => {

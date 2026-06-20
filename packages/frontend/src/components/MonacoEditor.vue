@@ -200,7 +200,7 @@ watch(
     if (editorInstance && editorInstance.getValue() !== newValue) {
       editorInstance.setValue(newValue);
     }
-  }
+  },
 );
 
 watch(
@@ -209,7 +209,7 @@ watch(
     if (editorInstance && editorInstance.getModel()) {
       monaco.editor.setModelLanguage(editorInstance.getModel()!, newLanguage);
     }
-  }
+  },
 );
 
 watch(
@@ -218,7 +218,7 @@ watch(
     if (editorInstance) {
       monaco.editor.setTheme(newTheme);
     }
-  }
+  },
 );
 
 watch(
@@ -227,7 +227,7 @@ watch(
     if (editorInstance) {
       editorInstance.updateOptions({ readOnly: newReadOnly });
     }
-  }
+  },
 );
 
 watch(
@@ -236,7 +236,7 @@ watch(
     if (editorInstance) {
       editorInstance.updateOptions({ fontFamily: newFontFamily });
     }
-  }
+  },
 );
 
 // 监听来自父组件 (全局设置) 的 fontSize 变化
@@ -250,7 +250,7 @@ watch(
       localStorage.setItem(FONT_SIZE_STORAGE_KEY, newGlobalSize.toString()); // 保持 localStorage 同步
       internalEditorFontSize.value = newGlobalSize;
     }
-  }
+  },
 );
 
 onBeforeUnmount(() => {

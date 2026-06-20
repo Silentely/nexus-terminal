@@ -178,7 +178,7 @@ describe('StatusMonitorService', () => {
 
     it('获取轮询间隔失败时应使用默认值', async () => {
       mockSettingsService.getStatusMonitorIntervalSeconds.mockRejectedValue(
-        new Error('Settings error')
+        new Error('Settings error'),
       );
 
       const mockClient = createMockSshClient();
@@ -270,7 +270,7 @@ describe('StatusMonitorService', () => {
           }
           const stream = createMockStream('test output');
           cb(null, stream);
-        }
+        },
       );
 
       clientStates.set('session-send', {
@@ -304,7 +304,7 @@ describe('StatusMonitorService', () => {
             return;
           }
           cb(new Error('SSH exec failed'), null);
-        }
+        },
       );
 
       clientStates.set('session-error', {
@@ -340,7 +340,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -368,7 +368,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -398,7 +398,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -432,7 +432,7 @@ describe('StatusMonitorService', () => {
           const output = buildBatchOutput({ PROC_STAT: cpuStats[idx] });
           const stream = createMockStream(output);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -465,7 +465,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -497,7 +497,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -523,7 +523,7 @@ describe('StatusMonitorService', () => {
           // 模拟超时 - 不调用 callback
           // 实际测试中这会导致 Promise 永远 pending
           // 但服务应该有超时保护
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -550,7 +550,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -616,7 +616,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -659,7 +659,7 @@ describe('StatusMonitorService', () => {
             const stream = createMockStream('');
             cb(null, stream);
           }
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -690,7 +690,7 @@ describe('StatusMonitorService', () => {
           const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
           const stream = createMockStream(batchOutput);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -732,7 +732,7 @@ describe('StatusMonitorService', () => {
           });
           const stream = createMockStream(output);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);
@@ -774,7 +774,7 @@ describe('StatusMonitorService', () => {
           });
           const stream = createMockStream(output);
           cb(null, stream);
-        }
+        },
       );
 
       const mockWs = createMockWebSocket(1);

@@ -3,7 +3,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 export function useDeviceDetection() {
   const isMobile = computed(() => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
+      navigator.userAgent,
     );
   });
 
@@ -23,7 +23,7 @@ export function useDeviceDetection() {
   const orientation = ref<'portrait' | 'landscape'>(
     typeof window !== 'undefined' && window.matchMedia('(orientation: landscape)').matches
       ? 'landscape'
-      : 'portrait'
+      : 'portrait',
   );
 
   const updateOrientation = () => {

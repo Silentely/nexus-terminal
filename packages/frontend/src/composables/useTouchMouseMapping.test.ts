@@ -53,7 +53,7 @@ const createGuacamole = () =>
           middle: boolean,
           right: boolean,
           up: boolean,
-          down: boolean
+          down: boolean,
         ) {
           this.x = x;
           this.y = y;
@@ -140,13 +140,13 @@ describe('useTouchMouseMapping', () => {
       createTouchEvent('touchstart', [
         { clientX: 130, clientY: 90 },
         { clientX: 160, clientY: 90 },
-      ])
+      ]),
     );
     element.dispatchEvent(
       createTouchEvent('touchend', [
         { clientX: 130, clientY: 90 },
         { clientX: 160, clientY: 90 },
-      ])
+      ]),
     );
 
     const rightStates = sendMouseState.mock.calls

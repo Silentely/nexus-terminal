@@ -236,7 +236,7 @@
               {{
                 $t(
                   'settings.commandInputSync.description',
-                  '将命令输入框的内容实时同步到所选面板的搜索框。'
+                  '将命令输入框的内容实时同步到所选面板的搜索框。',
                 )
               }}
             </p>
@@ -282,7 +282,7 @@
             {{
               $t(
                 'settings.workspace.showConnectionTagsDescription',
-                '关闭后将隐藏连接列表中的标签，并从搜索中排除标签。'
+                '关闭后将隐藏连接列表中的标签，并从搜索中排除标签。',
               )
             }}
           </p>
@@ -329,7 +329,7 @@
             {{
               $t(
                 'settings.workspace.showQuickCommandTagsDescription',
-                '关闭后将隐藏快捷指令列表中的标签，并从搜索中排除标签。'
+                '关闭后将隐藏快捷指令列表中的标签，并从搜索中排除标签。',
               )
             }}
           </p>
@@ -375,7 +375,7 @@
             <small class="block mt-1 text-xs text-text-secondary">{{
               t(
                 'settings.terminalScrollback.limitHint',
-                '设置终端保留的最大输出行数。0 或留空表示无限制 (使用默认值 5000)。此设置将在下次打开终端时生效。'
+                '设置终端保留的最大输出行数。0 或留空表示无限制 (使用默认值 5000)。此设置将在下次打开终端时生效。',
               )
             }}</small>
           </div>
@@ -502,7 +502,7 @@
               >{{
                 $t(
                   'settings.workspace.fileManagerShowDeleteConfirmationLabel',
-                  '删除文件或文件夹时显示确认提示框'
+                  '删除文件或文件夹时显示确认提示框',
                 )
               }}</label
             >
@@ -547,7 +547,7 @@
               >{{
                 $t(
                   'settings.workspace.fileManagerSingleClickOpenFileLabel',
-                  '单击文件立即打开（关闭后改为双击打开）'
+                  '单击文件立即打开（关闭后改为双击打开）',
                 )
               }}</label
             >
@@ -556,7 +556,7 @@
             {{
               $t(
                 'settings.workspace.fileManagerOpenFileModeDescription',
-                '目录始终保持单击进入；此设置仅影响"文件/符号链接"等非目录项的打开方式。'
+                '目录始终保持单击进入；此设置仅影响"文件/符号链接"等非目录项的打开方式。',
               )
             }}
           </p>

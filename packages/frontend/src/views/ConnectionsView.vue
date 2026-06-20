@@ -34,10 +34,10 @@ const LS_SORT_ORDER_KEY = 'connections_view_sort_order';
 const LS_FILTER_TAG_KEY = 'connections_view_filter_tag';
 
 const localSortBy = ref<SortField>(
-  (localStorage.getItem(LS_SORT_BY_KEY) as SortField) || 'last_connected_at'
+  (localStorage.getItem(LS_SORT_BY_KEY) as SortField) || 'last_connected_at',
 );
 const localSortOrder = ref<SortOrder>(
-  (localStorage.getItem(LS_SORT_ORDER_KEY) as SortOrder) || 'desc'
+  (localStorage.getItem(LS_SORT_ORDER_KEY) as SortOrder) || 'desc',
 );
 
 const getInitialSelectedTagId = (): number | null => {
@@ -236,7 +236,7 @@ const isConnectionSelectedForBatch = (connId: number): boolean => {
 const selectAllConnections = () => {
   if (!isBatchEditMode.value) return;
   filteredAndSortedConnections.value.forEach((conn) =>
-    selectedConnectionIdsForBatch.value.add(conn.id)
+    selectedConnectionIdsForBatch.value.add(conn.id),
   );
 };
 
@@ -289,7 +289,7 @@ const handleBatchDeleteConnections = async () => {
   const confirmMessage = t(
     'connections.batchEdit.confirmMessage',
     { count: selectedConnectionIdsForBatch.value.size },
-    `您确定要删除选中的 ${selectedConnectionIdsForBatch.value.size} 个连接吗？此操作无法撤销。`
+    `您确定要删除选中的 ${selectedConnectionIdsForBatch.value.size} 个连接吗？此操作无法撤销。`,
   );
 
   const confirmed = await showConfirmDialog({
@@ -392,7 +392,7 @@ const handleTestAllFilteredConnections = async () => {
   if (isTestingAll.value || isLoadingConnections.value) return;
   // Ensure conn.id exists for map function and error handling
   const sshConnectionsToTest = filteredAndSortedConnections.value.filter(
-    (c) => c.type === 'SSH' && c.id != null
+    (c) => c.type === 'SSH' && c.id != null,
   );
   if (sshConnectionsToTest.length === 0) {
     // Optionally notify user that there are no SSH connections to test
@@ -497,7 +497,7 @@ const handleConnectAllFilteredConnections = async () => {
   if (isConnectingAll.value || isLoadingConnections.value) return;
 
   const sshConnectionsToConnect = filteredAndSortedConnections.value.filter(
-    (conn) => conn.type === 'SSH'
+    (conn) => conn.type === 'SSH',
   );
   if (sshConnectionsToConnect.length === 0) {
     log.warn(t('connections.messages.noSshConnectionsToConnectAll', '没有可连接的 SSH 筛选结果。'));

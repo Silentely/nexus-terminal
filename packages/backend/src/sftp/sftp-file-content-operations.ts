@@ -44,7 +44,7 @@ export const executeReadFileContentOperation = async (
   sessionId: string,
   path: string,
   requestId: string,
-  requestedEncoding?: string
+  requestedEncoding?: string,
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 readFile (ID: ${requestId})`);
@@ -54,14 +54,14 @@ export const executeReadFileContentOperation = async (
         path,
         payload: 'SFTP 会话未就绪',
         requestId,
-      })
+      }),
     );
     return;
   }
 
   const { sftp } = state;
   logger.debug(
-    `[SFTP ${sessionId}] Received readFile request for ${path} (ID: ${requestId}, Requested Encoding: ${requestedEncoding ?? 'auto'})`
+    `[SFTP ${sessionId}] Received readFile request for ${path} (ID: ${requestId}, Requested Encoding: ${requestedEncoding ?? 'auto'})`,
   );
 
   try {
@@ -85,7 +85,7 @@ export const executeReadFileContentOperation = async (
           path,
           payload: `读取文件流错误: ${err.message}`,
           requestId,
-        })
+        }),
       );
     });
 
@@ -95,7 +95,7 @@ export const executeReadFileContentOperation = async (
       }
 
       logger.debug(
-        `[SFTP ${sessionId}] readFile ${path} success, size: ${fileData.length} bytes (ID: ${requestId}). Processing content...`
+        `[SFTP ${sessionId}] readFile ${path} success, size: ${fileData.length} bytes (ID: ${requestId}). Processing content...`,
       );
       // SFTP 下载字节指标（延迟导入避免循环依赖）
       try {
@@ -115,12 +115,12 @@ export const executeReadFileContentOperation = async (
         });
         encodingUsed = decodeResult.encodingUsed;
         logger.debug(
-          `[SFTP ${sessionId}] Content decoding completed with encoding ${encodingUsed} (ID: ${requestId}).`
+          `[SFTP ${sessionId}] Content decoding completed with encoding ${encodingUsed} (ID: ${requestId}).`,
         );
       } catch (decodeError: unknown) {
         logger.error(
           `[SFTP ${sessionId}] Error detecting/decoding file content for ${path} (ID: ${requestId}):`,
-          decodeError
+          decodeError,
         );
         state.ws.send(
           JSON.stringify({
@@ -128,7 +128,7 @@ export const executeReadFileContentOperation = async (
             path,
             payload: `文件编码检测或转换失败: ${getErrorMessage(decodeError)}`,
             requestId,
-          })
+          }),
         );
         return;
       }
@@ -142,13 +142,13 @@ export const executeReadFileContentOperation = async (
             encodingUsed,
           },
           requestId,
-        })
+        }),
       );
     });
   } catch (error: unknown) {
     logger.error(
       `[SFTP ${sessionId}] readFile ${path} caught unexpected error (ID: ${requestId}):`,
-      error
+      error,
     );
     state.ws.send(
       JSON.stringify({
@@ -156,7 +156,7 @@ export const executeReadFileContentOperation = async (
         path,
         payload: `读取文件时发生意外错误: ${getErrorMessage(error)}`,
         requestId,
-      })
+      }),
     );
   }
 };
@@ -167,7 +167,7 @@ export const executeWriteFileContentOperation = async (
   path: string,
   data: string,
   requestId: string,
-  encoding?: string
+  encoding?: string,
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 writefile (ID: ${requestId})`);
@@ -177,7 +177,7 @@ export const executeWriteFileContentOperation = async (
         path,
         payload: 'SFTP 会话未就绪',
         requestId,
-      })
+      }),
     );
     return;
   }
@@ -185,7 +185,7 @@ export const executeWriteFileContentOperation = async (
   const { sftp } = state;
   const targetEncoding = encoding || 'utf-8';
   logger.debug(
-    `[SFTP ${sessionId}] Received writefile request for ${path} (ID: ${requestId}, Encoding: ${targetEncoding})`
+    `[SFTP ${sessionId}] Received writefile request for ${path} (ID: ${requestId}, Encoding: ${targetEncoding})`,
   );
 
   try {
@@ -193,12 +193,12 @@ export const executeWriteFileContentOperation = async (
     try {
       buffer = iconv.encode(data, targetEncoding);
       logger.debug(
-        `[SFTP ${sessionId}] Encoded content for ${path} using ${targetEncoding} (Buffer size: ${buffer.length})`
+        `[SFTP ${sessionId}] Encoded content for ${path} using ${targetEncoding} (Buffer size: ${buffer.length})`,
       );
     } catch (encodeError: unknown) {
       logger.error(
         `[SFTP ${sessionId}] Failed to encode content for ${path} with encoding ${targetEncoding} (ID: ${requestId}):`,
-        encodeError
+        encodeError,
       );
       state.ws.send(
         JSON.stringify({
@@ -206,7 +206,7 @@ export const executeWriteFileContentOperation = async (
           path,
           payload: `无效的编码或编码失败: ${targetEncoding}`,
           requestId,
-        })
+        }),
       );
       return;
     }
@@ -224,12 +224,12 @@ export const executeWriteFileContentOperation = async (
       });
       originalMode = fileStats.mode;
       logger.debug(
-        `[SFTP ${sessionId}] Retrieved original file mode for ${path}: ${originalMode.toString(8)} (ID: ${requestId})`
+        `[SFTP ${sessionId}] Retrieved original file mode for ${path}: ${originalMode.toString(8)} (ID: ${requestId})`,
       );
     } catch (statError: unknown) {
       logger.warn(
         `[SFTP ${sessionId}] Could not retrieve original file mode for ${path} (ID: ${requestId}):`,
-        statError
+        statError,
       );
     }
 
@@ -249,7 +249,7 @@ export const executeWriteFileContentOperation = async (
           path,
           payload: `写入文件流错误: ${err.message}`,
           requestId,
-        })
+        }),
       );
     });
 
@@ -260,7 +260,7 @@ export const executeWriteFileContentOperation = async (
 
       if (originalMode !== undefined) {
         logger.debug(
-          `[SFTP ${sessionId}] Set file mode for ${path} during creation: ${originalMode.toString(8)} (ID: ${requestId})`
+          `[SFTP ${sessionId}] Set file mode for ${path} during creation: ${originalMode.toString(8)} (ID: ${requestId})`,
         );
       }
 
@@ -268,7 +268,7 @@ export const executeWriteFileContentOperation = async (
         if (statErr) {
           logger.error(
             `[SFTP ${sessionId}] lstat after writefile ${path} failed (ID: ${requestId}):`,
-            statErr
+            statErr,
           );
           state.ws.send(
             JSON.stringify({
@@ -276,7 +276,7 @@ export const executeWriteFileContentOperation = async (
               path,
               payload: null,
               requestId,
-            })
+            }),
           );
           return;
         }
@@ -287,20 +287,20 @@ export const executeWriteFileContentOperation = async (
             path,
             payload: toFileItemPayload(path, stats),
             requestId,
-          })
+          }),
         );
       });
     });
 
     logger.debug(
-      `[SFTP ${sessionId}] Writing ${buffer.length} bytes to ${path} (ID: ${requestId})`
+      `[SFTP ${sessionId}] Writing ${buffer.length} bytes to ${path} (ID: ${requestId})`,
     );
     writeStream.end(buffer);
     logger.debug(`[SFTP ${sessionId}] writefile ${path} end() called (ID: ${requestId})`);
   } catch (error: unknown) {
     logger.error(
       `[SFTP ${sessionId}] writefile ${path} caught unexpected error (ID: ${requestId}):`,
-      error
+      error,
     );
     state.ws.send(
       JSON.stringify({
@@ -308,7 +308,7 @@ export const executeWriteFileContentOperation = async (
         path,
         payload: `写入文件时发生意外错误: ${getErrorMessage(error)}`,
         requestId,
-      })
+      }),
     );
   }
 };

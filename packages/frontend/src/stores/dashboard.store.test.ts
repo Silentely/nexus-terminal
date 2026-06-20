@@ -210,7 +210,7 @@ describe('dashboard.store', () => {
       await store.fetchStats(range);
 
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/dashboard/stats?start=1699900000&end=1700000000'
+        '/dashboard/stats?start=1699900000&end=1700000000',
       );
       expect(store.stats).toEqual(mockStatsWithRange);
     });
@@ -224,7 +224,7 @@ describe('dashboard.store', () => {
       await store.fetchStats();
 
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/dashboard/stats?start=1699900000&end=1700000000'
+        '/dashboard/stats?start=1699900000&end=1700000000',
       );
     });
 
@@ -345,7 +345,7 @@ describe('dashboard.store', () => {
       await store.fetchTimeline(20, range);
 
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/dashboard/timeline?limit=20&start=1699900000&end=1700000000'
+        '/dashboard/timeline?limit=20&start=1699900000&end=1700000000',
       );
     });
 
@@ -357,7 +357,7 @@ describe('dashboard.store', () => {
       await store.fetchTimeline();
 
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/dashboard/timeline?limit=20&start=1699900000&end=1700000000'
+        '/dashboard/timeline?limit=20&start=1699900000&end=1700000000',
       );
     });
 
@@ -527,10 +527,10 @@ describe('dashboard.store', () => {
 
       // fetchStats 和 fetchTimeline 应使用时间范围
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/dashboard/stats?start=1699900000&end=1700000000'
+        '/dashboard/stats?start=1699900000&end=1700000000',
       );
       expect(apiClient.get).toHaveBeenCalledWith(
-        '/dashboard/timeline?limit=20&start=1699900000&end=1700000000'
+        '/dashboard/timeline?limit=20&start=1699900000&end=1700000000',
       );
     });
 

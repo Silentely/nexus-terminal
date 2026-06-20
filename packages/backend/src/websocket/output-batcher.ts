@@ -44,7 +44,7 @@ interface BatcherState {
 export function createOutputBatcher(
   ws: WebSocket,
   sessionId: string,
-  onSend?: (data: string) => void
+  onSend?: (data: string) => void,
 ) {
   const state: BatcherState = {
     buffer: [],
@@ -78,7 +78,7 @@ export function createOutputBatcher(
             type: 'ssh:output',
             payload: encoded,
             encoding: 'base64',
-          })
+          }),
         );
       }
     }
@@ -148,7 +148,7 @@ export function createOutputBatcher(
               payload: encoded,
               encoding: 'base64',
               sid: sessionId,
-            })
+            }),
           );
         }
       }
@@ -177,7 +177,7 @@ const batchers = new Map<string, ReturnType<typeof createOutputBatcher>>();
 export function getOrCreateBatcher(
   ws: WebSocket,
   sessionId: string,
-  onSend?: (data: string) => void
+  onSend?: (data: string) => void,
 ): ReturnType<typeof createOutputBatcher> {
   const existing = batchers.get(sessionId);
   if (existing) {

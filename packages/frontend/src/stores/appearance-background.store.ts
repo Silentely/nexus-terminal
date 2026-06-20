@@ -35,7 +35,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
   const currentUiTheme = computed<Record<string, string>>(() => {
     const parsedTheme = safeJsonParse<Record<string, string> | null>(
       getSettings().customUiTheme,
-      defaultUiTheme
+      defaultUiTheme,
     );
     return normalizeUiTheme(isUiThemeRecord(parsedTheme) ? parsedTheme : {});
   });
@@ -96,7 +96,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
 
   async function setTerminalBackgroundEnabled(enabled: boolean) {
     log.info(
-      `[AppearanceStore LOG] setTerminalBackgroundEnabled 调用，准备发送给后端的值: ${enabled}`
+      `[AppearanceStore LOG] setTerminalBackgroundEnabled 调用，准备发送给后端的值: ${enabled}`,
     );
     await updateAppearanceSettings({ terminalBackgroundEnabled: enabled });
     log.info(`[AppearanceStore LOG] setTerminalBackgroundEnabled 更新后端调用完成。`);
@@ -124,7 +124,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
       const response = await apiClient.post<{ filePath: string }>(
         '/appearance/background/page',
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       );
       getSettings().pageBackgroundImage = response.data.filePath;
       applyPageBackground();
@@ -142,7 +142,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
       const response = await apiClient.post<{ filePath: string }>(
         '/appearance/background/terminal',
         formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        { headers: { 'Content-Type': 'multipart/form-data' } },
       );
       getSettings().terminalBackgroundImage = response.data.filePath;
       return response.data.filePath;
@@ -189,7 +189,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
       const backendUrl = import.meta.env.VITE_API_BASE_URL || window.location.origin;
       const imagePath = pageBackgroundImage.value;
       log.info(
-        `[AppearanceStore applyPageBackground] Base URL: "${backendUrl}", Image Path: "${imagePath}"`
+        `[AppearanceStore applyPageBackground] Base URL: "${backendUrl}", Image Path: "${imagePath}"`,
       );
 
       let fullImageUrl = '';
@@ -198,7 +198,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
         const correctedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
         fullImageUrl = new URL(correctedPath, baseUrl).href;
         log.info(
-          `[AppearanceStore applyPageBackground] Constructed Full Image URL: "${fullImageUrl}"`
+          `[AppearanceStore applyPageBackground] Constructed Full Image URL: "${fullImageUrl}"`,
         );
       } catch (error: unknown) {
         log.error(`[AppearanceStore applyPageBackground] Error constructing image URL:`, error);
@@ -215,11 +215,11 @@ export function createBackgroundStore(deps: BackgroundDeps) {
           body.style.backgroundRepeat = 'no-repeat';
           body.style.backgroundAttachment = 'fixed';
           log.info(
-            `[AppearanceStore applyPageBackground] Applied background image: ${fullImageUrl}`
+            `[AppearanceStore applyPageBackground] Applied background image: ${fullImageUrl}`,
           );
         } else {
           log.warn(
-            `[AppearanceStore applyPageBackground] Skipping background application due to invalid URL.`
+            `[AppearanceStore applyPageBackground] Skipping background application due to invalid URL.`,
           );
           body.style.backgroundImage = 'none';
         }
@@ -238,7 +238,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
     (newTheme) => {
       applyUiTheme(newTheme);
     },
-    { deep: true, immediate: true }
+    { deep: true, immediate: true },
   );
 
   watch(
@@ -250,7 +250,7 @@ export function createBackgroundStore(deps: BackgroundDeps) {
         document.documentElement.classList.remove('dark');
       }
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   watch(pageBackgroundImage, () => {

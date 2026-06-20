@@ -77,7 +77,7 @@ export class TelnetNegotiator implements ITelnetNegotiator {
    */
   private handleIACSequence(
     buffer: Buffer,
-    startIndex: number
+    startIndex: number,
   ): {
     nextIndex: number;
     response: Buffer | null;
@@ -130,7 +130,7 @@ export class TelnetNegotiator implements ITelnetNegotiator {
    */
   private handleWILL(
     option: number,
-    startIndex: number
+    startIndex: number,
   ): { nextIndex: number; response: Buffer | null; updateServerOptions?: Set<number> } {
     const newOptions = new Set(this.serverOptions);
     newOptions.add(option);
@@ -156,7 +156,7 @@ export class TelnetNegotiator implements ITelnetNegotiator {
    */
   private handleWONT(
     option: number,
-    startIndex: number
+    startIndex: number,
   ): { nextIndex: number; response: Buffer | null; updateServerOptions?: Set<number> } {
     const newOptions = new Set(this.serverOptions);
     newOptions.delete(option);
@@ -173,7 +173,7 @@ export class TelnetNegotiator implements ITelnetNegotiator {
    */
   private handleDO(
     option: number,
-    startIndex: number
+    startIndex: number,
   ): { nextIndex: number; response: Buffer | null } {
     // 如果我们支持该选项，回复 WILL；否则回复 WONT
     if (this.supportedOptions.has(option)) {
@@ -194,7 +194,7 @@ export class TelnetNegotiator implements ITelnetNegotiator {
    */
   private handleDONT(
     _option: number,
-    startIndex: number
+    startIndex: number,
   ): { nextIndex: number; response: Buffer | null } {
     // 无需响应，直接跳过
     return { nextIndex: startIndex + 3, response: null };
@@ -205,7 +205,7 @@ export class TelnetNegotiator implements ITelnetNegotiator {
    */
   private handleSubOption(
     buffer: Buffer,
-    startIndex: number
+    startIndex: number,
   ): { nextIndex: number; response: Buffer | null } {
     // 查找 SE（子选项结束）标记
     let endIndex = startIndex + 2;

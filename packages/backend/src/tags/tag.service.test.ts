@@ -175,7 +175,7 @@ describe('Tag Service', () => {
 
     it('repository 错误应向上传递', async () => {
       (TagRepository.updateTagConnections as any).mockRejectedValueOnce(
-        new Error('Repository error')
+        new Error('Repository error'),
       );
 
       await expect(updateTagConnections(1, [10])).rejects.toThrow('服务层更新标签连接关联失败');

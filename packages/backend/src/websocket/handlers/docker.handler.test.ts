@@ -39,14 +39,14 @@ vi.mock('../utils', () => ({
       ws: { readyState: number; send: (data: string) => void },
       type: string,
       payload: Record<string, unknown>,
-      sessionId?: string
+      sessionId?: string,
     ) => {
       if (ws.readyState === 1) {
         const message: Record<string, unknown> = { type, payload };
         if (sessionId) message.sid = sessionId;
         ws.send(JSON.stringify(message));
       }
-    }
+    },
   ),
 }));
 
@@ -63,7 +63,7 @@ class MockExecStream extends EventEmitter {
 
 // Helper to create mock WebSocket
 function createMockWebSocket(
-  overrides: Partial<AuthenticatedWebSocket> = {}
+  overrides: Partial<AuthenticatedWebSocket> = {},
 ): AuthenticatedWebSocket {
   const ws = new EventEmitter() as AuthenticatedWebSocket;
   ws.readyState = WebSocket.OPEN;
@@ -79,7 +79,7 @@ function createMockWebSocket(
 // Helper to create mock ClientState
 function createMockClientState(
   ws: AuthenticatedWebSocket,
-  sshClient: MockSshClient | null = null
+  sshClient: MockSshClient | null = null,
 ): ClientState {
   return {
     ws,
@@ -92,7 +92,7 @@ function createMockClientState(
 // Helper to setup SSH exec mock that resolves immediately
 function setupExecMockImmediate(
   sshClient: MockSshClient,
-  responses: Array<{ stdout?: string; stderr?: string; error?: Error; code?: number }>
+  responses: Array<{ stdout?: string; stderr?: string; error?: Error; code?: number }>,
 ) {
   let callIndex = 0;
   sshClient.exec.mockImplementation(
@@ -118,7 +118,7 @@ function setupExecMockImmediate(
         }
         stream.emit('close', response.code ?? 0);
       });
-    }
+    },
   );
 }
 
@@ -296,7 +296,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:status:error',
           payload: { message: 'Session state not found.' },
           sid: 'non-existent-session',
-        })
+        }),
       );
     });
 
@@ -312,7 +312,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:status:error',
           payload: { message: 'SSH connection not active.' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -333,7 +333,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:status:update',
           payload: { available: true, containers: [] },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -355,7 +355,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:command:error',
           payload: { command: 'start', message: 'SSH connection not active.' },
           sid: 'non-existent-session',
-        })
+        }),
       );
     });
 
@@ -371,7 +371,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:command:error',
           payload: { command: 'start', message: 'Invalid containerId or command.' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -390,7 +390,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:command:error',
           payload: { message: 'Invalid containerId or command.' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -409,7 +409,7 @@ describe('Docker WebSocket Handler', () => {
       expect(mockSshClient.exec).toHaveBeenCalledWith(
         'docker start abc123',
         { pty: false },
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -428,7 +428,7 @@ describe('Docker WebSocket Handler', () => {
       expect(mockSshClient.exec).toHaveBeenCalledWith(
         'docker stop abc123',
         { pty: false },
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -447,7 +447,7 @@ describe('Docker WebSocket Handler', () => {
       expect(mockSshClient.exec).toHaveBeenCalledWith(
         'docker restart abc123',
         { pty: false },
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -466,7 +466,7 @@ describe('Docker WebSocket Handler', () => {
       expect(mockSshClient.exec).toHaveBeenCalledWith(
         'docker rm -f abc123',
         { pty: false },
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -499,7 +499,7 @@ describe('Docker WebSocket Handler', () => {
       });
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining('"type":"docker:command:error"')
+        expect.stringContaining('"type":"docker:command:error"'),
       );
     });
 
@@ -514,7 +514,7 @@ describe('Docker WebSocket Handler', () => {
       });
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining('"type":"docker:command:error"')
+        expect.stringContaining('"type":"docker:command:error"'),
       );
     });
   });
@@ -528,7 +528,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:stats:error',
           payload: { containerId: 'abc123', message: 'SSH connection not active.' },
           sid: 'non-existent-session',
-        })
+        }),
       );
     });
 
@@ -544,7 +544,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:stats:error',
           payload: { containerId: undefined, message: 'Missing containerId.' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -560,7 +560,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:stats:error',
           payload: { containerId: ';;;', message: 'Invalid container ID format.' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -583,7 +583,7 @@ describe('Docker WebSocket Handler', () => {
       await handleDockerGetStats(mockWs, 'test-session', { containerId: 'abc123' });
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining('"type":"docker:stats:update"')
+        expect.stringContaining('"type":"docker:stats:update"'),
       );
     });
 
@@ -604,7 +604,7 @@ describe('Docker WebSocket Handler', () => {
             message: 'No stats data received (container might be stopped).',
           },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -622,7 +622,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:stats:error',
           payload: { containerId: 'abc123', message: 'Container not running' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -640,7 +640,7 @@ describe('Docker WebSocket Handler', () => {
           type: 'docker:stats:error',
           payload: { containerId: 'abc123', message: 'Failed to parse stats data.' },
           sid: 'test-session',
-        })
+        }),
       );
     });
 
@@ -654,7 +654,7 @@ describe('Docker WebSocket Handler', () => {
       await handleDockerGetStats(mockWs, 'test-session', { containerId: 'abc123' });
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining('"type":"docker:stats:error"')
+        expect.stringContaining('"type":"docker:stats:error"'),
       );
     });
   });
@@ -747,7 +747,7 @@ describe('Docker WebSocket Handler', () => {
 
       // 应发送初始状态
       expect(mockWs.send).toHaveBeenCalledWith(
-        expect.stringContaining('"type":"docker:status:update"')
+        expect.stringContaining('"type":"docker:status:update"'),
       );
 
       // 清理

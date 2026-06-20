@@ -274,7 +274,7 @@ export const ensureDefaultSettingsExist = async (db: sqlite3.Database): Promise<
     logger.error(`[AppearanceRepo] 检查或插入默认外观设置键值对时出错:`, getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '初始化外观设置失败',
-      `检查或插入默认外观设置失败: ${getErrorMessage(err)}`
+      `检查或插入默认外观设置失败: ${getErrorMessage(err)}`,
     );
   }
 };
@@ -289,7 +289,7 @@ const findAndSetDefaultThemeIdIfNull = async (db: sqlite3.Database): Promise<voi
     const currentSetting = await getDb<{ value: string }>(
       db,
       `SELECT value FROM ${TABLE_NAME} WHERE key = ?`,
-      ['activeTerminalThemeId']
+      ['activeTerminalThemeId'],
     );
 
     // 仅当设置存在且其值为 'null' 字符串时继续
@@ -331,18 +331,18 @@ export const getAppearanceSettings = async (): Promise<AppearanceSettings> => {
     // 从键值表中获取所有行
     const rows = await allDb<DbAppearanceSettingsRow>(
       db,
-      `SELECT key, value, updated_at FROM ${TABLE_NAME}`
+      `SELECT key, value, updated_at FROM ${TABLE_NAME}`,
     );
     const mappedSettings = mapRowsToAppearanceSettings(rows); // 将键值对映射到设置对象
     logger.info(
-      `[AppearanceRepo LOG] 映射后的 terminalBackgroundEnabled 值: ${mappedSettings.terminalBackgroundEnabled}`
+      `[AppearanceRepo LOG] 映射后的 terminalBackgroundEnabled 值: ${mappedSettings.terminalBackgroundEnabled}`,
     ); // 添加映射后值的日志
     return mappedSettings;
   } catch (err: unknown) {
     logger.error('[AppearanceRepo] 获取外观设置失败:', getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '获取外观设置失败',
-      `获取外观设置失败: ${getErrorMessage(err)}`
+      `获取外观设置失败: ${getErrorMessage(err)}`,
     );
   }
 };
@@ -355,7 +355,7 @@ export const getAppearanceSettings = async (): Promise<AppearanceSettings> => {
  * @throws {Error} 如果验证失败或内部更新过程中发生错误。
  */
 export const updateAppearanceSettings = async (
-  settingsDto: UpdateAppearanceDto
+  settingsDto: UpdateAppearanceDto,
 ): Promise<boolean> => {
   const db = await getDbInstance();
   // 在调用内部更新之前，如果需要，执行验证或复杂逻辑
@@ -369,17 +369,17 @@ export const updateAppearanceSettings = async (
       if (!themeExists) {
         throw ErrorFactory.notFound(
           `指定的终端主题不存在`,
-          `指定的终端主题 ID 不存在: ${settingsDto.activeTerminalThemeId}`
+          `指定的终端主题 ID 不存在: ${settingsDto.activeTerminalThemeId}`,
         );
       }
     } catch (validationError: unknown) {
       logger.error(
         `[AppearanceRepo] 验证主题 ID ${settingsDto.activeTerminalThemeId} 时出错:`,
-        getErrorMessage(validationError)
+        getErrorMessage(validationError),
       );
       throw ErrorFactory.databaseError(
         '验证主题失败',
-        `验证主题 ID 失败: ${getErrorMessage(validationError)}`
+        `验证主题 ID 失败: ${getErrorMessage(validationError)}`,
       );
     }
   }
@@ -399,7 +399,7 @@ export const updateAppearanceSettings = async (
 // 在键值表中更新设置的内部函数
 const updateAppearanceSettingsInternal = async (
   db: sqlite3.Database,
-  settingsDto: UpdateAppearanceDto
+  settingsDto: UpdateAppearanceDto,
 ): Promise<boolean> => {
   const nowSeconds = Math.floor(Date.now() / 1000);
   const sqlReplace = `INSERT OR REPLACE INTO ${TABLE_NAME} (key, value, updated_at) VALUES (?, ?, ?)`;
@@ -438,14 +438,14 @@ const updateAppearanceSettingsInternal = async (
       // 保存前验证 active_terminal_theme_id 类型 (基于 dtoKey 判断)
       if (dtoKey === 'activeTerminalThemeId' && value !== null && typeof value !== 'number') {
         logger.error(
-          `[AppearanceRepo] 更新 activeTerminalThemeId 时收到无效类型值: ${value} (类型: ${typeof value})，应为数字或 null。跳过此字段。`
+          `[AppearanceRepo] 更新 activeTerminalThemeId 时收到无效类型值: ${value} (类型: ${typeof value})，应为数字或 null。跳过此字段。`,
         );
         continue; // 跳过此键
       }
 
       // 对每个键值对执行 INSERT OR REPLACE，使用映射后的 dbKey
       logger.info(
-        `[AppearanceRepo LOG] 准备更新/插入数据库键: '${dbKey}', 值: '${dbValue}' (来自 DTO 键: '${dtoKey}')`
+        `[AppearanceRepo LOG] 准备更新/插入数据库键: '${dbKey}', 值: '${dbValue}' (来自 DTO 键: '${dtoKey}')`,
       );
       const result = await runDb(db, sqlReplace, [dbKey, dbValue, nowSeconds]);
       if (result.changes > 0) {
@@ -458,7 +458,7 @@ const updateAppearanceSettingsInternal = async (
     logger.error('[AppearanceRepo] 更新外观设置失败:', getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '更新外观设置失败',
-      `更新外观设置失败: ${getErrorMessage(err)}`
+      `更新外观设置失败: ${getErrorMessage(err)}`,
     );
   }
 };

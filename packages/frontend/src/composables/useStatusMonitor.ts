@@ -9,7 +9,7 @@ import { log } from '@/utils/log';
 export interface StatusMonitorDependencies {
   onMessage: (
     type: string,
-    handler: (payload: unknown, fullMessage?: WebSocketMessage) => void
+    handler: (payload: unknown, fullMessage?: WebSocketMessage) => void,
   ) => () => void;
   isConnected: ComputedRef<boolean>;
 }
@@ -41,7 +41,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
     currentHistory.shift(); // 移除最旧的数据点
     // 如果新值无效（undefined 或 null），推入 null，否则推入数字
     currentHistory.push(
-      newValue === undefined || newValue === null || Number.isNaN(newValue) ? null : newValue
+      newValue === undefined || newValue === null || Number.isNaN(newValue) ? null : newValue,
     );
     historyRef.value = [...currentHistory]; // 触发响应式更新
   };
@@ -176,7 +176,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
 // 保留兼容旧代码的函数（将在完全迁移后移除）
 export function useStatusMonitor() {
   log.warn(
-    '⚠️ 使用已弃用的 useStatusMonitor() 全局单例。请迁移到 createStatusMonitorManager() 工厂函数。'
+    '⚠️ 使用已弃用的 useStatusMonitor() 全局单例。请迁移到 createStatusMonitorManager() 工厂函数。',
   );
 
   const serverStatus = ref<ServerStatus | null>(null);

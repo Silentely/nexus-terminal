@@ -25,7 +25,7 @@ class TelegramSenderService implements INotificationSender {
         logger.info(`[TelegramSender] Using custom domain: ${baseApiUrl}`);
       } catch (error: unknown) {
         logger.warn(
-          `[TelegramSender] Invalid customDomain URL: ${customDomain}. Falling back to default Telegram API. (${getErrorMessage(error)})`
+          `[TelegramSender] Invalid customDomain URL: ${customDomain}. Falling back to default Telegram API. (${getErrorMessage(error)})`,
         );
         // Optionally, you could throw an error here or decide to proceed with the default
       }
@@ -45,7 +45,7 @@ class TelegramSenderService implements INotificationSender {
           disable_web_page_preview: true,
         },
         { timeout: 10000 },
-        'Telegram'
+        'Telegram',
       );
 
       if (response.data && response.data.ok) {
@@ -54,7 +54,7 @@ class TelegramSenderService implements INotificationSender {
         const errorDescription = response.data?.description || 'Unknown error from Telegram API';
         logger.error(
           `[TelegramSender] Failed to send notification. Telegram API response: ${errorDescription}`,
-          response.data
+          response.data,
         );
         throw new Error(`Telegram API error: ${errorDescription}`);
       }
@@ -62,15 +62,15 @@ class TelegramSenderService implements INotificationSender {
       if (axios.isAxiosError(error)) {
         logger.error(
           `[TelegramSender] Axios error sending notification: ${getErrorMessage(error)}`,
-          error.response?.data
+          error.response?.data,
         );
         throw new Error(
-          `Failed to send Telegram notification (Axios Error): ${getErrorMessage(error)}`
+          `Failed to send Telegram notification (Axios Error): ${getErrorMessage(error)}`,
         );
       } else {
         logger.error(`[TelegramSender] Unexpected error sending notification:`, error);
         throw new Error(
-          `Failed to send Telegram notification (Unexpected Error): ${getErrorMessage(error)}`
+          `Failed to send Telegram notification (Unexpected Error): ${getErrorMessage(error)}`,
         );
       }
     }

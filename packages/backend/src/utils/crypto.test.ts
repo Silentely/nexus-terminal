@@ -174,7 +174,7 @@ describe('Crypto Module', () => {
       initializeKeyRotation();
 
       expect(() => rotateEncryptionKey(TEST_KEY_INVALID_LENGTH)).toThrow(
-        '新密钥长度必须是 32 字节'
+        '新密钥长度必须是 32 字节',
       );
     });
 
@@ -476,7 +476,7 @@ describe('Crypto Module', () => {
       const fakeTag = crypto.randomBytes(16);
 
       const fakeData = Buffer.concat([fakeVersion, fakeIv, fakeEncrypted, fakeTag]).toString(
-        'base64'
+        'base64',
       );
 
       expect(() => decrypt(fakeData)).toThrow();

@@ -37,7 +37,7 @@ export function createHtmlPresetsStore(deps: HtmlPresetsDeps) {
     htmlPresetError.value = null;
     try {
       const response = await apiClient.get<Array<{ name: string; type: 'preset' | 'custom' }>>(
-        '/appearance/html-presets/local'
+        '/appearance/html-presets/local',
       );
       localHtmlPresets.value = response.data;
     } catch (err: unknown) {
@@ -97,7 +97,7 @@ export function createHtmlPresetsStore(deps: HtmlPresetsDeps) {
     htmlPresetError.value = null;
     try {
       const response = await apiClient.get<{ url: string | null }>(
-        '/appearance/html-presets/remote/repository-url'
+        '/appearance/html-presets/remote/repository-url',
       );
       remoteHtmlPresetsRepositoryUrl.value = response.data.url;
     } catch (err: unknown) {
@@ -136,7 +136,7 @@ export function createHtmlPresetsStore(deps: HtmlPresetsDeps) {
       }
       const response = await apiClient.get<Array<{ name: string; downloadUrl?: string }>>(
         '/appearance/html-presets/remote/list',
-        { params }
+        { params },
       );
       remoteHtmlPresets.value = response.data;
     } catch (err: unknown) {

@@ -30,7 +30,7 @@ export const addFavoritePath = async (name: string | null, path: string): Promis
 export const updateFavoritePath = async (
   id: number,
   name: string | null,
-  path: string
+  path: string,
 ): Promise<boolean> => {
   if (!path || path.trim().length === 0) {
     throw new Error('路径内容不能为空');
@@ -56,7 +56,7 @@ export const deleteFavoritePath = async (id: number): Promise<boolean> => {
  * @returns 返回排序后的收藏路径数组
  */
 export const getAllFavoritePaths = async (
-  sortBy: FavoritePathSortBy = 'name'
+  sortBy: FavoritePathSortBy = 'name',
 ): Promise<FavoritePath[]> => {
   return FavoritePathsRepository.getAllFavoritePaths(sortBy);
 };

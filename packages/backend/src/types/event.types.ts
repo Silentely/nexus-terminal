@@ -366,7 +366,7 @@ export const PERSISTENT_EVENTS: ReadonlySet<AppEventType> = new Set([
 export type EventMiddleware = (
   eventType: AppEventType,
   payload: AppEventPayload,
-  next: () => void
+  next: () => void,
 ) => void;
 
 /**

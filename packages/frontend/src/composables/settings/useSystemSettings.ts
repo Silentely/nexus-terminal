@@ -120,7 +120,7 @@ export function useSystemSettings() {
       log.error('更新状态监控间隔失败:', error);
       statusMonitorMessage.value = extractErrorMessage(
         error,
-        t('settings.statusMonitor.error.saveFailed')
+        t('settings.statusMonitor.error.saveFailed'),
       );
       statusMonitorSuccess.value = false;
     } finally {
@@ -154,7 +154,7 @@ export function useSystemSettings() {
       log.error('更新 Docker 设置失败:', error);
       dockerSettingsMessage.value = extractErrorMessage(
         error,
-        t('settings.docker.error.saveFailed')
+        t('settings.docker.error.saveFailed'),
       );
       dockerSettingsSuccess.value = false;
     } finally {
@@ -170,13 +170,13 @@ export function useSystemSettings() {
         selectedTimezone.value = newSettings.timezone || 'UTC';
         statusMonitorIntervalLocal.value = parseInt(
           newSettings.statusMonitorIntervalSeconds || '3',
-          10
+          10,
         );
         dockerInterval.value = parseInt(newSettings.dockerStatusIntervalSeconds || '2', 10);
         dockerExpandDefault.value = newSettings.dockerDefaultExpand === 'true';
       }
     },
-    { deep: true, immediate: true }
+    { deep: true, immediate: true },
   );
 
   // Sync local dockerExpandDefault with the store's boolean getter
@@ -185,7 +185,7 @@ export function useSystemSettings() {
     (newValue) => {
       dockerExpandDefault.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   // Sync local statusMonitorIntervalLocal with the store's number getter
@@ -194,7 +194,7 @@ export function useSystemSettings() {
     (newValue) => {
       statusMonitorIntervalLocal.value = newValue;
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   // Sync local selectedLanguage with the store's language getter
@@ -203,7 +203,7 @@ export function useSystemSettings() {
     (newVal) => {
       selectedLanguage.value = newVal;
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   // --- Log Level ---
@@ -241,7 +241,7 @@ export function useSystemSettings() {
       log.error('更新日志等级失败:', error);
       logLevelMessage.value = extractErrorMessage(
         error,
-        t('settings.logLevel.error.saveFailed', '保存日志等级失败')
+        t('settings.logLevel.error.saveFailed', '保存日志等级失败'),
       );
       logLevelSuccess.value = false;
     } finally {

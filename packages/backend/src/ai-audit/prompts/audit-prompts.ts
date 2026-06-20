@@ -77,7 +77,7 @@ ${loginByHourStr || '  无数据'}
  */
 export function buildFullAuditPrompt(
   commandSummary: AuditDataSummary,
-  loginSummary: AuditDataSummary
+  loginSummary: AuditDataSummary,
 ): string {
   return `你是一名高级安全审计师，负责对远程终端访问进行全面安全审计。
 
@@ -117,7 +117,7 @@ export function buildFullAuditPrompt(
  * 获取 Prompt 构建函数
  */
 export function getPromptBuilder(
-  reportType: ReportType
+  reportType: ReportType,
 ): (summary: AuditDataSummary, loginSummary?: AuditDataSummary) => string {
   switch (reportType) {
     case 'command_analysis':

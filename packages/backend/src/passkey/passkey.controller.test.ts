@@ -39,7 +39,7 @@ vi.mock('../utils/logger', () => ({
 
 vi.mock('../utils/AppError', () => ({
   getErrorMessage: vi.fn((error: unknown) =>
-    error instanceof Error ? error.message : String(error)
+    error instanceof Error ? error.message : String(error),
   ),
 }));
 

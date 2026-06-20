@@ -146,7 +146,7 @@ const fetchTransferTasks = async () => {
     log.error('Failed to fetch transfer tasks:', error);
     errorLoading.value = extractErrorMessage(
       error,
-      t('transferProgressModal.error.unknown', '未知错误')
+      t('transferProgressModal.error.unknown', '未知错误'),
     );
   } finally {
     isLoading.value = false;
@@ -220,7 +220,7 @@ watch(
       }
     }
   },
-  { immediate: false }
+  { immediate: false },
 ); // immediate: false 避免在组件初始化时立即执行，onMounted已处理首次加载
 
 // --- 模态框可见性控制 ---
@@ -232,7 +232,7 @@ watch(
   (newVisibleValue) => {
     internalVisible.value = newVisibleValue;
   },
-  { immediate: true }
+  { immediate: true },
 ); // 确保初始状态同步
 
 // 监听 internalVisible 的变化来 emit update:visible

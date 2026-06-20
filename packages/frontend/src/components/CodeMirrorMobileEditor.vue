@@ -64,7 +64,7 @@ const getDistance = (touches: TouchList): number => {
   const touch1 = touches[0];
   const touch2 = touches[1];
   return Math.sqrt(
-    Math.pow(touch2.pageX - touch1.pageX, 2) + Math.pow(touch2.pageY - touch1.pageY, 2)
+    Math.pow(touch2.pageX - touch1.pageX, 2) + Math.pow(touch2.pageY - touch1.pageY, 2),
   );
 };
 
@@ -117,7 +117,7 @@ const onTouchEnd = (event: TouchEvent) => {
 };
 const createEditorState = (
   doc: string,
-  languageExtension: Parameters<typeof languageCompartment.of>[0]
+  languageExtension: Parameters<typeof languageCompartment.of>[0],
 ) => {
   return EditorState.create({
     doc,
@@ -252,7 +252,7 @@ onMounted(async () => {
       '[CodeMirrorMobileEditor DEBUG] onMounted - Initial language:',
       props.language,
       'Fetched langExt:',
-      langExt
+      langExt,
     );
     const startState = createEditorState(props.modelValue, langExt);
 
@@ -289,7 +289,7 @@ watch(
         changes: { from: 0, to: view.value.state.doc.length, insert: newValue },
       });
     }
-  }
+  },
 );
 
 watch(
@@ -301,7 +301,7 @@ watch(
         effects: languageCompartment.reconfigure(langExt),
       });
     }
-  }
+  },
 );
 
 watch(
@@ -310,7 +310,7 @@ watch(
     if (newSize !== currentFontSize.value) {
       currentFontSize.value = newSize;
     }
-  }
+  },
 );
 
 const openSearch = () => {

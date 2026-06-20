@@ -2,7 +2,7 @@
 const sanitizeForLog = (value: string): string => value.replace(/[\r\n]/g, '_');
 
 export const buildLoginCaptchaInvalidDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -12,7 +12,7 @@ export const buildLoginCaptchaInvalidDebugLogAction = (
 });
 
 export const buildLoginCaptchaVerifiedDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -22,7 +22,7 @@ export const buildLoginCaptchaVerifiedDebugLogAction = (
 });
 
 export const buildLoginCaptchaVerificationErrorLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'error';
   message: string;
@@ -32,7 +32,7 @@ export const buildLoginCaptchaVerificationErrorLogAction = (
 });
 
 export const buildLoginCaptchaSkippedDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -42,7 +42,7 @@ export const buildLoginCaptchaSkippedDebugLogAction = (
 });
 
 export const buildLoginUserNotFoundDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -52,7 +52,7 @@ export const buildLoginUserNotFoundDebugLogAction = (
 });
 
 export const buildLoginInvalidPasswordDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -62,7 +62,7 @@ export const buildLoginInvalidPasswordDebugLogAction = (
 });
 
 export const buildLoginTwoFactorRequiredDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -72,7 +72,7 @@ export const buildLoginTwoFactorRequiredDebugLogAction = (
 });
 
 export const buildLoginSuccessWithoutTwoFactorInfoLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'info';
   message: string;

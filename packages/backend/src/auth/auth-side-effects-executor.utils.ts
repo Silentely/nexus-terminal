@@ -5,13 +5,13 @@ interface AuthSideEffectServices {
   auditLogService: {
     logAction: (
       action: AuditLogActionType,
-      payload?: Record<string, unknown> | string | null
+      payload?: Record<string, unknown> | string | null,
     ) => Promise<void> | void;
   };
   notificationService: {
     sendNotification: (
       event: NotificationEvent,
-      payload?: Record<string, unknown> | string
+      payload?: Record<string, unknown> | string,
     ) => Promise<void> | void;
   };
 }
@@ -32,7 +32,7 @@ export type AuthSideEffect = AuthAuditSideEffect | AuthNotificationSideEffect;
 
 export const applyAuthSideEffects = (
   services: AuthSideEffectServices,
-  sideEffects: AuthSideEffect[]
+  sideEffects: AuthSideEffect[],
 ): void => {
   for (const sideEffect of sideEffects) {
     if (sideEffect.kind === 'audit') {

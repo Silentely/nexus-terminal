@@ -19,19 +19,19 @@ const isLoading = computed(() => dockerManager.value?.isLoading.value ?? false);
 const error = computed(() => dockerManager.value?.error.value ?? null);
 const isDockerAvailable = computed(() => dockerManager.value?.isDockerAvailable.value ?? false); // Default to false if no manager
 const expandedContainerIds = computed(
-  () => dockerManager.value?.expandedContainerIds.value ?? new Set<string>()
+  () => dockerManager.value?.expandedContainerIds.value ?? new Set<string>(),
 );
 
 // --- Computed properties for UI state (independent of dockerManager) ---
 const currentSessionId = computed(() => activeSession.value?.sessionId);
 const sshConnectionStatus = computed(
-  () => activeSession.value?.wsManager.connectionStatus.value ?? 'disconnected'
+  () => activeSession.value?.wsManager.connectionStatus.value ?? 'disconnected',
 );
 
 // --- Methods delegated to Docker Manager ---
 const sendDockerCommand = (
   containerId: string,
-  command: 'start' | 'stop' | 'restart' | 'remove'
+  command: 'start' | 'stop' | 'restart' | 'remove',
 ) => {
   dockerManager.value?.sendDockerCommand(containerId, command);
 };
@@ -270,14 +270,14 @@ const viewContainerLogs = (containerId: string) => {
                   :title="
                     container.Ports?.map(
                       (p) =>
-                        `${p.IP ? p.IP + ':' : ''}${p.PublicPort ? p.PublicPort + '->' : ''}${p.PrivatePort}/${p.Type}`
+                        `${p.IP ? p.IP + ':' : ''}${p.PublicPort ? p.PublicPort + '->' : ''}${p.PrivatePort}/${p.Type}`,
                     ).join(', ')
                   "
                 >
                   {{
                     container.Ports?.map(
                       (p) =>
-                        `${p.IP ? p.IP + ':' : ''}${p.PublicPort ? p.PublicPort + '->' : ''}${p.PrivatePort}/${p.Type}`
+                        `${p.IP ? p.IP + ':' : ''}${p.PublicPort ? p.PublicPort + '->' : ''}${p.PrivatePort}/${p.Type}`,
                     ).join(', ') || 'N/A'
                   }}
                 </span>

@@ -107,7 +107,7 @@ describe('PasskeyService', () => {
           rpName: 'Nexus Terminal Test',
           rpID: 'primary.example.com',
           userName: 'testuser',
-        })
+        }),
       );
     });
 
@@ -123,7 +123,7 @@ describe('PasskeyService', () => {
       expect(mockSimpleWebAuthn.generateRegistrationOptions).toHaveBeenCalledWith(
         expect.objectContaining({
           rpID: 'primary.example.com',
-        })
+        }),
       );
     });
 
@@ -132,7 +132,7 @@ describe('PasskeyService', () => {
       mockPasskeyRepo.getPasskeysByUserId.mockResolvedValue([]);
 
       await expect(
-        service.generateRegistrationOptions('testuser', 1, 'https://unknown.example.com')
+        service.generateRegistrationOptions('testuser', 1, 'https://unknown.example.com'),
       ).rejects.toThrow('Passkey origin is not configured.');
     });
 
@@ -140,7 +140,7 @@ describe('PasskeyService', () => {
       mockUserRepo.findUserById.mockResolvedValue(null);
 
       await expect(service.generateRegistrationOptions('testuser', 1)).rejects.toThrow(
-        'User not found or username mismatch'
+        'User not found or username mismatch',
       );
     });
 
@@ -148,7 +148,7 @@ describe('PasskeyService', () => {
       mockUserRepo.findUserById.mockResolvedValue({ ...mockUser, username: 'otheruser' });
 
       await expect(service.generateRegistrationOptions('testuser', 1)).rejects.toThrow(
-        'User not found or username mismatch'
+        'User not found or username mismatch',
       );
     });
 
@@ -169,7 +169,7 @@ describe('PasskeyService', () => {
               type: 'public-key',
             }),
           ]),
-        })
+        }),
       );
     });
   });
@@ -202,7 +202,7 @@ describe('PasskeyService', () => {
       const result = await service.verifyRegistration(
         mockRegistrationResponse as any,
         'expected-challenge',
-        '1'
+        '1',
       );
 
       expect(result.verified).toBe(true);
@@ -221,20 +221,20 @@ describe('PasskeyService', () => {
         mockRegistrationResponse as any,
         'expected-challenge',
         '1',
-        'https://secondary.example.net'
+        'https://secondary.example.net',
       );
 
       expect(mockSimpleWebAuthn.verifyRegistrationResponse).toHaveBeenCalledWith(
         expect.objectContaining({
           expectedOrigin: 'https://secondary.example.net',
           expectedRPID: 'primary.example.com',
-        })
+        }),
       );
     });
 
     it('无效的用户 handle 应抛出错误', async () => {
       await expect(
-        service.verifyRegistration(mockRegistrationResponse as any, 'challenge', 'invalid')
+        service.verifyRegistration(mockRegistrationResponse as any, 'challenge', 'invalid'),
       ).rejects.toThrow('Invalid user handle provided.');
     });
 
@@ -242,7 +242,7 @@ describe('PasskeyService', () => {
       mockUserRepo.findUserById.mockResolvedValue(null);
 
       await expect(
-        service.verifyRegistration(mockRegistrationResponse as any, 'challenge', '1')
+        service.verifyRegistration(mockRegistrationResponse as any, 'challenge', '1'),
       ).rejects.toThrow('User not found for the provided handle.');
     });
 
@@ -251,7 +251,7 @@ describe('PasskeyService', () => {
       const invalidResponse = { registrationResponse: {} };
 
       await expect(
-        service.verifyRegistration(invalidResponse as any, 'challenge', '1')
+        service.verifyRegistration(invalidResponse as any, 'challenge', '1'),
       ).rejects.toThrow('Missing or malformed credential ID from client');
     });
   });
@@ -277,7 +277,7 @@ describe('PasskeyService', () => {
               type: 'public-key',
             }),
           ]),
-        })
+        }),
       );
     });
 
@@ -291,7 +291,7 @@ describe('PasskeyService', () => {
       expect(mockSimpleWebAuthn.generateAuthenticationOptions).toHaveBeenCalledWith(
         expect.objectContaining({
           rpID: 'primary.example.com',
-        })
+        }),
       );
     });
 
@@ -306,7 +306,7 @@ describe('PasskeyService', () => {
       expect(mockSimpleWebAuthn.generateAuthenticationOptions).toHaveBeenCalledWith(
         expect.objectContaining({
           allowCredentials: undefined,
-        })
+        }),
       );
     });
 
@@ -321,7 +321,7 @@ describe('PasskeyService', () => {
       expect(mockSimpleWebAuthn.generateAuthenticationOptions).toHaveBeenCalledWith(
         expect.objectContaining({
           allowCredentials: undefined,
-        })
+        }),
       );
     });
   });
@@ -364,15 +364,15 @@ describe('PasskeyService', () => {
         service.verifyAuthentication(
           mockAuthResponse as any,
           'challenge',
-          'https://secondary.example.net'
-        )
+          'https://secondary.example.net',
+        ),
       ).rejects.toThrow('Authentication failed.');
 
       expect(mockSimpleWebAuthn.verifyAuthenticationResponse).toHaveBeenCalledWith(
         expect.objectContaining({
           expectedOrigin: 'https://secondary.example.net',
           expectedRPID: 'primary.example.com',
-        })
+        }),
       );
     });
 
@@ -380,7 +380,7 @@ describe('PasskeyService', () => {
       const invalidResponse = { response: {} };
 
       await expect(
-        service.verifyAuthentication(invalidResponse as any, 'challenge')
+        service.verifyAuthentication(invalidResponse as any, 'challenge'),
       ).rejects.toThrow('Credential ID missing from authentication response.');
     });
 
@@ -388,7 +388,7 @@ describe('PasskeyService', () => {
       mockPasskeyRepo.getPasskeyByCredentialId.mockResolvedValue(null);
 
       await expect(
-        service.verifyAuthentication(mockAuthResponse as any, 'challenge')
+        service.verifyAuthentication(mockAuthResponse as any, 'challenge'),
       ).rejects.toThrow('Authentication failed. Passkey not found.');
     });
 
@@ -399,7 +399,7 @@ describe('PasskeyService', () => {
       });
 
       await expect(
-        service.verifyAuthentication(mockAuthResponse as any, 'challenge')
+        service.verifyAuthentication(mockAuthResponse as any, 'challenge'),
       ).rejects.toThrow('Authentication failed.');
     });
   });
@@ -449,7 +449,7 @@ describe('PasskeyService', () => {
       });
 
       await expect(service.deletePasskey(1, 'credential-123')).rejects.toThrow(
-        'Unauthorized to delete this passkey.'
+        'Unauthorized to delete this passkey.',
       );
     });
   });
@@ -468,7 +468,7 @@ describe('PasskeyService', () => {
       mockPasskeyRepo.getPasskeyByCredentialId.mockResolvedValue(null);
 
       await expect(service.updatePasskeyName(1, 'nonexistent', 'Name')).rejects.toThrow(
-        'Passkey not found.'
+        'Passkey not found.',
       );
     });
 
@@ -479,7 +479,7 @@ describe('PasskeyService', () => {
       });
 
       await expect(service.updatePasskeyName(1, 'credential-123', 'Name')).rejects.toThrow(
-        'Unauthorized to update this passkey name.'
+        'Unauthorized to update this passkey name.',
       );
     });
   });

@@ -79,7 +79,7 @@ describe('TelegramSenderService', () => {
           parse_mode: 'Markdown',
           disable_web_page_preview: true,
         },
-        { timeout: 10000 }
+        { timeout: 10000 },
       );
     });
 
@@ -94,7 +94,7 @@ describe('TelegramSenderService', () => {
       };
 
       await expect(telegramSenderService.send(invalidNotification)).rejects.toThrow(
-        'Telegram configuration is incomplete (missing botToken or chatId)'
+        'Telegram configuration is incomplete (missing botToken or chatId)',
       );
 
       expect(mockPost).not.toHaveBeenCalled();
@@ -111,7 +111,7 @@ describe('TelegramSenderService', () => {
       };
 
       await expect(telegramSenderService.send(invalidNotification)).rejects.toThrow(
-        'Telegram configuration is incomplete (missing botToken or chatId)'
+        'Telegram configuration is incomplete (missing botToken or chatId)',
       );
 
       expect(mockPost).not.toHaveBeenCalled();
@@ -128,7 +128,7 @@ describe('TelegramSenderService', () => {
       };
 
       await expect(telegramSenderService.send(invalidNotification)).rejects.toThrow(
-        'Telegram configuration is incomplete'
+        'Telegram configuration is incomplete',
       );
     });
   });
@@ -149,7 +149,7 @@ describe('TelegramSenderService', () => {
       expect(mockPost).toHaveBeenCalledWith(
         expect.stringContaining('my-telegram-proxy.example.com'),
         expect.any(Object),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -167,12 +167,12 @@ describe('TelegramSenderService', () => {
       await telegramSenderService.send(notification);
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Invalid customDomain URL')
+        expect.stringContaining('Invalid customDomain URL'),
       );
       expect(mockPost).toHaveBeenCalledWith(
         expect.stringContaining('api.telegram.org'),
         expect.any(Object),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -191,7 +191,7 @@ describe('TelegramSenderService', () => {
       expect(mockPost).toHaveBeenCalledWith(
         expect.stringMatching(/^https:\/\/proxy\.example\.com:8443\/bot/),
         expect.any(Object),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -210,7 +210,7 @@ describe('TelegramSenderService', () => {
       expect(mockPost).toHaveBeenCalledWith(
         expect.stringContaining('api.telegram.org'),
         expect.any(Object),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -222,7 +222,7 @@ describe('TelegramSenderService', () => {
       });
 
       await expect(telegramSenderService.send(mockNotification)).rejects.toThrow(
-        'Telegram API error: Bad Request: chat not found'
+        'Telegram API error: Bad Request: chat not found',
       );
     });
 
@@ -232,7 +232,7 @@ describe('TelegramSenderService', () => {
       });
 
       await expect(telegramSenderService.send(mockNotification)).rejects.toThrow(
-        'Telegram API error: Unknown error from Telegram API'
+        'Telegram API error: Unknown error from Telegram API',
       );
     });
 
@@ -245,7 +245,7 @@ describe('TelegramSenderService', () => {
       await telegramSenderService.send(mockNotification);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Successfully sent notification')
+        expect.stringContaining('Successfully sent notification'),
       );
     });
   });
@@ -260,7 +260,7 @@ describe('TelegramSenderService', () => {
       mockIsAxiosError.mockReturnValue(true);
 
       await expect(telegramSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send Telegram notification (Axios Error): Network Error'
+        'Failed to send Telegram notification (Axios Error): Network Error',
       );
     });
 
@@ -270,7 +270,7 @@ describe('TelegramSenderService', () => {
       mockIsAxiosError.mockReturnValue(false);
 
       await expect(telegramSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send Telegram notification (Unexpected Error): Unexpected failure'
+        'Failed to send Telegram notification (Unexpected Error): Unexpected failure',
       );
     });
 
@@ -280,7 +280,7 @@ describe('TelegramSenderService', () => {
       mockIsAxiosError.mockReturnValue(false);
 
       await expect(telegramSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send Telegram notification (Unexpected Error)'
+        'Failed to send Telegram notification (Unexpected Error)',
       );
     });
   });
@@ -294,7 +294,7 @@ describe('TelegramSenderService', () => {
         expect.objectContaining({
           parse_mode: 'Markdown',
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -306,7 +306,7 @@ describe('TelegramSenderService', () => {
         expect.objectContaining({
           disable_web_page_preview: true,
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -324,7 +324,7 @@ describe('TelegramSenderService', () => {
         expect.objectContaining({
           text: customBody,
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -343,7 +343,7 @@ describe('TelegramSenderService', () => {
         expect.objectContaining({
           text: '',
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -361,7 +361,7 @@ describe('TelegramSenderService', () => {
         expect.objectContaining({
           text: longBody,
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -379,7 +379,7 @@ describe('TelegramSenderService', () => {
         expect.objectContaining({
           text: bodyWithSpecialChars,
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -408,7 +408,7 @@ describe('TelegramSenderService', () => {
         expect.objectContaining({
           chat_id: '123456789',
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });

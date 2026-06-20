@@ -47,7 +47,7 @@ export function cleanupHeartbeat(ws: AuthenticatedWebSocket): void {
  */
 export function initializeHeartbeat(
   wss: WebSocketServer,
-  config: HeartbeatConfig = DEFAULT_CONFIG
+  config: HeartbeatConfig = DEFAULT_CONFIG,
 ): NodeJS.Timeout {
   // 使用桌面端和移动端中较小的间隔作为检查间隔
   // 这样可以确保移动端连接得到及时检查
@@ -109,12 +109,12 @@ export function initializeHeartbeat(
         if (extWs.missedPongCount > maxMissed) {
           logger.info(
             `WebSocket 心跳检测：${clientType} 客户端 ${extWs.username} (会话: ${extWs.sessionId}) ` +
-              `连续 ${extWs.missedPongCount} 次无响应（阈值: ${maxMissed}），正在终止...`
+              `连续 ${extWs.missedPongCount} 次无响应（阈值: ${maxMissed}），正在终止...`,
           );
           cleanupClientConnection(extWs.sessionId).catch((error: unknown) => {
             logger.debug(
               '[WebSocket] 心跳超时清理连接失败:',
-              error instanceof Error ? error.message : error
+              error instanceof Error ? error.message : error,
             );
           });
           lastPingTime.delete(extWs);
@@ -128,7 +128,7 @@ export function initializeHeartbeat(
         } catch (error: unknown) {
           logger.warn(
             `[WebSocket 心跳] ping 发送失败 (${extWs.username}):`,
-            getErrorMessage(error)
+            getErrorMessage(error),
           );
           lastPingTime.delete(extWs);
           return;

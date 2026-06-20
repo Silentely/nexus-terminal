@@ -489,7 +489,7 @@ export function useWebRTCTunnel() {
     tunnelUrl: string,
     signalingUrl: string,
     preferWebRTC: boolean = true,
-    rtcConfig?: { iceServers?: WebRTCTunnelConfig['iceServers'] }
+    rtcConfig?: { iceServers?: WebRTCTunnelConfig['iceServers'] },
   ): Promise<{ tunnel: GuacamoleTunnel; transport: 'webrtc' | 'websocket' }> {
     // WebRTC 优先
     if (preferWebRTC && typeof window !== 'undefined' && 'RTCPeerConnection' in window) {

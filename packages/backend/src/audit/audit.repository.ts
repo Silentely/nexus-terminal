@@ -128,21 +128,29 @@ export class AuditLogRepository {
       const db = await getDbInstance();
 
       // 使用事务确保原子性：审计日志和 IP 缓存要么都删除，要么都不删除
+      let deletedCount = 0;
       await runDb(db, 'BEGIN TRANSACTION');
       try {
         const result = await runDb(db, 'DELETE FROM audit_logs', []);
-        logger.info(`[审计日志] 已删除所有审计日志，共 ${result.changes} 条记录。`);
+        deletedCount = result.changes;
 
         // 同步清理 IP 地理定位缓存（审计日志清除后缓存不再需要）
         await runDb(db, 'DELETE FROM ip_geo_cache', []);
-        logger.info('[审计日志] 已同步清理 IP 地理定位缓存。');
 
         await runDb(db, 'COMMIT');
-        return result.changes;
+        // 成功日志放在 COMMIT 之后记录，避免回滚时产生误导
+        logger.info(`[审计日志] 已删除所有审计日志，共 ${deletedCount} 条记录。`);
+        logger.info('[审计日志] 已同步清理 IP 地理定位缓存。');
       } catch (err) {
-        await runDb(db, 'ROLLBACK');
+        // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
+        try {
+          await runDb(db, 'ROLLBACK');
+        } catch (rollbackErr) {
+          logger.error('[审计日志] deleteAllLogs rollback 失败:', rollbackErr);
+        }
         throw err;
       }
+      return deletedCount;
     } catch (err: unknown) {
       logger.error(`[审计日志] 删除所有日志时出错: ${getErrorMessage(err)}`);
       throw ErrorFactory.databaseError(

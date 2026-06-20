@@ -148,11 +148,11 @@ const networkRateUnitIsMB = computed(() => {
   const currentTxKB = (props.serverStatus?.netTxRate ?? 0) / 1024;
   const historyPeakRxKB = Math.max(
     ...historyRxBps.filter((v): v is number => v !== null).map((bps) => bps / 1024),
-    0
+    0,
   );
   const historyPeakTxKB = Math.max(
     ...historyTxBps.filter((v): v is number => v !== null).map((bps) => bps / 1024),
-    0
+    0,
   );
   return (
     currentRxKB >= KB_TO_MB_THRESHOLD ||
@@ -221,7 +221,7 @@ const memoryChartData = computed(() => {
 
   if (requiresGB) {
     displayData = historyMB.map((mb) =>
-      mb === null ? null : parseFloat((mb / MB_TO_GB_THRESHOLD).toFixed(1))
+      mb === null ? null : parseFloat((mb / MB_TO_GB_THRESHOLD).toFixed(1)),
     );
   } else {
     displayData = historyMB.map((mb) => (mb === null ? null : parseFloat(mb.toFixed(1))));
@@ -257,10 +257,10 @@ const networkChartData = computed(() => {
   const precision = requiresMB ? 2 : 1;
 
   displayRxData = historyRxBps.map((bps) =>
-    bps === null ? null : parseFloat((bps / divisor).toFixed(precision))
+    bps === null ? null : parseFloat((bps / divisor).toFixed(precision)),
   );
   displayTxData = historyTxBps.map((bps) =>
-    bps === null ? null : parseFloat((bps / divisor).toFixed(precision))
+    bps === null ? null : parseFloat((bps / divisor).toFixed(precision)),
   );
 
   return {
@@ -431,7 +431,7 @@ const updateAxisAndUnits = () => {
       ...historyMB
         .filter((v): v is number => v !== null)
         .map((mb) => (requiresGB ? mb / MB_TO_GB_THRESHOLD : mb)),
-      0
+      0,
     );
     yAxisTopValue = Math.max(yAxisTopValue, currentMaxDataPoint);
 
@@ -511,7 +511,7 @@ watch(
   () => {
     updateAxisAndUnits();
   },
-  { deep: true, immediate: true }
+  { deep: true, immediate: true },
 ); // immediate: true 确保初始加载时设置好轴
 
 // 移除监听 activeSessionId 的 watcher 和 resetChartData 函数

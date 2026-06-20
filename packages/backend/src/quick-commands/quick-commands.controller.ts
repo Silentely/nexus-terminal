@@ -10,7 +10,7 @@ import { logger } from '../utils/logger';
 export const addQuickCommand = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   // 从请求体中解构出 name, command, 以及可选的 tagIds 和 variables
   const { name, command, tagIds, variables } = req.body;
@@ -65,7 +65,7 @@ export const addQuickCommand = async (
 export const getAllQuickCommands = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const sortBy = req.query.sortBy as QuickCommandSortBy | undefined;
   // 验证 sortBy 参数
@@ -87,7 +87,7 @@ export const getAllQuickCommands = async (
 export const updateQuickCommand = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   // 从请求体中解构出 name, command, 以及可选的 tagIds 和 variables
@@ -133,7 +133,7 @@ export const updateQuickCommand = async (
       name,
       command,
       tagIds,
-      variables
+      variables,
     );
     if (success) {
       // 尝试获取更新后的带标签的指令信息返回
@@ -167,7 +167,7 @@ export const updateQuickCommand = async (
 export const deleteQuickCommand = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
@@ -195,7 +195,7 @@ export const deleteQuickCommand = async (
 export const incrementUsage = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
@@ -225,7 +225,7 @@ export const incrementUsage = async (
 export const assignTagToCommands = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   // Add : Promise<void>
   const { commandIds, tagId } = req.body;
@@ -241,7 +241,7 @@ export const assignTagToCommands = async (
   try {
     // 调用 Service 函数处理批量分配
     logger.info(
-      `[Controller] assignTagToCommands: Received commandIds: ${JSON.stringify(commandIds)}, tagId: ${tagId}`
+      `[Controller] assignTagToCommands: Received commandIds: ${JSON.stringify(commandIds)}, tagId: ${tagId}`,
     );
     await QuickCommandsService.assignTagToCommands(commandIds, tagId);
     res.status(200).json({

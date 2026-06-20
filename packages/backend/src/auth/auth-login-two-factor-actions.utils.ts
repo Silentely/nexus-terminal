@@ -153,7 +153,7 @@ export const resolveLoginTwoFactorFailureAction = (payload: {
 };
 
 export const buildLoginTwoFactorSuccessLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'info';
   message: string;

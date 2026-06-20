@@ -112,7 +112,7 @@ describe('connections.store', () => {
       expect(store.connections).toEqual(mockConnections);
       expect(store.isLoading).toBe(false);
       expect(cacheManager.get(CACHE_KEYS.CONNECTIONS, [], connectionCacheOptions)).toEqual(
-        mockConnections
+        mockConnections,
       );
     });
 
@@ -167,7 +167,7 @@ describe('connections.store', () => {
       await store.fetchConnections();
 
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能获取连接列表')
+        expect.stringContaining('未授权，需要登录才能获取连接列表'),
       );
     });
   });
@@ -400,7 +400,7 @@ describe('connections.store', () => {
 
       expect(result).toBe(false);
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能删除连接')
+        expect.stringContaining('未授权，需要登录才能删除连接'),
       );
     });
 
@@ -511,7 +511,7 @@ describe('connections.store', () => {
 
       expect(token).toBe('vnc-token-123');
       expect(apiClient.post).toHaveBeenCalledWith(
-        '/connections/1/vnc-session?width=1024&height=768'
+        '/connections/1/vnc-session?width=1024&height=768',
       );
     });
 
@@ -560,7 +560,7 @@ describe('connections.store', () => {
 
       await expect(store.getVncSessionToken(1)).rejects.toBeDefined();
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能获取 VNC 会话令牌')
+        expect.stringContaining('未授权，需要登录才能获取 VNC 会话令牌'),
       );
     });
   });
@@ -578,7 +578,7 @@ describe('connections.store', () => {
 
       expect(result).toBe(false);
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能删除连接')
+        expect.stringContaining('未授权，需要登录才能删除连接'),
       );
     });
 
@@ -625,7 +625,7 @@ describe('connections.store', () => {
 
       expect(result).toBe(false);
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能添加连接')
+        expect.stringContaining('未授权，需要登录才能添加连接'),
       );
     });
 
@@ -659,7 +659,7 @@ describe('connections.store', () => {
 
       expect(result).toBe(false);
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能更新连接')
+        expect.stringContaining('未授权，需要登录才能更新连接'),
       );
     });
 
@@ -690,7 +690,7 @@ describe('connections.store', () => {
 
       expect(result.success).toBe(false);
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能测试连接')
+        expect.stringContaining('未授权，需要登录才能测试连接'),
       );
     });
 
@@ -732,7 +732,7 @@ describe('connections.store', () => {
       await store.cloneConnection(1, '克隆');
 
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能克隆连接')
+        expect.stringContaining('未授权，需要登录才能克隆连接'),
       );
     });
 
@@ -771,7 +771,7 @@ describe('connections.store', () => {
       await store.addTagToConnectionsAction([1], 3);
 
       expect(mockLog.warn).toHaveBeenCalledWith(
-        expect.stringContaining('未授权，需要登录才能为连接添加标签')
+        expect.stringContaining('未授权，需要登录才能为连接添加标签'),
       );
     });
   });

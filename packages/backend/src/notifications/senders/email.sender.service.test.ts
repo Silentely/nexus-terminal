@@ -76,7 +76,7 @@ describe('EmailSenderService', () => {
             user: 'user',
             pass: 'password',
           },
-        })
+        }),
       );
 
       expect(mockSendMail).toHaveBeenCalledWith(
@@ -84,7 +84,7 @@ describe('EmailSenderService', () => {
           to: 'recipient@example.com',
           subject: '测试邮件',
           html: '<h1>测试内容</h1>',
-        })
+        }),
       );
     });
 
@@ -99,7 +99,7 @@ describe('EmailSenderService', () => {
       expect(mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
           subject: 'Notification',
-        })
+        }),
       );
     });
 
@@ -114,7 +114,7 @@ describe('EmailSenderService', () => {
       };
 
       await expect(emailSenderService.send(invalidNotification)).rejects.toThrow(
-        'Email configuration is incomplete (missing recipient address)'
+        'Email configuration is incomplete (missing recipient address)',
       );
 
       expect(mockCreateTransport).not.toHaveBeenCalled();
@@ -131,7 +131,7 @@ describe('EmailSenderService', () => {
       };
 
       await expect(emailSenderService.send(invalidNotification)).rejects.toThrow(
-        'SMTP host configuration is missing'
+        'SMTP host configuration is missing',
       );
     });
 
@@ -146,7 +146,7 @@ describe('EmailSenderService', () => {
       };
 
       await expect(emailSenderService.send(invalidNotification)).rejects.toThrow(
-        'Invalid SMTP port configured'
+        'Invalid SMTP port configured',
       );
     });
 
@@ -161,7 +161,7 @@ describe('EmailSenderService', () => {
       };
 
       await expect(emailSenderService.send(invalidNotification)).rejects.toThrow(
-        'Invalid SMTP port configured'
+        'Invalid SMTP port configured',
       );
     });
 
@@ -169,7 +169,7 @@ describe('EmailSenderService', () => {
       mockSendMail.mockRejectedValue(new Error('SMTP connection failed'));
 
       await expect(emailSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send email notification: SMTP connection failed'
+        'Failed to send email notification: SMTP connection failed',
       );
     });
   });
@@ -212,7 +212,7 @@ describe('EmailSenderService', () => {
             user: 'global-user',
             pass: 'global-pass',
           },
-        })
+        }),
       );
     });
 
@@ -234,7 +234,7 @@ describe('EmailSenderService', () => {
           host: 'smtp.example.com', // 来自渠道配置
           port: 587, // 来自渠道配置
           secure: false, // 来自渠道配置
-        })
+        }),
       );
     });
 
@@ -253,7 +253,7 @@ describe('EmailSenderService', () => {
       expect(mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
           from: expect.stringContaining('noreply@nexus-terminal.local'),
-        })
+        }),
       );
     });
 
@@ -282,7 +282,7 @@ describe('EmailSenderService', () => {
       expect(mockCreateTransport).toHaveBeenCalledWith(
         expect.objectContaining({
           port: 587, // 默认端口
-        })
+        }),
       );
     });
   });
@@ -307,7 +307,7 @@ describe('EmailSenderService', () => {
       expect(mockCreateTransport).toHaveBeenCalledWith(
         expect.objectContaining({
           auth: undefined,
-        })
+        }),
       );
     });
 
@@ -330,7 +330,7 @@ describe('EmailSenderService', () => {
       expect(mockCreateTransport).toHaveBeenCalledWith(
         expect.objectContaining({
           auth: undefined,
-        })
+        }),
       );
     });
   });
@@ -344,7 +344,7 @@ describe('EmailSenderService', () => {
           tls: expect.objectContaining({
             minVersion: 'TLSv1.2',
           }),
-        })
+        }),
       );
     });
 
@@ -366,7 +366,7 @@ describe('EmailSenderService', () => {
           tls: expect.objectContaining({
             rejectUnauthorized: true,
           }),
-        })
+        }),
       );
     });
   });
@@ -387,7 +387,7 @@ describe('EmailSenderService', () => {
       expect(mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
           from: '"noreply" <noreply@mycompany.com>',
-        })
+        }),
       );
     });
   });
@@ -411,7 +411,7 @@ describe('EmailSenderService', () => {
       expect(mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
           html: '',
-        })
+        }),
       );
     });
 
@@ -426,7 +426,7 @@ describe('EmailSenderService', () => {
       expect(mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
           html: '<p>Test &amp; "quoted" <script>alert(1)</script></p>',
-        })
+        }),
       );
     });
   });

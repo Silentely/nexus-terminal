@@ -122,7 +122,7 @@ describe('IP Blacklist Check Middleware', () => {
     it('isIpBlacklistEnabled 抛出异常时应返回 500', async () => {
       const mockReq = createMockRequest('192.168.1.100');
       vi.mocked(settingsService.isIpBlacklistEnabled).mockRejectedValue(
-        new Error('Settings error')
+        new Error('Settings error'),
       );
 
       await ipBlacklistCheckMiddleware(mockReq as Request, mockRes as Response, mockNext);

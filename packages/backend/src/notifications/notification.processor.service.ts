@@ -80,7 +80,7 @@ class NotificationProcessorService extends EventEmitter {
     try {
       const applicableSettings = await this.repository.getEnabledByEvent(eventKey);
       logger.debug(
-        `[NotificationProcessor] 找到 ${applicableSettings.length} 个适用于事件 ${eventKey} 的设置`
+        `[NotificationProcessor] 找到 ${applicableSettings.length} 个适用于事件 ${eventKey} 的设置`,
       );
 
       if (applicableSettings.length === 0) {
@@ -97,7 +97,7 @@ class NotificationProcessorService extends EventEmitter {
       } catch (error: unknown) {
         logger.error(
           `[NotificationProcessor] 获取语言设置时出错，使用默认 (${defaultLng}):`,
-          error
+          error,
         );
       }
 
@@ -120,7 +120,7 @@ class NotificationProcessorService extends EventEmitter {
     eventType: AppEventType,
     payload: AppEventPayload,
     translatedEvent: string,
-    userLang: string
+    userLang: string,
   ) {
     try {
       const processedNotification = this.prepareNotificationContent(
@@ -128,19 +128,19 @@ class NotificationProcessorService extends EventEmitter {
         eventType,
         payload,
         translatedEvent,
-        userLang
+        userLang,
       );
 
       if (processedNotification) {
         this.emit('sendNotification', processedNotification);
         logger.debug(
-          `[NotificationProcessor] 正在为 ${setting.channel_type} 发送 sendNotification (设置 ID: ${setting.id}, 事件: ${eventType})`
+          `[NotificationProcessor] 正在为 ${setting.channel_type} 发送 sendNotification (设置 ID: ${setting.id}, 事件: ${eventType})`,
         );
       }
     } catch (error: unknown) {
       logger.error(
         `[NotificationProcessor] 为设置 ID ${setting.id} 和事件 ${eventType} 准备通知时出错:`,
-        error
+        error,
       );
     }
   }
@@ -150,7 +150,7 @@ class NotificationProcessorService extends EventEmitter {
     eventType: AppEventType,
     payload: AppEventPayload,
     translatedEvent: string, // The already translated event name (e.g., "登录成功")
-    _lang: string
+    _lang: string,
   ): ProcessedNotification | null {
     const baseInterpolationData = {
       event: translatedEvent,

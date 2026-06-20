@@ -102,7 +102,7 @@ export const useConnectionsStore = defineStore('connections', () => {
     try {
       await apiClient.post<{ message: string; connection: ConnectionInfo }>(
         '/connections',
-        newConnectionData
+        newConnectionData,
       );
       cacheManager.remove(CACHE_KEYS.CONNECTIONS);
       await fetchConnections();
@@ -140,14 +140,14 @@ export const useConnectionsStore = defineStore('connections', () => {
         tag_ids?: number[];
         jump_chain?: number[] | null;
       }
-    >
+    >,
   ) {
     isLoading.value = true;
     error.value = null;
     try {
       await apiClient.put<{ message: string; connection: ConnectionInfo }>(
         `/connections/${connectionId}`,
-        updatedData
+        updatedData,
       );
       cacheManager.remove(CACHE_KEYS.CONNECTIONS);
       await fetchConnections();
@@ -197,7 +197,7 @@ export const useConnectionsStore = defineStore('connections', () => {
    * @returns An object with `success: true` when deletion succeeded; otherwise `success: false` and a `message` describing the failure
    */
   async function _deleteConnection(
-    connectionId: number
+    connectionId: number,
   ): Promise<{ success: boolean; message?: string }> {
     try {
       await apiClient.delete(`/connections/${connectionId}`);
@@ -239,7 +239,7 @@ export const useConnectionsStore = defineStore('connections', () => {
         individualErrors.push(
           result.message
             ? `删除连接 ID ${id} 失败: ${result.message}`
-            : `删除连接 ID ${id} 失败 (未知原因)`
+            : `删除连接 ID ${id} 失败 (未知原因)`,
         );
       }
     }
@@ -262,7 +262,7 @@ export const useConnectionsStore = defineStore('connections', () => {
    * @returns An object with `success` indicating whether the test succeeded, an optional `message` for user-facing details, and an optional `latency` measured in milliseconds
    */
   async function testConnection(
-    connectionId: number
+    connectionId: number,
   ): Promise<{ success: boolean; message?: string; latency?: number }> {
     try {
       const response = await apiClient.post<{
@@ -320,7 +320,7 @@ export const useConnectionsStore = defineStore('connections', () => {
    */
   async function addTagToConnectionsAction(
     connectionIds: number[],
-    tagId: number
+    tagId: number,
   ): Promise<boolean> {
     if (connectionIds.length === 0) return true;
     isLoading.value = true;
@@ -381,7 +381,7 @@ export const useConnectionsStore = defineStore('connections', () => {
   async function getVncSessionToken(
     connectionId: number,
     width?: number,
-    height?: number
+    height?: number,
   ): Promise<string | null> {
     try {
       let apiUrl = `/connections/${connectionId}/vnc-session`;

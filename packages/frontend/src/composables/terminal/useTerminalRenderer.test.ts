@@ -226,7 +226,7 @@ describe('useTerminalRenderer 渲染器管理', () => {
       const terminal = ref(makeTerminal() as any);
       const { startMonitoring, stopMonitoring, fps, getMetrics } = useTerminalRenderer(
         terminal,
-        's1'
+        's1',
       );
 
       // 验证初始 FPS 为 0

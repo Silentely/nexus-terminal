@@ -39,7 +39,7 @@ describe('ssrf-guard', () => {
       vi.mocked(dns.resolve6).mockResolvedValue([]);
 
       await expect(safeHttpGet('http://internal.example.com/api')).rejects.toThrow(
-        '目标地址解析到不允许的网络范围'
+        '目标地址解析到不允许的网络范围',
       );
     });
 
@@ -48,7 +48,7 @@ describe('ssrf-guard', () => {
       vi.mocked(dns.resolve6).mockRejectedValue(new Error('ENOTFOUND'));
 
       await expect(safeHttpGet('https://api.openai.com/')).rejects.toThrow(
-        '目标域名无法解析，无法验证地址安全性，请求已阻止。'
+        '目标域名无法解析，无法验证地址安全性，请求已阻止。',
       );
     });
 
@@ -70,13 +70,13 @@ describe('ssrf-guard', () => {
 
     it('应阻止回环地址的请求', async () => {
       await expect(safeHttpGet('http://127.0.0.1/admin')).rejects.toThrow(
-        '目标地址解析到不允许的网络范围'
+        '目标地址解析到不允许的网络范围',
       );
     });
 
     it('应阻止链路本地地址的请求', async () => {
       await expect(safeHttpGet('http://169.254.169.254/metadata')).rejects.toThrow(
-        '目标地址解析到不允许的网络范围'
+        '目标地址解析到不允许的网络范围',
       );
     });
 
@@ -102,7 +102,7 @@ describe('ssrf-guard', () => {
           timeout: 5000,
           headers: { Authorization: 'Bearer test' },
           maxRedirects: 0,
-        })
+        }),
       );
     });
   });
@@ -113,7 +113,7 @@ describe('ssrf-guard', () => {
       vi.mocked(dns.resolve6).mockResolvedValue([]);
 
       await expect(
-        safeHttpPost('http://internal.example.com/api', { data: 'test' })
+        safeHttpPost('http://internal.example.com/api', { data: 'test' }),
       ).rejects.toThrow('目标地址解析到不允许的网络范围');
     });
 

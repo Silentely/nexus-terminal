@@ -33,7 +33,7 @@ const upload = multer({
 export const getAllThemesController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const themes = await terminalThemeService.getAllThemes();
@@ -49,7 +49,7 @@ export const getAllThemesController = async (
 export const getThemeByIdController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -74,7 +74,7 @@ export const getThemeByIdController = async (
 export const createThemeController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const themeDto: CreateTerminalThemeDto = req.body;
@@ -101,7 +101,7 @@ export const createThemeController = async (
 export const updateThemeController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -137,7 +137,7 @@ export const updateThemeController = async (
 export const deleteThemeController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -163,7 +163,7 @@ export const deleteThemeController = async (
 export const importThemeController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   if (!req.file) {
     res.status(400).json({ message: '没有上传文件' });
@@ -223,7 +223,7 @@ export const importThemeController = async (
 export const exportThemeController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const id = parseInt(req.params.id, 10);

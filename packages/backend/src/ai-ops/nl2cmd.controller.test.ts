@@ -101,7 +101,7 @@ describe('NL2CMD Controller', () => {
           shellType: 'bash',
           currentPath: undefined,
         },
-        expect.any(String)
+        expect.any(String),
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockResult);
@@ -215,7 +215,7 @@ describe('NL2CMD Controller', () => {
       expect(NL2CMDService.saveAISettings).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ success: true, message: 'AI 配置已保存' })
+        expect.objectContaining({ success: true, message: 'AI 配置已保存' }),
       );
     });
   });

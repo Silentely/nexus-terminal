@@ -40,7 +40,7 @@ watch(
     // Add type annotation for newVal
     log.info('[ConnectionList] Received connections prop:', JSON.stringify(newVal, null, 2));
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 // 创建标签 ID 到名称的映射

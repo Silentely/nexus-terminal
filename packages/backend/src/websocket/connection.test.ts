@@ -83,7 +83,7 @@ class MockWebSocketServer extends EventEmitter {
 }
 
 function createMockWebSocket(
-  overrides: Partial<AuthenticatedWebSocket> = {}
+  overrides: Partial<AuthenticatedWebSocket> = {},
 ): AuthenticatedWebSocket {
   const ws = new EventEmitter() as AuthenticatedWebSocket;
   ws.readyState = WebSocket.OPEN;
@@ -122,8 +122,8 @@ describe('WebSocket Connection Handler', () => {
           type: 'ssh:exec_silent',
           requestId: 'req-ssh-silent-1',
           payload: { command: 'pwd', timeoutMs: 5000 },
-        })
-      )
+        }),
+      ),
     );
     await Promise.resolve();
 
@@ -132,7 +132,7 @@ describe('WebSocket Connection Handler', () => {
       ws,
       { command: 'pwd', timeoutMs: 5000 },
       'req-ssh-silent-1',
-      undefined
+      undefined,
     );
   });
 
@@ -158,7 +158,7 @@ describe('WebSocket Connection Handler', () => {
     const parsedMessage = JSON.parse(rawMessage);
     expect(parsedMessage.type).toBe('error');
     expect(parsedMessage.payload).toContain(
-      'payload.command 或 payload.commandsByShell 至少提供一个'
+      'payload.command 或 payload.commandsByShell 至少提供一个',
     );
   });
 
@@ -187,8 +187,8 @@ describe('WebSocket Connection Handler', () => {
         JSON.stringify({
           type: 'SSH_MARK_FOR_SUSPEND',
           payload: { sessionId: 'sid-stale-1' },
-        })
-      )
+        }),
+      ),
     );
     await Promise.resolve();
 
@@ -226,8 +226,8 @@ describe('WebSocket Connection Handler', () => {
         JSON.stringify({
           type: 'SSH_UNMARK_FOR_SUSPEND',
           payload: { sessionId: 'sid-stale-2' },
-        })
-      )
+        }),
+      ),
     );
     await Promise.resolve();
 
@@ -274,7 +274,7 @@ describe('WebSocket Connection Handler', () => {
       wss.emit('connection', ws, request);
       ws.emit(
         'message',
-        Buffer.from(JSON.stringify({ type: 'ssh:input', sid: 'target-session', payload: 'ls\n' }))
+        Buffer.from(JSON.stringify({ type: 'ssh:input', sid: 'target-session', payload: 'ls\n' })),
       );
       await Promise.resolve();
 
@@ -312,8 +312,8 @@ describe('WebSocket Connection Handler', () => {
             type: 'ssh:resize',
             sid: 'target-session',
             payload: { cols: 120, rows: 40 },
-          })
-        )
+          }),
+        ),
       );
       await Promise.resolve();
 
@@ -359,7 +359,7 @@ describe('WebSocket Connection Handler', () => {
       wss.emit('connection', ws, request);
       ws.emit(
         'message',
-        Buffer.from(JSON.stringify({ type: 'ssh:input', sid: 'non-existent', payload: 'ls\n' }))
+        Buffer.from(JSON.stringify({ type: 'ssh:input', sid: 'non-existent', payload: 'ls\n' })),
       );
       await Promise.resolve();
 
@@ -399,7 +399,7 @@ describe('WebSocket Connection Handler', () => {
       wss.emit('connection', ws, request);
       ws.emit(
         'message',
-        Buffer.from(JSON.stringify({ type: 'ssh:input', sid: 'other-session', payload: 'ls\n' }))
+        Buffer.from(JSON.stringify({ type: 'ssh:input', sid: 'other-session', payload: 'ls\n' })),
       );
       await Promise.resolve();
 
@@ -435,8 +435,8 @@ describe('WebSocket Connection Handler', () => {
       ws.emit(
         'message',
         Buffer.from(
-          JSON.stringify({ type: 'ssh:input', sid: 'other-user-session', payload: 'ls\n' })
-        )
+          JSON.stringify({ type: 'ssh:input', sid: 'other-user-session', payload: 'ls\n' }),
+        ),
       );
       await Promise.resolve();
 
@@ -468,8 +468,8 @@ describe('WebSocket Connection Handler', () => {
             type: 'ssh:connect',
             sid: 'frontend-temp-sid',
             payload: { connectionId: 1 },
-          })
-        )
+          }),
+        ),
       );
       await Promise.resolve();
 
@@ -478,7 +478,7 @@ describe('WebSocket Connection Handler', () => {
         ws,
         request,
         { connectionId: 1 },
-        'frontend-temp-sid'
+        'frontend-temp-sid',
       );
       // 不应发送"会话不存在"错误
       const sendCalls = (ws.send as any).mock.calls;

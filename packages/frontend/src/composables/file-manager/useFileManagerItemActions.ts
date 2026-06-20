@@ -97,7 +97,7 @@ export function useFileManagerItemActions(options: UseFileManagerItemActionsOpti
     if (item.attrs.isSymbolicLink) {
       if (manager.isLoading.value) return;
       log.info(
-        `${logPrefix.value} Symbolic link clicked: ${itemPath}. Attempting to resolve with sftp:realpath...`
+        `${logPrefix.value} Symbolic link clicked: ${itemPath}. Attempting to resolve with sftp:realpath...`,
       );
 
       const wsDeps = getWsDepsFromSession(sessionStore, sessionId.value);
@@ -108,7 +108,7 @@ export function useFileManagerItemActions(options: UseFileManagerItemActionsOpti
       const handleResolvedPath = (
         realPath: string,
         targetType: 'file' | 'directory' | 'unknown',
-        originalLinkItem: FileListItem
+        originalLinkItem: FileListItem,
       ) => {
         if (!currentSftpManager.value) return;
 
@@ -118,7 +118,7 @@ export function useFileManagerItemActions(options: UseFileManagerItemActionsOpti
           // 'file' 或 'unknown' 统一按文件处理
           if (targetType !== 'file') {
             log.warn(
-              `${logPrefix.value} Symlink target '${realPath}' has an unknown type ('${targetType}'). Defaulting to open as file.`
+              `${logPrefix.value} Symlink target '${realPath}' has an unknown type ('${targetType}'). Defaulting to open as file.`,
             );
           }
           const targetFilename =
@@ -172,20 +172,20 @@ export function useFileManagerItemActions(options: UseFileManagerItemActionsOpti
             if (!absolutePath) {
               log.error(
                 `${logPrefix.value} sftp:realpath:success for ${itemPath} missing absolutePath. Payload:`,
-                p
+                p,
               );
               return;
             }
             if (!targetType) {
               log.warn(
                 `${logPrefix.value} sftp:realpath:success for ${itemPath} missing targetType. Defaulting to 'file'. Payload:`,
-                p
+                p,
               );
             }
 
             handleResolvedPath(absolutePath, targetType || 'unknown', item);
           }
-        }
+        },
       );
 
       unregisterError = wsOnMessage(
@@ -198,17 +198,17 @@ export function useFileManagerItemActions(options: UseFileManagerItemActionsOpti
             const serverErrorMsg = p.error || 'Unknown error resolving symlink target type';
             const resolvedPathInfo = p.absolutePath ? ` (Resolved path: ${p.absolutePath})` : '';
             log.error(
-              `${logPrefix.value} Failed to get realpath for symlink '${itemPath}': ${serverErrorMsg}${resolvedPathInfo}`
+              `${logPrefix.value} Failed to get realpath for symlink '${itemPath}': ${serverErrorMsg}${resolvedPathInfo}`,
             );
             showError(`Failed to resolve symlink: ${serverErrorMsg}`);
           }
-        }
+        },
       );
 
       timeoutId = setTimeout(() => {
         cleanupListeners();
         log.error(
-          `${logPrefix.value} Timeout getting realpath for symlink '${itemPath}' (ID: ${requestId}).`
+          `${logPrefix.value} Timeout getting realpath for symlink '${itemPath}' (ID: ${requestId}).`,
         );
         showError(`Timeout resolving symlink: ${itemPath}`);
       }, 10000);
@@ -261,7 +261,7 @@ export function useFileManagerItemActions(options: UseFileManagerItemActionsOpti
       getClearSelection()();
     }
     log.info(
-      `${logPrefix.value} Multi-select mode: ${isMultiSelectMode.value ? 'enabled' : 'disabled'}`
+      `${logPrefix.value} Multi-select mode: ${isMultiSelectMode.value ? 'enabled' : 'disabled'}`,
     );
   };
 

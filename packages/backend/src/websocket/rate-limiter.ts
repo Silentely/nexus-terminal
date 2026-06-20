@@ -1,6 +1,9 @@
 /**
  * WebSocket 消息速率限制器
- * 使用滑动窗口算法防止恶意客户端高频消息导致 DoS
+ * 使用固定窗口计数算法（Fixed Window Counter）防止恶意客户端高频消息导致 DoS
+ *
+ * 注意：固定窗口在窗口边界可能允许瞬时双倍流量（窗口末尾 + 新窗口开始各 maxMessages 条），
+ * 对于 WebSocket 消息限流场景该精度足够。若未来需要更严格的边界控制，可升级为滑动窗口。
  */
 
 import { logger } from '../utils/logger';
@@ -19,6 +22,8 @@ interface SessionRateState {
   count: number;
   /** 当前窗口起始时间戳 */
   windowStart: number;
+  /** 当前窗口是否已记录过超限日志（用于日志采样，避免攻击流量刷屏） */
+  limitLogged: boolean;
 }
 
 /** 默认速率限制配置（每种消息类型的限制） */
@@ -37,6 +42,11 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   'sftp:rmdir': { maxMessages: 10, windowMs: 1000 },
   'sftp:unlink': { maxMessages: 10, windowMs: 1000 },
   'sftp:rename': { maxMessages: 10, windowMs: 1000 },
+  // 大文件分块上传：前端可能高频发送分块，阈值较高
+  'sftp:upload:chunk': { maxMessages: 200, windowMs: 1000 },
+  // 上传启动：管理类操作，限制严格
+  'sftp:upload:start': { maxMessages: 10, windowMs: 1000 },
+  'sftp:upload:cancel': { maxMessages: 10, windowMs: 1000 },
 
   // Docker 操作：轮询 Docker API，限制严格
   'docker:get_status': { maxMessages: 5, windowMs: 1000 },
@@ -111,21 +121,26 @@ export function checkRateLimit(sessionId: string, messageType: string): boolean 
   // 获取或创建该消息类型的状态
   let state = typeStates.get(messageType);
   if (!state) {
-    state = { count: 0, windowStart: now };
+    state = { count: 0, windowStart: now, limitLogged: false };
     typeStates.set(messageType, state);
   }
 
-  // 滑动窗口：如果当前窗口已过期，重置计数
+  // 固定窗口：如果当前窗口已过期，重置计数
   if (now - state.windowStart >= config.windowMs) {
     state.count = 0;
     state.windowStart = now;
+    state.limitLogged = false; // 新窗口重置日志采样标志
   }
 
   // 检查是否超过限制
   if (state.count >= config.maxMessages) {
-    logger.warn(
-      `[RateLimiter] 会话 ${sessionId} 消息类型 ${messageType} 超过速率限制: ${state.count}/${config.maxMessages} per ${config.windowMs}ms`,
-    );
+    // 日志采样：每个窗口只记录一次超限，避免攻击流量刷屏
+    if (!state.limitLogged) {
+      logger.warn(
+        `[RateLimiter] 会话 ${sessionId} 消息类型 ${messageType} 超过速率限制: ${state.count}/${config.maxMessages} per ${config.windowMs}ms`,
+      );
+      state.limitLogged = true;
+    }
     return false;
   }
 

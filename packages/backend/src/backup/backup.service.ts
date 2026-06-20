@@ -191,7 +191,7 @@ export async function exportData(): Promise<BackupPayload> {
 /** 从备份数据导入到数据库（事务性：失败时回滚） */
 export async function importData(
   payload: BackupPayload,
-  options: ImportOptions = {}
+  options: ImportOptions = {},
 ): Promise<ImportResult> {
   const db = await getDbInstance();
   const { overwrite = false, tables } = options;

@@ -30,7 +30,7 @@ export interface UseFileManagerSortFilterReturn {
 }
 
 export const useFileManagerSortFilter = (
-  options: UseFileManagerSortFilterOptions
+  options: UseFileManagerSortFilterOptions,
 ): UseFileManagerSortFilterReturn => {
   const { fileList } = options;
 
@@ -93,7 +93,7 @@ export const useFileManagerSortFilter = (
     }
     const lowerCaseQuery = searchQuery.value.toLowerCase();
     return sortedFileList.value.filter((item) =>
-      item.filename.toLowerCase().includes(lowerCaseQuery)
+      item.filename.toLowerCase().includes(lowerCaseQuery),
     );
   });
 

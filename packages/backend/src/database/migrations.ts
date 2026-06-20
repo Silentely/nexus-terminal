@@ -20,6 +20,8 @@ interface Migration {
   name: string;
   sql: string; // 可以是多条 SQL 语句，用 ; 分隔。db.exec 会处理。
   check?: (db: Database) => Promise<boolean>; // 可选的前置检查函数
+  // 可选的事务外预执行 SQL（如 PRAGMA，SQLite 要求此类语句在事务外执行）
+  preSql?: string;
 }
 
 interface TableInfoColumn {
@@ -514,7 +516,6 @@ const definedMigrations: Migration[] = [
       }
     },
     sql: `
-            PRAGMA foreign_keys=off;
 
             -- 步骤 1: 重命名旧表
             ALTER TABLE connections RENAME TO connections_old_for_telnet_fix;
@@ -586,9 +587,11 @@ const definedMigrations: Migration[] = [
             CREATE INDEX IF NOT EXISTS idx_connections_proxy_id ON connections(proxy_id);
             CREATE INDEX IF NOT EXISTS idx_connections_ssh_key_id ON connections(ssh_key_id);
             CREATE INDEX IF NOT EXISTS idx_connection_tags_tag_id ON connection_tags(tag_id);
-
-            PRAGMA foreign_keys=on;
         `,
+    // PRAGMA 必须在事务外执行（SQLite 限制），通过 preSql 在 BEGIN TRANSACTION 前运行
+    preSql: `
+            PRAGMA foreign_keys=off;
+    `,
   },
 ];
 
@@ -642,6 +645,33 @@ export const runMigrations = (db: Database): Promise<void> => {
               for (const migration of migrationsToApply) {
                 // 使用 for...of 循环
                 logger.info(`[Migrations] 应用迁移 #${migration.id}: ${migration.name}...`);
+
+                // 执行事务外预 SQL（如 PRAGMA foreign_keys=off，SQLite 要求此类语句在事务外执行）
+                if (migration.preSql) {
+                  await new Promise<void>((resolvePre, rejectPre) => {
+                    db.exec(migration.preSql!, (preErr) => {
+                      if (preErr) {
+                        // 与主 SQL 一致，"duplicate column name" 视为可接受
+                        if (preErr.message.includes('duplicate column name')) {
+                          logger.warn(
+                            `[Migrations] 迁移 #${migration.id} preSql 出现 'duplicate column name'，视为可接受。`,
+                          );
+                          resolvePre();
+                        } else {
+                          logger.error(
+                            `[Migrations] 迁移 #${migration.id} preSql 执行失败:`,
+                            preErr,
+                          );
+                          rejectPre(
+                            new Error(`迁移 #${migration.id} preSql 失败: ${preErr.message}`),
+                          );
+                        }
+                      } else {
+                        resolvePre();
+                      }
+                    });
+                  });
+                }
 
                 // 开始事务
                 await new Promise<void>((resolveTx, rejectTx) => {
@@ -732,19 +762,34 @@ export const runMigrations = (db: Database): Promise<void> => {
                   const migrationStepErrMsg = getErrorMessage(migrationStepError);
                   logger.error(`[Migrations] 迁移 #${migration.id} 步骤失败，正在回滚事务...`);
                   await new Promise<void>((resolveRollback) => {
-                    // No reject needed for rollback itself
+                    // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
                     db.run('ROLLBACK', (rollbackErr) => {
                       if (rollbackErr)
                         logger.error(
                           `[Migrations] 回滚迁移 #${migration.id} 事务失败:`,
                           rollbackErr,
                         );
-                      // 拒绝整个迁移过程
+                      // 拒绝整个迁移过程（保留原始错误信息）
                       reject(new Error(`迁移 #${migration.id} 失败: ${migrationStepErrMsg}`));
                       resolveRollback(); // Indicate rollback attempt finished
                     });
                   });
                   return; // 停止应用后续迁移
+                }
+
+                // 迁移事务提交成功后，若执行了 preSql（如关闭 FK），在此恢复
+                if (migration.preSql) {
+                  await new Promise<void>((resolveRestore, rejectRestore) => {
+                    db.exec('PRAGMA foreign_keys=on;', (restoreErr) => {
+                      if (restoreErr) {
+                        logger.warn(
+                          `[Migrations] 恢复 foreign_keys=on 失败 (迁移 #${migration.id}):`,
+                          restoreErr,
+                        );
+                      }
+                      resolveRestore(); // 即使恢复失败也继续，避免阻塞后续迁移
+                    });
+                  });
                 }
               }
 

@@ -94,7 +94,7 @@ describe('WebhookSenderService', () => {
       };
 
       await expect(webhookSenderService.send(invalidNotification)).rejects.toThrow(
-        'Webhook configuration is incomplete (missing URL)'
+        'Webhook configuration is incomplete (missing URL)',
       );
 
       expect(mockAxios).not.toHaveBeenCalled();
@@ -111,7 +111,7 @@ describe('WebhookSenderService', () => {
       };
 
       await expect(webhookSenderService.send(invalidNotification)).rejects.toThrow(
-        'Invalid webhook URL format'
+        'Invalid webhook URL format',
       );
 
       expect(mockAxios).not.toHaveBeenCalled();
@@ -136,9 +136,9 @@ describe('WebhookSenderService', () => {
         expect(mockAxios).toHaveBeenCalledWith(
           expect.objectContaining({
             method,
-          })
+          }),
         );
-      }
+      },
     );
 
     it('应将小写方法转为大写', async () => {
@@ -156,7 +156,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'POST',
-        })
+        }),
       );
     });
 
@@ -174,7 +174,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           method: 'POST',
-        })
+        }),
       );
     });
 
@@ -189,7 +189,7 @@ describe('WebhookSenderService', () => {
       };
 
       await expect(webhookSenderService.send(notification)).rejects.toThrow(
-        'Invalid HTTP method specified: INVALID'
+        'Invalid HTTP method specified: INVALID',
       );
 
       expect(mockAxios).not.toHaveBeenCalled();
@@ -214,7 +214,7 @@ describe('WebhookSenderService', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
           }),
-        })
+        }),
       );
     });
 
@@ -240,7 +240,7 @@ describe('WebhookSenderService', () => {
             Authorization: 'Bearer token123',
             'X-Api-Key': 'api-key-456',
           },
-        })
+        }),
       );
     });
 
@@ -265,7 +265,7 @@ describe('WebhookSenderService', () => {
             'Content-Type': 'application/xml',
           }),
           data: '<event>LOGIN_SUCCESS</event>', // 非 JSON 应作为原始字符串发送
-        })
+        }),
       );
     });
   });
@@ -282,7 +282,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { key: 'value', number: 123 },
-        })
+        }),
       );
     });
 
@@ -296,12 +296,12 @@ describe('WebhookSenderService', () => {
       await webhookSenderService.send(notification);
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to parse request body as JSON')
+        expect.stringContaining('Failed to parse request body as JSON'),
       );
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           data: 'invalid json {',
-        })
+        }),
       );
     });
 
@@ -319,7 +319,7 @@ describe('WebhookSenderService', () => {
       await webhookSenderService.send(notification);
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Sending data in body for GET request')
+        expect.stringContaining('Sending data in body for GET request'),
       );
     });
 
@@ -339,7 +339,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { test: true },
-        })
+        }),
       );
     });
   });
@@ -362,12 +362,12 @@ describe('WebhookSenderService', () => {
 
       // 非 2xx 应抛出错误以触发重试/错误上报
       await expect(webhookSenderService.send(mockNotification)).rejects.toThrow(
-        'Webhook endpoint rejected the request (HTTP 302)'
+        'Webhook endpoint rejected the request (HTTP 302)',
       );
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('responded with status: 302'),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });
@@ -383,7 +383,7 @@ describe('WebhookSenderService', () => {
       mockIsAxiosError.mockReturnValue(true);
 
       await expect(webhookSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send webhook notification (Axios Error): Connection refused'
+        'Failed to send webhook notification (Axios Error): Connection refused',
       );
     });
 
@@ -393,7 +393,7 @@ describe('WebhookSenderService', () => {
       mockIsAxiosError.mockReturnValue(false);
 
       await expect(webhookSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send webhook notification (Unexpected Error): Unexpected failure'
+        'Failed to send webhook notification (Unexpected Error): Unexpected failure',
       );
     });
 
@@ -403,7 +403,7 @@ describe('WebhookSenderService', () => {
       mockIsAxiosError.mockReturnValue(false);
 
       await expect(webhookSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send webhook notification (Unexpected Error)'
+        'Failed to send webhook notification (Unexpected Error)',
       );
     });
 
@@ -414,7 +414,7 @@ describe('WebhookSenderService', () => {
       mockIsAxiosError.mockReturnValue(true);
 
       await expect(webhookSenderService.send(mockNotification)).rejects.toThrow(
-        'Failed to send webhook notification (Axios Error): timeout of 15000ms exceeded'
+        'Failed to send webhook notification (Axios Error): timeout of 15000ms exceeded',
       );
     });
   });
@@ -453,7 +453,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           data: JSON.parse(complexBody),
-        })
+        }),
       );
     });
 
@@ -463,7 +463,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           timeout: 15000,
-        })
+        }),
       );
     });
 
@@ -482,7 +482,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           url: 'https://webhook.example.com:8443/notify',
-        })
+        }),
       );
     });
 
@@ -501,7 +501,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           url: 'https://webhook.example.com/notify?token=abc&version=1',
-        })
+        }),
       );
     });
 
@@ -520,7 +520,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           url: 'http://internal-service.local/webhook',
-        })
+        }),
       );
     });
 
@@ -539,7 +539,7 @@ describe('WebhookSenderService', () => {
       expect(mockAxios).toHaveBeenCalledWith(
         expect.objectContaining({
           data: JSON.parse(bodyWithSpecialChars),
-        })
+        }),
       );
     });
   });
@@ -551,7 +551,7 @@ describe('WebhookSenderService', () => {
       await webhookSenderService.send(mockNotification);
 
       expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining('Sending POST notification to webhook URL')
+        expect.stringContaining('Sending POST notification to webhook URL'),
       );
     });
 
@@ -576,7 +576,7 @@ describe('WebhookSenderService', () => {
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('Axios error sending notification'),
         expect.any(Number),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });

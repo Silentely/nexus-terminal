@@ -193,7 +193,7 @@ export const useAppearanceStore = defineStore('appearance', () => {
       visible === undefined ? !isStyleCustomizerVisible.value : visible;
     log.info(
       '[AppearanceStore] Style Customizer visibility toggled:',
-      isStyleCustomizerVisible.value
+      isStyleCustomizerVisible.value,
     );
   }
 

@@ -156,7 +156,7 @@ const sendCommand = () => {
   // 如果是空回车，并且有活动会话，则请求滚动到底部
   if (command.trim() === '' && activeSessionId.value) {
     log.info(
-      `[CommandInputBar] Empty Enter detected. Requesting scroll to bottom for session: ${activeSessionId.value}`
+      `[CommandInputBar] Empty Enter detected. Requesting scroll to bottom for session: ${activeSessionId.value}`,
     );
     emitWorkspaceEvent('terminal:scrollToBottomRequest', { sessionId: activeSessionId.value });
   }
@@ -240,7 +240,7 @@ const handleCommandInputKeydown = (event: KeyboardEvent) => {
     if (selectedCommand !== undefined) {
       event.preventDefault();
       log.info(
-        `[CommandInputBar] Enter detected with selection. Sending selected command: ${selectedCommand}`
+        `[CommandInputBar] Enter detected with selection. Sending selected command: ${selectedCommand}`,
       );
       emitWorkspaceEvent('terminal:sendCommand', { command: selectedCommand }); // 发送选中命令
       if (activeSessionId.value) {
@@ -336,7 +336,7 @@ watch(
       log.info('[CommandInputBar] Received terminal search activation trigger from store.');
       toggleSearch(); // 调用组件内部的切换搜索方法来激活
     }
-  }
+  },
 );
 
 // --- Focus Actions ---
@@ -377,11 +377,11 @@ let unregisterTerminalSearchFocus: (() => void) | null = null;
 onMounted(() => {
   unregisterCommandInputFocus = focusSwitcherStore.registerFocusAction(
     'commandInput',
-    focusCommandInput
+    focusCommandInput,
   );
   unregisterTerminalSearchFocus = focusSwitcherStore.registerFocusAction(
     'terminalSearch',
-    focusSearchInput
+    focusSearchInput,
   );
 });
 
@@ -416,7 +416,7 @@ const closeSuspendedSshSessionsModal = () => {
 const openFileManagerModal = () => {
   if (activeSessionId.value) {
     log.info(
-      `[CommandInputBar] Emitting fileManager:openModalRequest for session: ${activeSessionId.value}`
+      `[CommandInputBar] Emitting fileManager:openModalRequest for session: ${activeSessionId.value}`,
     );
     emitWorkspaceEvent('fileManager:openModalRequest', { sessionId: activeSessionId.value });
   } else {

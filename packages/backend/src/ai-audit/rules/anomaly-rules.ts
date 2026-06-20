@@ -107,7 +107,7 @@ const PRIVILEGE_ESCALATION_PATTERNS = [
 function detectBruteForceLogin(
   loginEvents: Array<{ ip: string; success: boolean; timestamp: number }>,
   timeRangeStart: number,
-  timeRangeEnd: number
+  timeRangeEnd: number,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
   const oneHour = 3600; // 1 小时秒数（与数据库时间戳单位一致）
@@ -158,7 +158,7 @@ function detectBruteForceLogin(
  * 检测危险命令
  */
 function detectDangerousCommands(
-  commands: Array<{ command: string; timestamp: number }>
+  commands: Array<{ command: string; timestamp: number }>,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
 
@@ -190,7 +190,7 @@ function detectDangerousCommands(
 function detectUnusualHours(
   events: Array<{ timestamp: number }>,
   timeRangeStart: number,
-  timeRangeEnd: number
+  timeRangeEnd: number,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
   const suspiciousHours = [0, 1, 2, 3, 4]; // 0:00-4:59
@@ -227,14 +227,14 @@ function detectUnusualHours(
  * 检测权限提升模式
  */
 function detectPrivilegeEscalation(
-  commands: Array<{ command: string; timestamp: number }>
+  commands: Array<{ command: string; timestamp: number }>,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
   const tenMinutes = 600; // 10 分钟秒数（与数据库时间戳单位一致）
 
   // 找出所有权限提升命令
   const escalationCommands = commands.filter(({ command }) =>
-    PRIVILEGE_ESCALATION_PATTERNS.some((p) => p.test(command))
+    PRIVILEGE_ESCALATION_PATTERNS.some((p) => p.test(command)),
   );
 
   // 检测 10 分钟内 >= 3 次
@@ -242,7 +242,7 @@ function detectPrivilegeEscalation(
     const windowStart = escalationCommands[i].timestamp;
     const windowEnd = windowStart + tenMinutes;
     const countInWindow = escalationCommands.filter(
-      (c) => c.timestamp >= windowStart && c.timestamp < windowEnd
+      (c) => c.timestamp >= windowStart && c.timestamp < windowEnd,
     ).length;
 
     if (countInWindow >= 3) {
@@ -270,7 +270,7 @@ function detectPrivilegeEscalation(
 function detectCommandFrequencySpike(
   commands: Array<{ command: string; timestamp: number }>,
   timeRangeStart: number,
-  timeRangeEnd: number
+  timeRangeEnd: number,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
   const fiveMinutes = 300; // 5 分钟秒数
@@ -318,14 +318,14 @@ function detectCommandFrequencySpike(
 function detectConnectionChurn(
   connectionEvents: Array<{ type: string; timestamp: number }>,
   timeRangeStart: number,
-  timeRangeEnd: number
+  timeRangeEnd: number,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
   const fiveMinutes = 300; // 5 分钟秒数
 
   // 统计 5 分钟窗口内的连接事件数
   const connectEvents = connectionEvents.filter(
-    (e) => e.timestamp >= timeRangeStart && e.timestamp <= timeRangeEnd
+    (e) => e.timestamp >= timeRangeStart && e.timestamp <= timeRangeEnd,
   );
 
   const windowCounts = new Map<number, number>();
@@ -361,7 +361,7 @@ function detectConnectionChurn(
 function detectFailedConnectionCluster(
   connectionEvents: Array<{ type: string; timestamp: number }>,
   timeRangeStart: number,
-  timeRangeEnd: number
+  timeRangeEnd: number,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
   const oneHour = 3600; // 1 小时秒数
@@ -371,7 +371,7 @@ function detectFailedConnectionCluster(
     (e) =>
       e.type === 'SSH_CONNECT_FAILURE' &&
       e.timestamp >= timeRangeStart &&
-      e.timestamp <= timeRangeEnd
+      e.timestamp <= timeRangeEnd,
   );
 
   // 按小时窗口统计
@@ -408,13 +408,13 @@ function detectFailedConnectionCluster(
 function detectNewConnectionFirstUse(
   loginEvents: Array<{ ip: string; success: boolean; timestamp: number }>,
   timeRangeStart: number,
-  timeRangeEnd: number
+  timeRangeEnd: number,
 ): RuleDetectionResult {
   const anomalies: RuleDetectionResult['anomalies'] = [];
 
   // 只看成功的登录事件
   const successfulLogins = loginEvents.filter(
-    (e) => e.success && e.timestamp >= timeRangeStart && e.timestamp <= timeRangeEnd
+    (e) => e.success && e.timestamp >= timeRangeStart && e.timestamp <= timeRangeEnd,
   );
 
   if (successfulLogins.length === 0) {
@@ -485,7 +485,7 @@ export async function runDetectionRules(data: {
           result = detectUnusualHours(
             [...data.loginEvents, ...data.connectionEvents],
             data.timeRangeStart,
-            data.timeRangeEnd
+            data.timeRangeEnd,
           );
           break;
         case 'privilege_escalation':
@@ -495,28 +495,28 @@ export async function runDetectionRules(data: {
           result = detectCommandFrequencySpike(
             data.commands,
             data.timeRangeStart,
-            data.timeRangeEnd
+            data.timeRangeEnd,
           );
           break;
         case 'connection_churn':
           result = detectConnectionChurn(
             data.connectionEvents,
             data.timeRangeStart,
-            data.timeRangeEnd
+            data.timeRangeEnd,
           );
           break;
         case 'failed_connection_cluster':
           result = detectFailedConnectionCluster(
             data.connectionEvents,
             data.timeRangeStart,
-            data.timeRangeEnd
+            data.timeRangeEnd,
           );
           break;
         case 'new_connection_first_use':
           result = detectNewConnectionFirstUse(
             data.loginEvents,
             data.timeRangeStart,
-            data.timeRangeEnd
+            data.timeRangeEnd,
           );
           break;
         default:

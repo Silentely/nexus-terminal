@@ -139,7 +139,7 @@ describe('Connection Service', () => {
             host: '192.168.1.100',
             auth_method: 'password',
             encrypted_password: 'encrypted_secret123',
-          })
+          }),
         );
       });
 
@@ -170,7 +170,7 @@ describe('Connection Service', () => {
             auth_method: 'key',
             encrypted_private_key: expect.stringContaining('encrypted_'),
             encrypted_passphrase: expect.stringContaining('encrypted_'),
-          })
+          }),
         );
       });
 
@@ -209,7 +209,7 @@ describe('Connection Service', () => {
         };
 
         await expect(createConnection(input)).rejects.toThrow(
-          'SSH 密钥认证方式需要提供 private_key 或选择一个已保存的密钥'
+          'SSH 密钥认证方式需要提供 private_key 或选择一个已保存的密钥',
         );
       });
 
@@ -225,7 +225,7 @@ describe('Connection Service', () => {
         };
 
         await expect(createConnection(input)).rejects.toThrow(
-          '不能同时提供 private_key 和 ssh_key_id'
+          '不能同时提供 private_key 和 ssh_key_id',
         );
       });
 
@@ -250,7 +250,7 @@ describe('Connection Service', () => {
         };
 
         await expect(createConnection(input as any)).rejects.toThrow(
-          'SSH 连接必须提供有效的认证方式'
+          'SSH 连接必须提供有效的认证方式',
         );
       });
     });
@@ -282,7 +282,7 @@ describe('Connection Service', () => {
             port: 3389,
             auth_method: 'password',
             encrypted_password: 'encrypted_WinPass123',
-          })
+          }),
         );
       });
 
@@ -324,7 +324,7 @@ describe('Connection Service', () => {
             type: 'VNC',
             port: 5900,
             auth_method: 'password',
-          })
+          }),
         );
       });
 
@@ -409,7 +409,7 @@ describe('Connection Service', () => {
         await createConnection(sshInput);
 
         expect(ConnectionRepository.createConnection).toHaveBeenCalledWith(
-          expect.objectContaining({ port: 22 })
+          expect.objectContaining({ port: 22 }),
         );
       });
 
@@ -505,7 +505,7 @@ describe('Connection Service', () => {
         (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue(rdpConnection);
 
         await expect(createConnection(input)).rejects.toThrow(
-          'jump_chain 中的连接 ID 60 (Windows) 不是 SSH 类型'
+          'jump_chain 中的连接 ID 60 (Windows) 不是 SSH 类型',
         );
       });
     });
@@ -542,7 +542,7 @@ describe('Connection Service', () => {
       expect(result?.name).toBe('新名称');
       expect(ConnectionRepository.updateConnection).toHaveBeenCalledWith(
         1,
-        expect.objectContaining({ name: '新名称' })
+        expect.objectContaining({ name: '新名称' }),
       );
     });
 
@@ -569,7 +569,7 @@ describe('Connection Service', () => {
         1,
         expect.objectContaining({
           encrypted_password: 'encrypted_newpassword',
-        })
+        }),
       );
     });
 
@@ -593,7 +593,7 @@ describe('Connection Service', () => {
           auth_method: 'key',
           encrypted_private_key: expect.stringContaining('encrypted_'),
           encrypted_password: null,
-        })
+        }),
       );
     });
 
@@ -622,7 +622,7 @@ describe('Connection Service', () => {
           ssh_key_id: 10,
           encrypted_private_key: null,
           encrypted_passphrase: null,
-        })
+        }),
       );
     });
 
@@ -637,7 +637,7 @@ describe('Connection Service', () => {
       (SshKeyService.getSshKeyDbRowById as any).mockResolvedValue(null);
 
       await expect(updateConnection(1, { ssh_key_id: 999 })).rejects.toThrow(
-        '提供的 SSH 密钥 ID 999 无效或不存在'
+        '提供的 SSH 密钥 ID 999 无效或不存在',
       );
     });
 
@@ -675,7 +675,7 @@ describe('Connection Service', () => {
         1,
         expect.objectContaining({
           jump_chain: [50],
-        })
+        }),
       );
     });
 
@@ -683,7 +683,7 @@ describe('Connection Service', () => {
       (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(mockCurrentConnection);
 
       await expect(updateConnection(1, { jump_chain: [1] })).rejects.toThrow(
-        'jump_chain 不能包含当前连接自身的 ID'
+        'jump_chain 不能包含当前连接自身的 ID',
       );
     });
   });
@@ -730,7 +730,7 @@ describe('Connection Service', () => {
 
       (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(fullConnection);
       (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue(
-        connectionWithTags
+        connectionWithTags,
       );
 
       const result = await getConnectionWithDecryptedCredentials(1);
@@ -761,7 +761,7 @@ describe('Connection Service', () => {
 
       (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(fullConnection);
       (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue(
-        connectionWithTags
+        connectionWithTags,
       );
 
       const result = await getConnectionWithDecryptedCredentials(2);
@@ -793,7 +793,7 @@ describe('Connection Service', () => {
 
       (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(fullConnection);
       (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue(
-        connectionWithTags
+        connectionWithTags,
       );
       (SshKeyService.getDecryptedSshKeyById as any).mockResolvedValue({
         privateKey: '-----BEGIN RSA STORED-----',
@@ -829,12 +829,12 @@ describe('Connection Service', () => {
 
       (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(fullConnection);
       (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue(
-        connectionWithTags
+        connectionWithTags,
       );
       (SshKeyService.getDecryptedSshKeyById as any).mockResolvedValue(null);
 
       await expect(getConnectionWithDecryptedCredentials(4)).rejects.toThrow(
-        '关联的 SSH 密钥 (ID: 999) 未找到'
+        '关联的 SSH 密钥 (ID: 999) 未找到',
       );
     });
 
@@ -891,7 +891,7 @@ describe('Connection Service', () => {
           name: '克隆的连接',
           host: '192.168.1.1',
           encrypted_password: 'encrypted_pass',
-        })
+        }),
       );
       expect(ConnectionRepository.updateConnectionTags).toHaveBeenCalledWith(2, [1]);
     });
@@ -920,7 +920,7 @@ describe('Connection Service', () => {
 
       (ConnectionRepository.findConnectionByName as any).mockResolvedValue(null);
       (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(
-        connectionWithJumpChain
+        connectionWithJumpChain,
       );
       (ConnectionRepository.createConnection as any).mockResolvedValue(3);
       (ConnectionRepository.findConnectionTags as any).mockResolvedValue([]);
@@ -936,7 +936,7 @@ describe('Connection Service', () => {
       expect(ConnectionRepository.createConnection).toHaveBeenCalledWith(
         expect.objectContaining({
           jump_chain: [50, 51],
-        })
+        }),
       );
     });
   });
@@ -952,7 +952,7 @@ describe('Connection Service', () => {
 
     it('仓库层抛出错误时应传播错误', async () => {
       (ConnectionRepository.addTagToMultipleConnections as any).mockRejectedValue(
-        new Error('数据库错误')
+        new Error('数据库错误'),
       );
 
       await expect(addTagToConnections([1, 2], 5)).rejects.toThrow('数据库错误');

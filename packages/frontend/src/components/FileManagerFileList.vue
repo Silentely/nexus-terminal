@@ -172,7 +172,7 @@ watch(
         dropOverlayRef.value.style.height = '';
       }
     }
-  }
+  },
 );
 
 // --- 行高变化时重新计算虚拟列表可视区域 ---

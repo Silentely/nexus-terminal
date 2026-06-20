@@ -94,7 +94,7 @@ export const execBatch = async (req: Request, res: Response, next: NextFunction)
         targetCount: connectionIds.length,
         riskLevel: sudo === true ? 'high' : 'normal',
       },
-      userId
+      userId,
     );
 
     const task = await BatchService.execCommandBatch(payload, userId);
@@ -117,7 +117,7 @@ export const execBatch = async (req: Request, res: Response, next: NextFunction)
 export const getTaskStatus = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = getUserId(req);
@@ -151,7 +151,7 @@ export const getTaskStatus = async (
 export const getTaskList = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = getUserId(req);
@@ -177,7 +177,7 @@ export const getTaskList = async (
 export const cancelTask = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = getUserId(req);
@@ -217,7 +217,7 @@ export const cancelTask = async (
 export const deleteTask = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = getUserId(req);

@@ -258,7 +258,7 @@ export const generateCommandStream = async (req: Request, res: Response): Promis
         }
       },
       traceId,
-      abortController.signal
+      abortController.signal,
     );
 
     if (!clientDisconnected && !res.writableEnded) {

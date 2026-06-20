@@ -59,7 +59,7 @@ describe('appearance.repository', () => {
     it('activeTerminalThemeId 指向不存在主题时应抛出异常', async () => {
       (findThemeById as any).mockResolvedValueOnce(null);
       await expect(updateAppearanceSettings({ activeTerminalThemeId: 123 } as any)).rejects.toThrow(
-        '验证主题失败'
+        '验证主题失败',
       );
     });
 
@@ -98,7 +98,7 @@ describe('appearance.repository', () => {
     it('数据库写入错误时应抛出异常', async () => {
       (runDb as any).mockRejectedValueOnce(new Error('db error'));
       await expect(updateAppearanceSettings({ terminalFontSize: 12 } as any)).rejects.toThrow(
-        '更新外观设置失败'
+        '更新外观设置失败',
       );
     });
   });

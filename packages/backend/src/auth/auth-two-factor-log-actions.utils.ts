@@ -1,5 +1,5 @@
 export const buildTwoFactorSetupReuseLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'debug';
   message: string;
@@ -9,7 +9,7 @@ export const buildTwoFactorSetupReuseLogAction = (
 });
 
 export const buildTwoFactorSetupSaveFailedLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'error';
   message: string;
@@ -19,7 +19,7 @@ export const buildTwoFactorSetupSaveFailedLogAction = (
 });
 
 export const buildTwoFactorSetupGeneratedLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'info';
   message: string;
@@ -29,7 +29,7 @@ export const buildTwoFactorSetupGeneratedLogAction = (
 });
 
 export const buildTwoFactorVerifySessionMismatchWarnLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'warn';
   message: string;
@@ -39,7 +39,7 @@ export const buildTwoFactorVerifySessionMismatchWarnLogAction = (
 });
 
 export const buildTwoFactorVerifySessionSyncedDebugLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'debug';
   message: string;
@@ -68,7 +68,7 @@ export const buildTwoFactorVerifySkewWarnLogAction = (payload: {
 };
 
 export const buildTwoFactorVerifyInvalidDebugLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'debug';
   message: string;
@@ -82,7 +82,7 @@ export const buildTwoFactorVerifySkewWarnMessage = (userId: number, delta: numbe
 
 export const buildTwoFactorVerifySkewWarnLogActionAlways = (
   userId: number,
-  delta: number
+  delta: number,
 ): {
   level: 'warn';
   message: string;
@@ -118,7 +118,7 @@ export const buildLoginTwoFactorSkewWarnLogAction = (payload: {
 
 export const buildLoginTwoFactorSkewWarnLogActionAlways = (
   username: string,
-  delta: number
+  delta: number,
 ): {
   level: 'warn';
   message: string;
@@ -128,7 +128,7 @@ export const buildLoginTwoFactorSkewWarnLogActionAlways = (
 });
 
 export const buildLoginTwoFactorSuccessInfoLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'info';
   message: string;
@@ -138,7 +138,7 @@ export const buildLoginTwoFactorSuccessInfoLogAction = (
 });
 
 export const buildLoginTwoFactorInvalidDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -148,7 +148,7 @@ export const buildLoginTwoFactorInvalidDebugLogAction = (
 });
 
 export const buildVerifyLoginTwoFactorInternalErrorLogAction = (
-  userId: number | 'unknown'
+  userId: number | 'unknown',
 ): {
   level: 'error';
   message: string;
@@ -158,7 +158,7 @@ export const buildVerifyLoginTwoFactorInternalErrorLogAction = (
 });
 
 export const buildTwoFactorSetupErrorLogAction = (
-  userId: number | undefined
+  userId: number | undefined,
 ): {
   level: 'error';
   message: string;
@@ -168,7 +168,7 @@ export const buildTwoFactorSetupErrorLogAction = (
 });
 
 export const buildTwoFactorVerifyActivateErrorLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'error';
   message: string;
@@ -178,7 +178,7 @@ export const buildTwoFactorVerifyActivateErrorLogAction = (
 });
 
 export const buildDisableTwoFactorMutationNoChangeErrorLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'error';
   message: string;
@@ -188,7 +188,7 @@ export const buildDisableTwoFactorMutationNoChangeErrorLogAction = (
 });
 
 export const buildDisableTwoFactorErrorLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'error';
   message: string;

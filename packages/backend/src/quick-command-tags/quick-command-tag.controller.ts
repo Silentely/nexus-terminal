@@ -9,7 +9,7 @@ import { logger } from '../utils/logger';
 export const getAllQuickCommandTags = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const tags = await QuickCommandTagService.getAllQuickCommandTags();
@@ -26,7 +26,7 @@ export const getAllQuickCommandTags = async (
 export const addQuickCommandTag = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { name } = req.body;
 
@@ -58,7 +58,7 @@ export const addQuickCommandTag = async (
 export const updateQuickCommandTag = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   const { name } = req.body;
@@ -107,7 +107,7 @@ export const updateQuickCommandTag = async (
 export const deleteQuickCommandTag = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 

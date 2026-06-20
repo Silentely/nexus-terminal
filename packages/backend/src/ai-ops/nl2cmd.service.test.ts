@@ -100,7 +100,7 @@ describe('NL2CMD Service', () => {
       expect(crypto.encrypt).toHaveBeenCalledWith('sk-test-key');
       expect(settingsRepository.setSetting).toHaveBeenCalledWith(
         'aiProviderConfig',
-        expect.stringContaining('encrypted_sk-test-key')
+        expect.stringContaining('encrypted_sk-test-key'),
       );
     });
   });
@@ -149,7 +149,7 @@ describe('NL2CMD Service', () => {
         expect.objectContaining({
           model: 'gpt-4o-mini',
           max_tokens: expect.any(Number),
-        })
+        }),
       );
 
       expect(result.success).toBe(true);
@@ -187,7 +187,7 @@ describe('NL2CMD Service', () => {
         expect.objectContaining({
           model: 'gpt-4o-mini',
           max_output_tokens: expect.any(Number),
-        })
+        }),
       );
       expect((requestBody as { max_tokens?: unknown }).max_tokens).toBeUndefined();
 

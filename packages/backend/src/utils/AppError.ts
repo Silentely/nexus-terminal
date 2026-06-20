@@ -22,7 +22,7 @@ export class AppError extends Error {
     statusCode: number = 500,
     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
     isOperational: boolean = true,
-    details?: string
+    details?: string,
   ) {
     super(message);
     this.code = code;
@@ -80,7 +80,7 @@ export function isNodeError(error: unknown): error is NodeJS.ErrnoException {
  * @returns 是否具有 response 属性
  */
 export function hasResponse(
-  error: unknown
+  error: unknown,
 ): error is Error & { response?: { data?: unknown; status?: number } } {
   return error instanceof Error && 'response' in error;
 }
@@ -125,7 +125,7 @@ export class ErrorFactory {
       500,
       ErrorSeverity.HIGH,
       false,
-      details
+      details,
     );
   }
 
@@ -140,7 +140,7 @@ export class ErrorFactory {
       503,
       ErrorSeverity.HIGH,
       true,
-      details
+      details,
     );
   }
 }
