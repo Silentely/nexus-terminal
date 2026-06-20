@@ -649,7 +649,7 @@ export const runMigrations = (db: Database): Promise<void> => {
                 // 执行事务外预 SQL（如 PRAGMA foreign_keys=off，SQLite 要求此类语句在事务外执行）
                 if (migration.preSql) {
                   await new Promise<void>((resolvePre, rejectPre) => {
-                    db.exec(migration.preSql!, (preErr) => {
+                    db.exec(migration.preSql as string, (preErr) => {
                       if (preErr) {
                         // 与主 SQL 一致，"duplicate column name" 视为可接受
                         if (preErr.message.includes('duplicate column name')) {
@@ -779,7 +779,7 @@ export const runMigrations = (db: Database): Promise<void> => {
 
                 // 迁移事务提交成功后，若执行了 preSql（如关闭 FK），在此恢复
                 if (migration.preSql) {
-                  await new Promise<void>((resolveRestore, rejectRestore) => {
+                  await new Promise<void>((resolveRestore) => {
                     db.exec('PRAGMA foreign_keys=on;', (restoreErr) => {
                       if (restoreErr) {
                         logger.warn(

@@ -165,8 +165,8 @@ export class SftpUtils {
               if (!finalStats.isDirectory()) {
                 throw new Error(`路径 ${normalizedPath} 已存在但不是目录`);
               }
-            } catch (err: unknown) {
-              logger.debug({ err }, '操作失败，已忽略');
+            } catch (innerErr: unknown) {
+              logger.debug({ err: innerErr }, '操作失败，已忽略');
               throw iterativeMkdirError;
             }
           }

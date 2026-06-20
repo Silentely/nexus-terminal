@@ -280,8 +280,8 @@ export const ensureDirectoryExists = async (sftp: SFTPWrapper, dirPath: string):
             logger.debug(
               `[SFTP Util] Directory ${normalizedPath} exists after iterative mkdir failure, likely created concurrently.`,
             );
-          } catch (err: unknown) {
-            logger.debug({ err }, '操作失败，已忽略');
+          } catch (innerErr: unknown) {
+            logger.debug({ err: innerErr }, '操作失败，已忽略');
             throw iterativeMkdirError;
           }
         }

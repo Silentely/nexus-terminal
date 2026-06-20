@@ -128,8 +128,8 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
           return (
             requestIp.kind() === allowedIp.kind() && requestIp.toString() === allowedIp.toString()
           );
-        } catch (err: unknown) {
-          logger.debug({ err }, '操作失败，已忽略');
+        } catch (innerErr: unknown) {
+          logger.debug({ err: innerErr }, '操作失败，已忽略');
           // 如果单个 IP 也解析失败，忽略此条目并记录警告
           logger.warn(`无效的 IP 白名单条目: "${entry}"`);
           return false;

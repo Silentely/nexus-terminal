@@ -74,7 +74,7 @@ export function redactSensitiveData(value: unknown, depth = 0, seen = new WeakSe
     seen.add(value);
     try {
       return value.map((item) => redactSensitiveData(item, depth + 1, seen));
-    } catch (_err: unknown) {
+    } catch {
       // 脱敏模块内部错误，不使用 logger 避免循环依赖
       return '[Array Processing Error]';
     }
@@ -107,13 +107,13 @@ export function redactSensitiveData(value: unknown, depth = 0, seen = new WeakSe
           } else {
             redacted[key] = redactSensitiveData(objectValue[key], depth + 1, seen);
           }
-        } catch (_err: unknown) {
+        } catch {
           redacted[key] = '[Access Error]';
         }
       }
       return redacted;
     }
-  } catch (_err: unknown) {
+  } catch {
     return '[Object Processing Error]';
   }
 
