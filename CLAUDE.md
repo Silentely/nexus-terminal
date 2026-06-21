@@ -40,8 +40,8 @@
 graph TD
     subgraph "Nexus Terminal Monorepo"
         A["nexus-terminal (根)"] --> B["packages"]
-        B --> C["backend<br/>Express + SQLite<br/>(207 TS文件, 28 数据表, 133 测试)"]
-        B --> D["frontend<br/>Vue 3 + Vite<br/>(240 TS/Vue, 24 Stores, 93 测试)"]
+        B --> C["backend<br/>Express + SQLite<br/>(265 TS文件, 28 数据表, 138 测试)"]
+        B --> D["frontend<br/>Vue 3 + Vite<br/>(239 TS/Vue, 33 Stores, 97 测试)"]
         B --> E["remote-gateway<br/>Guacamole Lite<br/>(2 源文件, 1 测试)"]
         A --> F["doc<br/>(技术债务、路线图)"]
     end
@@ -237,8 +237,8 @@ npx playwright install          # 首次运行 E2E 需安装浏览器
 | 数据库 Schema | `packages/backend/src/database/schema.ts`（28 表）     |
 | 后端入口      | `packages/backend/src/index.ts`                        |
 | 前端入口      | `packages/frontend/src/main.ts`                        |
-| 后端路由      | `packages/backend/src/*/routes.ts`（24 模块）          |
-| 前端路由      | `packages/frontend/src/router/index.ts`（9 视图）      |
+| 后端路由      | `packages/backend/src/*/routes.ts`（27 模块）          |
+| 前端路由      | `packages/frontend/src/router/index.ts`（14 视图）     |
 | 状态管理      | `packages/frontend/src/stores/*.store.ts`（24 stores） |
 | WebSocket     | `packages/backend/src/websocket.ts` + `handlers/`      |
 | 加密模块      | `packages/backend/src/utils/crypto.ts`                 |

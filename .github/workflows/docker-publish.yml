@@ -78,7 +78,7 @@ jobs:
           fi
           echo "=========================================="
 
-  # 运行测试（在构建镜像前验证代码质量）
+  # 运行测试（质量门禁：测试失败将阻止所有镜像构建）
   run-tests:
     runs-on: ubuntu-latest
     needs: detect-changes
