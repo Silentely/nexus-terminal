@@ -144,8 +144,11 @@ const resumeSession = async (session: SuspendedSshSession) => {
   log.info(
     `[SuspendedSshSessionsView] Attempting to resume session ID: ${session.suspendSessionId}, Name: ${session.customSuspendName || session.connectionName}`,
   );
-  // 使用 structuredClone() 来记录会话对象的一个快照，避免在异步操作后因对象被修改而导致日志不准确
-  log.info('[SuspendedSshSessionsView] Session details snapshot:', structuredClone(session));
+  // 使用 JSON 序列化/反序列化记录会话快照，脱离响应式系统避免 structuredClone 对 Proxy 抛出异常
+  log.info(
+    '[SuspendedSshSessionsView] Session details snapshot:',
+    JSON.parse(JSON.stringify(session)),
+  );
 
   try {
     // resumeSshSession 返回 Promise<void>，调用完成即表示操作已执行

@@ -55,17 +55,20 @@ watch(
   (newValue) => {
     if (newValue) {
       // --- Load initial data and create original copies ---
+      // 使用 JSON 序列化/反序列化脱离响应式系统，避免 structuredClone 对 Vue/Pinia Proxy 抛出异常
       // Main layout
-      const initialLayout = layoutStore.layoutTree ? structuredClone(layoutStore.layoutTree) : null;
+      const initialLayout = layoutStore.layoutTree
+        ? JSON.parse(JSON.stringify(layoutStore.layoutTree))
+        : null;
       localLayoutTree.value = initialLayout;
-      originalLayoutTree.value = structuredClone(initialLayout); // Deep copy for original
+      originalLayoutTree.value = initialLayout ? JSON.parse(JSON.stringify(initialLayout)) : null;
 
       // Sidebar config
       const initialSidebars = layoutStore.sidebarPanes
-        ? structuredClone(layoutStore.sidebarPanes)
+        ? JSON.parse(JSON.stringify(layoutStore.sidebarPanes))
         : { left: [], right: [] };
       localSidebarPanes.value = initialSidebars;
-      originalSidebarPanes.value = structuredClone(initialSidebars); // Deep copy for original
+      originalSidebarPanes.value = JSON.parse(JSON.stringify(initialSidebars));
 
       // Initialize available panes: Include 'terminal' only if it's not already used.
       const initialUsed = getAllLocalUsedPaneNames(localLayoutTree.value, localSidebarPanes.value);
@@ -228,7 +231,8 @@ const saveLayout = async () => {
     log.info('[LayoutConfigurator] Main layout tree update awaited.');
 
     // Save sidebar config and wait for persistence
-    const sidebarConfigToSave = structuredClone(localSidebarPanes.value);
+    // 使用 JSON 序列化/反序列化脱离响应式系统，避免 structuredClone 对 Proxy 对象抛出异常
+    const sidebarConfigToSave = JSON.parse(JSON.stringify(localSidebarPanes.value));
     log.info('[LayoutConfigurator] Updating sidebar panes in store:', sidebarConfigToSave);
     await layoutStore.updateSidebarPanes(sidebarConfigToSave); // Await the async action
     log.info('[LayoutConfigurator] Sidebar panes update awaited.');
@@ -249,13 +253,13 @@ const resetToDefault = async () => {
     ),
   });
   if (confirmed) {
-    // Reset main layout
+    // Reset main layout（JSON clone 避免 structuredClone 对响应式对象抛异常）
     const defaultLayout = layoutStore.getSystemDefaultLayout();
-    localLayoutTree.value = structuredClone(defaultLayout);
+    localLayoutTree.value = JSON.parse(JSON.stringify(defaultLayout));
 
     // Reset sidebar config
     const defaultSidebarPanes = layoutStore.getSystemDefaultSidebarPanes();
-    localSidebarPanes.value = structuredClone(defaultSidebarPanes);
+    localSidebarPanes.value = JSON.parse(JSON.stringify(defaultSidebarPanes));
 
     // Reset available panes: Include 'terminal' only if it's not used in the default layout.
     const defaultUsed = getAllLocalUsedPaneNames(localLayoutTree.value, localSidebarPanes.value);

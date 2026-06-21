@@ -646,150 +646,162 @@ export const runMigrations = (db: Database): Promise<void> => {
                 // 使用 for...of 循环
                 logger.info(`[Migrations] 应用迁移 #${migration.id}: ${migration.name}...`);
 
-                // 执行事务外预 SQL（如 PRAGMA foreign_keys=off，SQLite 要求此类语句在事务外执行）
-                if (migration.preSql) {
-                  await new Promise<void>((resolvePre, rejectPre) => {
-                    db.exec(migration.preSql as string, (preErr) => {
-                      if (preErr) {
-                        // 与主 SQL 一致，"duplicate column name" 视为可接受
-                        if (preErr.message.includes('duplicate column name')) {
-                          logger.warn(
-                            `[Migrations] 迁移 #${migration.id} preSql 出现 'duplicate column name'，视为可接受。`,
-                          );
-                          resolvePre();
-                        } else {
-                          logger.error(
-                            `[Migrations] 迁移 #${migration.id} preSql 执行失败:`,
-                            preErr,
-                          );
-                          rejectPre(
-                            new Error(`迁移 #${migration.id} preSql 失败: ${preErr.message}`),
-                          );
-                        }
-                      } else {
-                        resolvePre();
-                      }
-                    });
-                  });
-                }
-
-                // 开始事务
-                await new Promise<void>((resolveTx, rejectTx) => {
-                  db.run('BEGIN TRANSACTION', (beginErr) => {
-                    if (beginErr) {
-                      logger.error(`[Migrations] 开始迁移 #${migration.id} 事务失败:`, beginErr);
-                      rejectTx(
-                        new Error(`开始迁移 #${migration.id} 事务失败: ${beginErr.message}`),
-                      );
-                    } else {
-                      resolveTx();
-                    }
-                  });
-                });
+                // 标记是否需要恢复 foreign_keys（preSql 成功执行后置为 true）
+                let needsFkRestore = false;
 
                 try {
-                  // 步骤 4.1: 执行前置检查 (如果存在)
-                  let needsSqlExecution = true;
-                  if (migration.check) {
-                    logger.debug(`[Migrations] 执行迁移 #${migration.id} 的前置检查...`);
-                    needsSqlExecution = await migration.check(db);
-                    logger.debug(
-                      `[Migrations] 迁移 #${migration.id} 前置检查结果: ${needsSqlExecution ? '需要执行 SQL' : '跳过 SQL 执行'}`,
-                    );
-                  }
-
-                  if (needsSqlExecution) {
-                    // 步骤 4.2: 执行迁移 SQL
-                    logger.debug(`[Migrations] 执行迁移 #${migration.id} 的 SQL...`);
-                    await new Promise<void>((resolveSql, rejectSql) => {
-                      db.exec(migration.sql, (execErr) => {
-                        if (execErr) {
-                          // 特别处理 "duplicate column name" 错误
-                          if (execErr.message.includes('duplicate column name')) {
+                  // 执行事务外预 SQL（如 PRAGMA foreign_keys=off，SQLite 要求此类语句在事务外执行）
+                  if (migration.preSql) {
+                    await new Promise<void>((resolvePre, rejectPre) => {
+                      db.exec(migration.preSql as string, (preErr) => {
+                        if (preErr) {
+                          // 与主 SQL 一致，"duplicate column name" 视为可接受
+                          if (preErr.message.includes('duplicate column name')) {
                             logger.warn(
-                              `[Migrations] 迁移 #${migration.id} SQL 执行时出现 'duplicate column name' 错误，视为可接受并继续。`,
+                              `[Migrations] 迁移 #${migration.id} preSql 出现 'duplicate column name'，视为可接受。`,
                             );
-                            resolveSql();
+                            resolvePre();
                           } else {
                             logger.error(
-                              `[Migrations] 执行迁移 #${migration.id} SQL 失败:`,
-                              execErr,
+                              `[Migrations] 迁移 #${migration.id} preSql 执行失败:`,
+                              preErr,
                             );
-                            rejectSql(execErr);
+                            rejectPre(
+                              new Error(`迁移 #${migration.id} preSql 失败: ${preErr.message}`),
+                            );
                           }
                         } else {
-                          resolveSql();
+                          resolvePre();
                         }
                       });
                     });
+                    // preSql 成功执行，标记需要恢复
+                    needsFkRestore = true;
                   }
 
-                  // 步骤 4.3: 记录迁移到 migrations 表
-                  logger.debug(`[Migrations] 记录迁移 #${migration.id} 到 migrations 表...`);
-                  const insertSQL =
-                    "INSERT INTO migrations (id, name, applied_at) VALUES (?, ?, strftime('%s', 'now'))";
-                  await new Promise<void>((resolveInsert, rejectInsert) => {
-                    db.run(insertSQL, [migration.id, migration.name], (insertErr) => {
-                      if (insertErr) {
-                        logger.error(
-                          `[Migrations] 记录迁移 #${migration.id} 到 migrations 表失败:`,
-                          insertErr,
+                  // 开始事务
+                  await new Promise<void>((resolveTx, rejectTx) => {
+                    db.run('BEGIN TRANSACTION', (beginErr) => {
+                      if (beginErr) {
+                        logger.error(`[Migrations] 开始迁移 #${migration.id} 事务失败:`, beginErr);
+                        rejectTx(
+                          new Error(`开始迁移 #${migration.id} 事务失败: ${beginErr.message}`),
                         );
-                        rejectInsert(insertErr);
                       } else {
-                        resolveInsert();
+                        resolveTx();
                       }
                     });
                   });
 
-                  // 步骤 4.4: 提交事务
-                  logger.debug(`[Migrations] 提交迁移 #${migration.id} 事务...`);
-                  await new Promise<void>((resolveCommit, rejectCommit) => {
-                    db.run('COMMIT', (commitErr) => {
-                      if (commitErr) {
-                        logger.error(`[Migrations] 提交迁移 #${migration.id} 事务失败:`, commitErr);
-                        rejectCommit(commitErr);
-                      } else {
-                        logger.info(
-                          `[Migrations] 迁移 #${migration.id}: ${migration.name} 应用成功 (SQL 可能已跳过)。`,
-                        );
-                        resolveCommit();
-                      }
-                    });
-                  });
-                } catch (migrationStepError: unknown) {
-                  // 捕获 check, exec, insert 或 commit 中的任何错误
-                  const migrationStepErrMsg = getErrorMessage(migrationStepError);
-                  logger.error(`[Migrations] 迁移 #${migration.id} 步骤失败，正在回滚事务...`);
-                  await new Promise<void>((resolveRollback) => {
-                    // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
-                    db.run('ROLLBACK', (rollbackErr) => {
-                      if (rollbackErr)
-                        logger.error(
-                          `[Migrations] 回滚迁移 #${migration.id} 事务失败:`,
-                          rollbackErr,
-                        );
-                      // 拒绝整个迁移过程（保留原始错误信息）
-                      reject(new Error(`迁移 #${migration.id} 失败: ${migrationStepErrMsg}`));
-                      resolveRollback(); // Indicate rollback attempt finished
-                    });
-                  });
-                  return; // 停止应用后续迁移
-                }
+                  try {
+                    // 步骤 4.1: 执行前置检查 (如果存在)
+                    let needsSqlExecution = true;
+                    if (migration.check) {
+                      logger.debug(`[Migrations] 执行迁移 #${migration.id} 的前置检查...`);
+                      needsSqlExecution = await migration.check(db);
+                      logger.debug(
+                        `[Migrations] 迁移 #${migration.id} 前置检查结果: ${needsSqlExecution ? '需要执行 SQL' : '跳过 SQL 执行'}`,
+                      );
+                    }
 
-                // 迁移事务提交成功后，若执行了 preSql（如关闭 FK），在此恢复
-                if (migration.preSql) {
-                  await new Promise<void>((resolveRestore) => {
-                    db.exec('PRAGMA foreign_keys=on;', (restoreErr) => {
-                      if (restoreErr) {
-                        logger.warn(
-                          `[Migrations] 恢复 foreign_keys=on 失败 (迁移 #${migration.id}):`,
-                          restoreErr,
-                        );
-                      }
-                      resolveRestore(); // 即使恢复失败也继续，避免阻塞后续迁移
+                    if (needsSqlExecution) {
+                      // 步骤 4.2: 执行迁移 SQL
+                      logger.debug(`[Migrations] 执行迁移 #${migration.id} 的 SQL...`);
+                      await new Promise<void>((resolveSql, rejectSql) => {
+                        db.exec(migration.sql, (execErr) => {
+                          if (execErr) {
+                            // 特别处理 "duplicate column name" 错误
+                            if (execErr.message.includes('duplicate column name')) {
+                              logger.warn(
+                                `[Migrations] 迁移 #${migration.id} SQL 执行时出现 'duplicate column name' 错误，视为可接受并继续。`,
+                              );
+                              resolveSql();
+                            } else {
+                              logger.error(
+                                `[Migrations] 执行迁移 #${migration.id} SQL 失败:`,
+                                execErr,
+                              );
+                              rejectSql(execErr);
+                            }
+                          } else {
+                            resolveSql();
+                          }
+                        });
+                      });
+                    }
+
+                    // 步骤 4.3: 记录迁移到 migrations 表
+                    logger.debug(`[Migrations] 记录迁移 #${migration.id} 到 migrations 表...`);
+                    const insertSQL =
+                      "INSERT INTO migrations (id, name, applied_at) VALUES (?, ?, strftime('%s', 'now'))";
+                    await new Promise<void>((resolveInsert, rejectInsert) => {
+                      db.run(insertSQL, [migration.id, migration.name], (insertErr) => {
+                        if (insertErr) {
+                          logger.error(
+                            `[Migrations] 记录迁移 #${migration.id} 到 migrations 表失败:`,
+                            insertErr,
+                          );
+                          rejectInsert(insertErr);
+                        } else {
+                          resolveInsert();
+                        }
+                      });
                     });
-                  });
+
+                    // 步骤 4.4: 提交事务
+                    logger.debug(`[Migrations] 提交迁移 #${migration.id} 事务...`);
+                    await new Promise<void>((resolveCommit, rejectCommit) => {
+                      db.run('COMMIT', (commitErr) => {
+                        if (commitErr) {
+                          logger.error(
+                            `[Migrations] 提交迁移 #${migration.id} 事务失败:`,
+                            commitErr,
+                          );
+                          rejectCommit(commitErr);
+                        } else {
+                          logger.info(
+                            `[Migrations] 迁移 #${migration.id}: ${migration.name} 应用成功 (SQL 可能已跳过)。`,
+                          );
+                          resolveCommit();
+                        }
+                      });
+                    });
+                  } catch (migrationStepError: unknown) {
+                    // 捕获 check, exec, insert 或 commit 中的任何错误
+                    const migrationStepErrMsg = getErrorMessage(migrationStepError);
+                    logger.error(`[Migrations] 迁移 #${migration.id} 步骤失败，正在回滚事务...`);
+                    await new Promise<void>((resolveRollback) => {
+                      // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
+                      db.run('ROLLBACK', (rollbackErr) => {
+                        if (rollbackErr)
+                          logger.error(
+                            `[Migrations] 回滚迁移 #${migration.id} 事务失败:`,
+                            rollbackErr,
+                          );
+                        resolveRollback(); // Indicate rollback attempt finished
+                      });
+                    });
+
+                    // 抛出错误，由 applyMigrationsSequentially().catch(reject) 统一处理
+                    // 使用 throw 而非 reject+return，确保外层 finally 完整执行后再 reject
+                    throw new Error(`迁移 #${migration.id} 失败: ${migrationStepErrMsg}`);
+                  }
+                } finally {
+                  // 无论成功或失败，只要 preSql 执行过就恢复 foreign_keys
+                  // 覆盖所有失败路径：preSql 成功但 BEGIN TRANSACTION 失败、SQL 执行失败、COMMIT 失败等
+                  if (needsFkRestore) {
+                    await new Promise<void>((resolveRestore) => {
+                      db.exec('PRAGMA foreign_keys=on;', (restoreErr) => {
+                        if (restoreErr) {
+                          logger.warn(
+                            `[Migrations] 恢复 foreign_keys=on 失败 (迁移 #${migration.id}):`,
+                            restoreErr,
+                          );
+                        }
+                        resolveRestore(); // 即使恢复失败也继续，避免阻塞后续迁移
+                      });
+                    });
+                  }
                 }
               }
 

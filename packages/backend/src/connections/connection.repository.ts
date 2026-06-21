@@ -341,6 +341,13 @@ export const updateConnection = async (
     }
   }
 
+  // 过滤后如果除了 updated_at 没有其他业务字段，直接返回避免无意义的时间戳更新
+  const businessFields = Object.keys(fieldsToUpdate).filter((k) => k !== 'updated_at');
+  if (businessFields.length === 0) {
+    logger.debug(`[Repository:updateConnection] 没有需要更新的业务字段，跳过更新 (ID: ${id})`);
+    return false;
+  }
+
   const setClauses = Object.keys(fieldsToUpdate)
     .map((key) => `${key} = ?`)
     .join(', ');

@@ -171,6 +171,8 @@ export async function handleSftpOperation(
           Array.isArray(payload?.sources) &&
           payload?.destination &&
           payload?.format &&
+          typeof payload.format === 'string' &&
+          ['zip', 'targz', 'tarbz2'].includes(payload.format) &&
           requestId &&
           validateSafePath(payload.destination as string)
         ) {

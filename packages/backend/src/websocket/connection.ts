@@ -82,6 +82,11 @@ function isClientType(value: unknown): value is 'desktop' | 'mobile' {
   return value === 'desktop' || value === 'mobile';
 }
 
+/** 统一生成速率限制 key，确保检查和清理使用相同逻辑 */
+function getRateLimitKey(ws: AuthenticatedWebSocket): string {
+  return ws.sessionId || `ws_${ws.userId || 'anon'}`;
+}
+
 export function initializeConnectionHandler(
   wss: WebSocketServer,
   sshSuspendService: SshSuspendService,
@@ -230,7 +235,7 @@ export function initializeConnectionHandler(
             const { type, payload, requestId } = validationResult.data;
 
             // 速率限制检查：防止恶意客户端高频消息导致 DoS
-            const rateLimitSessionId = ws.sessionId || `ws_${ws.userId || 'anon'}`;
+            const rateLimitSessionId = getRateLimitKey(ws);
             if (!checkRateLimit(rateLimitSessionId, type)) {
               if (ws.readyState === WebSocket.OPEN) {
                 ws.send(
@@ -1066,9 +1071,11 @@ export function initializeConnectionHandler(
         // 清理心跳状态
         cleanupHeartbeat(ws);
 
-        // 清理速率限制状态
-        if (ws.sessionId) {
-          cleanupRateLimit(ws.sessionId);
+        // 清理速率限制状态（使用与检查相同的 key 生成逻辑，避免内存泄漏）
+        cleanupRateLimit(getRateLimitKey(ws));
+        // 同时清理可能的 fallback key（连接建立初期 sessionId 尚未分配时使用的 key）
+        if (ws.sessionId && ws.userId) {
+          cleanupRateLimit(`ws_${ws.userId}`);
         }
 
         // 清理多路复用传输（内部会销毁所有通道的批处理器）

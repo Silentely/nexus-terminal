@@ -308,7 +308,7 @@ export function createSubmitHandler(deps: SubmitDeps) {
       proxy_type: formData.proxy_type,
       tag_ids: currentSelectedValidTagIds,
       jump_chain: formData.jump_chain
-        ? (structuredClone(formData.jump_chain) as number[] | null)
+        ? (JSON.parse(JSON.stringify(formData.jump_chain)) as number[] | null)
         : null,
       force_keyboard_interactive: formData.force_keyboard_interactive,
     };
