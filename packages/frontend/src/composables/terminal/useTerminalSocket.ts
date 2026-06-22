@@ -6,7 +6,7 @@ import { log } from '@/utils/log';
 export function useTerminalSocket(
   terminal: Ref<Terminal | null>,
   sessionId: string,
-  stream: Ref<ReadableStream<string> | undefined>
+  stream: Ref<ReadableStream<string> | undefined>,
 ) {
   const emitWorkspaceEvent = useWorkspaceEventEmitter();
 
@@ -40,7 +40,7 @@ export function useTerminalSocket(
         }
       }
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   return {

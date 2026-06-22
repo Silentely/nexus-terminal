@@ -75,7 +75,7 @@ describe('TelnetNegotiator', () => {
       expect(result.cleanData).toBe('');
       expect(result.responses).toHaveLength(1);
       expect(result.responses[0]).toEqual(
-        Buffer.from([TELNET_IAC, TELNET_WILL, TELNET_OPTION_SUPPRESS_GO_AHEAD])
+        Buffer.from([TELNET_IAC, TELNET_WILL, TELNET_OPTION_SUPPRESS_GO_AHEAD]),
       );
     });
 
@@ -211,7 +211,7 @@ describe('TelnetNegotiator', () => {
           0x18, // height = 24
           TELNET_IAC,
           TELNET_SE,
-        ])
+        ]),
       );
     });
 
@@ -229,7 +229,7 @@ describe('TelnetNegotiator', () => {
           0x28, // height = 40
           TELNET_IAC,
           TELNET_SE,
-        ])
+        ]),
       );
     });
 
@@ -247,7 +247,7 @@ describe('TelnetNegotiator', () => {
           0x00, // height = 256
           TELNET_IAC,
           TELNET_SE,
-        ])
+        ]),
       );
     });
   });

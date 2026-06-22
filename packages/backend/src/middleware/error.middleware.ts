@@ -17,7 +17,7 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   // 如果响应头已发送,委托给 Express 默认错误处理器
   // 避免尝试修改已发送的响应导致崩溃
@@ -60,7 +60,7 @@ export const errorHandler = (
   if (severity === ErrorSeverity.HIGH || severity === ErrorSeverity.CRITICAL) {
     logger.error(
       { ...logContext, err, technicalDetails },
-      `[ErrorHandler] ${severity.toUpperCase()}`
+      `[ErrorHandler] ${severity.toUpperCase()}`,
     );
   } else {
     logger.warn({ ...logContext }, `[ErrorHandler] ${severity.toUpperCase()}`);
@@ -102,7 +102,7 @@ export const notFoundHandler = (req: Request, res: Response, next: NextFunction)
     404,
     ErrorSeverity.LOW,
     true,
-    `Requested URL: ${req.originalUrl}`
+    `Requested URL: ${req.originalUrl}`,
   );
   next(error);
 };

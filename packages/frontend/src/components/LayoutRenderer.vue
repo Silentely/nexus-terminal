@@ -304,7 +304,7 @@ const handlePaneResize = (eventData: {
   if (props.layoutNode && typeof props.layoutNode.id === 'undefined') {
     log.warn(
       `[LayoutRenderer DEBUG] handlePaneResize triggered but props.layoutNode.id is undefined. Full layoutNode prop:`,
-      JSON.parse(JSON.stringify(props.layoutNode))
+      structuredClone(props.layoutNode),
     );
   }
   // log.info(`[LayoutRenderer DEBUG] handlePaneResize triggered for node ID: ${props.layoutNode?.id}, direction: ${props.layoutNode?.direction ?? 'N/A'}`); // Use optional chaining for safety
@@ -327,7 +327,7 @@ const handlePaneResize = (eventData: {
     }));
 
     // +++ 调用 store action 前的日志 +++
-    // log.info(`[LayoutRenderer DEBUG] Calling layoutStore.updateNodeSizes for node ID: ${props.layoutNode.id} with sizes:`, JSON.parse(JSON.stringify(childrenSizes)));
+    // log.info(`[LayoutRenderer DEBUG] Calling layoutStore.updateNodeSizes for node ID: ${props.layoutNode.id} with sizes:`, structuredClone(childrenSizes));
     // 调用 store action 来更新节点大小
     layoutStore.updateNodeSizes(props.layoutNode.id, childrenSizes);
   } else {
@@ -357,7 +357,7 @@ watch(
   () => props.activeSessionId,
   () => {
     // closeSidebars(); // 取消注释以在切换会话时关闭侧栏
-  }
+  },
 );
 
 // +++ 新方法：处理主内容区域点击，用于非固定模式下关闭侧边栏 +++
@@ -664,7 +664,7 @@ onBeforeUnmount(() => {
                       activeSessionId
                         ? t(
                             'layout.noSshSessionActive.message',
-                            '请激活一个 SSH 会话以使用此终端面板。'
+                            '请激活一个 SSH 会话以使用此终端面板。',
                           )
                         : t('layout.noActiveSession.message')
                     }}

@@ -47,7 +47,7 @@ const emit = defineEmits<{
       tag_ids: number[];
       notes: string;
       force_keyboard_interactive: boolean;
-    }>
+    }>,
   ): void;
 }>();
 
@@ -68,7 +68,7 @@ const patchFormData = (
     tag_ids: number[];
     notes: string;
     force_keyboard_interactive: boolean;
-  }>
+  }>,
 ) => {
   emit('patch-form-data', patch);
 };
@@ -269,7 +269,7 @@ const getAvailableJumpHostsForIndex = (currentIndex: number): ConnectionInfo[] =
       <div
         v-if="
           props.connections.filter(
-            (c) => c.type === 'SSH' && (!props.isEditMode || c.id !== props.formData.id)
+            (c) => c.type === 'SSH' && (!props.isEditMode || c.id !== props.formData.id),
           ).length === 0
         "
         class="text-xs text-warning-foreground p-2 bg-warning/20 rounded-md"
@@ -277,7 +277,7 @@ const getAvailableJumpHostsForIndex = (currentIndex: number): ConnectionInfo[] =
         {{
           t(
             'connections.form.noAvailableSshConnectionsForJump',
-            '没有可用的SSH连接作为跳板机。请先创建一些SSH连接。'
+            '没有可用的SSH连接作为跳板机。请先创建一些SSH连接。',
           )
         }}
       </div>
@@ -292,7 +292,7 @@ const getAvailableJumpHostsForIndex = (currentIndex: number): ConnectionInfo[] =
         <span class="text-xs text-text-secondary">{{
           t(
             'connections.form.forceKeyboardInteractiveDesc',
-            '强制使用键盘交互式认证。这通常是使用双因素认证(TOTP/2FA) 的服务器所必需的。'
+            '强制使用键盘交互式认证。这通常是使用双因素认证(TOTP/2FA) 的服务器所必需的。',
           )
         }}</span>
       </div>

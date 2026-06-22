@@ -23,7 +23,7 @@ export function useIpBlacklist() {
     (newVal) => {
       ipBlacklistEnabled.value = newVal;
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   const handleUpdateIpBlacklistEnabled = async () => {
@@ -41,7 +41,7 @@ export function useIpBlacklist() {
       ipBlacklistEnabled.value = originalValue; // Revert on failure
       ipBlacklistToggleError.value = extractErrorMessage(
         error,
-        t('settings.ipBlacklist.error.updateFailed', '更新 IP 黑名单启用状态失败')
+        t('settings.ipBlacklist.error.updateFailed', '更新 IP 黑名单启用状态失败'),
       );
     }
   };
@@ -61,7 +61,7 @@ export function useIpBlacklist() {
       blacklistSettingsForm.maxLoginAttempts = newSettings.maxLoginAttempts || '5';
       blacklistSettingsForm.loginBanDuration = newSettings.loginBanDuration || '300';
     },
-    { deep: true, immediate: true }
+    { deep: true, immediate: true },
   );
 
   const handleUpdateBlacklistSettings = async () => {
@@ -87,7 +87,7 @@ export function useIpBlacklist() {
       log.error('更新黑名单配置失败:', error);
       blacklistSettingsMessage.value = extractErrorMessage(
         error,
-        t('settings.ipBlacklist.error.updateConfigFailed')
+        t('settings.ipBlacklist.error.updateConfigFailed'),
       );
       blacklistSettingsSuccess.value = false;
     } finally {
@@ -139,7 +139,7 @@ export function useIpBlacklist() {
       } catch (error: unknown) {
         blacklistDeleteError.value = extractErrorMessage(
           error,
-          t('settings.ipBlacklist.error.deleteFailed')
+          t('settings.ipBlacklist.error.deleteFailed'),
         );
       } finally {
         blacklistDeleteLoading.value = false;

@@ -44,7 +44,7 @@ function searchInLines(
   lines: string[],
   query: string,
   useRegex: boolean,
-  caseSensitive: boolean
+  caseSensitive: boolean,
 ): SearchResult[] {
   if (!query) return [];
 

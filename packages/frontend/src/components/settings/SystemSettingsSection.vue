@@ -129,7 +129,7 @@
             <small class="block mt-1 text-xs text-text-secondary">{{
               $t(
                 'settings.logLevel.description',
-                '控制后端容器日志输出的详细程度。Debug 最详细，Silent 不输出。'
+                '控制后端容器日志输出的详细程度。Debug 最详细，Silent 不输出。',
               )
             }}</small>
           </div>

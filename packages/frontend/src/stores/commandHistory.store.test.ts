@@ -53,7 +53,7 @@ const mockLocalStorage = {
 
 // 辅助：创建模拟历史记录条目
 const createMockEntry = (
-  overrides: Partial<{ id: number; command: string; timestamp: number }> = {}
+  overrides: Partial<{ id: number; command: string; timestamp: number }> = {},
 ) => ({
   id: overrides.id ?? 1,
   command: overrides.command ?? 'ls -la',
@@ -431,7 +431,7 @@ describe('commandHistory.store', () => {
 
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
         'commandHistoryCache',
-        expect.any(String)
+        expect.any(String),
       );
     });
   });

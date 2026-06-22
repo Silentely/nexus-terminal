@@ -308,7 +308,7 @@ describe('settingsController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' })
+        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' }),
       );
       expect(settingsService.setNavBarVisibility).not.toHaveBeenCalled();
     });
@@ -408,7 +408,7 @@ describe('settingsController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' })
+        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' }),
       );
       expect(settingsService.setAutoCopyOnSelect).not.toHaveBeenCalled();
     });
@@ -544,7 +544,7 @@ describe('settingsController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' })
+        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' }),
       );
       expect(settingsService.setShowConnectionTags).not.toHaveBeenCalled();
     });
@@ -572,7 +572,7 @@ describe('settingsController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' })
+        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' }),
       );
     });
 
@@ -601,7 +601,7 @@ describe('settingsController', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' })
+        expect.objectContaining({ code: 'INVALID_REQUEST_BODY' }),
       );
     });
 

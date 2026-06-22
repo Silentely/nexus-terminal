@@ -121,7 +121,7 @@ describe('sftp-copy-operations', () => {
           return;
         }
         callback(new Error(`unexpected path: ${path}`));
-      }
+      },
     );
     state.sftp.createReadStream.mockImplementation(() => createReadable());
     state.sftp.createWriteStream.mockImplementation(() => createWritable());
@@ -144,7 +144,7 @@ describe('sftp-copy-operations', () => {
         const err = new Error('permission denied') as Error & { code?: string };
         err.code = 'EACCES';
         callback(err);
-      }
+      },
     );
 
     await executeCopyOperation(state, sessionId, ['/tmp/src/a.txt'], '/tmp/dest', requestId);
@@ -167,7 +167,7 @@ describe('sftp-copy-operations', () => {
           return;
         }
         callback(new Error(`unexpected path: ${path}`));
-      }
+      },
     );
     state.sftp.createReadStream.mockImplementation(() => createReadable('stream broken'));
     state.sftp.createWriteStream.mockImplementation(() => createWritable());

@@ -69,7 +69,7 @@ describe('TemporaryLogStorageService', () => {
 
       expect(mockFs.mkdir).toHaveBeenCalledWith(
         expect.stringContaining('temp_suspended_ssh_logs'),
-        { recursive: true }
+        { recursive: true },
       );
     });
 
@@ -81,7 +81,7 @@ describe('TemporaryLogStorageService', () => {
 
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('创建日志目录'),
-        expect.any(Error)
+        expect.any(Error),
       );
     });
   });
@@ -100,7 +100,7 @@ describe('TemporaryLogStorageService', () => {
       expect(mockFs.appendFile).toHaveBeenCalledWith(
         expect.stringContaining('session-123.log'),
         'test log data',
-        'utf8'
+        'utf8',
       );
     });
 
@@ -116,12 +116,12 @@ describe('TemporaryLogStorageService', () => {
       // 环形缓冲：保留尾部80MB + 新数据
       expect(mockFs.readFile).toHaveBeenCalledWith(
         expect.stringContaining('session-456.log'),
-        'utf8'
+        'utf8',
       );
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('session-456.log'),
         expect.stringContaining('new data after rotation'),
-        'utf8'
+        'utf8',
       );
       expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('环形缓冲轮替'));
     });
@@ -135,7 +135,7 @@ describe('TemporaryLogStorageService', () => {
       expect(mockFs.appendFile).toHaveBeenCalledWith(
         expect.stringContaining('session-789.log'),
         'append data',
-        'utf8'
+        'utf8',
       );
       expect(mockFs.writeFile).not.toHaveBeenCalled();
     });
@@ -169,7 +169,7 @@ describe('TemporaryLogStorageService', () => {
       expect(result).toBe('log content line 1\nlog content line 2');
       expect(mockFs.readFile).toHaveBeenCalledWith(
         expect.stringContaining('session-read.log'),
-        'utf8'
+        'utf8',
       );
     });
 
@@ -260,7 +260,7 @@ describe('TemporaryLogStorageService', () => {
     it('应拒绝包含非法字符的 sessionId', async () => {
       // 包含中文字符的 sessionId 应被路径遍历验证拒绝
       await expect(service.writeToLog('session-with-特殊字符-123', 'data')).rejects.toThrow(
-        '无效的挂起会话 ID'
+        '无效的挂起会话 ID',
       );
     });
 
@@ -277,7 +277,7 @@ describe('TemporaryLogStorageService', () => {
       expect(mockFs.appendFile).toHaveBeenCalledWith(
         expect.stringContaining('session-empty.log'),
         '',
-        'utf8'
+        'utf8',
       );
     });
 
@@ -295,7 +295,7 @@ describe('TemporaryLogStorageService', () => {
       expect(mockFs.appendFile).toHaveBeenCalledWith(
         expect.stringContaining(`${longId}.log`),
         'data',
-        'utf8'
+        'utf8',
       );
     });
   });

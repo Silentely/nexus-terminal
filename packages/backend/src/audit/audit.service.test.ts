@@ -45,7 +45,7 @@ describe('AuditLogService', () => {
       expect(mockRepository.addLog).toHaveBeenCalledWith(
         'user_login',
         { username: 'admin' },
-        undefined
+        undefined,
       );
     });
 
@@ -92,7 +92,7 @@ describe('AuditLogService', () => {
         undefined,
         undefined,
         undefined,
-        undefined
+        undefined,
       );
     });
 
@@ -105,7 +105,7 @@ describe('AuditLogService', () => {
         undefined,
         undefined,
         undefined,
-        undefined
+        undefined,
       );
     });
 
@@ -118,7 +118,7 @@ describe('AuditLogService', () => {
         'user_login',
         undefined,
         undefined,
-        undefined
+        undefined,
       );
     });
 
@@ -137,7 +137,7 @@ describe('AuditLogService', () => {
         undefined,
         undefined,
         undefined,
-        'admin'
+        'admin',
       );
     });
 
@@ -150,7 +150,7 @@ describe('AuditLogService', () => {
         'user_login',
         1000,
         2000,
-        'admin'
+        'admin',
       );
     });
   });

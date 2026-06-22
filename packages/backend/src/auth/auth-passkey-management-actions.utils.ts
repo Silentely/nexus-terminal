@@ -97,7 +97,7 @@ export type UpdatePasskeyNameErrorAction =
 
 export const buildListPasskeysSuccessAction = <TPasskey>(
   actor: PasskeyActor,
-  passkeys: TPasskey[]
+  passkeys: TPasskey[],
 ): ListPasskeysSuccessAction<TPasskey> => {
   return {
     response: {
@@ -114,7 +114,7 @@ export const buildListPasskeysSuccessAction = <TPasskey>(
 export const buildDeletePasskeyResultAction = (
   actor: PasskeyActor,
   credentialId: string,
-  wasDeleted: boolean
+  wasDeleted: boolean,
 ): DeletePasskeyResultAction => {
   const mappedDeleteResult = mapDeletePasskeyResult(wasDeleted);
   const maskedCredentialId = summarizePasskeyCredentialId(credentialId);
@@ -162,7 +162,7 @@ export const buildDeletePasskeyResultAction = (
 export const resolveDeletePasskeyErrorAction = (
   actor: PasskeyActor,
   credentialId: string,
-  error: unknown
+  error: unknown,
 ): DeletePasskeyErrorAction => {
   const mappedDeleteError = mapDeletePasskeyError(error);
   const maskedCredentialId = summarizePasskeyCredentialId(credentialId);
@@ -207,7 +207,7 @@ export const resolveDeletePasskeyErrorAction = (
 export const buildUpdatePasskeyNameSuccessAction = (
   actor: PasskeyActor,
   credentialId: string,
-  trimmedName: string
+  trimmedName: string,
 ): UpdatePasskeyNameSuccessAction => {
   return {
     response: {
@@ -238,7 +238,7 @@ export const buildUpdatePasskeyNameSuccessAction = (
 export const resolveUpdatePasskeyNameErrorAction = (
   actor: PasskeyActor,
   credentialId: string,
-  error: unknown
+  error: unknown,
 ): UpdatePasskeyNameErrorAction => {
   const mappedUpdateError = mapUpdatePasskeyNameError(error);
   const maskedCredentialId = summarizePasskeyCredentialId(credentialId);

@@ -53,7 +53,7 @@ const initializeEditableState = () => {
   const userThemeJson = appearanceSettings.value.customUiTheme;
   const userTheme = safeJsonParse(userThemeJson, {});
   const mergedTheme = { ...defaultUiTheme, ...userTheme };
-  editableUiTheme.value = JSON.parse(JSON.stringify(mergedTheme));
+  editableUiTheme.value = structuredClone(mergedTheme);
   themeParseError.value = null;
   try {
     const themeObject = editableUiTheme.value;
@@ -77,7 +77,7 @@ watch(
     log.info('[StyleCustomizerUiTab Watch] customUiTheme changed, re-initializing.');
     initializeEditableState();
   },
-  { deep: true }
+  { deep: true },
 );
 
 const handleSaveUiTheme = async () => {
@@ -118,7 +118,7 @@ const handleResetUiTheme = async () => {
 
 const applyDarkMode = async () => {
   try {
-    editableUiTheme.value = JSON.parse(JSON.stringify(darkModeTheme));
+    editableUiTheme.value = structuredClone(darkModeTheme);
     await appearanceStore.saveCustomUiTheme(editableUiTheme.value);
     notificationsStore.addNotification({
       type: 'success',
@@ -219,7 +219,7 @@ const handleUiThemeStringChange = () => {
     if (error instanceof SyntaxError) {
       errorMessage = `${t('styleCustomizer.errorJsonSyntax')}: ${extractErrorMessage(
         error,
-        fallbackError
+        fallbackError,
       )}`;
     }
     themeParseError.value = errorMessage;

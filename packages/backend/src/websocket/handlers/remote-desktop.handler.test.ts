@@ -60,7 +60,7 @@ vi.mock('../heartbeat', () => ({
 
 // Helper to create mock WebSocket
 function createMockWebSocket(
-  overrides: Partial<AuthenticatedWebSocket> = {}
+  overrides: Partial<AuthenticatedWebSocket> = {},
 ): AuthenticatedWebSocket {
   const ws = new EventEmitter() as AuthenticatedWebSocket;
   ws.readyState = 1; // WebSocket.OPEN = 1
@@ -109,7 +109,7 @@ describe('RDP WebSocket Handler', () => {
         JSON.stringify({
           type: 'rdp:error',
           payload: 'Missing RDP connection parameters (token, width, height).',
-        })
+        }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Missing RDP parameters');
     });
@@ -123,7 +123,7 @@ describe('RDP WebSocket Handler', () => {
         JSON.stringify({
           type: 'rdp:error',
           payload: 'Missing RDP connection parameters (token, width, height).',
-        })
+        }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Missing RDP parameters');
     });
@@ -137,7 +137,7 @@ describe('RDP WebSocket Handler', () => {
         JSON.stringify({
           type: 'rdp:error',
           payload: 'Missing RDP connection parameters (token, width, height).',
-        })
+        }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Missing RDP parameters');
     });
@@ -148,7 +148,7 @@ describe('RDP WebSocket Handler', () => {
       handleRdpProxyConnection(mockWs, mockRequest);
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' })
+        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Invalid RDP dimensions');
     });
@@ -159,7 +159,7 @@ describe('RDP WebSocket Handler', () => {
       handleRdpProxyConnection(mockWs, mockRequest);
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' })
+        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Invalid RDP dimensions');
     });
@@ -170,7 +170,7 @@ describe('RDP WebSocket Handler', () => {
       handleRdpProxyConnection(mockWs, mockRequest);
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' })
+        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Invalid RDP dimensions');
     });
@@ -479,7 +479,7 @@ describe('RDP WebSocket Handler', () => {
       handleRdpProxyConnection(mockWs, mockRequest);
 
       expect(WebSocket).toHaveBeenCalledWith(
-        expect.stringContaining('token=token%20with%20spaces')
+        expect.stringContaining('token=token%20with%20spaces'),
       );
     });
 

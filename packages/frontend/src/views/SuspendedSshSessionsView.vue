@@ -80,7 +80,7 @@ const filteredSessions = computed(() => {
   return storeSuspendedSshSessions.value.filter(
     (session: SuspendedSshSession) =>
       (session.customSuspendName?.toLowerCase() || '').includes(lowerSearchTerm) ||
-      session.connectionName.toLowerCase().includes(lowerSearchTerm)
+      session.connectionName.toLowerCase().includes(lowerSearchTerm),
   );
 });
 
@@ -117,7 +117,7 @@ const finishEditingName = (newName?: string) => {
   const trimmedName = (newName || currentEditingNameValue.value).trim();
 
   const originalSession = storeSuspendedSshSessions.value.find(
-    (s) => s.suspendSessionId === sessionId
+    (s) => s.suspendSessionId === sessionId,
   );
   if (!originalSession) {
     editingSuspendSessionId.value = null;
@@ -142,12 +142,12 @@ const cancelEditingName = () => {
 const resumeSession = async (session: SuspendedSshSession) => {
   // 参数类型改为 SuspendedSshSession
   log.info(
-    `[SuspendedSshSessionsView] Attempting to resume session ID: ${session.suspendSessionId}, Name: ${session.customSuspendName || session.connectionName}`
+    `[SuspendedSshSessionsView] Attempting to resume session ID: ${session.suspendSessionId}, Name: ${session.customSuspendName || session.connectionName}`,
   );
-  // 使用 JSON.parse(JSON.stringify()) 来记录会话对象的一个快照，避免在异步操作后因对象被修改而导致日志不准确
+  // 使用 JSON 序列化/反序列化记录会话快照，脱离响应式系统避免 structuredClone 对 Proxy 抛出异常
   log.info(
     '[SuspendedSshSessionsView] Session details snapshot:',
-    JSON.parse(JSON.stringify(session))
+    JSON.parse(JSON.stringify(session)),
   );
 
   try {
@@ -157,7 +157,7 @@ const resumeSession = async (session: SuspendedSshSession) => {
   } catch (error: unknown) {
     log.error(
       `[SuspendedSshSessionsView] Error during resumeSession for ${session.suspendSessionId}:`,
-      error
+      error,
     );
   }
   // 无论成功与否（或者仅在成功时，取决于需求），都可能需要通知模态框关闭
@@ -177,7 +177,7 @@ const removeSession = (session: SuspendedSshSession) => {
 
 const exportLog = async (session: SuspendedSshSession) => {
   log.info(
-    `[SuspendedSshSessionsView] Attempting to export log for session ID: ${session.suspendSessionId}`
+    `[SuspendedSshSessionsView] Attempting to export log for session ID: ${session.suspendSessionId}`,
   );
   await sessionStore.exportSshSessionLog(session.suspendSessionId);
   // 不需要 emitWorkspaceEvent，因为导出日志通常不关闭模态框

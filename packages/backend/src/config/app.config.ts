@@ -44,7 +44,7 @@ const buildPasskeyRpConfigs = (): PasskeyRpConfig[] => {
     (!hasConfiguredOrigins || configuredRpIds.length !== configuredRpOrigins.length)
   ) {
     throw new Error(
-      `Invalid WebAuthn config: RP_ID and RP_ORIGIN must have the same number of entries when RP_ID provides multiple values (got RP_ID=${configuredRpIds.length}, RP_ORIGIN=${configuredRpOrigins.length}).`
+      `Invalid WebAuthn config: RP_ID and RP_ORIGIN must have the same number of entries when RP_ID provides multiple values (got RP_ID=${configuredRpIds.length}, RP_ORIGIN=${configuredRpOrigins.length}).`,
     );
   }
 

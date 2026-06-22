@@ -161,10 +161,10 @@ describe('Proxy Service', () => {
 
     it('缺少必要字段应抛出异常', async () => {
       await expect(
-        createProxy({ name: '', type: 'SOCKS5', host: '127.0.0.1', port: 1080 })
+        createProxy({ name: '', type: 'SOCKS5', host: '127.0.0.1', port: 1080 }),
       ).rejects.toThrow('缺少必要的代理信息');
       await expect(
-        createProxy({ name: 'Test', type: '' as any, host: '127.0.0.1', port: 1080 })
+        createProxy({ name: 'Test', type: '' as any, host: '127.0.0.1', port: 1080 }),
       ).rejects.toThrow('缺少必要的代理信息');
     });
 
@@ -176,7 +176,7 @@ describe('Proxy Service', () => {
           host: '127.0.0.1',
           port: 1080,
           auth_method: 'password',
-        })
+        }),
       ).rejects.toThrow('代理密码认证方式需要提供 password');
     });
 
@@ -188,7 +188,7 @@ describe('Proxy Service', () => {
           host: '127.0.0.1',
           port: 1080,
           auth_method: 'key',
-        })
+        }),
       ).rejects.toThrow('代理密钥认证方式需要提供 private_key');
     });
 
@@ -202,7 +202,7 @@ describe('Proxy Service', () => {
           type: 'SOCKS5',
           host: '127.0.0.1',
           port: 1080,
-        })
+        }),
       ).rejects.toThrow('创建代理后无法检索到该代理');
     });
   });
@@ -276,7 +276,7 @@ describe('Proxy Service', () => {
       (ProxyRepository.findProxyById as any).mockResolvedValueOnce(existingProxy);
 
       await expect(updateProxy(1, { auth_method: 'password' })).rejects.toThrow(
-        '切换到密码认证时需要提供 password'
+        '切换到密码认证时需要提供 password',
       );
     });
 
@@ -284,7 +284,7 @@ describe('Proxy Service', () => {
       (ProxyRepository.findProxyById as any).mockResolvedValueOnce(existingProxy);
 
       await expect(updateProxy(1, { auth_method: 'key' })).rejects.toThrow(
-        '切换到密钥认证时需要提供 private_key'
+        '切换到密钥认证时需要提供 private_key',
       );
     });
 

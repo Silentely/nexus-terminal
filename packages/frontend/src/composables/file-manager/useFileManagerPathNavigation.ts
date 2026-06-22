@@ -55,7 +55,7 @@ export interface UseFileManagerPathNavigationReturn {
 }
 
 export const useFileManagerPathNavigation = (
-  options: UseFileManagerPathNavigationOptions
+  options: UseFileManagerPathNavigationOptions,
 ): UseFileManagerPathNavigationReturn => {
   const {
     currentSftpManager,
@@ -67,7 +67,7 @@ export const useFileManagerPathNavigation = (
 
   /** 将 logPrefix 统一为响应式字符串 */
   const logPrefix = computed(() =>
-    typeof logPrefixInput === 'string' ? logPrefixInput : logPrefixInput.value
+    typeof logPrefixInput === 'string' ? logPrefixInput : logPrefixInput.value,
   );
 
   const isEditingPath = ref(false);

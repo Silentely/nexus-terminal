@@ -66,11 +66,11 @@ watch(
       log.info('[FocusSwitcherConfigurator] Loading full config from store...');
       log.info(
         '[FocusSwitcherConfigurator] Store sequenceOrder:',
-        JSON.stringify(currentSequenceOrder)
+        JSON.stringify(currentSequenceOrder),
       );
       log.info(
         '[FocusSwitcherConfigurator] Store itemConfigs:',
-        JSON.stringify(currentItemConfigs)
+        JSON.stringify(currentItemConfigs),
       );
 
       // 构建本地右侧列表 (localSequence)
@@ -84,28 +84,28 @@ watch(
       allAvailableInputs.forEach((input) => {
         initialConfigs[input.id] = { ...(currentItemConfigs[input.id] || {}) }; // 复制 store 中的配置，或创建空对象
       });
-      localItemConfigs.value = JSON.parse(JSON.stringify(initialConfigs));
+      localItemConfigs.value = structuredClone(initialConfigs);
 
       // 存储原始完整配置用于比较
       originalConfig.value = JSON.parse(
         JSON.stringify({
           sequence: currentSequenceOrder,
           shortcuts: currentItemConfigs,
-        })
+        }),
       );
 
       hasChanges.value = false;
       log.info(
         '[FocusSwitcherConfigurator] Dialog opened. Loaded localSequence:',
-        JSON.stringify(localSequence.value)
+        JSON.stringify(localSequence.value),
       );
       log.info(
         '[FocusSwitcherConfigurator] Loaded localItemConfigs:',
-        JSON.stringify(localItemConfigs.value)
+        JSON.stringify(localItemConfigs.value),
       );
       log.info(
         '[FocusSwitcherConfigurator] Original full config stored:',
-        JSON.stringify(originalConfig.value)
+        JSON.stringify(originalConfig.value),
       );
       // 重置/计算初始位置和大小
       requestAnimationFrame(() => {
@@ -123,7 +123,7 @@ watch(
     } else {
       // 清理工作（如果需要）
     }
-  }
+  },
 );
 
 // 监听本地序列（包括快捷键）变化，标记未保存更改
@@ -178,7 +178,7 @@ watch(
     // log.info("Original:", JSON.stringify(comparableOriginalConfig));
     // log.info(`[FocusSwitcherConfigurator] Changes detected: ${changed}`);
   },
-  { deep: true }
+  { deep: true },
 );
 
 // --- Methods ---
@@ -215,7 +215,7 @@ const saveConfiguration = () => {
 
   log.info(
     '[FocusSwitcherConfigurator] Saving full configuration:',
-    JSON.stringify(fullConfigToSave)
+    JSON.stringify(fullConfigToSave),
   );
   focusSwitcherStore.updateConfiguration(fullConfigToSave); // 调用 Store 更新函数
   log.info('[FocusSwitcherConfigurator] Configuration save process triggered.');

@@ -141,7 +141,7 @@ export const findAllConnectionsWithTags = async (): Promise<ConnectionWithTags[]
  * 根据 ID 获取单个连接及其标签
  */
 export const findConnectionByIdWithTags = async (
-  id: number
+  id: number,
 ): Promise<ConnectionWithTags | null> => {
   const sql = `
         SELECT
@@ -239,7 +239,7 @@ export const createConnection = async (
   data: Omit<
     FullConnectionData,
     'id' | 'created_at' | 'updated_at' | 'last_connected_at' | 'tag_ids'
-  >
+  >,
 ): Promise<number> => {
   logger.debug('[Repository:createConnection] Received data:', JSON.stringify(data, null, 2));
   const now = Math.floor(Date.now() / 1000);
@@ -250,7 +250,7 @@ export const createConnection = async (
   const jumpChainStringified =
     data.jump_chain && data.jump_chain.length > 0 ? JSON.stringify(data.jump_chain) : null;
   logger.debug(
-    `[Repository:createConnection] jump_chain input: ${JSON.stringify(data.jump_chain)}, stringified to: ${jumpChainStringified}`
+    `[Repository:createConnection] jump_chain input: ${JSON.stringify(data.jump_chain)}, stringified to: ${jumpChainStringified}`,
   );
 
   const params = [
@@ -295,11 +295,11 @@ export const createConnection = async (
 // Update input type to reflect FullConnectionData now has 'type' and 'jump_chain'
 export const updateConnection = async (
   id: number,
-  data: Partial<Omit<FullConnectionData, 'id' | 'created_at' | 'last_connected_at' | 'tag_ids'>>
+  data: Partial<Omit<FullConnectionData, 'id' | 'created_at' | 'last_connected_at' | 'tag_ids'>>,
 ): Promise<boolean> => {
   logger.debug(
     `[Repository:updateConnection] Received data for ID ${id}:`,
-    JSON.stringify(data, null, 2)
+    JSON.stringify(data, null, 2),
   );
   const fieldsToUpdate: ConnectionUpdateFields = { ...data };
   const params: SqlParamValue[] = [];
@@ -310,6 +310,43 @@ export const updateConnection = async (
   delete fieldsToUpdate.tag_ids;
 
   fieldsToUpdate.updated_at = Math.floor(Date.now() / 1000);
+
+  // 允许更新的列名白名单，防止 SQL 注入
+  const ALLOWED_UPDATE_COLUMNS = new Set([
+    'name',
+    'type',
+    'host',
+    'port',
+    'username',
+    'auth_method',
+    'encrypted_password',
+    'encrypted_private_key',
+    'encrypted_passphrase',
+    'proxy_id',
+    'proxy_type',
+    'ssh_key_id',
+    'notes',
+    'jump_chain',
+    'force_keyboard_interactive',
+    'is_monitored',
+    'sort_order',
+    'updated_at',
+  ]);
+
+  // 过滤掉不在白名单中的列
+  for (const key of Object.keys(fieldsToUpdate)) {
+    if (!ALLOWED_UPDATE_COLUMNS.has(key)) {
+      logger.warn(`[Repository:updateConnection] 忽略不在白名单中的列: ${key}`);
+      delete fieldsToUpdate[key as keyof ConnectionUpdateFields];
+    }
+  }
+
+  // 过滤后如果除了 updated_at 没有其他业务字段，直接返回避免无意义的时间戳更新
+  const businessFields = Object.keys(fieldsToUpdate).filter((k) => k !== 'updated_at');
+  if (businessFields.length === 0) {
+    logger.debug(`[Repository:updateConnection] 没有需要更新的业务字段，跳过更新 (ID: ${id})`);
+    return false;
+  }
 
   const setClauses = Object.keys(fieldsToUpdate)
     .map((key) => `${key} = ?`)
@@ -323,7 +360,7 @@ export const updateConnection = async (
       const jumpChainStringified =
         jumpChainValue && jumpChainValue.length > 0 ? JSON.stringify(jumpChainValue) : null;
       logger.debug(
-        `[Repository:updateConnection] jump_chain input for ID ${id}: ${JSON.stringify(jumpChainValue)}, stringified to: ${jumpChainStringified}`
+        `[Repository:updateConnection] jump_chain input for ID ${id}: ${JSON.stringify(jumpChainValue)}, stringified to: ${jumpChainStringified}`,
       );
       params.push(jumpChainStringified);
     } else if (K === 'force_keyboard_interactive') {
@@ -354,7 +391,7 @@ export const updateConnection = async (
   logger.debug(`[Repository:updateConnection] SQL for ID ${id}:`, sql);
   logger.debug(
     `[Repository:updateConnection] Params for ID ${id}:`,
-    JSON.stringify(params, null, 2)
+    JSON.stringify(params, null, 2),
   );
 
   try {
@@ -420,7 +457,7 @@ export const updateLastConnected = async (id: number, timestamp: number): Promis
  */
 export const updateConnectionTags = async (
   connectionId: number,
-  tagIds: number[]
+  tagIds: number[],
 ): Promise<boolean> => {
   // 修改返回类型为 boolean
   const db = await getDbInstance();
@@ -430,11 +467,11 @@ export const updateConnectionTags = async (
     const connectionExists = await getDbRow<{ id: number }>(
       db,
       `SELECT id FROM connections WHERE id = ?`,
-      [connectionId]
+      [connectionId],
     );
     if (!connectionExists) {
       logger.warn(
-        `Repository: updateConnectionTags - Connection with ID ${connectionId} not found.`
+        `Repository: updateConnectionTags - Connection with ID ${connectionId} not found.`,
       );
       return false; // 连接不存在，返回 false
     }
@@ -458,7 +495,7 @@ export const updateConnectionTags = async (
 
       // 使用 Promise.all 确保所有插入完成或失败
       const insertPromises = validTagIds.map((tagId) =>
-        runDb(db, insertSql, [connectionId, tagId])
+        runDb(db, insertSql, [connectionId, tagId]),
       );
       // 如果任何插入失败，Promise.all 会 reject，错误会被下面的 catch 捕获
       await Promise.all(insertPromises);
@@ -473,12 +510,12 @@ export const updateConnectionTags = async (
     try {
       await runDb(db, 'ROLLBACK');
       logger.debug(
-        `Repository: Transaction rolled back for connection ${connectionId} tag update.`
+        `Repository: Transaction rolled back for connection ${connectionId} tag update.`,
       );
     } catch (rollbackErr: unknown) {
       logger.error(
         `Repository: 回滚连接 ${connectionId} 的标签更新事务失败:`,
-        getErrorMessage(rollbackErr)
+        getErrorMessage(rollbackErr),
       );
       // 即使回滚失败，原始错误也更重要
     }
@@ -494,7 +531,7 @@ export const updateConnectionTags = async (
  * @returns 标签对象数组 { id: number, name: string }[]
  */
 export const findConnectionTags = async (
-  connectionId: number
+  connectionId: number,
 ): Promise<{ id: number; name: string }[]> => {
   const sql = `
         SELECT t.id, t.name
@@ -518,7 +555,7 @@ export const findConnectionTags = async (
 export const bulkInsertConnections = async (
   db: Database,
   // Update input type to reflect FullConnectionData now has 'type'
-  connections: BulkInsertConnectionInput[]
+  connections: BulkInsertConnectionInput[],
 ): Promise<BulkInsertConnectionResult[]> => {
   const insertConnSql = `INSERT INTO connections (name, type, host, port, username, auth_method, encrypted_password, encrypted_private_key, encrypted_passphrase, proxy_id, proxy_type, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`; // Add type, proxy_type and notes columns and placeholders
   const results: BulkInsertConnectionResult[] = [];
@@ -546,7 +583,7 @@ export const bulkInsertConnections = async (
       if (typeof connResult.lastID !== 'number' || connResult.lastID <= 0) {
         throw ErrorFactory.databaseError(
           '批量插入连接失败',
-          `插入连接 "${connData.name}" 后未能获取有效的 lastID`
+          `插入连接 "${connData.name}" 后未能获取有效的 lastID`,
         );
       }
       results.push({ connectionId: connResult.lastID, originalData: connData });
@@ -554,7 +591,7 @@ export const bulkInsertConnections = async (
       logger.error(`Repository: 批量插入连接 "${connData.name}" 时出错: ${getErrorMessage(err)}`);
       throw ErrorFactory.databaseError(
         '批量插入连接失败',
-        `批量插入连接 "${connData.name}" 失败: ${getErrorMessage(err)}`
+        `批量插入连接 "${connData.name}" 失败: ${getErrorMessage(err)}`,
       );
     }
   }
@@ -568,11 +605,11 @@ export const bulkInsertConnections = async (
  */
 export const addTagToMultipleConnections = async (
   connectionIds: number[],
-  tagId: number
+  tagId: number,
 ): Promise<void> => {
   if (connectionIds.length === 0 || typeof tagId !== 'number' || tagId <= 0) {
     logger.warn(
-      '[Repository] addTagToMultipleConnections called with empty connectionIds or invalid tagId.'
+      '[Repository] addTagToMultipleConnections called with empty connectionIds or invalid tagId.',
     );
     return; // 无需操作
   }
@@ -597,7 +634,7 @@ export const addTagToMultipleConnections = async (
     } catch (rollbackErr: unknown) {
       logger.error(
         `Repository: 回滚为多个连接添加标签 ${tagId} 的事务失败:`,
-        getErrorMessage(rollbackErr)
+        getErrorMessage(rollbackErr),
       );
     }
     throw ErrorFactory.databaseError('批量关联标签失败', `为多个连接添加标签失败: ${errMsg}`);

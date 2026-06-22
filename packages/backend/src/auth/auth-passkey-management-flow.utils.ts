@@ -16,7 +16,7 @@ export interface PasskeyAuthenticatedActor {
 }
 
 export const resolvePasskeyAuthenticatedActor = (
-  req: Request
+  req: Request,
 ):
   | {
       ok: true;
@@ -44,7 +44,7 @@ export const resolvePasskeyAuthenticatedActor = (
 };
 
 export const resolvePasskeyCredentialId = (
-  credentialID: string | undefined
+  credentialID: string | undefined,
 ):
   | {
       ok: true;
@@ -71,7 +71,7 @@ export const resolvePasskeyCredentialId = (
 };
 
 export const resolvePasskeyTrimmedName = (
-  name: unknown
+  name: unknown,
 ):
   | {
       ok: true;
@@ -101,7 +101,7 @@ export const summarizePasskeyCredentialId = (credentialID: string): string =>
   `${credentialID.substring(0, 8)}***`;
 
 export const mapDeletePasskeyResult = (
-  wasDeleted: boolean
+  wasDeleted: boolean,
 ): {
   statusCode: 200 | 404;
   body: {
@@ -187,13 +187,13 @@ interface PasskeyManagementEventServices {
   auditLogService: {
     logAction: (
       action: AuditLogActionType,
-      payload?: Record<string, unknown> | string | null
+      payload?: Record<string, unknown> | string | null,
     ) => Promise<void> | void;
   };
   notificationService: {
     sendNotification: (
       event: NotificationEvent,
-      payload?: Record<string, unknown> | string
+      payload?: Record<string, unknown> | string,
     ) => Promise<void> | void;
   };
 }
@@ -204,7 +204,7 @@ export const recordPasskeyDeletedEvent = (
     userId: number;
     username: string;
     credentialId: string;
-  }
+  },
 ): void => {
   const { userId, username, credentialId } = payload;
   services.auditLogService.logAction('PASSKEY_DELETED', {
@@ -225,7 +225,7 @@ export const recordPasskeyDeleteUnauthorizedEvent = (
     userId: number;
     username: string;
     credentialIdAttempted: string;
-  }
+  },
 ): void => {
   services.auditLogService.logAction('PASSKEY_DELETE_UNAUTHORIZED', payload);
 };
@@ -237,7 +237,7 @@ export const recordPasskeyNameUpdatedEvent = (
     username: string;
     credentialId: string;
     newName: string;
-  }
+  },
 ): void => {
   services.auditLogService.logAction('PASSKEY_NAME_UPDATED', payload);
 };
@@ -248,7 +248,7 @@ export const recordPasskeyNameUpdateUnauthorizedEvent = (
     userId: number;
     username: string;
     credentialIdAttempted: string;
-  }
+  },
 ): void => {
   services.auditLogService.logAction('PASSKEY_NAME_UPDATE_UNAUTHORIZED', payload);
 };

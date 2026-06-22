@@ -247,7 +247,7 @@ describe('sshSuspendActions', () => {
             sessionId: 'sess-1',
             initialBuffer: 'line1\nline2',
           }),
-        })
+        }),
       );
     });
 
@@ -267,7 +267,7 @@ describe('sshSuspendActions', () => {
             sessionId: 'sess-2',
             initialBuffer: undefined,
           }),
-        })
+        }),
       );
     });
   });
@@ -320,7 +320,7 @@ describe('sshSuspendActions', () => {
         expect.objectContaining({
           type: 'SSH_UNMARK_FOR_SUSPEND',
           payload: { sessionId: 'sess-1' },
-        })
+        }),
       );
     });
   });
@@ -426,7 +426,7 @@ describe('sshSuspendActions', () => {
       expect(mockApiPut).toHaveBeenCalledWith('ssh-suspend/name/s1', { customName: 'New Name' });
       expect((suspendedSshSessionsRef.value[0] as any).customSuspendName).toBe('New Name');
       expect(mockAddNotification).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'success' })
+        expect.objectContaining({ type: 'success' }),
       );
     });
 
@@ -468,7 +468,7 @@ describe('sshSuspendActions', () => {
       };
       vi.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLElement);
       vi.spyOn(document.body, 'appendChild').mockImplementation(
-        () => mockLink as unknown as HTMLElement
+        () => mockLink as unknown as HTMLElement,
       );
 
       const { exportSshSessionLog } = await import('./sshSuspendActions');
@@ -504,11 +504,11 @@ describe('sshSuspendActions', () => {
 
       expect(mockOnMessage).toHaveBeenCalledWith(
         'SSH_MARKED_FOR_SUSPEND_ACK',
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockOnMessage).toHaveBeenCalledWith(
         'SSH_UNMARKED_FOR_SUSPEND_ACK',
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockOnMessage).toHaveBeenCalledWith('SSH_SUSPEND_LIST_RESPONSE', expect.any(Function));
       expect(mockOnMessage).toHaveBeenCalledWith('SSH_SUSPEND_RESUMED', expect.any(Function));
@@ -517,7 +517,7 @@ describe('sshSuspendActions', () => {
       expect(mockOnMessage).toHaveBeenCalledWith('SSH_SUSPEND_ENTRY_REMOVED', expect.any(Function));
       expect(mockOnMessage).toHaveBeenCalledWith(
         'SSH_SUSPEND_AUTO_TERMINATED',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -556,7 +556,7 @@ describe('sshSuspendActions', () => {
 
         expect(sessionsMap.get('sess-1').isMarkedForSuspend).toBe(true);
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'success' })
+          expect.objectContaining({ type: 'success' }),
         );
       });
 
@@ -572,7 +572,7 @@ describe('sshSuspendActions', () => {
 
         expect(sessionsMap.get('sess-1').isMarkedForSuspend).toBe(false);
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'error' })
+          expect.objectContaining({ type: 'error' }),
         );
       });
 
@@ -583,7 +583,7 @@ describe('sshSuspendActions', () => {
           handlers['SSH_MARKED_FOR_SUSPEND_ACK']({
             success: true,
             sessionId: 'nonexistent',
-          })
+          }),
         ).not.toThrow();
       });
     });
@@ -600,7 +600,7 @@ describe('sshSuspendActions', () => {
 
         expect(sessionsMap.get('sess-1').isMarkedForSuspend).toBe(false);
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'success' })
+          expect.objectContaining({ type: 'success' }),
         );
       });
 
@@ -614,7 +614,7 @@ describe('sshSuspendActions', () => {
         });
 
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'error' })
+          expect.objectContaining({ type: 'error' }),
         );
       });
     });
@@ -652,7 +652,7 @@ describe('sshSuspendActions', () => {
         expect(sessionsMap.get('new-sess').isResuming).toBe(true);
         expect(suspendedSshSessionsRef.value).toHaveLength(0);
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'success' })
+          expect.objectContaining({ type: 'success' }),
         );
       });
 
@@ -669,7 +669,7 @@ describe('sshSuspendActions', () => {
 
         expect(suspendedSshSessionsRef.value).toHaveLength(0);
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'success' })
+          expect.objectContaining({ type: 'success' }),
         );
       });
 
@@ -684,7 +684,7 @@ describe('sshSuspendActions', () => {
         });
 
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'error' })
+          expect.objectContaining({ type: 'error' }),
         );
       });
 
@@ -699,7 +699,7 @@ describe('sshSuspendActions', () => {
         });
 
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'error' })
+          expect.objectContaining({ type: 'error' }),
         );
       });
 
@@ -715,7 +715,7 @@ describe('sshSuspendActions', () => {
         });
 
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'error' })
+          expect.objectContaining({ type: 'error' }),
         );
       });
 
@@ -729,7 +729,7 @@ describe('sshSuspendActions', () => {
             suspendSessionId: 's1',
             newFrontendSessionId: 'no-sess',
             error: 'err',
-          })
+          }),
         ).resolves.toBeUndefined();
       });
     });
@@ -777,7 +777,7 @@ describe('sshSuspendActions', () => {
             frontendSessionId: 'nonexistent',
             data: 'data',
             isLastChunk: false,
-          })
+          }),
         ).not.toThrow();
       });
 
@@ -793,7 +793,7 @@ describe('sshSuspendActions', () => {
             frontendSessionId: 'new-sess',
             data: 'last chunk',
             isLastChunk: true,
-          })
+          }),
         ).not.toThrow();
       });
     });
@@ -830,7 +830,7 @@ describe('sshSuspendActions', () => {
         });
 
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'error' })
+          expect.objectContaining({ type: 'error' }),
         );
       });
     });
@@ -867,7 +867,7 @@ describe('sshSuspendActions', () => {
         });
 
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'error' })
+          expect.objectContaining({ type: 'error' }),
         );
       });
     });
@@ -885,11 +885,11 @@ describe('sshSuspendActions', () => {
         });
 
         expect((suspendedSshSessionsRef.value[0] as any).backendSshStatus).toBe(
-          'disconnected_by_backend'
+          'disconnected_by_backend',
         );
         expect((suspendedSshSessionsRef.value[0] as any).disconnectionTimestamp).toBeDefined();
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'warning' })
+          expect.objectContaining({ type: 'warning' }),
         );
       });
 
@@ -905,7 +905,7 @@ describe('sshSuspendActions', () => {
         });
 
         expect(mockAddNotification).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'warning' })
+          expect.objectContaining({ type: 'warning' }),
         );
       });
 
@@ -916,7 +916,7 @@ describe('sshSuspendActions', () => {
           handlers['SSH_SUSPEND_AUTO_TERMINATED']({
             suspendSessionId: 'nonexistent',
             reason: 'timeout',
-          })
+          }),
         ).not.toThrow();
       });
     });

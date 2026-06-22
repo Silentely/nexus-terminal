@@ -26,7 +26,7 @@ export const findProxyByNameTypeHostPort = async (
   name: string,
   type: string,
   host: string,
-  port: number
+  port: number,
 ): Promise<{ id: number } | undefined> => {
   const sql = `SELECT id FROM proxies WHERE name = ? AND type = ? AND host = ? AND port = ?`;
   try {
@@ -37,7 +37,7 @@ export const findProxyByNameTypeHostPort = async (
     const errMsg = getErrorMessage(err);
     logger.error(
       `Repository: 查找代理时出错 (name=${name}, type=${type}, host=${host}, port=${port}):`,
-      errMsg
+      errMsg,
     );
     throw ErrorFactory.databaseError('查找代理失败', `查找代理时出错: ${errMsg}`);
   }
@@ -47,7 +47,7 @@ export const findProxyByNameTypeHostPort = async (
  * 创建新代理
  */
 export const createProxy = async (
-  data: Omit<ProxyData, 'id' | 'created_at' | 'updated_at'>
+  data: Omit<ProxyData, 'id' | 'created_at' | 'updated_at'>,
 ): Promise<number> => {
   const now = Math.floor(Date.now() / 1000);
   const sql = `INSERT INTO proxies (name, type, host, port, username, auth_method, encrypted_password, encrypted_private_key, encrypted_passphrase, created_at, updated_at)
@@ -71,7 +71,7 @@ export const createProxy = async (
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
       throw ErrorFactory.databaseError(
         '创建代理后未能获取有效的 lastID',
-        '创建代理后未能获取有效的 lastID'
+        '创建代理后未能获取有效的 lastID',
       );
     }
     return result.lastID;
@@ -117,7 +117,7 @@ export const findProxyById = async (id: number): Promise<ProxyData | null> => {
  */
 export const updateProxy = async (
   id: number,
-  data: Partial<Omit<ProxyData, 'id' | 'created_at'>>
+  data: Partial<Omit<ProxyData, 'id' | 'created_at'>>,
 ): Promise<boolean> => {
   const fieldsToUpdate: Record<string, unknown> = { ...data };
   const params: unknown[] = [];

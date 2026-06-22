@@ -47,14 +47,14 @@ export function useImportConnections() {
         importMessage.value = t(
           'settings.importConnections.partialSuccess',
           { success: data.successCount, failure: data.failureCount },
-          `导入完成，成功 ${data.successCount} 条，失败 ${data.failureCount} 条。`
+          `导入完成，成功 ${data.successCount} 条，失败 ${data.failureCount} 条。`,
         );
         importSuccess.value = false;
       } else {
         importMessage.value = t(
           'settings.importConnections.success',
           { count: data.successCount },
-          `导入成功完成。共导入 ${data.successCount} 条连接。`
+          `导入成功完成。共导入 ${data.successCount} 条连接。`,
         );
         importSuccess.value = true;
       }

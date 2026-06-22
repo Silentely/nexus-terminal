@@ -54,15 +54,15 @@ const rootConfigResult = dotenv.config({ path: projectRootEnvPath });
 
 if (rootConfigResult.error && (rootConfigResult.error as NodeJS.ErrnoException).code !== 'ENOENT') {
   logger.warn(
-    `[ENV Init Early] Warning: Could not load root .env file from ${projectRootEnvPath}. Error: ${rootConfigResult.error.message}`
+    `[ENV Init Early] Warning: Could not load root .env file from ${projectRootEnvPath}. Error: ${rootConfigResult.error.message}`,
   );
 } else if (!rootConfigResult.error) {
   logger.debug(
-    `[ENV Init Early] Loaded environment variables from root .env file: ${projectRootEnvPath}`
+    `[ENV Init Early] Loaded environment variables from root .env file: ${projectRootEnvPath}`,
   );
 } else {
   logger.debug(
-    `[ENV Init Early] Root .env file not found at ${projectRootEnvPath}, proceeding without it.`
+    `[ENV Init Early] Root .env file not found at ${projectRootEnvPath}, proceeding without it.`,
   );
 }
 
@@ -76,11 +76,11 @@ if (
   (dataConfigResultGlobal.error as NodeJS.ErrnoException).code !== 'ENOENT'
 ) {
   logger.warn(
-    `[ENV Init Early] Warning: Could not load data .env file from ${dataEnvPathGlobal}. Error: ${dataConfigResultGlobal.error.message}`
+    `[ENV Init Early] Warning: Could not load data .env file from ${dataEnvPathGlobal}. Error: ${dataConfigResultGlobal.error.message}`,
   );
 } else if (!dataConfigResultGlobal.error) {
   logger.debug(
-    `[ENV Init Early] Loaded environment variables from data .env file: ${dataEnvPathGlobal}`
+    `[ENV Init Early] Loaded environment variables from data .env file: ${dataEnvPathGlobal}`,
   );
 }
 
@@ -244,7 +244,7 @@ const resolvePasskeyRpIdFromHost = (host: string): string | undefined => {
   }
 
   const originHostMatch = config.passkeyRpConfigs.find(
-    (item) => item.rpOriginHostname === normalizedHost
+    (item) => item.rpOriginHostname === normalizedHost,
   );
 
   return originHostMatch?.rpId;
@@ -353,7 +353,7 @@ const startServer = () => {
         swaggerUi.setup(swaggerSpec, {
           customCss: '.swagger-ui .topbar { display: none }',
           customSiteTitle: '星枢终端 API 文档',
-        })
+        }),
       );
       logger.info(`[Swagger] API 文档已启用: http://localhost:${port}/api-docs`);
     } catch (error: unknown) {

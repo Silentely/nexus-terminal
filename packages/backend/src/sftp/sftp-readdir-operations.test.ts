@@ -79,7 +79,7 @@ describe('sftp-readdir-operations', () => {
     const state = createState();
     state.sftp.readdir.mockImplementation(
       (_path: string, callback: (err: Error | null, list?: MockReaddirEntry[]) => void) =>
-        callback(new Error('permission denied'))
+        callback(new Error('permission denied')),
     );
 
     await executeReaddirSftpOperation(state, sessionId, path, requestId);
@@ -107,7 +107,7 @@ describe('sftp-readdir-operations', () => {
     ];
     state.sftp.readdir.mockImplementation(
       (_path: string, callback: (err: Error | null, list?: MockReaddirEntry[]) => void) =>
-        callback(null, entries)
+        callback(null, entries),
     );
 
     await executeReaddirSftpOperation(state, sessionId, path, requestId);

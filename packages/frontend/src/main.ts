@@ -74,7 +74,7 @@ const setupWebManifestLink = async () => {
     // 2. 后台异步加载初始化数据 (使用新的统一API)
     await authStore.loadInitData();
     log.info(
-      `[main.ts] 初始化数据加载完成: needsSetup=${authStore.needsSetup}, isAuthenticated=${authStore.isAuthenticated}`
+      `[main.ts] 初始化数据加载完成: needsSetup=${authStore.needsSetup}, isAuthenticated=${authStore.isAuthenticated}`,
     );
 
     // 3. 数据加载完成后,检查是否需要重定向

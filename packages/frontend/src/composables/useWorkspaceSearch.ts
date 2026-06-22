@@ -47,19 +47,19 @@ export function useWorkspaceSearch(deps: WorkspaceSearchDependencies) {
     if (manager && currentSearchTerm.value) {
       const mode = isMobile.value ? 'Mobile' : 'Desktop';
       log.info(
-        `[useWorkspaceSearch ${mode}] Calling findNext for term: "${currentSearchTerm.value}"`
+        `[useWorkspaceSearch ${mode}] Calling findNext for term: "${currentSearchTerm.value}"`,
       );
       const found = manager.searchNext(currentSearchTerm.value, { incremental: true });
       log.info(`[useWorkspaceSearch ${mode}] findNext returned: ${found}`);
       if (!found) {
         log.info(
-          `[useWorkspaceSearch ${mode}] findNext: No more results for "${currentSearchTerm.value}"`
+          `[useWorkspaceSearch ${mode}] findNext: No more results for "${currentSearchTerm.value}"`,
         );
       }
     } else {
       const mode = isMobile.value ? 'Mobile' : 'Desktop';
       log.warn(
-        `[useWorkspaceSearch ${mode}] Cannot findNext, no active session manager or search term.`
+        `[useWorkspaceSearch ${mode}] Cannot findNext, no active session manager or search term.`,
       );
     }
   };
@@ -72,19 +72,19 @@ export function useWorkspaceSearch(deps: WorkspaceSearchDependencies) {
     if (manager && currentSearchTerm.value) {
       const mode = isMobile.value ? 'Mobile' : 'Desktop';
       log.info(
-        `[useWorkspaceSearch ${mode}] Calling findPrevious for term: "${currentSearchTerm.value}"`
+        `[useWorkspaceSearch ${mode}] Calling findPrevious for term: "${currentSearchTerm.value}"`,
       );
       const found = manager.searchPrevious(currentSearchTerm.value, { incremental: true });
       log.info(`[useWorkspaceSearch ${mode}] findPrevious returned: ${found}`);
       if (!found) {
         log.info(
-          `[useWorkspaceSearch ${mode}] findPrevious: No previous results for "${currentSearchTerm.value}"`
+          `[useWorkspaceSearch ${mode}] findPrevious: No previous results for "${currentSearchTerm.value}"`,
         );
       }
     } else {
       const mode = isMobile.value ? 'Mobile' : 'Desktop';
       log.warn(
-        `[useWorkspaceSearch ${mode}] Cannot findPrevious, no active session manager or search term.`
+        `[useWorkspaceSearch ${mode}] Cannot findPrevious, no active session manager or search term.`,
       );
     }
   };

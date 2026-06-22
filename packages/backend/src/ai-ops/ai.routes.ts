@@ -3,6 +3,7 @@
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger';
 import * as AIController from './ai.controller';
 import * as NL2CMDController from './nl2cmd.controller';
 import { isAuthenticated } from '../auth/auth.middleware';
@@ -26,7 +27,8 @@ const conditionalAiLimiter = async (req: Request, res: Response, next: NextFunct
       return next();
     }
     return aiLimiter(req, res, next);
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     // 获取配置失败时，默认应用速率限制
     return aiLimiter(req, res, next);
   }

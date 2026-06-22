@@ -5,10 +5,10 @@ import { Page } from '@playwright/test';
 
 async function connectFirstVisibleConnection(
   page: Page,
-  workspace: WorkspacePage
+  workspace: WorkspacePage,
 ): Promise<boolean> {
   const connection = page.locator(
-    '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+    '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
   );
   if (!(await connection.isVisible({ timeout: 5000 }).catch(() => false))) {
     return false;
@@ -33,15 +33,15 @@ test.describe('连接管理边缘场景测试', () => {
       await authenticatedPage.fill('input[name="host"]', EDGE_CASE_DATA.invalidConnection.host);
       await authenticatedPage.fill(
         'input[name="port"]',
-        EDGE_CASE_DATA.invalidConnection.port.toString()
+        EDGE_CASE_DATA.invalidConnection.port.toString(),
       );
       await authenticatedPage.fill(
         'input[name="username"]',
-        EDGE_CASE_DATA.invalidConnection.username
+        EDGE_CASE_DATA.invalidConnection.username,
       );
       await authenticatedPage.fill(
         'input[name="password"]',
-        EDGE_CASE_DATA.invalidConnection.password
+        EDGE_CASE_DATA.invalidConnection.password,
       );
 
       // 保存连接
@@ -52,7 +52,7 @@ test.describe('连接管理边缘场景测试', () => {
 
       // 应该显示超时或连接失败错误
       await expect(
-        authenticatedPage.locator('text=/连接失败|Connection failed|Timeout|超时/i')
+        authenticatedPage.locator('text=/连接失败|Connection failed|Timeout|超时/i'),
       ).toBeVisible({
         timeout: 30000,
       });
@@ -64,7 +64,7 @@ test.describe('连接管理边缘场景测试', () => {
 
       // 假设有一个有效连接
       const firstConnection = authenticatedPage.locator(
-        '.connection-list .connection-item:first-child'
+        '.connection-list .connection-item:first-child',
       );
       if (await firstConnection.isVisible()) {
         await firstConnection.dblclick();
@@ -76,7 +76,9 @@ test.describe('连接管理边缘场景测试', () => {
 
         // 应该显示断连状态
         await expect(
-          authenticatedPage.locator('[data-status="disconnected"], .connection-status-disconnected')
+          authenticatedPage.locator(
+            '[data-status="disconnected"], .connection-status-disconnected',
+          ),
         ).toBeVisible({ timeout: 10000 });
 
         // 恢复网络
@@ -84,7 +86,7 @@ test.describe('连接管理边缘场景测试', () => {
 
         // 应该尝试自动重连
         await expect(
-          authenticatedPage.locator('[data-status="reconnecting"], text=/重连|Reconnecting/i')
+          authenticatedPage.locator('[data-status="reconnecting"], text=/重连|Reconnecting/i'),
         ).toBeVisible({ timeout: 5000 });
       }
     });
@@ -107,7 +109,7 @@ test.describe('连接管理边缘场景测试', () => {
 
       // 立即点击取消
       const cancelButton = authenticatedPage.locator(
-        'button:has-text("取消"), button:has-text("Cancel")'
+        'button:has-text("取消"), button:has-text("Cancel")',
       );
       if (await cancelButton.isVisible({ timeout: 2000 })) {
         await cancelButton.click();
@@ -135,7 +137,7 @@ test.describe('连接管理边缘场景测试', () => {
 
       // 应该显示认证失败
       await expect(
-        authenticatedPage.locator('text=/认证失败|Authentication failed|Permission denied/i')
+        authenticatedPage.locator('text=/认证失败|Authentication failed|Permission denied/i'),
       ).toBeVisible({ timeout: 15000 });
     });
 
@@ -158,7 +160,7 @@ test.describe('连接管理边缘场景测试', () => {
 
       // 应该显示密钥文件错误
       await expect(
-        authenticatedPage.locator('text=/密钥文件|Key file|not found|找不到/i')
+        authenticatedPage.locator('text=/密钥文件|Key file|not found|找不到/i'),
       ).toBeVisible({ timeout: 10000 });
     });
   });
@@ -175,11 +177,11 @@ test.describe('连接管理边缘场景测试', () => {
       await authenticatedPage.fill('input[name="port"]', '22');
       await authenticatedPage.fill(
         'input[name="username"]',
-        EDGE_CASE_DATA.invalidConnection.username
+        EDGE_CASE_DATA.invalidConnection.username,
       );
       await authenticatedPage.fill(
         'input[name="password"]',
-        EDGE_CASE_DATA.invalidConnection.password
+        EDGE_CASE_DATA.invalidConnection.password,
       );
 
       // 如果页面存在代理下拉，优先选择第一个可用代理，增强代理路径覆盖。
@@ -191,7 +193,7 @@ test.describe('连接管理边缘场景测试', () => {
               value: (node as HTMLOptionElement).value,
               text: node.textContent?.trim() || '',
             }))
-            .filter((opt) => opt.value && opt.text)
+            .filter((opt) => opt.value && opt.text),
         );
         if (options.length > 0) {
           await proxySelect.selectOption(options[0].value);
@@ -205,8 +207,8 @@ test.describe('连接管理边缘场景测试', () => {
       // 无效主机场景下应有失败提示；若使用了代理，也应兼容代理失败文案。
       await expect(
         authenticatedPage.locator(
-          'text=/代理连接失败|Proxy connection failed|连接失败|Connection failed/i'
-        )
+          'text=/代理连接失败|Proxy connection failed|连接失败|Connection failed/i',
+        ),
       ).toBeVisible({
         timeout: 30000,
       });
@@ -242,7 +244,7 @@ test.describe('连接管理边缘场景测试', () => {
 
       // 尝试打开10个连接
       const connectionLocator = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"], .connection-list .connection-item'
+        '.connection-list [data-testid="connection-item"], .connection-list .connection-item',
       );
       const totalConnections = await connectionLocator.count();
       expect(totalConnections).toBeGreaterThan(0);
@@ -260,7 +262,7 @@ test.describe('连接管理边缘场景测试', () => {
       expect(openedTabs).toBeGreaterThan(0);
       expect(openedTabs).toBeLessThanOrEqual(maxConnections + 1);
 
-      // 若存在“已达上限”提示，进行断言；没有提示则以上述 tab 数量约束作为通过条件。
+      // 若存在"已达上限"提示，进行断言；没有提示则以上述 tab 数量约束作为通过条件。
       const hasLimitHint = await authenticatedPage
         .locator('text=/连接数已达上限|Maximum connections reached/i')
         .first()
@@ -268,7 +270,7 @@ test.describe('连接管理边缘场景测试', () => {
         .catch(() => false);
       if (hasLimitHint) {
         await expect(
-          authenticatedPage.locator('text=/连接数已达上限|Maximum connections reached/i')
+          authenticatedPage.locator('text=/连接数已达上限|Maximum connections reached/i'),
         ).toBeVisible();
       }
     });
@@ -286,7 +288,7 @@ test.describe('连接管理边缘场景测试', () => {
 
       // 应该显示验证错误
       await expect(
-        authenticatedPage.locator('.el-form-item__error, [role="alert"]:has-text("端口")')
+        authenticatedPage.locator('.el-form-item__error, [role="alert"]:has-text("端口")'),
       ).toBeVisible();
     });
 
@@ -299,7 +301,7 @@ test.describe('连接管理边缘场景测试', () => {
       await authenticatedPage.fill('input[name="host"]', '');
 
       const saveButton = authenticatedPage.locator(
-        'button:has-text("保存"), button:has-text("Save")'
+        'button:has-text("保存"), button:has-text("Save")',
       );
       await expect(saveButton).toBeDisabled();
     });
@@ -370,7 +372,7 @@ test.describe('连接管理边缘场景测试', () => {
         await context.setOffline(false);
 
         const reconnectButton = authenticatedPage.locator(
-          'button:has-text("重连"), button:has-text("Reconnect")'
+          'button:has-text("重连"), button:has-text("Reconnect")',
         );
         if (await reconnectButton.isVisible({ timeout: 5000 }).catch(() => false)) {
           await reconnectButton.click();

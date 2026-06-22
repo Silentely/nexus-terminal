@@ -367,7 +367,7 @@ const ENV_SCHEMA: Record<keyof EnvironmentConfig, EnvVarSchema> = {
 export class EnvironmentValidationError extends Error {
   constructor(
     message: string,
-    public errors: string[]
+    public errors: string[],
   ) {
     super(message);
     this.name = 'EnvironmentValidationError';
@@ -383,7 +383,7 @@ export function validateEnvironment(): EnvironmentConfig {
   const config: Partial<EnvironmentConfig> = {};
   const setConfigValue = <K extends keyof EnvironmentConfig>(
     key: K,
-    value: EnvironmentConfig[K]
+    value: EnvironmentConfig[K],
   ): void => {
     config[key] = value;
   };
@@ -409,7 +409,7 @@ export function validateEnvironment(): EnvironmentConfig {
     if (schema.type === 'enum') {
       if (!schema.enum?.includes(value)) {
         errors.push(
-          `环境变量 ${envKey} 的值 "${value}" 不在允许的值列表中: ${schema.enum?.join(', ')}`
+          `环境变量 ${envKey} 的值 "${value}" 不在允许的值列表中: ${schema.enum?.join(', ')}`,
         );
         continue;
       }

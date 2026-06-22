@@ -161,7 +161,7 @@ export const useAuthStore = defineStore(
       try {
         const response = await apiClient.post<{ message: string; user: UserInfo }>(
           '/auth/login/2fa',
-          { token, tempToken: tempToken.value }
+          { token, tempToken: tempToken.value },
         );
         isAuthenticated.value = true;
         user.value = response.data.user;
@@ -215,7 +215,7 @@ export const useAuthStore = defineStore(
       isLoading.value = true;
       try {
         const response = await apiClient.get<{ isAuthenticated: boolean; user: UserInfo }>(
-          '/auth/status'
+          '/auth/status',
         );
         if (response.data.isAuthenticated && response.data.user) {
           isAuthenticated.value = true;
@@ -363,12 +363,12 @@ export const useAuthStore = defineStore(
         };
         log.info(
           '[AuthStore] Public CAPTCHA config derived from /settings/captcha:',
-          publicCaptchaConfig.value
+          publicCaptchaConfig.value,
         );
       } catch (err: unknown) {
         log.error(
           '获取 CAPTCHA 配置失败 (from /settings/captcha):',
-          extractErrorMessage(err, '获取 CAPTCHA 配置失败')
+          extractErrorMessage(err, '获取 CAPTCHA 配置失败'),
         );
         publicCaptchaConfig.value = {
           enabled: false,
@@ -391,7 +391,7 @@ export const useAuthStore = defineStore(
       try {
         const response = await apiClient.post<{ message: string; user: UserInfo }>(
           '/auth/passkey/authenticate',
-          { username, assertionResponse }
+          { username, assertionResponse },
         );
         isAuthenticated.value = true;
         user.value = response.data.user;
@@ -570,17 +570,17 @@ export const useAuthStore = defineStore(
         const params = username ? { username } : {};
         const response = await apiClient.get<{ hasPasskeys: boolean }>(
           '/auth/passkey/has-configured',
-          { params }
+          { params },
         );
         hasPasskeysAvailable.value = response.data.hasPasskeys;
         log.info(
-          `[AuthStore] Passkeys available for ${username || 'any user'}: ${hasPasskeysAvailable.value}`
+          `[AuthStore] Passkeys available for ${username || 'any user'}: ${hasPasskeysAvailable.value}`,
         );
         return hasPasskeysAvailable.value;
       } catch (err: unknown) {
         log.error(
           'Failed to check if passkeys are configured:',
-          extractErrorMessage(err, 'Failed to check if passkeys are configured')
+          extractErrorMessage(err, 'Failed to check if passkeys are configured'),
         );
         hasPasskeysAvailable.value = false;
         return false;
@@ -693,5 +693,5 @@ export const useAuthStore = defineStore(
   },
   {
     persist: true,
-  }
+  },
 );

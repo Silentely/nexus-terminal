@@ -139,7 +139,7 @@ describe('buildTestNotification (helper)', () => {
       'webhook',
       { bodyTemplate: '{"msg":"{message}","ts":"{timestamp}"}' },
       1,
-      { message: 'custom' }
+      { message: 'custom' },
     );
 
     const parsed = JSON.parse(notification.body);
@@ -151,7 +151,7 @@ describe('buildTestNotification (helper)', () => {
     const notification = buildTestNotification(
       'webhook',
       { bodyTemplate: '{"key":"{unknownVar}"}' },
-      1
+      1,
     );
 
     expect(notification.body).toContain('{unknownVar}');

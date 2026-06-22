@@ -23,7 +23,7 @@ async function waitForInit() {
       // initializeLayout 完成后 layoutTree 会被赋值，或 mockGet 被调用
       expect(mockGet).toHaveBeenCalled();
     },
-    { timeout: 2000 }
+    { timeout: 2000 },
   );
   // 额外等待微任务队列清空
   await new Promise((resolve) => Promise.resolve().then(resolve));
@@ -47,7 +47,7 @@ function makeContainer(
   id: string,
   direction: 'horizontal' | 'vertical',
   children: LayoutNode[],
-  size?: number
+  size?: number,
 ): LayoutNode {
   return { id, type: 'container', direction, children, size };
 }

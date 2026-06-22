@@ -173,7 +173,7 @@ describe('数据库迁移', () => {
         if (_cb) _cb(null, []);
       }),
       exec: vi.fn((_sql: string, cb: (...args: unknown[]) => void) =>
-        cb(new Error('SQL execution failed'))
+        cb(new Error('SQL execution failed')),
       ),
     };
 
@@ -197,7 +197,7 @@ describe('数据库迁移', () => {
         if (_cb) _cb(null, []);
       }),
       exec: vi.fn((_sql: string, cb: (...args: unknown[]) => void) =>
-        cb(new Error('duplicate column name'))
+        cb(new Error('duplicate column name')),
       ),
     };
 
@@ -243,7 +243,7 @@ describe('数据库迁移', () => {
       }),
       get: vi.fn((_sql: string, _paramsOrCb?: unknown, _cb?: (...args: unknown[]) => void) => {
         const cb = typeof _paramsOrCb === 'function' ? _paramsOrCb : _cb;
-        if (cb) cb(null, { currentVersion: 17 });
+        if (cb) cb(null, { currentVersion: 18 });
       }),
       all: vi.fn((_sql: string, _cb: (...args: unknown[]) => void) => {
         if (_cb) _cb(null, []);

@@ -67,7 +67,7 @@ describe('Connections Controller', () => {
       await connectionsController.createConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(ConnectionService.createConnection).toHaveBeenCalledWith(mockReq.body);
@@ -88,7 +88,7 @@ describe('Connections Controller', () => {
       await connectionsController.createConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -111,7 +111,7 @@ describe('Connections Controller', () => {
       await connectionsController.createConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockNext).toHaveBeenCalledWith(error);
@@ -158,7 +158,7 @@ describe('Connections Controller', () => {
       await connectionsController.getConnectionById(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(ConnectionService.getConnectionById).toHaveBeenCalledWith(1);
@@ -172,7 +172,7 @@ describe('Connections Controller', () => {
       await connectionsController.getConnectionById(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -190,7 +190,7 @@ describe('Connections Controller', () => {
       await connectionsController.getConnectionById(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(404);
@@ -218,7 +218,7 @@ describe('Connections Controller', () => {
       await connectionsController.updateConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(ConnectionService.updateConnection).toHaveBeenCalledWith(1, mockReq.body);
@@ -236,7 +236,7 @@ describe('Connections Controller', () => {
       await connectionsController.updateConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -256,7 +256,7 @@ describe('Connections Controller', () => {
       await connectionsController.updateConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(404);
@@ -276,7 +276,7 @@ describe('Connections Controller', () => {
       await connectionsController.deleteConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(ConnectionService.deleteConnection).toHaveBeenCalledWith(1);
@@ -290,7 +290,7 @@ describe('Connections Controller', () => {
       await connectionsController.deleteConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
@@ -308,7 +308,7 @@ describe('Connections Controller', () => {
       await connectionsController.deleteConnection(
         mockReq as Request,
         mockRes as Response,
-        mockNext
+        mockNext,
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(404);

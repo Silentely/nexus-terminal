@@ -71,7 +71,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Setup',
     component: () => import('../views/SetupView.vue'),
   },
-  // 其他路由...
+  // 404 兜底路由：未匹配的路径重定向到首页
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/',
+  },
 ];
 
 const router = createRouter({

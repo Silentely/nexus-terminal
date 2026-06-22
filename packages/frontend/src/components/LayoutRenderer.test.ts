@@ -109,7 +109,7 @@ vi.mock('pinia', async (importOriginal) => {
         // settings store
         return {
           workspaceSidebarPersistentBoolean: mockRef(
-            mockSettingsStore.workspaceSidebarPersistentBoolean
+            mockSettingsStore.workspaceSidebarPersistentBoolean,
           ),
           getSidebarPaneWidth: mockRef(mockSettingsStore.getSidebarPaneWidth),
         };
@@ -121,7 +121,7 @@ vi.mock('pinia', async (importOriginal) => {
           terminalBackgroundImage: mockRef(mockAppearanceStore.terminalBackgroundImage),
           isTerminalBackgroundEnabled: mockRef(mockAppearanceStore.isTerminalBackgroundEnabled),
           currentTerminalBackgroundOverlayOpacity: mockRef(
-            mockAppearanceStore.currentTerminalBackgroundOverlayOpacity
+            mockAppearanceStore.currentTerminalBackgroundOverlayOpacity,
           ),
           terminalCustomHTML: mockRef(mockAppearanceStore.terminalCustomHTML),
         };
@@ -192,7 +192,7 @@ const globalStubs = {
   DockerManager: createStubComponent('DockerManager', 'mock-docker-manager'),
   SuspendedSshSessionsView: createStubComponent(
     'SuspendedSshSessionsView',
-    'mock-suspended-sessions'
+    'mock-suspended-sessions',
   ),
   AIAssistantPanel: createStubComponent('AIAssistantPanel', 'mock-ai-assistant'),
   MultiServerExec: createStubComponent('MultiServerExec', 'mock-batch-exec'),
@@ -213,7 +213,7 @@ function createPaneNode(component: PaneName, id = 'pane-1'): LayoutNode {
 function createContainerNode(
   direction: 'horizontal' | 'vertical',
   children: LayoutNode[],
-  id = 'container-1'
+  id = 'container-1',
 ): LayoutNode {
   return {
     id,
@@ -591,11 +591,11 @@ describe('LayoutRenderer.vue', () => {
           createContainerNode(
             'vertical',
             [createPaneNode('connections', 'nested-1'), createPaneNode('commandBar', 'nested-2')],
-            'inner-container'
+            'inner-container',
           ),
           createPaneNode('editor', 'outer-pane'),
         ],
-        'outer-container'
+        'outer-container',
       );
 
       const wrapper = shallowMount(LayoutRenderer, {

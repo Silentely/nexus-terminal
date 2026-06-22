@@ -23,7 +23,7 @@ export const findNodeByPath = (
   root: FileTreeNode,
   path: string,
   instanceSessionId: string,
-  createIfMissing: boolean = false
+  createIfMissing: boolean = false,
 ): FileTreeNode | null => {
   if (path === '/') return root;
   const parts = path.split('/').filter((p) => p);
@@ -38,13 +38,13 @@ export const findNodeByPath = (
       if (!nextNode) {
         if (!currentNode.childrenLoaded && !createIfMissing) {
           log.info(
-            `[SFTP ${instanceSessionId}] findNodeByPath: Node ${part} not found in partially loaded children of ${currentNode.filename}.`
+            `[SFTP ${instanceSessionId}] findNodeByPath: Node ${part} not found in partially loaded children of ${currentNode.filename}.`,
           );
           return null;
         }
         if (currentNode.childrenLoaded && !createIfMissing) {
           log.info(
-            `[SFTP ${instanceSessionId}] findNodeByPath: Node ${part} not found in fully loaded children of ${currentNode.filename}.`
+            `[SFTP ${instanceSessionId}] findNodeByPath: Node ${part} not found in fully loaded children of ${currentNode.filename}.`,
           );
           return null;
         }
@@ -52,17 +52,17 @@ export const findNodeByPath = (
     } else if (currentNode.children === null) {
       if (!createIfMissing) {
         log.info(
-          `[SFTP ${instanceSessionId}] findNodeByPath: Children of ${currentNode.filename} are null, cannot find ${part}.`
+          `[SFTP ${instanceSessionId}] findNodeByPath: Children of ${currentNode.filename} are null, cannot find ${part}.`,
         );
         return null;
       }
       log.info(
-        `[SFTP ${instanceSessionId}] findNodeByPath: Children of ${currentNode.filename} are null, will create placeholder for ${part}.`
+        `[SFTP ${instanceSessionId}] findNodeByPath: Children of ${currentNode.filename} are null, will create placeholder for ${part}.`,
       );
       currentNode.children = [];
     } else if (!currentNode.attrs.isDirectory) {
       log.warn(
-        `[SFTP ${instanceSessionId}] findNodeByPath: Attempted to find child '${part}' under a file node '${currentNode.filename}'.`
+        `[SFTP ${instanceSessionId}] findNodeByPath: Attempted to find child '${part}' under a file node '${currentNode.filename}'.`,
       );
       return null;
     }
@@ -93,18 +93,18 @@ export const findNodeByPath = (
         currentNode.children.push(nextNode);
         currentNode.children.sort(sortFiles);
         log.info(
-          `[SFTP ${instanceSessionId}] findNodeByPath: Created placeholder node for ${part} under ${currentNode.filename}`
+          `[SFTP ${instanceSessionId}] findNodeByPath: Created placeholder node for ${part} under ${currentNode.filename}`,
         );
       } else {
         log.info(
-          `[SFTP ${instanceSessionId}] findNodeByPath: Node ${part} not found under ${currentNode.filename} and createIfMissing is false.`
+          `[SFTP ${instanceSessionId}] findNodeByPath: Node ${part} not found under ${currentNode.filename} and createIfMissing is false.`,
         );
         return null;
       }
     }
     if (!nextNode) {
       log.error(
-        `[SFTP ${instanceSessionId}] findNodeByPath: Logic error - nextNode is still undefined for part '${part}'.`
+        `[SFTP ${instanceSessionId}] findNodeByPath: Logic error - nextNode is still undefined for part '${part}'.`,
       );
       return null;
     }
@@ -121,7 +121,7 @@ export const removeNodeFromTree = (
   fileTree: FileTreeNode,
   parentPath: string,
   filename: string,
-  instanceSessionId: string
+  instanceSessionId: string,
 ): boolean => {
   const parentNode = findNodeByPath(fileTree, parentPath, instanceSessionId);
   if (parentNode && parentNode.children) {
@@ -143,7 +143,7 @@ export const addOrUpdateNodeInTree = (
   fileTree: FileTreeNode,
   parentPath: string,
   item: { filename: string; longname: string; attrs: FileAttributes },
-  instanceSessionId: string
+  instanceSessionId: string,
 ): boolean => {
   const parentNode = findNodeByPath(fileTree, parentPath, instanceSessionId, true);
 
@@ -154,7 +154,7 @@ export const addOrUpdateNodeInTree = (
 
     if (!Array.isArray(parentNode.children)) {
       log.error(
-        `[SFTP ${instanceSessionId}] Logic error: parentNode.children is not an array after findNodeByPath in addOrUpdateNodeInTree for path ${parentPath}`
+        `[SFTP ${instanceSessionId}] Logic error: parentNode.children is not an array after findNodeByPath in addOrUpdateNodeInTree for path ${parentPath}`,
       );
       return false;
     }
@@ -185,7 +185,7 @@ export const addOrUpdateNodeInTree = (
     return true;
   }
   log.error(
-    `[SFTP ${instanceSessionId}] Failed to find or create parent node ${parentPath} in addOrUpdateNodeInTree for item ${item.filename}.`
+    `[SFTP ${instanceSessionId}] Failed to find or create parent node ${parentPath} in addOrUpdateNodeInTree for item ${item.filename}.`,
   );
   return false;
 };

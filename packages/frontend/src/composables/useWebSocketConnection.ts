@@ -46,7 +46,7 @@ export function createWebSocketConnectionManager(
       connect: () => void;
       disconnect: () => void;
     };
-  }
+  },
 ) {
   // --- 实例状态 ---
   const ws = shallowRef<WebSocket | null>(null);
@@ -73,7 +73,7 @@ export function createWebSocketConnectionManager(
     } catch (error: unknown) {
       log.warn(
         `[WebSocket ${instanceSessionId}] i18n 错误 (键: workspace.status.${statusKey}):`,
-        error
+        error,
       );
       return statusKey;
     }
@@ -85,7 +85,7 @@ export function createWebSocketConnectionManager(
   const dispatchMessage = (
     type: string,
     payload: MessagePayload,
-    fullMessage: WebSocketMessage
+    fullMessage: WebSocketMessage,
   ) => {
     if (messageHandlers.has(type)) {
       messageHandlers.get(type)?.forEach((handler) => {
@@ -160,7 +160,7 @@ export function createWebSocketConnectionManager(
       (connectionStatus.value === 'connected' || connectionStatus.value === 'connecting')
     ) {
       log.warn(
-        `[WebSocket ${instanceSessionId}] 连接已打开或正在连接中 (readyState: ${ws.value.readyState}, status: ${connectionStatus.value})。 阻止重复连接。`
+        `[WebSocket ${instanceSessionId}] 连接已打开或正在连接中 (readyState: ${ws.value.readyState}, status: ${connectionStatus.value})。 阻止重复连接。`,
       );
       return;
     }
@@ -171,7 +171,7 @@ export function createWebSocketConnectionManager(
       (ws.value.readyState === WebSocket.OPEN || ws.value.readyState === WebSocket.CONNECTING)
     ) {
       log.warn(
-        `[WebSocket ${instanceSessionId}] 检测到状态不一致 (readyState: ${ws.value.readyState}, status: ${connectionStatus.value})。尝试关闭旧连接并继续...`
+        `[WebSocket ${instanceSessionId}] 检测到状态不一致 (readyState: ${ws.value.readyState}, status: ${connectionStatus.value})。尝试关闭旧连接并继续...`,
       );
       const oldWs = ws.value;
       const previousIntentionalDisconnect = reconnectManager.state.intentionalDisconnect;
@@ -284,7 +284,7 @@ export function createWebSocketConnectionManager(
         dispatchMessage(
           'internal:closed',
           { code: event.code, reason: event.reason },
-          { type: 'internal:closed' }
+          { type: 'internal:closed' },
         );
         isSftpReady.value = false;
         ws.value = null;
@@ -352,7 +352,7 @@ export function createWebSocketConnectionManager(
       }
     } else {
       log.warn(
-        `[WebSocket ${instanceSessionId}] 无法发送消息，连接未打开。状态: ${connectionStatus.value}, ReadyState: ${ws.value?.readyState}`
+        `[WebSocket ${instanceSessionId}] 无法发送消息，连接未打开。状态: ${connectionStatus.value}, ReadyState: ${ws.value?.readyState}`,
       );
     }
   };

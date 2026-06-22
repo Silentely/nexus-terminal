@@ -71,7 +71,7 @@ describe('sftp-path-query-operations', () => {
       state.sftp.lstat.mockImplementation(
         (_path: string, callback: (err: Error | null) => void) => {
           callback(new Error('lstat failed'));
-        }
+        },
       );
       await executeStatPathQueryOperation(state, sessionId, '/tmp/a.txt', requestId);
       const payload = parseLastPayload(state.ws.send);
@@ -84,8 +84,8 @@ describe('sftp-path-query-operations', () => {
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
-        ) => callback(null, createMockStats('file'))
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
+        ) => callback(null, createMockStats('file')),
       );
       await executeStatPathQueryOperation(state, sessionId, '/tmp/a.txt', requestId);
       const payload = parseLastPayload(state.ws.send);
@@ -109,7 +109,7 @@ describe('sftp-path-query-operations', () => {
       const state = createState();
       state.sftp.chmod.mockImplementation(
         (_path: string, _mode: number, callback: (err?: Error) => void) =>
-          callback(new Error('chmod failed'))
+          callback(new Error('chmod failed')),
       );
       await executeChmodPathQueryOperation(state, sessionId, '/tmp/a.txt', 0o644, requestId);
       const payload = parseLastPayload(state.ws.send);
@@ -120,12 +120,12 @@ describe('sftp-path-query-operations', () => {
     it('chmod 成功但 lstat 失败时返回 success + null', async () => {
       const state = createState();
       state.sftp.chmod.mockImplementation(
-        (_path: string, _mode: number, callback: (err?: Error) => void) => callback()
+        (_path: string, _mode: number, callback: (err?: Error) => void) => callback(),
       );
       state.sftp.lstat.mockImplementation(
         (_path: string, callback: (err: Error | null) => void) => {
           callback(new Error('lstat failed'));
-        }
+        },
       );
       await executeChmodPathQueryOperation(state, sessionId, '/tmp/a.txt', 0o644, requestId);
       const payload = parseLastPayload(state.ws.send);
@@ -136,13 +136,13 @@ describe('sftp-path-query-operations', () => {
     it('chmod + lstat 成功时返回 success + attrs', async () => {
       const state = createState();
       state.sftp.chmod.mockImplementation(
-        (_path: string, _mode: number, callback: (err?: Error) => void) => callback()
+        (_path: string, _mode: number, callback: (err?: Error) => void) => callback(),
       );
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
-        ) => callback(null, createMockStats('file'))
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
+        ) => callback(null, createMockStats('file')),
       );
       await executeChmodPathQueryOperation(state, sessionId, '/tmp/a.txt', 0o644, requestId);
       const payload = parseLastPayload(state.ws.send);
@@ -162,7 +162,7 @@ describe('sftp-path-query-operations', () => {
         sessionId,
         '/tmp/a.txt',
         requestId,
-        () => state
+        () => state,
       );
       const payload = parseLastPayload(state.ws.send);
       expect(payload.type).toBe('sftp:realpath:error');
@@ -173,14 +173,14 @@ describe('sftp-path-query-operations', () => {
       const state = createState();
       state.sftp.realpath.mockImplementation(
         (_path: string, callback: (err: Error | null, absPath?: string) => void) =>
-          callback(new Error('realpath failed'))
+          callback(new Error('realpath failed')),
       );
       await executeRealpathPathQueryOperation(
         state,
         sessionId,
         '/tmp/a.txt',
         requestId,
-        () => state
+        () => state,
       );
       const payload = parseLastPayload(state.ws.send);
       expect(payload.type).toBe('sftp:realpath:error');
@@ -194,14 +194,14 @@ describe('sftp-path-query-operations', () => {
       const state = createState();
       state.sftp.realpath.mockImplementation(
         (_path: string, callback: (err: Error | null, absPath?: string) => void) =>
-          callback(null, '/abs/a.txt')
+          callback(null, '/abs/a.txt'),
       );
       await executeRealpathPathQueryOperation(
         state,
         sessionId,
         '/tmp/a.txt',
         requestId,
-        () => undefined
+        () => undefined,
       );
       const payload = parseLastPayload(state.ws.send);
       expect(payload.type).toBe('sftp:realpath:error');
@@ -216,20 +216,20 @@ describe('sftp-path-query-operations', () => {
       const state = createState();
       state.sftp.realpath.mockImplementation(
         (_path: string, callback: (err: Error | null, absPath?: string) => void) =>
-          callback(null, '/abs/a.txt')
+          callback(null, '/abs/a.txt'),
       );
       state.sftp.stat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
-        ) => callback(null, createMockStats('directory'))
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
+        ) => callback(null, createMockStats('directory')),
       );
       await executeRealpathPathQueryOperation(
         state,
         sessionId,
         '/tmp/a.txt',
         requestId,
-        () => state
+        () => state,
       );
       const payload = parseLastPayload(state.ws.send);
       expect(payload.type).toBe('sftp:realpath:success');

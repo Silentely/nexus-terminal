@@ -23,7 +23,7 @@ const TEST_DB_PATH = path.resolve(TEST_DB_DIR, 'perf-test.db');
 function runDb(
   db: sqlite3.Database,
   sql: string,
-  params: unknown[] = []
+  params: unknown[] = [],
 ): Promise<{ lastID: number; changes: number }> {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function (this: { lastID: number; changes: number }, err: Error | null) {
@@ -36,7 +36,7 @@ function runDb(
 function getDb<T>(
   db: sqlite3.Database,
   sql: string,
-  params: unknown[] = []
+  params: unknown[] = [],
 ): Promise<T | undefined> {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err: Error | null, row: T) => {
@@ -101,7 +101,7 @@ describe('Database Integration Performance Tests', () => {
         created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
         updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
       )
-    `
+    `,
     );
 
     await runDb(
@@ -114,7 +114,7 @@ describe('Database Integration Performance Tests', () => {
         payload TEXT,
         created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
       )
-    `
+    `,
     );
 
     // 创建索引
@@ -224,7 +224,7 @@ describe('Database Integration Performance Tests', () => {
     const start = performance.now();
 
     const promises = Array.from({ length: concurrency }).map(() =>
-      allDb(db, 'SELECT * FROM connections WHERE type = ?', ['ssh'])
+      allDb(db, 'SELECT * FROM connections WHERE type = ?', ['ssh']),
     );
 
     const results = await Promise.all(promises);
@@ -246,11 +246,11 @@ describe('Database Integration Performance Tests', () => {
         'concurrent:test',
         1,
         JSON.stringify({ writer: i }),
-      ])
+      ]),
     );
 
     const readers = Array.from({ length: 5 }).map(() =>
-      allDb(db, 'SELECT * FROM connections LIMIT 10')
+      allDb(db, 'SELECT * FROM connections LIMIT 10'),
     );
 
     const results = await Promise.all([...writers, ...readers]);

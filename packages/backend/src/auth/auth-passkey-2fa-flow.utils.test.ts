@@ -81,7 +81,7 @@ describe('auth-passkey-2fa-flow.utils', () => {
         credentialId: 'cred-2',
         reason: 'Verification failed',
         ip: '10.0.0.3',
-      }
+      },
     );
   });
 
@@ -90,7 +90,7 @@ describe('auth-passkey-2fa-flow.utils', () => {
       const req = {
         session: {
           regenerate: vi.fn((callback: (err?: Error) => void) =>
-            callback(new Error('regenerate failed'))
+            callback(new Error('regenerate failed')),
           ),
           save: vi.fn(),
           cookie: {},

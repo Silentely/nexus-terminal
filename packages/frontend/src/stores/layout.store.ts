@@ -139,7 +139,7 @@ function getMainLayoutUsedPaneNames(node: LayoutNode | null): Set<PaneName> {
 // 获取所有使用的面板（主布局 + 侧栏）
 function getAllUsedPaneNames(
   mainNode: LayoutNode | null,
-  sidebars: { left: PaneName[]; right: PaneName[] }
+  sidebars: { left: PaneName[]; right: PaneName[] },
 ): Set<PaneName> {
   const usedNames = getMainLayoutUsedPaneNames(mainNode);
   sidebars.left.forEach((pane) => usedNames.add(pane));
@@ -170,7 +170,7 @@ function isValidPaneNameArray(arr: unknown, allPanes: PaneName[]): arr is PaneNa
 function validateLayoutNode(
   node: unknown,
   allPanes: PaneName[],
-  visitedIds: Set<string> = new Set()
+  visitedIds: Set<string> = new Set(),
 ): { valid: boolean; error?: string } {
   // 基本类型检查
   if (!node || typeof node !== 'object') {
@@ -247,7 +247,7 @@ function validateLayoutNode(
 // 验证整个布局树
 function validateLayoutTree(
   tree: unknown,
-  allPanes: PaneName[]
+  allPanes: PaneName[],
 ): { valid: boolean; error?: string } {
   if (tree === null) {
     return { valid: true }; // null 是有效值（空布局）
@@ -285,7 +285,7 @@ export const useLayoutStore = defineStore('layout', () => {
   // --- 计算属性 ---
   // 计算当前布局和侧栏中正在使用的所有面板
   const usedPanes: ComputedRef<Set<PaneName>> = computed(() =>
-    getAllUsedPaneNames(layoutTree.value, sidebarPanes.value)
+    getAllUsedPaneNames(layoutTree.value, sidebarPanes.value),
   );
 
   // 计算当前未在布局或侧栏中使用的面板（可用于配置器中添加）
@@ -343,7 +343,7 @@ export const useLayoutStore = defineStore('layout', () => {
         } catch (lsError: unknown) {
           log.error(
             '[Layout Store] Step 1: Failed to save processed layout to localStorage:',
-            lsError
+            lsError,
           );
         }
       } else {
@@ -357,7 +357,7 @@ export const useLayoutStore = defineStore('layout', () => {
     try {
       log.info('[Layout Store] Step 2: Attempting to load sidebar config from backend...');
       const response = await apiClient.get<{ left: unknown[]; right: unknown[] } | null>(
-        '/settings/sidebar'
+        '/settings/sidebar',
       );
       if (
         response.data &&
@@ -372,7 +372,7 @@ export const useLayoutStore = defineStore('layout', () => {
         } catch (lsError: unknown) {
           log.error(
             '[Layout Store] Step 2: Failed to save backend sidebar config to localStorage:',
-            lsError
+            lsError,
           );
         }
       } else {
@@ -403,7 +403,7 @@ export const useLayoutStore = defineStore('layout', () => {
       } catch (error: unknown) {
         log.error(
           '[Layout Store] Step 3/4: Error loading/parsing layout from localStorage or applying default:',
-          error
+          error,
         );
         // Fallback to default if error and loadedLayout is still null
         if (!loadedLayout) {
@@ -429,7 +429,7 @@ export const useLayoutStore = defineStore('layout', () => {
             log.info('[Layout Store] Step 5: Sidebar config loaded from localStorage.');
           } else {
             log.warn(
-              '[Layout Store] Step 5: Invalid sidebar config in localStorage. Applying default.'
+              '[Layout Store] Step 5: Invalid sidebar config in localStorage. Applying default.',
             );
             sidebarPanes.value = getDefaultSidebarPanes();
           }
@@ -441,7 +441,7 @@ export const useLayoutStore = defineStore('layout', () => {
       } catch (error: unknown) {
         log.error(
           '[Layout Store] Step 5/6: Error loading/parsing sidebar config from localStorage or applying default:',
-          error
+          error,
         );
         if (!sidebarPanes.value || !Array.isArray(sidebarPanes.value.left)) {
           sidebarPanes.value = getDefaultSidebarPanes();
@@ -456,7 +456,7 @@ export const useLayoutStore = defineStore('layout', () => {
     // Final check (主要是为了调试，可以简化或移除)
     if (!layoutTree.value) {
       log.error(
-        '[Layout Store] FATAL: layoutTree is STILL null after all attempts! Applying default as last resort.'
+        '[Layout Store] FATAL: layoutTree is STILL null after all attempts! Applying default as last resort.',
       );
       layoutTree.value = ensureNodeIds(getDefaultLayout());
     }
@@ -522,7 +522,7 @@ export const useLayoutStore = defineStore('layout', () => {
         sidebarPanes.value = newPanes as { left: PaneName[]; right: PaneName[] }; // Assign validated data
         log.info(
           '[Layout Store] 侧栏配置已通过验证并更新。 New sidebarPanes value:',
-          JSON.parse(JSON.stringify(sidebarPanes.value))
+          JSON.parse(JSON.stringify(sidebarPanes.value)),
         );
         // --- Directly call persist ---
         await persistSidebarPanes(); // Await persistence directly
@@ -532,7 +532,7 @@ export const useLayoutStore = defineStore('layout', () => {
     } else {
       log.error(
         '[Layout Store] updateSidebarPanes 接收到无效的侧栏配置数据，未更新状态:',
-        newPanes
+        newPanes,
       );
       // 可选：抛出错误或通知用户
     }
@@ -541,7 +541,7 @@ export const useLayoutStore = defineStore('layout', () => {
   function findAndUpdateNodeSize(
     node: LayoutNode | null,
     nodeId: string,
-    childrenSizes: { index: number; size: number }[]
+    childrenSizes: { index: number; size: number }[],
   ): LayoutNode | null {
     if (!node) return null;
     if (node.id === nodeId && node.type === 'container' && node.children) {
@@ -557,7 +557,7 @@ export const useLayoutStore = defineStore('layout', () => {
     if (node.type === 'container' && node.children) {
       const currentChildren = node.children;
       const updatedChildren = currentChildren.map((child) =>
-        findAndUpdateNodeSize(child, nodeId, childrenSizes)
+        findAndUpdateNodeSize(child, nodeId, childrenSizes),
       );
       // 检查是否有子节点被更新
       if (updatedChildren.some((child, index) => child !== currentChildren[index])) {
@@ -601,7 +601,7 @@ export const useLayoutStore = defineStore('layout', () => {
         log.info(`[Layout Store] Header visibility loaded from backend: ${isHeaderVisible.value}`);
       } else {
         log.warn(
-          '[Layout Store] Invalid response from backend for header visibility, using default.'
+          '[Layout Store] Invalid response from backend for header visibility, using default.',
         );
         isHeaderVisible.value = true; // 默认值
       }

@@ -39,7 +39,7 @@ export class MockSshConnection extends EventEmitter {
 
   constructor(
     private readonly socket: Socket,
-    private readonly options: MockSshServerOptions
+    private readonly options: MockSshServerOptions,
   ) {
     super();
     this.setupHandlers();
@@ -210,7 +210,7 @@ export class MockSftpSession extends EventEmitter {
     offset: number,
     length: number,
     position: number,
-    callback: (err: Error | null, bytesRead?: number) => void
+    callback: (err: Error | null, bytesRead?: number) => void,
   ): void {
     const path = handle.toString();
     const entry = this._filesystem.get(path);
@@ -233,7 +233,7 @@ export class MockSftpSession extends EventEmitter {
     offset: number,
     length: number,
     position: number,
-    callback: (err: Error | null) => void
+    callback: (err: Error | null) => void,
   ): void {
     const path = handle.toString();
     let entry = this._filesystem.get(path);

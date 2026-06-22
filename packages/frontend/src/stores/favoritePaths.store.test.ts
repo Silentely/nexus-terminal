@@ -121,7 +121,7 @@ describe('favoritePaths.store', () => {
     (apiClient.post as any).mockRejectedValueOnce(new Error('nope'));
 
     await expect(store.addFavoritePath({ path: '/x', name: 'x' } as any, t)).rejects.toThrow(
-      'nope'
+      'nope',
     );
 
     expect(uiNotificationsStoreMock.addNotification).toHaveBeenCalled();
@@ -205,7 +205,7 @@ describe('favoritePaths.store', () => {
     await store.addFavoritePath({ path: '/new', name: 'New' } as any, t);
     expect(store.favoritePaths).toContainEqual(newItem);
     expect(uiNotificationsStoreMock.addNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'success' })
+      expect.objectContaining({ type: 'success' }),
     );
   });
 
@@ -218,7 +218,7 @@ describe('favoritePaths.store', () => {
     await store.updateFavoritePath(1, { name: 'New' }, t);
     expect(store.favoritePaths[0].name).toBe('New');
     expect(uiNotificationsStoreMock.addNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'success' })
+      expect.objectContaining({ type: 'success' }),
     );
   });
 
@@ -242,7 +242,7 @@ describe('favoritePaths.store', () => {
     await expect(store.updateFavoritePath(1, { name: 'X' }, t)).rejects.toThrow('fail');
     expect(store.error).toContain('fail');
     expect(uiNotificationsStoreMock.addNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'error' })
+      expect.objectContaining({ type: 'error' }),
     );
   });
 
@@ -258,7 +258,7 @@ describe('favoritePaths.store', () => {
     expect(store.favoritePaths).toHaveLength(1);
     expect(store.favoritePaths[0].id).toBe(2);
     expect(uiNotificationsStoreMock.addNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'success' })
+      expect.objectContaining({ type: 'success' }),
     );
   });
 
@@ -271,7 +271,7 @@ describe('favoritePaths.store', () => {
     expect(store.error).toContain('del-fail');
     expect(store.favoritePaths).toHaveLength(1);
     expect(uiNotificationsStoreMock.addNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'error' })
+      expect.objectContaining({ type: 'error' }),
     );
   });
 
@@ -293,7 +293,7 @@ describe('favoritePaths.store', () => {
 
     await store.markPathAsUsed(1, t);
     expect(uiNotificationsStoreMock.addNotification).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'error' })
+      expect.objectContaining({ type: 'error' }),
     );
   });
 

@@ -36,7 +36,7 @@ export class DockerController {
       const allowedCommands: DockerCommand[] = ['start', 'stop', 'restart', 'remove'];
       if (!command || !allowedCommands.includes(command)) {
         throw ErrorFactory.validationError(
-          `Invalid command. Must be one of: ${allowedCommands.join(', ')}.`
+          `Invalid command. Must be one of: ${allowedCommands.join(', ')}.`,
         );
       }
 

@@ -10,13 +10,13 @@ interface AuthEventServices {
   auditLogService: {
     logAction: (
       action: AuditLogActionType,
-      payload?: Record<string, unknown> | string | null
+      payload?: Record<string, unknown> | string | null,
     ) => Promise<void> | void;
   };
   notificationService: {
     sendNotification: (
       event: NotificationEvent,
-      payload?: Record<string, unknown> | string
+      payload?: Record<string, unknown> | string,
     ) => Promise<void> | void;
   };
 }
@@ -28,7 +28,7 @@ export const recordPasskeyAuthenticationSuccess = (
     userId: number;
     username: string;
     credentialId: string;
-  }
+  },
 ): void => {
   const { req, userId, username, credentialId } = payload;
   const clientIp = resolveRequestClientIp(req);
@@ -57,7 +57,7 @@ export const recordPasskeyAuthenticationFailure = (
     req: Request;
     credentialId: string;
     reason: string;
-  }
+  },
 ): void => {
   const { req, credentialId, reason } = payload;
   const clientIp = resolveRequestClientIp(req);
@@ -86,7 +86,7 @@ export const completePasskeyAuthenticatedSession = (
       username: string;
     };
     rememberMe?: boolean;
-  }
+  },
 ): void => {
   const { user, rememberMe } = payload;
 
@@ -126,7 +126,7 @@ export const recordTwoFactorEnabledEvent = (
   payload: {
     req: Request;
     userId: number;
-  }
+  },
 ): void => {
   const { req, userId } = payload;
   const clientIp = resolveRequestClientIp(req);
@@ -146,7 +146,7 @@ export const recordTwoFactorDisabledEvent = (
   payload: {
     req: Request;
     userId: number;
-  }
+  },
 ): void => {
   const { req, userId } = payload;
   const clientIp = resolveRequestClientIp(req);

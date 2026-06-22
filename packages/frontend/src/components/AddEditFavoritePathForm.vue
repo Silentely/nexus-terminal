@@ -46,14 +46,14 @@ watch(
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 const validateForm = (): boolean => {
   if (!form.value.path.trim()) {
     errorMessage.value = t(
       'favoritePaths.addEditForm.validation.pathRequired',
-      'Path is required.'
+      'Path is required.',
     );
     return false;
   }
@@ -76,7 +76,7 @@ const handleSubmit = async () => {
           path: form.value.path,
           name: form.value.name || null, // Send null if empty to match backend type
         },
-        t
+        t,
       );
     } else {
       await favoritePathsStore.addFavoritePath(
@@ -84,7 +84,7 @@ const handleSubmit = async () => {
           path: form.value.path,
           name: form.value.name || null,
         },
-        t
+        t,
       );
     }
     emit('saveSuccess');

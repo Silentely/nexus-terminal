@@ -4,6 +4,7 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { getErrorMessage } from '../utils/AppError';
+import { logger } from '../utils/logger';
 import { getSingleHeaderToken } from '../utils/url';
 import { authFailuresTotal } from '../metrics/metrics.service';
 import { passkeyService } from '../passkey/passkey.service';
@@ -67,7 +68,7 @@ const authSideEffectServices = { auditLogService, notificationService };
 
 const getPasskeyRequestOrigin = (req: Request): string | undefined => {
   const originHeader = getSingleHeaderToken(
-    typeof req.get === 'function' ? req.get('Origin') : undefined
+    typeof req.get === 'function' ? req.get('Origin') : undefined,
   );
   if (originHeader) return originHeader;
 
@@ -83,7 +84,7 @@ const getPasskeyRequestOrigin = (req: Request): string | undefined => {
 export const generatePasskeyRegistrationOptionsHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
@@ -98,7 +99,7 @@ export const generatePasskeyRegistrationOptionsHandler = async (
     const options = await passkeyService.generateRegistrationOptions(
       username,
       userId,
-      requestOrigin
+      requestOrigin,
     );
 
     await persistPasskeyChallengeSession(req, {
@@ -108,11 +109,11 @@ export const generatePasskeyRegistrationOptionsHandler = async (
     });
 
     const optionsLogAction = buildPasskeyRegistrationOptionsGeneratedDebugLogAction(username);
-    console[optionsLogAction.level](optionsLogAction.message);
+    logger[optionsLogAction.level](optionsLogAction.message);
     res.json(options);
   } catch (error: unknown) {
     const optionsErrorLogAction = buildPasskeyRegistrationOptionsErrorLogAction(username);
-    console[optionsErrorLogAction.level](optionsErrorLogAction.message, error);
+    logger[optionsErrorLogAction.level](optionsErrorLogAction.message, error);
     next(error);
   }
 };
@@ -123,7 +124,7 @@ export const generatePasskeyRegistrationOptionsHandler = async (
 export const verifyPasskeyRegistrationHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const registrationContext = resolvePasskeyRegistrationContext({
     req,
@@ -145,7 +146,7 @@ export const verifyPasskeyRegistrationHandler = async (
       >[0],
       registrationContext.expectedChallenge,
       registrationContext.userHandle,
-      registrationContext.requestOrigin
+      registrationContext.requestOrigin,
     );
     const verificationResult = resolvePasskeyRegistrationVerificationOutcome(verification);
 
@@ -156,7 +157,7 @@ export const verifyPasskeyRegistrationHandler = async (
         userHandle: registrationContext.userHandle,
         credentialId: verificationResult.newPasskeyToSave.credential_id,
       });
-      console[registrationSuccessLogAction.level](registrationSuccessLogAction.message);
+      logger[registrationSuccessLogAction.level](registrationSuccessLogAction.message);
       auditLogService.logAction('PASSKEY_REGISTERED', {
         userId: userIdNum,
         credentialId: verificationResult.newPasskeyToSave.credential_id,
@@ -178,16 +179,16 @@ export const verifyPasskeyRegistrationHandler = async (
       res.status(201).json({ verified: true, message: 'Passkey 注册成功。' });
     } else {
       const verificationFailedLogAction = buildPasskeyRegistrationVerificationFailedWarnLogAction(
-        registrationContext.userHandle
+        registrationContext.userHandle,
       );
-      console[verificationFailedLogAction.level](verificationFailedLogAction.message, verification);
+      logger[verificationFailedLogAction.level](verificationFailedLogAction.message, verification);
       res.status(400).json(verificationResult.responseBody);
     }
   } catch (error: unknown) {
     const verificationErrorLogAction = buildPasskeyRegistrationVerificationErrorLogAction(
-      registrationContext.userHandle
+      registrationContext.userHandle,
     );
-    console[verificationErrorLogAction.level](verificationErrorLogAction.message, error);
+    logger[verificationErrorLogAction.level](verificationErrorLogAction.message, error);
     next(error);
   }
 };
@@ -198,7 +199,7 @@ export const verifyPasskeyRegistrationHandler = async (
 export const generatePasskeyAuthenticationOptionsHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { username } = req.body;
 
@@ -213,15 +214,15 @@ export const generatePasskeyAuthenticationOptionsHandler = async (
     });
 
     const optionsLogAction = buildPasskeyAuthenticationOptionsGeneratedDebugLogAction(
-      username || 'any'
+      username || 'any',
     );
-    console[optionsLogAction.level](optionsLogAction.message);
+    logger[optionsLogAction.level](optionsLogAction.message);
     res.json(options);
   } catch (error: unknown) {
     const optionsErrorLogAction = buildPasskeyAuthenticationOptionsErrorLogAction(
-      username || 'any'
+      username || 'any',
     );
-    console[optionsErrorLogAction.level](optionsErrorLogAction.message, error);
+    logger[optionsErrorLogAction.level](optionsErrorLogAction.message, error);
     next(error);
   }
 };
@@ -232,7 +233,7 @@ export const generatePasskeyAuthenticationOptionsHandler = async (
 export const verifyPasskeyAuthenticationHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { assertionResponse, rememberMe } = req.body;
   const authenticationContext = resolvePasskeyAuthenticationContext({
@@ -254,7 +255,7 @@ export const verifyPasskeyAuthenticationHandler = async (
         typeof passkeyService.verifyAuthentication
       >[0],
       authenticationContext.expectedChallenge,
-      authenticationContext.requestOrigin
+      authenticationContext.requestOrigin,
     );
     const verificationResult = resolvePasskeyAuthenticationVerificationOutcome(verification);
 
@@ -263,16 +264,16 @@ export const verifyPasskeyAuthenticationHandler = async (
       if (!user) {
         const missingUserLogAction =
           buildPasskeyAuthenticationUserNotFoundAfterVerifiedErrorLogAction(
-            verificationResult.userId
+            verificationResult.userId,
           );
-        console[missingUserLogAction.level](missingUserLogAction.message);
+        logger[missingUserLogAction.level](missingUserLogAction.message);
         recordPasskeyAuthenticationFailure(
           { auditLogService, notificationService },
           {
             req,
             credentialId: verificationResult.passkey.credential_id,
             reason: 'User not found after verification',
-          }
+          },
         );
         authFailuresTotal.inc({ method: 'passkey' });
         eventService.emitEvent(AppEventType.PasskeyAuthFailure, {
@@ -287,7 +288,7 @@ export const verifyPasskeyAuthenticationHandler = async (
         userId: user.id,
         passkeyId: verificationResult.passkey.id,
       });
-      console[authenticationSuccessLogAction.level](authenticationSuccessLogAction.message);
+      logger[authenticationSuccessLogAction.level](authenticationSuccessLogAction.message);
       recordPasskeyAuthenticationSuccess(
         { auditLogService, notificationService },
         {
@@ -295,7 +296,7 @@ export const verifyPasskeyAuthenticationHandler = async (
           userId: user.id,
           username: user.username,
           credentialId: verificationResult.passkey.credential_id,
-        }
+        },
       );
       eventService.emitEvent(AppEventType.PasskeyAuthSuccess, {
         userId: user.id,
@@ -308,7 +309,7 @@ export const verifyPasskeyAuthenticationHandler = async (
     } else {
       const verificationFailedLogAction =
         buildPasskeyAuthenticationVerificationFailedWarnLogAction();
-      console[verificationFailedLogAction.level](verificationFailedLogAction.message, verification);
+      logger[verificationFailedLogAction.level](verificationFailedLogAction.message, verification);
       recordPasskeyAuthenticationFailure(
         { auditLogService, notificationService },
         {
@@ -317,7 +318,7 @@ export const verifyPasskeyAuthenticationHandler = async (
             resolvePasskeyCredentialId(authenticationContext.authenticationResponseJSON) ||
             'unknown',
           reason: 'Verification failed',
-        }
+        },
       );
       authFailuresTotal.inc({ method: 'passkey' });
       eventService.emitEvent(AppEventType.PasskeyAuthFailure, {
@@ -327,7 +328,7 @@ export const verifyPasskeyAuthenticationHandler = async (
     }
   } catch (error: unknown) {
     const verificationErrorLogAction = buildPasskeyAuthenticationVerificationErrorLogAction();
-    console[verificationErrorLogAction.level](verificationErrorLogAction.message, error);
+    logger[verificationErrorLogAction.level](verificationErrorLogAction.message, error);
     recordPasskeyAuthenticationFailure(
       { auditLogService, notificationService },
       {
@@ -335,7 +336,7 @@ export const verifyPasskeyAuthenticationHandler = async (
         credentialId:
           resolvePasskeyCredentialId(authenticationContext.authenticationResponseJSON) || 'unknown',
         reason: getErrorMessage(error) || 'Unknown error',
-      }
+      },
     );
     eventService.emitEvent(AppEventType.PasskeyAuthFailure, {
       details: { reason: 'Passkey authentication failed' },
@@ -350,7 +351,7 @@ export const verifyPasskeyAuthenticationHandler = async (
 export const listUserPasskeysHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const actorResult = resolvePasskeyAuthenticatedActor(req);
   if (!actorResult.ok) {
@@ -362,11 +363,11 @@ export const listUserPasskeysHandler = async (
   try {
     const passkeys = await passkeyService.listPasskeysByUserId(userId);
     const listAction = buildListPasskeysSuccessAction({ userId, username }, passkeys);
-    console[listAction.log.level](listAction.log.message);
+    logger[listAction.log.level](listAction.log.message);
     res.status(listAction.response.statusCode).json(listAction.response.body);
   } catch (error: unknown) {
     const listErrorLogAction = buildPasskeyListErrorLogAction({ userId, username });
-    console[listErrorLogAction.level](listErrorLogAction.message, error);
+    logger[listErrorLogAction.level](listErrorLogAction.message, error);
     next(error);
   }
 };
@@ -377,7 +378,7 @@ export const listUserPasskeysHandler = async (
 export const deleteUserPasskeyHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const actorResult = resolvePasskeyAuthenticatedActor(req);
   if (!actorResult.ok) {
@@ -398,21 +399,21 @@ export const deleteUserPasskeyHandler = async (
     const deleteAction = buildDeletePasskeyResultAction(
       { userId, username },
       credentialId,
-      wasDeleted
+      wasDeleted,
     );
-    console[deleteAction.log.level](deleteAction.log.message);
+    logger[deleteAction.log.level](deleteAction.log.message);
     applyAuthSideEffects(authSideEffectServices, deleteAction.sideEffects);
     res.status(deleteAction.response.statusCode).json(deleteAction.response.body);
   } catch (error: unknown) {
     const deleteErrorAction = resolveDeletePasskeyErrorAction(
       { userId, username },
       credentialId,
-      error
+      error,
     );
-    console[deleteErrorAction.log.level](
+    logger[deleteErrorAction.log.level](
       deleteErrorAction.log.message,
       deleteErrorAction.log.errorMessage,
-      deleteErrorAction.log.errorStack
+      deleteErrorAction.log.errorStack,
     );
     if (!deleteErrorAction.handled) {
       next(error);
@@ -429,7 +430,7 @@ export const deleteUserPasskeyHandler = async (
 export const updateUserPasskeyNameHandler = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const actorResult = resolvePasskeyAuthenticatedActor(req);
   if (!actorResult.ok) {
@@ -457,21 +458,21 @@ export const updateUserPasskeyNameHandler = async (
     const updateAction = buildUpdatePasskeyNameSuccessAction(
       { userId, username },
       credentialId,
-      trimmedName
+      trimmedName,
     );
-    console[updateAction.log.level](updateAction.log.message);
+    logger[updateAction.log.level](updateAction.log.message);
     applyAuthSideEffects(authSideEffectServices, updateAction.sideEffects);
     res.status(updateAction.response.statusCode).json(updateAction.response.body);
   } catch (error: unknown) {
     const updateErrorAction = resolveUpdatePasskeyNameErrorAction(
       { userId, username },
       credentialId,
-      error
+      error,
     );
-    console[updateErrorAction.log.level](
+    logger[updateErrorAction.log.level](
       updateErrorAction.log.message,
       updateErrorAction.log.errorMessage,
-      updateErrorAction.log.errorStack
+      updateErrorAction.log.errorStack,
     );
     if (!updateErrorAction.handled) {
       next(error);
@@ -488,7 +489,7 @@ export const updateUserPasskeyNameHandler = async (
 export const checkHasPasskeys = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const username = req.query.username as string | undefined;
   try {
@@ -496,7 +497,7 @@ export const checkHasPasskeys = async (
     res.status(200).json({ hasPasskeys });
   } catch (error: unknown) {
     const checkErrorLogAction = buildPasskeyHasConfiguredCheckErrorLogAction(username || 'any');
-    console[checkErrorLogAction.level](checkErrorLogAction.message, getErrorMessage(error));
+    logger[checkErrorLogAction.level](checkErrorLogAction.message, getErrorMessage(error));
     next(error);
   }
 };

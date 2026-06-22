@@ -49,7 +49,7 @@ export function redactSensitiveData(value: unknown, depth = 0, seen = new WeakSe
     let redactedStr = value;
     redactedStr = redactedStr.replace(
       /(\b(?:cookie|authorization|token|api[_-]?key|password|secret|passwd|pwd|credit[_-]?card|card[_-]?number|ssn|social[_-]?security|private[_-]?key)\s*[:=]\s*["']?)([^\s;,&"']+)/gi,
-      '$1[REDACTED]'
+      '$1[REDACTED]',
     );
     redactedStr = redactedStr.replace(/\bBearer\s+[A-Za-z0-9\-._~+/]+/gi, 'Bearer [REDACTED]');
     return redactedStr;
@@ -75,6 +75,7 @@ export function redactSensitiveData(value: unknown, depth = 0, seen = new WeakSe
     try {
       return value.map((item) => redactSensitiveData(item, depth + 1, seen));
     } catch {
+      // 脱敏模块内部错误，不使用 logger 避免循环依赖
       return '[Array Processing Error]';
     }
   }

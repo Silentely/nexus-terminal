@@ -40,8 +40,8 @@
 graph TD
     subgraph "Nexus Terminal Monorepo"
         A["nexus-terminal (根)"] --> B["packages"]
-        B --> C["backend<br/>Express + SQLite<br/>(207 TS文件, 25 数据表, 133 测试)"]
-        B --> D["frontend<br/>Vue 3 + Vite<br/>(240 TS/Vue, 24 Stores, 93 测试)"]
+        B --> C["backend<br/>Express + SQLite<br/>(265 TS文件, 28 数据表, 138 测试)"]
+        B --> D["frontend<br/>Vue 3 + Vite<br/>(239 TS/Vue, 33 Stores, 97 测试)"]
         B --> E["remote-gateway<br/>Guacamole Lite<br/>(2 源文件, 1 测试)"]
         A --> F["doc<br/>(技术债务、路线图)"]
     end
@@ -234,11 +234,11 @@ npx playwright install          # 首次运行 E2E 需安装浏览器
 
 | 类别          | 路径                                                   |
 | ------------- | ------------------------------------------------------ |
-| 数据库 Schema | `packages/backend/src/database/schema.ts`（24 表）     |
+| 数据库 Schema | `packages/backend/src/database/schema.ts`（28 表）     |
 | 后端入口      | `packages/backend/src/index.ts`                        |
 | 前端入口      | `packages/frontend/src/main.ts`                        |
-| 后端路由      | `packages/backend/src/*/routes.ts`（24 模块）          |
-| 前端路由      | `packages/frontend/src/router/index.ts`（9 视图）      |
+| 后端路由      | `packages/backend/src/*/routes.ts`（27 模块）          |
+| 前端路由      | `packages/frontend/src/router/index.ts`（14 视图）     |
 | 状态管理      | `packages/frontend/src/stores/*.store.ts`（24 stores） |
 | WebSocket     | `packages/backend/src/websocket.ts` + `handlers/`      |
 | 加密模块      | `packages/backend/src/utils/crypto.ts`                 |
@@ -282,30 +282,35 @@ Remote Gateway (8080/9090) -> Guacamole Lite + Guacd (4822)
 ### 关键记忆点
 
 #### 架构决策
+
 - **Monorepo 架构**：npm workspaces 管理 backend/frontend/remote-gateway 三个子包
 - **前后端分离**：RESTful API + WebSocket 实时通信
 - **微服务部署**：后端服务、前端应用、远程网关独立容器化
 - **多协议支持**：SSH/SFTP/RDP/VNC/Telnet 统一管理
 
 #### 技术栈特性
+
 - **前端**：Vue 3 Composition API + Pinia + Xterm.js + Monaco Editor
 - **后端**：Express + TypeScript + SQLite3 + SSH2 + WebSocket
 - **远程网关**：Guacamole Lite 协议转换层
 - **测试**：Vitest（单元）+ Playwright（E2E）+ Autocannon（性能）
 
 #### 踩坑记录
+
 - **会话持久化**：网络断开后自动保持会话，需正确处理 WebSocket 重连和状态恢复
 - **加密密钥管理**：`ENCRYPTION_KEY` 必须 32 字节 hex，首次启动自动生成不可更改
 - **Guacamole 协议**：RDP/VNC 需要 Guacd daemon (4822) + Guacamole Lite WebSocket 桥接
 - **日志量控制**：`ENABLE_REQUEST_LOG=false` 可关闭访问日志，避免高频请求刷屏
 
 #### 分层架构约定
+
 - **后端**：`routes.ts` → `controller.ts` → `service.ts` → `repository.ts`
 - **前端**：View 组件 → Pinia Store → API Service
-- **数据库**：24 张表，统一在 `schema.ts` 定义
+- **数据库**：28 张表，统一在 `schema.ts` 定义
 - **WebSocket**：`websocket.ts` 主入口 + `handlers/` 分协议处理
 
 #### 测试覆盖率要求
+
 - Service: 行 ≥80%, 分支 ≥70%
 - Controller: 行 ≥70%, 分支 ≥60%
 - Repository: 行 ≥60%, 分支 ≥50%
@@ -314,6 +319,7 @@ Remote Gateway (8080/9090) -> Guacamole Lite + Guacd (4822)
 - Component: 行 ≥60%, 分支 ≥50%
 
 #### 编码偏好
+
 - 文件命名：kebab-case（`auth.controller.ts`）
 - 类名/接口：PascalCase
 - 变量/函数：camelCase
@@ -321,6 +327,7 @@ Remote Gateway (8080/9090) -> Guacamole Lite + Guacd (4822)
 - 测试描述：使用中文
 
 #### 安全实践
+
 - **AI 安全审计**：基于规则引擎的异常检测 + 风险评分
 - **审计日志**：完整记录用户行为，支持 Webhook/Email/Telegram 通知
 - **加密存储**：敏感数据（密码、密钥）使用 AES-256-GCM 加密

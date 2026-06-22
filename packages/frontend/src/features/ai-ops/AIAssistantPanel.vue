@@ -380,7 +380,7 @@ watch(
   () => aiStore.messages.length,
   () => {
     scrollToBottom();
-  }
+  },
 );
 
 // 组件挂载

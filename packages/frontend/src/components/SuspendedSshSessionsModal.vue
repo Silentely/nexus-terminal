@@ -34,7 +34,7 @@ watch(
     } else {
       document.removeEventListener('keydown', handleKeydown);
     }
-  }
+  },
 );
 
 const onWorkspaceEvent = useWorkspaceEventSubscriber();
@@ -43,7 +43,7 @@ const offWorkspaceEvent = useWorkspaceEventOff(); // 获取取消订阅函数
 // 定义事件处理函数
 const handleSuspendedSessionActionCompleted = () => {
   log.info(
-    '[SuspendedSshSessionsModal] Received suspendedSession:actionCompleted event, closing modal.'
+    '[SuspendedSshSessionsModal] Received suspendedSession:actionCompleted event, closing modal.',
   );
   closeModal();
 };

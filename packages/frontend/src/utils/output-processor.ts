@@ -134,7 +134,7 @@ export class OutputProcessor {
       const now = Date.now();
       if (now - this.lastSlowProcessWarning > this.warningThrottleMs) {
         log.warn(
-          `[OutputProcessor] 处理耗时过长：${duration.toFixed(2)}ms（${lineCount} 行，类型：${detectedType}）`
+          `[OutputProcessor] 处理耗时过长：${duration.toFixed(2)}ms（${lineCount} 行，类型：${detectedType}）`,
         );
         this.lastSlowProcessWarning = now;
       }
@@ -187,7 +187,7 @@ export class OutputProcessor {
 
     if (
       /\d{4}[-/]\d{2}[-/]\d{2}|\d{2}:\d{2}:\d{2}|\b(ERROR|WARN|INFO|DEBUG|TRACE|SUCCESS|FAIL)\b/i.test(
-        trimmed
+        trimmed,
       )
     ) {
       return OutputType.LOG;
@@ -252,7 +252,7 @@ export class OutputProcessor {
       .map((line) => {
         let transformed = line.replace(
           /(\d{4}[-/]\d{2}[-/]\d{2}[\sT]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)/g,
-          `${ANSI.BRIGHT_BLACK}$1${ANSI.RESET}`
+          `${ANSI.BRIGHT_BLACK}$1${ANSI.RESET}`,
         );
         transformed = transformed
           .replace(/\b(ERROR|ERR)\b/gi, `${ANSI.BRIGHT_RED}${ANSI.BOLD}$1${ANSI.RESET}`)
@@ -262,7 +262,7 @@ export class OutputProcessor {
           .replace(/\b(SUCCESS|OK)\b/gi, `${ANSI.BRIGHT_GREEN}${ANSI.BOLD}$1${ANSI.RESET}`);
         transformed = transformed.replace(
           /\b(\d{1,3}(?:\.\d{1,3}){3})\b/g,
-          `${ANSI.YELLOW}$1${ANSI.RESET}`
+          `${ANSI.YELLOW}$1${ANSI.RESET}`,
         );
         transformed = transformed.replace(/\b([2-5]\d{2})\b/g, (match) => {
           const code = Number(match);
@@ -292,7 +292,7 @@ export class OutputProcessor {
 
     const rows = parsedLines.filter(
       (line): line is { kind: 'row'; cells: string[] } =>
-        line.kind === 'row' && line.cells.length > 0
+        line.kind === 'row' && line.cells.length > 0,
     );
     if (!rows.length) return tableText;
 
@@ -346,7 +346,7 @@ export class OutputProcessor {
           return `${prefix}${path}`;
         }
         return `${prefix}${ANSI.CYAN}${path}${ANSI.RESET}`;
-      }
+      },
     );
     return result;
   }
@@ -420,7 +420,7 @@ export async function processInWorker(
     enableHighlight?: boolean;
     enableTableFormat?: boolean;
     enableLinkDetection?: boolean;
-  }
+  },
 ): Promise<ProcessedOutput> {
   // 小数据包直接同步处理，避免 Worker 通信开销
   if (text.length <= 100) {

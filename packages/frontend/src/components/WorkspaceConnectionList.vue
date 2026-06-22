@@ -203,7 +203,7 @@ const filteredAndGroupedConnections = computed(() => {
   // 3. 排序和格式化输出
   for (const groupName in groups) {
     groups[groupName].connections.sort((a, b) =>
-      (a.name || a.host).localeCompare(b.name || b.host)
+      (a.name || a.host).localeCompare(b.name || b.host),
     );
   }
   untagged.sort((a, b) => (a.name || a.host).localeCompare(b.name || b.host));
@@ -235,7 +235,7 @@ watch(
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 计算属性，仅过滤，不分组 (用于 showConnectionTagsBoolean 为 false 时)
@@ -302,7 +302,7 @@ watch(
       }
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 监听搜索词变化，重置高亮索引
@@ -316,7 +316,7 @@ watch(
   () => {
     highlightedIndex.value = -1;
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 监听显示模式变化，重置高亮索引
@@ -334,7 +334,7 @@ const toggleGroup = (groupName: string) => {
 const handleConnect = (connectionId: number, event?: MouseEvent | KeyboardEvent) => {
   if (event instanceof MouseEvent && event.button !== 0) {
     log.info(
-      `[WkspConnList] DEBUG: handleConnect called with non-left click (button: ${event.button}). Ignoring.`
+      `[WkspConnList] DEBUG: handleConnect called with non-left click (button: ${event.button}). Ignoring.`,
     );
     return;
   }
@@ -382,7 +382,7 @@ const handleMenuAction = async (action: 'add' | 'edit' | 'delete' | 'clone') => 
 
   if (action === 'add') {
     log.info(
-      '[WorkspaceConnectionList] handleMenuAction called with action: add. Emitting request-add-connection...'
+      '[WorkspaceConnectionList] handleMenuAction called with action: add. Emitting request-add-connection...',
     );
     // router.push('/connections/add'); // 改为触发事件
     emitWorkspaceEvent('connection:requestAdd');
@@ -427,7 +427,7 @@ const handleMenuAction = async (action: 'add' | 'edit' | 'delete' | 'clone') => 
 // 显示标签右键菜单
 const showTagContextMenu = (
   event: MouseEvent,
-  groupData: (typeof filteredAndGroupedConnections.value)[0]
+  groupData: (typeof filteredAndGroupedConnections.value)[0],
 ) => {
   event.preventDefault();
   event.stopPropagation();
@@ -447,7 +447,7 @@ const closeTagContextMenu = () => {
 // 修改：允许直接传递 groupData，用于新的行内编辑按钮
 const handleTagMenuAction = async (
   action: 'connectAll' | 'manageTag' | 'deleteAllConnections',
-  directGroupData?: (typeof filteredAndGroupedConnections.value)[0]
+  directGroupData?: (typeof filteredAndGroupedConnections.value)[0],
 ) => {
   const group = directGroupData || contextTargetTagGroup.value; // 优先使用直接传递的 groupData
   closeTagContextMenu(); // 先关闭菜单
@@ -523,10 +523,10 @@ const handleTagMenuAction = async (
         connectionsStore.deleteConnection(connId).catch((err) => {
           log.error(
             `[WkspConnList] Failed to delete connection ${connId} in group ${group.groupName}:`,
-            err
+            err,
           );
           return Promise.reject({ connId, error: err });
-        })
+        }),
       );
 
       Promise.allSettled(deletePromises).then((results) => {
@@ -583,7 +583,7 @@ onMounted(() => {
   // focusSearchInput 返回 boolean，符合 () => boolean | Promise<boolean | undefined> 类型
   unregisterFocusAction = focusSwitcherStore.registerFocusAction(
     'connectionListSearch',
-    focusSearchInput
+    focusSearchInput,
   );
   connectionsStore.fetchConnections(); // 移到 onMounted
   tagsStore.fetchTags(); // 移到 onMounted
@@ -645,7 +645,7 @@ const scrollToHighlighted = async () => {
 
   // Query selector needs to work for both grouped and flat lists
   const highlightedElement = listAreaRef.value.querySelector(
-    `li[data-conn-id="${highlightedConnectionId.value}"]`
+    `li[data-conn-id="${highlightedConnectionId.value}"]`,
   );
   if (highlightedElement) {
     highlightedElement.scrollIntoView({ block: 'nearest', inline: 'nearest' });

@@ -527,7 +527,7 @@ describe('ConnectionsView', () => {
       const rdpItem = connItems[0];
       const buttonsInItem = rdpItem.findAll('button');
       const singleTestBtn = buttonsInItem.find((b) =>
-        b.text().includes('connections.actions.test')
+        b.text().includes('connections.actions.test'),
       );
       expect(singleTestBtn).toBeUndefined();
     });

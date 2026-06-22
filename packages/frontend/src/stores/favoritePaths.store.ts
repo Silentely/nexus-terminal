@@ -39,7 +39,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     return favoritePaths.value.filter(
       (fav) =>
         fav.path.toLowerCase().includes(lowerCaseSearchTerm) ||
-        (fav.name && fav.name.toLowerCase().includes(lowerCaseSearchTerm))
+        (fav.name && fav.name.toLowerCase().includes(lowerCaseSearchTerm)),
     );
   });
 
@@ -145,12 +145,12 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
    */
   async function markPathAsUsed(
     pathId: number,
-    t: (key: string, defaultMessage: string) => string
+    t: (key: string, defaultMessage: string) => string,
   ) {
     const notificationsStore = useUiNotificationsStore();
     try {
       const response = await apiClient.put<{ message: string; favoritePath: FavoritePathItem }>(
-        `/favorite-paths/${pathId}/update-last-used`
+        `/favorite-paths/${pathId}/update-last-used`,
       );
       const updatedPath = response.data.favoritePath;
       if (updatedPath) {
@@ -185,7 +185,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
    */
   async function addFavoritePath(
     newPathData: Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>,
-    t: (key: string, defaultMessage: string) => string
+    t: (key: string, defaultMessage: string) => string,
   ) {
     isLoading.value = true;
     error.value = null;
@@ -193,7 +193,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     try {
       const response = await apiClient.post<{ message: string; favoritePath: FavoritePathItem }>(
         '/favorite-paths',
-        newPathData
+        newPathData,
       );
       favoritePaths.value.push(response.data.favoritePath);
       _sortFavoritePaths();
@@ -225,7 +225,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
   async function updateFavoritePath(
     id: number,
     updatedPathData: Partial<Omit<FavoritePathItem, 'id' | 'created_at' | 'last_used_at'>>,
-    t: (key: string, defaultMessage: string) => string
+    t: (key: string, defaultMessage: string) => string,
   ) {
     isLoading.value = true;
     error.value = null;
@@ -233,7 +233,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
     try {
       const response = await apiClient.put<{ message: string; favoritePath: FavoritePathItem }>(
         `/favorite-paths/${id}`,
-        updatedPathData
+        updatedPathData,
       );
       const index = favoritePaths.value.findIndex((fav) => fav.id === id);
       if (index !== -1) {
@@ -243,7 +243,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
       notificationsStore.addNotification({
         message: t(
           'favoritePaths.notifications.updateSuccess',
-          'Favorite path updated successfully.'
+          'Favorite path updated successfully.',
         ),
         type: 'success',
       });
@@ -268,7 +268,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
    */
   async function deleteFavoritePath(
     id: number,
-    t: (key: string, defaultMessage: string) => string
+    t: (key: string, defaultMessage: string) => string,
   ) {
     isLoading.value = true;
     error.value = null;
@@ -279,7 +279,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
       notificationsStore.addNotification({
         message: t(
           'favoritePaths.notifications.deleteSuccess',
-          'Favorite path deleted successfully.'
+          'Favorite path deleted successfully.',
         ),
         type: 'success',
       });

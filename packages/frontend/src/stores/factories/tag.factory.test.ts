@@ -75,7 +75,7 @@ function makeSilentTagStore() {
 }
 
 const createMockTag = (
-  overrides: Partial<{ id: number; name: string; created_at: number; updated_at: number }> = {}
+  overrides: Partial<{ id: number; name: string; created_at: number; updated_at: number }> = {},
 ) => ({
   id: overrides.id ?? 1,
   name: overrides.name ?? '测试标签',
@@ -139,7 +139,7 @@ describe('createTagStore factory', () => {
     it('有缓存时应先加载缓存再请求 API', async () => {
       const cachedTags = [createMockTag({ id: 1, name: '缓存标签' })];
       (localStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue(
-        JSON.stringify(cachedTags)
+        JSON.stringify(cachedTags),
       );
 
       const freshTags = [createMockTag({ id: 1, name: '缓存标签' })];
@@ -167,7 +167,7 @@ describe('createTagStore factory', () => {
     it('API 数据变化时应更新缓存', async () => {
       const cachedTags = [createMockTag({ id: 1, name: '旧标签' })];
       (localStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue(
-        JSON.stringify(cachedTags)
+        JSON.stringify(cachedTags),
       );
 
       const freshTags = [

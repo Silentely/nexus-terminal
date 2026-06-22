@@ -367,7 +367,7 @@ router.get('/status', isAuthenticated, getAuthStatus);
 router.post(
   '/passkey/registration-options',
   isAuthenticated,
-  generatePasskeyRegistrationOptionsHandler
+  generatePasskeyRegistrationOptionsHandler,
 );
 
 // POST /api/v1/auth/passkey/register - 验证并保存新的 Passkey (需要认证，因为通常在已登录会话中添加新凭据)
@@ -377,7 +377,7 @@ router.post('/passkey/register', isAuthenticated, verifyPasskeyRegistrationHandl
 router.post(
   '/passkey/authentication-options',
   moderateAuthLimiter,
-  generatePasskeyAuthenticationOptionsHandler
+  generatePasskeyAuthenticationOptionsHandler,
 );
 
 // POST /api/v1/auth/passkey/authenticate - 验证 Passkey 并登录用户 (公开)
@@ -385,7 +385,7 @@ router.post(
   '/passkey/authenticate',
   strictAuthLimiter,
   ipBlacklistCheckMiddleware,
-  verifyPasskeyAuthenticationHandler
+  verifyPasskeyAuthenticationHandler,
 );
 
 // GET /api/v1/auth/passkey/has-configured - 检查是否配置了 Passkey (公开)

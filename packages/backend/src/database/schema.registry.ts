@@ -13,7 +13,7 @@ const runDb = (db: Database, sql: string, params: unknown[] = []): Promise<RunRe
     db.run(sql, params, function runDbCallback(this: RunResult, err: Error | null) {
       if (err) {
         logger.error(
-          `[数据库错误] SQL: ${sql.substring(0, 100)}... 参数: ${JSON.stringify(params)} 错误: ${err.message}`
+          `[数据库错误] SQL: ${sql.substring(0, 100)}... 参数: ${JSON.stringify(params)} 错误: ${err.message}`,
         );
         reject(err);
       } else {

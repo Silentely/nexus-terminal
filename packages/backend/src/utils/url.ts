@@ -27,7 +27,8 @@ const checkAddressRange = (address: string): string | null => {
       range = (parsed as ipaddr.IPv6).toIPv4Address().range();
     }
     return SSRF_BLOCKED_RANGES.has(range) ? range : null;
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     return null;
   }
 };
@@ -62,7 +63,7 @@ export interface SsrfValidationResult {
  */
 export const validateUrlNotPrivate = async (
   targetUrl: string,
-  sourceTag = 'URL'
+  sourceTag = 'URL',
 ): Promise<void> => {
   await resolveAndValidatePublicHost(targetUrl, sourceTag);
 };
@@ -77,7 +78,7 @@ export const validateUrlNotPrivate = async (
  */
 export const resolveAndValidatePublicHost = async (
   targetUrl: string,
-  sourceTag = 'URL'
+  sourceTag = 'URL',
 ): Promise<SsrfValidationResult> => {
   const urlObj = new URL(targetUrl);
   // IPv6 地址在 URL.hostname 中带方括号，ipaddr.parse 需要去除
@@ -117,7 +118,7 @@ export const resolveAndValidatePublicHost = async (
     const range = checkAddressRange(addr);
     if (range) {
       logger.warn(
-        `[SSRF] ${sourceTag} 阻止：主机名 ${hostname} 解析到私有/保留 IP ${addr} (${range})`
+        `[SSRF] ${sourceTag} 阻止：主机名 ${hostname} 解析到私有/保留 IP ${addr} (${range})`,
       );
       throw new Error('目标地址解析到不允许的网络范围，请求已阻止。');
     }
@@ -144,7 +145,8 @@ const normalizeHostname = (hostname: string): string => {
 export const normalizeOrigin = (origin: string): string | undefined => {
   try {
     return new URL(origin).origin;
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     return undefined;
   }
 };
@@ -152,7 +154,8 @@ export const normalizeOrigin = (origin: string): string | undefined => {
 export const getHostnameFromOrigin = (origin: string): string | undefined => {
   try {
     return normalizeHostname(new URL(origin).hostname);
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     return undefined;
   }
 };
@@ -165,7 +168,8 @@ export const getHostnameFromHostHeader = (hostHeader: string): string | undefine
 
   try {
     return normalizeHostname(new URL(`http://${token}`).hostname);
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     return undefined;
   }
 };

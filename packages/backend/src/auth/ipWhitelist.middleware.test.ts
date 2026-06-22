@@ -187,7 +187,7 @@ describe('IP Whitelist Middleware', () => {
       it('多个 IP 使用换行符分隔应正确匹配', async () => {
         const mockReq = createMockRequest('10.0.0.5');
         vi.mocked(settingsService.getSetting).mockResolvedValue(
-          '192.168.1.100\n10.0.0.5\n172.16.0.1'
+          '192.168.1.100\n10.0.0.5\n172.16.0.1',
         );
 
         await ipWhitelistMiddleware(mockReq as Request, mockRes as Response, mockNext);
@@ -198,7 +198,7 @@ describe('IP Whitelist Middleware', () => {
       it('多个 IP 使用逗号分隔应正确匹配', async () => {
         const mockReq = createMockRequest('172.16.0.1');
         vi.mocked(settingsService.getSetting).mockResolvedValue(
-          '192.168.1.100, 10.0.0.5, 172.16.0.1'
+          '192.168.1.100, 10.0.0.5, 172.16.0.1',
         );
 
         await ipWhitelistMiddleware(mockReq as Request, mockRes as Response, mockNext);
@@ -266,7 +266,7 @@ describe('IP Whitelist Middleware', () => {
       it('混合 IP 和 CIDR 白名单应正确工作', async () => {
         const mockReq = createMockRequest('10.10.10.10');
         vi.mocked(settingsService.getSetting).mockResolvedValue(
-          '192.168.1.100\n10.10.0.0/16\n172.16.0.1'
+          '192.168.1.100\n10.10.0.0/16\n172.16.0.1',
         );
 
         await ipWhitelistMiddleware(mockReq as Request, mockRes as Response, mockNext);

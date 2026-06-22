@@ -5,10 +5,10 @@ import { Page, Locator } from '@playwright/test';
 
 async function connectFirstVisibleConnection(
   page: Page,
-  workspace: WorkspacePage
+  workspace: WorkspacePage,
 ): Promise<boolean> {
   const connectionItem = page.locator(
-    '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+    '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
   );
   if (!(await connectionItem.isVisible({ timeout: 3000 }).catch(() => false))) {
     return false;
@@ -35,7 +35,7 @@ async function uploadBufferFile(
   page: Page,
   fileName: string,
   content: Buffer,
-  mimeType = 'text/plain'
+  mimeType = 'text/plain',
 ): Promise<void> {
   const input = page.locator('input[type="file"]').first();
   await expect(input).toBeAttached();
@@ -50,7 +50,7 @@ async function uploadBufferFile(
 async function clickContextMenuAction(
   page: Page,
   target: Locator,
-  actionText: RegExp
+  actionText: RegExp,
 ): Promise<void> {
   await target.click({ button: 'right' });
   const action = page.locator('li').filter({ hasText: actionText }).first();
@@ -117,7 +117,7 @@ test.describe('SFTP 操作测试', () => {
         authenticatedPage,
         fileName,
         Buffer.from(SFTP_TEST_DATA.testContent),
-        'text/plain'
+        'text/plain',
       );
     });
 
@@ -133,7 +133,7 @@ test.describe('SFTP 操作测试', () => {
         buffer: largeContent,
       });
 
-      // 部分环境上传极快，允许“显示过进度”或“快速完成已落盘”两种路径。
+      // 部分环境上传极快，允许"显示过进度"或"快速完成已落盘"两种路径。
       const progressBar = authenticatedPage.locator('progress').first();
       const progressVisible = await progressBar.isVisible({ timeout: 3000 }).catch(() => false);
       if (progressVisible) {

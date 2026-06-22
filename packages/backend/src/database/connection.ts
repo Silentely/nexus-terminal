@@ -35,7 +35,7 @@ interface RunResult {
 export const runDb = (
   db: sqlite3.Database,
   sql: string,
-  params: unknown[] = []
+  params: unknown[] = [],
 ): Promise<RunResult> => {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function runDbCallback(this: RunResult, err: Error | null) {
@@ -52,7 +52,7 @@ export const runDb = (
 export const getDb = <T = unknown>(
   db: sqlite3.Database,
   sql: string,
-  params: unknown[] = []
+  params: unknown[] = [],
 ): Promise<T | undefined> => {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err: Error | null, row: T) => {
@@ -69,7 +69,7 @@ export const getDb = <T = unknown>(
 export const allDb = <T = unknown>(
   db: sqlite3.Database,
   sql: string,
-  params: unknown[] = []
+  params: unknown[] = [],
 ): Promise<T[]> => {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err: Error | null, rows: T[]) => {
@@ -182,7 +182,7 @@ export const getDbInstance = (): Promise<sqlite3.Database> => {
               reject(initError);
             });
           }
-        }
+        },
       );
     });
   }

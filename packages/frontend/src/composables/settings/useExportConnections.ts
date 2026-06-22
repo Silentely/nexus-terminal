@@ -49,7 +49,7 @@ export function useExportConnections() {
 
       exportConnectionsMessage.value = t(
         'settings.exportConnections.success',
-        '导出成功。文件已开始下载。'
+        '导出成功。文件已开始下载。',
       );
       exportConnectionsSuccess.value = true;
     } catch (error: unknown) {
@@ -66,7 +66,7 @@ export function useExportConnections() {
           } catch (parseError: unknown) {
             log.debug(
               '[ExportConnections] Blob 响应非 JSON 格式:',
-              parseError instanceof Error ? parseError.message : parseError
+              parseError instanceof Error ? parseError.message : parseError,
             );
           }
         } else if (typeof error.response.data === 'string') {

@@ -79,7 +79,7 @@ export const useAISettingsStore = defineStore('aiSettings', () => {
    * 测试 AI 连接
    */
   async function testConnection(
-    testSettings: AISettings
+    testSettings: AISettings,
   ): Promise<{ success: boolean; errorDetail?: string }> {
     isTesting.value = true;
     try {

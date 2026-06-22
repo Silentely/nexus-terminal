@@ -31,7 +31,7 @@ interface SftpDirectoryEntry {
 export const downloadFile = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
@@ -70,7 +70,7 @@ export const downloadFile = async (
 
   if (!targetState || !targetState.sftp) {
     logger.warn(
-      `SFTP 下载失败：未找到用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的活动 SFTP 会话。`
+      `SFTP 下载失败：未找到用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的活动 SFTP 会话。`,
     );
     res.status(404).json({ message: '未找到指定的活动 SFTP 会话。请确保目标连接处于活动状态。' });
     return;
@@ -86,7 +86,7 @@ export const downloadFile = async (
         (err: Error | undefined, fileStats: import('ssh2').Stats) => {
           if (err) return reject(err);
           resolve(fileStats);
-        }
+        },
       );
     });
 
@@ -145,7 +145,7 @@ export const downloadFile = async (
 export const downloadDirectory = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
@@ -173,7 +173,7 @@ export const downloadDirectory = async (
   }
 
   logger.debug(
-    `SFTP 文件夹下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`
+    `SFTP 文件夹下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`,
   );
   for (const [sessionId, state] of clientStates.entries()) {
     // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
@@ -186,7 +186,7 @@ export const downloadDirectory = async (
 
   if (!targetState || !targetState.sftp) {
     logger.warn(
-      `SFTP 文件夹下载失败：未找到用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的活动 SFTP 会话。`
+      `SFTP 文件夹下载失败：未找到用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的活动 SFTP 会话。`,
     );
     res.status(404).json({ message: '未找到指定的活动 SFTP 会话。请确保目标连接处于活动状态。' });
     return;
@@ -202,7 +202,7 @@ export const downloadDirectory = async (
         (err: Error | undefined, dirStats: import('ssh2').Stats) => {
           if (err) return reject(err);
           resolve(dirStats);
-        }
+        },
       );
     });
 
@@ -252,7 +252,7 @@ export const downloadDirectory = async (
     const addDirectoryToArchive = async (
       sftp: SFTPWrapper,
       dirPath: string,
-      archivePath: string
+      archivePath: string,
     ) => {
       // 使用局部结构类型约束 readdir 返回值，避免 any 泄漏。
       const entries = await new Promise<SftpDirectoryEntry[]>((resolve, reject) => {
@@ -322,13 +322,13 @@ const sendWebSocketError = (
   type: string,
   message: string,
   requestId: string,
-  details?: unknown
+  details?: unknown,
 ) => {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type, payload: { error: message, details, requestId } }));
   } else {
     logger.warn(
-      `WebSocket closed or invalid, cannot send error for request ${requestId}. Type: ${type}, Message: ${message}`
+      `WebSocket closed or invalid, cannot send error for request ${requestId}. Type: ${type}, Message: ${message}`,
     );
   }
 };
@@ -340,7 +340,7 @@ const sendCompressError = (
   ws: AuthenticatedWebSocket | undefined,
   error: string,
   requestId: string,
-  details?: string
+  details?: string,
 ) => {
   const payload: SftpCompressErrorPayload = { error, requestId };
   if (details) payload.details = details;
@@ -354,7 +354,7 @@ const sendDecompressError = (
   ws: AuthenticatedWebSocket | undefined,
   error: string,
   requestId: string,
-  details?: string
+  details?: string,
 ) => {
   const payload: SftpDecompressErrorPayload = { error, requestId };
   if (details) payload.details = details;
@@ -405,14 +405,14 @@ const isErrorInStdErr = (stderr: string): boolean => {
  */
 export const handleCompressRequest = async (
   ws: AuthenticatedWebSocket,
-  payload: SftpCompressRequestPayload
+  payload: SftpCompressRequestPayload,
 ): Promise<void> => {
   const { sources, destinationArchiveName, format, targetDirectory, requestId } = payload;
   const { sessionId } = ws; // 从 AuthenticatedWebSocket 获取 sessionId
 
   if (!sessionId) {
     logger.error(
-      `[WS SFTP Compress] Missing sessionId on WebSocket for request (ID: ${requestId}).`
+      `[WS SFTP Compress] Missing sessionId on WebSocket for request (ID: ${requestId}).`,
     );
     sendCompressError(ws, '内部错误：缺少会话 ID', requestId);
     return;
@@ -429,7 +429,7 @@ export const handleCompressRequest = async (
   }
 
   logger.debug(
-    `[WS SFTP Compress ${sessionId}] Processing compress request (ID: ${requestId}). Sources: ${sources.join(', ')}, Dest: ${destinationArchiveName}, Format: ${format}, Dir: ${targetDirectory}`
+    `[WS SFTP Compress ${sessionId}] Processing compress request (ID: ${requestId}). Sources: ${sources.join(', ')}, Dest: ${destinationArchiveName}, Format: ${format}, Dir: ${targetDirectory}`,
   );
 
   // --- 路径安全验证：防止 Shell 注入 ---
@@ -483,7 +483,7 @@ export const handleCompressRequest = async (
       if (err) {
         logger.error(
           `[WS SFTP Compress ${sessionId}] Failed to start exec (ID: ${requestId}):`,
-          err
+          err,
         );
         sendCompressError(ws, `执行压缩命令失败: ${err.message}`, requestId);
         return;
@@ -505,7 +505,7 @@ export const handleCompressRequest = async (
       stream.on('close', (code: number | null) => {
         exitCode = code;
         logger.debug(
-          `[WS SFTP Compress ${sessionId}] Command finished with code ${exitCode} (ID: ${requestId}). Stderr length: ${stderrData.length}`
+          `[WS SFTP Compress ${sessionId}] Command finished with code ${exitCode} (ID: ${requestId}). Stderr length: ${stderrData.length}`,
         );
         if (exitCode === 0 && !isErrorInStdErr(stderrData)) {
           logger.info(`[WS SFTP Compress ${sessionId}] Compression successful (ID: ${requestId}).`);
@@ -521,7 +521,7 @@ export const handleCompressRequest = async (
         } else {
           const errorDetails = stderrData.trim() || `压缩命令退出，代码: ${exitCode ?? 'N/A'}`;
           logger.error(
-            `[WS SFTP Compress ${sessionId}] Compression failed (ID: ${requestId}): ${errorDetails}`
+            `[WS SFTP Compress ${sessionId}] Compression failed (ID: ${requestId}): ${errorDetails}`,
           );
           sendCompressError(ws, '压缩失败', requestId, errorDetails);
         }
@@ -530,7 +530,7 @@ export const handleCompressRequest = async (
       stream.on('error', (streamErr: Error) => {
         logger.error(
           `[WS SFTP Compress ${sessionId}] Command stream error (ID: ${requestId}):`,
-          streamErr
+          streamErr,
         );
         // Avoid sending duplicate errors if 'close' already indicated failure
         if (exitCode === null) {
@@ -541,7 +541,7 @@ export const handleCompressRequest = async (
   } catch (execError: unknown) {
     logger.error(
       `[WS SFTP Compress ${sessionId}] Unexpected error setting up exec (ID: ${requestId}):`,
-      execError
+      execError,
     );
     sendCompressError(ws, `执行压缩时发生意外错误: ${getErrorMessage(execError)}`, requestId);
   }
@@ -554,14 +554,14 @@ export const handleCompressRequest = async (
  */
 export const handleDecompressRequest = async (
   ws: AuthenticatedWebSocket,
-  payload: SftpDecompressRequestPayload
+  payload: SftpDecompressRequestPayload,
 ): Promise<void> => {
   const { archivePath, requestId } = payload;
   const { sessionId } = ws;
 
   if (!sessionId) {
     logger.error(
-      `[WS SFTP Decompress] Missing sessionId on WebSocket for request (ID: ${requestId}).`
+      `[WS SFTP Decompress] Missing sessionId on WebSocket for request (ID: ${requestId}).`,
     );
     sendDecompressError(ws, '内部错误：缺少会话 ID', requestId);
     return;
@@ -570,7 +570,7 @@ export const handleDecompressRequest = async (
   const state = clientStates.get(sessionId);
 
   logger.info(
-    `[WS SFTP Decompress ${sessionId}] Received request for ${archivePath} (ID: ${requestId}).`
+    `[WS SFTP Decompress ${sessionId}] Received request for ${archivePath} (ID: ${requestId}).`,
   );
 
   if (!state || !state.sshClient) {
@@ -580,7 +580,7 @@ export const handleDecompressRequest = async (
   }
 
   logger.debug(
-    `[WS SFTP Decompress ${sessionId}] Processing decompress request for ${archivePath} (ID: ${requestId})`
+    `[WS SFTP Decompress ${sessionId}] Processing decompress request for ${archivePath} (ID: ${requestId})`,
   );
 
   // --- 路径安全验证：防止 Shell 注入 ---
@@ -617,7 +617,7 @@ export const handleDecompressRequest = async (
   }
 
   logger.debug(
-    `[WS SFTP Decompress ${sessionId}] Executing command: ${command} (ID: ${requestId})`
+    `[WS SFTP Decompress ${sessionId}] Executing command: ${command} (ID: ${requestId})`,
   );
 
   // --- 执行命令 ---
@@ -626,7 +626,7 @@ export const handleDecompressRequest = async (
       if (err) {
         logger.error(
           `[WS SFTP Decompress ${sessionId}] Failed to start exec (ID: ${requestId}):`,
-          err
+          err,
         );
         sendDecompressError(ws, `执行解压命令失败: ${err.message}`, requestId);
         return;
@@ -648,11 +648,11 @@ export const handleDecompressRequest = async (
       stream.on('close', (code: number | null) => {
         exitCode = code;
         logger.debug(
-          `[WS SFTP Decompress ${sessionId}] Command finished with code ${exitCode} (ID: ${requestId}). Stderr length: ${stderrData.length}`
+          `[WS SFTP Decompress ${sessionId}] Command finished with code ${exitCode} (ID: ${requestId}). Stderr length: ${stderrData.length}`,
         );
         if (exitCode === 0 && !isErrorInStdErr(stderrData)) {
           logger.info(
-            `[WS SFTP Decompress ${sessionId}] Decompression successful (ID: ${requestId}).`
+            `[WS SFTP Decompress ${sessionId}] Decompression successful (ID: ${requestId}).`,
           );
           const successPayload: SftpDecompressSuccessPayload = {
             message: '解压成功',
@@ -666,7 +666,7 @@ export const handleDecompressRequest = async (
         } else {
           const errorDetails = stderrData.trim() || `解压命令退出，代码: ${exitCode ?? 'N/A'}`;
           logger.error(
-            `[WS SFTP Decompress ${sessionId}] Decompression failed (ID: ${requestId}): ${errorDetails}`
+            `[WS SFTP Decompress ${sessionId}] Decompression failed (ID: ${requestId}): ${errorDetails}`,
           );
           sendDecompressError(ws, '解压失败', requestId, errorDetails);
         }
@@ -675,7 +675,7 @@ export const handleDecompressRequest = async (
       stream.on('error', (streamErr: Error) => {
         logger.error(
           `[WS SFTP Decompress ${sessionId}] Command stream error (ID: ${requestId}):`,
-          streamErr
+          streamErr,
         );
         if (exitCode === null) {
           sendDecompressError(ws, '解压命令流错误', requestId, streamErr.message);
@@ -685,7 +685,7 @@ export const handleDecompressRequest = async (
   } catch (execError: unknown) {
     logger.error(
       `[WS SFTP Decompress ${sessionId}] Unexpected error setting up exec (ID: ${requestId}):`,
-      execError
+      execError,
     );
     sendDecompressError(ws, `执行解压时发生意外错误: ${getErrorMessage(execError)}`, requestId);
   }

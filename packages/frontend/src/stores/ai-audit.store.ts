@@ -30,7 +30,7 @@ export const useAiAuditStore = defineStore('aiAudit', () => {
   // === Getters ===
   const recentReports = computed(() => reports.value.slice(0, 10));
   const criticalAnomalies = computed(() =>
-    anomalies.value.filter((a) => a.severity === 'critical' || a.severity === 'high')
+    anomalies.value.filter((a) => a.severity === 'critical' || a.severity === 'high'),
   );
   const unacknowledgedAnomalies = computed(() => anomalies.value.filter((a) => !a.acknowledged));
 
@@ -42,7 +42,7 @@ export const useAiAuditStore = defineStore('aiAudit', () => {
   async function createReport(
     reportType: ReportType,
     timeRangeStart: number,
-    timeRangeEnd: number
+    timeRangeEnd: number,
   ): Promise<boolean> {
     isLoading.value = true;
     error.value = null;

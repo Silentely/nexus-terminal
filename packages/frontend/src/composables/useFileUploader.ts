@@ -22,7 +22,7 @@ export function useFileUploader(
   sessionIdForLog: Ref<string>,
   currentPathRef: Ref<string>,
   fileListRef: Readonly<Ref<readonly FileListItem[]>>, // 使用 Readonly 类型
-  wsDeps: Ref<WebSocketDependencies>
+  wsDeps: Ref<WebSocketDependencies>,
 ) {
   const { t } = useI18n();
   wsDeps;
@@ -42,7 +42,7 @@ export function useFileUploader(
     // Roo: 使用 .value 访问响应式的 sessionIdForLog
     if (!wsDeps.value.isConnected.value) {
       log.warn(
-        `[FileUploader ${sessionIdForLog.value}] Cannot start upload: WebSocket not connected.`
+        `[FileUploader ${sessionIdForLog.value}] Cannot start upload: WebSocket not connected.`,
       );
 
       return;
@@ -79,7 +79,7 @@ export function useFileUploader(
     // 规范化路径，移除多余的斜杠 e.g. /root//dir -> /root/dir
     finalRemotePath = finalRemotePath.replace(/\/+/g, '/');
     log.info(
-      `[FileUploader ${sessionIdForLog.value}] Calculated finalRemotePath: ${finalRemotePath} (current: ${currentPathRef.value}, relative: ${relativePath}, filename: ${file.name}) // wsDeps.isSftpReady: ${wsDeps.value.isSftpReady.value}`
+      `[FileUploader ${sessionIdForLog.value}] Calculated finalRemotePath: ${finalRemotePath} (current: ${currentPathRef.value}, relative: ${relativePath}, filename: ${file.name}) // wsDeps.isSftpReady: ${wsDeps.value.isSftpReady.value}`,
     );
     // --- 结束修正 ---
 
@@ -93,7 +93,7 @@ export function useFileUploader(
     };
 
     log.info(
-      `[FileUploader ${sessionIdForLog.value}] Starting upload ${uploadId} to ${finalRemotePath}`
+      `[FileUploader ${sessionIdForLog.value}] Starting upload ${uploadId} to ${finalRemotePath}`,
     );
     wsDeps.value.sendMessage({
       type: 'sftp:upload:start',
@@ -144,13 +144,13 @@ export function useFileUploader(
     const upload = uploads[uploadId];
     if (upload && upload.status === 'pending') {
       log.info(
-        `[FileUploader ${sessionIdForLog.value}] Upload ${uploadId} ready, starting chunk sending.`
+        `[FileUploader ${sessionIdForLog.value}] Upload ${uploadId} ready, starting chunk sending.`,
       );
       upload.status = 'uploading';
       sendFileChunks(chunkDeps, uploadId, upload.file); // 开始发送块
     } else {
       log.warn(
-        `[FileUploader ${sessionIdForLog.value}] Received upload:ready for unknown or non-pending upload ID: ${uploadId}`
+        `[FileUploader ${sessionIdForLog.value}] Received upload:ready for unknown or non-pending upload ID: ${uploadId}`,
       );
     }
   };
@@ -180,7 +180,7 @@ export function useFileUploader(
       }
     } else {
       log.warn(
-        `[FileUploader ${sessionIdForLog.value}] Received upload:success for unknown upload ID: ${uploadId}`
+        `[FileUploader ${sessionIdForLog.value}] Received upload:success for unknown upload ID: ${uploadId}`,
       );
     }
   };
@@ -192,7 +192,7 @@ export function useFileUploader(
     if (!uploadId) {
       log.warn(
         `[FileUploader ${sessionIdForLog.value}] Received upload:error with missing uploadId:`,
-        message
+        message,
       );
       return;
     }
@@ -227,7 +227,7 @@ export function useFileUploader(
       }, 5000);
     } else {
       log.warn(
-        `[FileUploader ${sessionIdForLog.value}] Received upload:error for unknown upload ID: ${uploadId}`
+        `[FileUploader ${sessionIdForLog.value}] Received upload:error for unknown upload ID: ${uploadId}`,
       );
     }
   };
@@ -300,18 +300,18 @@ export function useFileUploader(
       if (typeof payloadObj.bytesWritten === 'number' && typeof payloadObj.totalSize === 'number') {
         upload.progress = Math.min(
           100,
-          Math.round((payloadObj.bytesWritten / payloadObj.totalSize) * 100)
+          Math.round((payloadObj.bytesWritten / payloadObj.totalSize) * 100),
         );
       } else {
         log.warn(
           `[FileUploader ${sessionIdForLog.value}] Received upload:progress with incorrect payload format:`,
-          payload
+          payload,
         );
       }
     } else if (upload) {
     } else {
       log.warn(
-        `[FileUploader ${sessionIdForLog.value}] Received upload:progress for unknown upload ID: ${uploadId}`
+        `[FileUploader ${sessionIdForLog.value}] Received upload:progress for unknown upload ID: ${uploadId}`,
       );
     }
   };
@@ -321,7 +321,7 @@ export function useFileUploader(
     // 当 wsDeps.value 变化时，此 effect 会重新运行
     if (!wsDeps.value || !wsDeps.value.onMessage) {
       log.warn(
-        `[FileUploader ${sessionIdForLog.value}] wsDeps.value or wsDeps.value.onMessage is not available for registering listeners.`
+        `[FileUploader ${sessionIdForLog.value}] wsDeps.value or wsDeps.value.onMessage is not available for registering listeners.`,
       );
       return;
     }
@@ -333,11 +333,11 @@ export function useFileUploader(
     const unregisterUploadResume = wsDeps.value.onMessage('sftp:upload:resume', onUploadResume);
     const unregisterUploadCancelled = wsDeps.value.onMessage(
       'sftp:upload:cancelled',
-      onUploadCancelled
+      onUploadCancelled,
     );
     const unregisterUploadProgress = wsDeps.value.onMessage(
       'sftp:upload:progress',
-      onUploadProgress
+      onUploadProgress,
     );
 
     onCleanup(() => {

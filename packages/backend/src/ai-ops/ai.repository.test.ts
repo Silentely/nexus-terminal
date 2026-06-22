@@ -221,7 +221,7 @@ describe('AI Repository', () => {
         mockMessageId,
         mockSessionId,
         'assistant',
-        'Response'
+        'Response',
       );
 
       expect(message.metadata).toBeUndefined();

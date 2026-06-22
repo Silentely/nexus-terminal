@@ -17,7 +17,7 @@
             {{
               t(
                 'settings.dataManagement.dockerMigrationHint.description',
-                '如需在服务器间完整迁移，最简单的方式是直接复制宿主机的 ./data 目录及 data/.env 文件到新服务器，然后启动 Docker 容器即可。'
+                '如需在服务器间完整迁移，最简单的方式是直接复制宿主机的 ./data 目录及 data/.env 文件到新服务器，然后启动 Docker 容器即可。',
               )
             }}
           </p>
@@ -35,7 +35,7 @@
           {{
             t(
               'settings.exportConnections.cliHint',
-              '导出为 CLI 脚本格式（ZIP），用于在其他 Nexus Terminal 实例中通过命令行导入。'
+              '导出为 CLI 脚本格式（ZIP），用于在其他 Nexus Terminal 实例中通过命令行导入。',
             )
           }}
         </p>
@@ -43,7 +43,7 @@
           {{
             t(
               'settings.exportConnections.proxyNote',
-              '注意：代理配置和按内容存储的 SSH 密钥不包含在导出中。'
+              '注意：代理配置和按内容存储的 SSH 密钥不包含在导出中。',
             )
           }}
         </p>
@@ -116,7 +116,7 @@
           {{
             t(
               'settings.fullBackupExport.description',
-              '导出全部核心业务数据为 JSON 文件，包含连接、标签、快捷指令、终端主题等。可用于跨实例完整恢复。'
+              '导出全部核心业务数据为 JSON 文件，包含连接、标签、快捷指令、终端主题等。可用于跨实例完整恢复。',
             )
           }}
         </p>
@@ -124,7 +124,7 @@
           <span class="font-semibold text-warning">{{
             t(
               'settings.fullBackupExport.encryptionKeyWarning',
-              '恢复时需使用与导出相同的 ENCRYPTION_KEY，否则连接密码和 SSH 密钥将无法解密。'
+              '恢复时需使用与导出相同的 ENCRYPTION_KEY，否则连接密码和 SSH 密钥将无法解密。',
             )
           }}</span>
         </p>
@@ -183,7 +183,7 @@
           {{
             t(
               'settings.importConnections.description',
-              '选择 JSON 格式的连接配置文件进行导入（仅支持连接数据，不含标签、主题等）。文件大小限制 5MB。'
+              '选择 JSON 格式的连接配置文件进行导入（仅支持连接数据，不含标签、主题等）。文件大小限制 5MB。',
             )
           }}
         </p>
@@ -339,7 +339,7 @@
               {{
                 t(
                   'settings.auditLog.maxEntriesDescription',
-                  '当日志条数超过此值时，系统将自动删除最旧的日志。最小值为100。'
+                  '当日志条数超过此值时，系统将自动删除最旧的日志。最小值为100。',
                 )
               }}
             </small>
@@ -390,7 +390,7 @@
               {{
                 t(
                   'settings.auditLog.deleteConfirmText',
-                  '确定要删除所有审计日志吗？此操作不可撤销！'
+                  '确定要删除所有审计日志吗？此操作不可撤销！',
                 )
               }}
             </p>
@@ -494,7 +494,7 @@ const handleFullBackupExport = async () => {
       {},
       {
         responseType: 'blob',
-      }
+      },
     );
 
     let filename = `nexus-terminal-backup-${Date.now()}.json`;
@@ -581,7 +581,7 @@ const handleFileSelected = (event: Event) => {
   if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
     importMessage.value = t(
       'settings.importConnections.invalidFileType',
-      '请选择 JSON 格式的文件。'
+      '请选择 JSON 格式的文件。',
     );
     importSuccess.value = false;
     target.value = '';

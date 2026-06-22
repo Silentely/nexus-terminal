@@ -38,7 +38,7 @@ function parseTaskDates(
         endedAt?: string | Date;
       }
     >;
-  }
+  },
 ): BatchTask {
   return {
     ...task,
@@ -70,7 +70,7 @@ export const useBatchStore = defineStore('batch', () => {
 
   // === Getters ===
   const hasActiveTask = computed(
-    () => currentTask.value !== null && currentTask.value.status === 'in-progress'
+    () => currentTask.value !== null && currentTask.value.status === 'in-progress',
   );
   const overallProgress = computed(() => currentTask.value?.overallProgress ?? 0);
 
@@ -176,7 +176,7 @@ export const useBatchStore = defineStore('batch', () => {
 
       if (response.data.success) {
         tasks.value = response.data.tasks.map((t) =>
-          parseTaskDates(t as Parameters<typeof parseTaskDates>[0])
+          parseTaskDates(t as Parameters<typeof parseTaskDates>[0]),
         );
       }
     } catch (err: unknown) {
@@ -293,7 +293,7 @@ export const useBatchStore = defineStore('batch', () => {
         // 更新子任务状态
         if (eventPayload.subTaskId) {
           const subTask = currentTask.value.subTasks.find(
-            (st) => st.subTaskId === eventPayload.subTaskId
+            (st) => st.subTaskId === eventPayload.subTaskId,
           );
           if (subTask) {
             if (eventPayload.status) subTask.status = eventPayload.status as BatchSubTaskStatus;
@@ -339,14 +339,14 @@ export const useBatchStore = defineStore('batch', () => {
         // H3: 流式输出，带上限截断（预留截断提示空间）
         if (eventPayload.subTaskId && eventPayload.chunk) {
           const subTask = currentTask.value.subTasks.find(
-            (st) => st.subTaskId === eventPayload.subTaskId
+            (st) => st.subTaskId === eventPayload.subTaskId,
           );
           if (subTask && !subTask.output?.endsWith(TRUNCATION_NOTICE)) {
             const currentOutput = subTask.output || '';
             if (currentOutput.length < MAX_OUTPUT_SIZE) {
               const budget = Math.max(
                 0,
-                MAX_OUTPUT_SIZE - currentOutput.length - TRUNCATION_NOTICE.length
+                MAX_OUTPUT_SIZE - currentOutput.length - TRUNCATION_NOTICE.length,
               );
               if (budget > 0) {
                 const chunk = eventPayload.chunk.substring(0, budget);
@@ -372,7 +372,7 @@ export const useBatchStore = defineStore('batch', () => {
    */
   const getConnectionStatus = (
     connectionId: number,
-    taskId?: string
+    taskId?: string,
   ): BatchSubTaskStatus | null => {
     const effectiveTaskId = taskId || currentTask.value?.taskId;
     if (!effectiveTaskId) return null;

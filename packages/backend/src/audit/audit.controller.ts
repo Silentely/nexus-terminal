@@ -57,7 +57,7 @@ export class AuditController {
         actionType,
         startDate,
         endDate,
-        searchTerm
+        searchTerm,
       );
 
       // 解析 details 字段从 JSON 字符串到对象（如果需要）

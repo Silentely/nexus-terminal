@@ -41,7 +41,7 @@ function resolveCandidateFiles() {
   const source = incomingFiles.length > 0 ? incomingFiles : getStagedFiles();
   const uniqueFiles = Array.from(new Set(source));
   return uniqueFiles.filter((filePath) =>
-    CODE_EXTENSIONS.has(path.extname(filePath).toLowerCase())
+    CODE_EXTENSIONS.has(path.extname(filePath).toLowerCase()),
   );
 }
 
@@ -87,7 +87,7 @@ function main() {
   console.error('检测到代码文件包含智能引号，已阻止提交。请改为 ASCII 引号（\\\' 或 "）:');
   issues.slice(0, 50).forEach((issue) => {
     console.error(
-      `- ${issue.file}:${issue.line}:${issue.column} ${issue.char} (${issue.charName})`
+      `- ${issue.file}:${issue.line}:${issue.column} ${issue.char} (${issue.charName})`,
     );
   });
   if (issues.length > 50) {

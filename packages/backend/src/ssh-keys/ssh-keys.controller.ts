@@ -10,7 +10,7 @@ import { logger } from '../utils/logger';
 export const getSshKeyNames = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const keys = await SshKeyService.getAllSshKeyNames();
@@ -27,7 +27,7 @@ export const getSshKeyNames = async (
 export const createSshKey = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const input: CreateSshKeyInput = req.body;
@@ -57,7 +57,7 @@ export const createSshKey = async (
 export const getDecryptedSshKey = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const keyId = parseInt(req.params.id, 10);
@@ -84,7 +84,7 @@ export const getDecryptedSshKey = async (
 export const updateSshKey = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const keyId = parseInt(req.params.id, 10);
@@ -123,7 +123,7 @@ export const updateSshKey = async (
 export const deleteSshKey = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const keyId = parseInt(req.params.id, 10);

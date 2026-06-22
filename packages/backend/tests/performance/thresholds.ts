@@ -108,7 +108,7 @@ export function getThreshold(category: keyof typeof PERFORMANCE_THRESHOLDS, key:
 export function validatePerformance(
   category: keyof typeof PERFORMANCE_THRESHOLDS,
   key: string,
-  actualValue: number
+  actualValue: number,
 ): { passed: boolean; threshold: number; actualValue: number; margin: number } {
   const threshold = getThreshold(category, key);
   const passed = actualValue <= threshold;

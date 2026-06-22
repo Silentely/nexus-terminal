@@ -167,7 +167,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
               encodingUsed: successPayload.encodingUsed,
             });
           }
-        }
+        },
       );
 
       unregisterError = onMessage(
@@ -182,7 +182,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             uiNotificationsStore.showError(`${t('fileManager.errors.readFileError')}: ${errorMsg}`);
             reject(new Error(errorMsg));
           }
-        }
+        },
       );
 
       const requestPayload: SftpReadFileRequestPayload = { path };
@@ -225,7 +225,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterError?.();
             resolve();
           }
-        }
+        },
       );
 
       unregisterError = onMessage(
@@ -240,7 +240,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             uiNotificationsStore.showError(errorMsg);
             reject(new Error(errorMsg));
           }
-        }
+        },
       );
 
       sendMessage({
@@ -268,7 +268,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
       payload: { sources: sourcePaths, destination: destinationDir },
     });
     log.info(
-      `[SFTP ${instanceSessionId}] 发送 sftp:copy 请求 (ID: ${requestId}) Sources: ${sourcePaths.join(', ')}, Dest: ${destinationDir}`
+      `[SFTP ${instanceSessionId}] 发送 sftp:copy 请求 (ID: ${requestId}) Sources: ${sourcePaths.join(', ')}, Dest: ${destinationDir}`,
     );
   };
 
@@ -287,14 +287,14 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
       payload: { sources: sourcePaths, destination: destinationDir },
     });
     log.info(
-      `[SFTP ${instanceSessionId}] 发送 sftp:move 请求 (ID: ${requestId}) Sources: ${sourcePaths.join(', ')}, Dest: ${destinationDir}`
+      `[SFTP ${instanceSessionId}] 发送 sftp:move 请求 (ID: ${requestId}) Sources: ${sourcePaths.join(', ')}, Dest: ${destinationDir}`,
     );
   };
 
   /** 压缩文件/目录（返回 Promise，等待 WebSocket 响应） */
   const compressItems = (
     items: FileListItem[],
-    format: 'zip' | 'targz' | 'tarbz2'
+    format: 'zip' | 'targz' | 'tarbz2',
   ): Promise<void> => {
     return new Promise((resolve, reject) => {
       if (!isSftpReady.value) {
@@ -352,12 +352,12 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterError?.();
             unregisterProgress?.();
             uiNotificationsStore.showSuccess(
-              t('fileManager.notifications.compressSuccess', { name: archiveName })
+              t('fileManager.notifications.compressSuccess', { name: archiveName }),
             );
             loadDirectory(currentPathRef.value, true);
             resolve();
           }
-        }
+        },
       );
 
       unregisterError = onMessage(
@@ -372,11 +372,11 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             const errorMsg =
               errorPayload.details || errorPayload.error || t('fileManager.errors.compressFailed');
             uiNotificationsStore.showError(
-              t('fileManager.errors.compressErrorDetailed', { error: errorMsg })
+              t('fileManager.errors.compressErrorDetailed', { error: errorMsg }),
             );
             reject(new Error(errorMsg));
           }
-        }
+        },
       );
 
       // 监听进度消息，重置超时计时器
@@ -386,11 +386,11 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
           if (message.requestId === requestId) {
             resetTimeout();
           }
-        }
+        },
       );
 
       log.info(
-        `[SFTP ${instanceSessionId}] 发送 sftp:compress 请求 (ID: ${requestId}) Sources: ${sourcePaths.join(', ')}, Dest: ${destinationPath}, Format: ${format}`
+        `[SFTP ${instanceSessionId}] 发送 sftp:compress 请求 (ID: ${requestId}) Sources: ${sourcePaths.join(', ')}, Dest: ${destinationPath}, Format: ${format}`,
       );
       sendMessage({
         type: 'sftp:compress',
@@ -441,12 +441,12 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterError?.();
             unregisterProgress?.();
             uiNotificationsStore.showSuccess(
-              t('fileManager.notifications.decompressSuccess', { name: item.filename })
+              t('fileManager.notifications.decompressSuccess', { name: item.filename }),
             );
             loadDirectory(currentPathRef.value, true);
             resolve();
           }
-        }
+        },
       );
 
       unregisterError = onMessage(
@@ -463,11 +463,11 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
               errorPayload.error ||
               t('fileManager.errors.decompressFailed');
             uiNotificationsStore.showError(
-              t('fileManager.errors.decompressErrorDetailed', { error: errorMsg })
+              t('fileManager.errors.decompressErrorDetailed', { error: errorMsg }),
             );
             reject(new Error(errorMsg));
           }
-        }
+        },
       );
 
       // 监听进度消息，重置超时计时器
@@ -477,11 +477,11 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
           if (message.requestId === requestId) {
             resetTimeout();
           }
-        }
+        },
       );
 
       log.info(
-        `[SFTP ${instanceSessionId}] 发送 sftp:decompress 请求 (ID: ${requestId}) Source: ${sourcePath}, Dest: ${destinationDir}`
+        `[SFTP ${instanceSessionId}] 发送 sftp:decompress 请求 (ID: ${requestId}) Source: ${sourcePath}, Dest: ${destinationDir}`,
       );
       sendMessage({
         type: 'sftp:decompress',

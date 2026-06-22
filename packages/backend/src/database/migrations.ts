@@ -20,6 +20,8 @@ interface Migration {
   name: string;
   sql: string; // 可以是多条 SQL 语句，用 ; 分隔。db.exec 会处理。
   check?: (db: Database) => Promise<boolean>; // 可选的前置检查函数
+  // 可选的事务外预执行 SQL（如 PRAGMA，SQLite 要求此类语句在事务外执行）
+  preSql?: string;
 }
 
 interface TableInfoColumn {
@@ -39,7 +41,7 @@ const tableExists = async (db: Database, tableName: string): Promise<boolean> =>
       (err, row) => {
         if (err) reject(err);
         else resolve(!!row);
-      }
+      },
     );
   });
 };
@@ -51,7 +53,7 @@ const VALID_TABLE_NAME = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 const columnExists = async (
   db: Database,
   tableName: string,
-  columnName: string
+  columnName: string,
 ): Promise<boolean> => {
   if (!VALID_TABLE_NAME.test(tableName)) {
     throw new Error(`无效的表名: "${tableName}"`);
@@ -73,7 +75,7 @@ const getTableCreateSQL = async (db: Database, tableName: string): Promise<strin
       (err, row: TableCreateSqlRow) => {
         if (err) reject(err);
         else resolve(row ? row.sql : null);
-      }
+      },
     );
   });
 };
@@ -183,12 +185,12 @@ const definedMigrations: Migration[] = [
         }
         // 如果没有找到明确的 CHECK 约束或格式不匹配，保守地运行迁移
         logger.warn(
-          '[Migrations] Check for VNC in connections.type: Could not parse CHECK constraint from SQL. Assuming migration is needed.'
+          '[Migrations] Check for VNC in connections.type: Could not parse CHECK constraint from SQL. Assuming migration is needed.',
         );
         return true;
       }
       logger.warn(
-        '[Migrations] Check for VNC in connections.type: Could not get table create SQL. Assuming migration is needed.'
+        '[Migrations] Check for VNC in connections.type: Could not get table create SQL. Assuming migration is needed.',
       );
       return true; // 如果表不存在或无法获取 SQL，则运行迁移
     },
@@ -348,7 +350,7 @@ const definedMigrations: Migration[] = [
       const columnAlreadyExists = await columnExists(
         db,
         'connections',
-        'force_keyboard_interactive'
+        'force_keyboard_interactive',
       );
       return !columnAlreadyExists;
     },
@@ -388,7 +390,7 @@ const definedMigrations: Migration[] = [
           db.get(
             "SELECT name FROM sqlite_master WHERE type='index' AND name=?",
             [name],
-            (err, row) => (err ? reject(err) : resolve(!!row))
+            (err, row) => (err ? reject(err) : resolve(!!row)),
           );
         });
       const [cmdUnique, pathUnique, connLastConnected] = await Promise.all([
@@ -457,7 +459,7 @@ const definedMigrations: Migration[] = [
           db.get(
             "SELECT name FROM sqlite_master WHERE type='index' AND name=?",
             [name],
-            (err, row) => (err ? reject(err) : resolve(!!row))
+            (err, row) => (err ? reject(err) : resolve(!!row)),
           );
         });
       const [idx1, idx2, idx3, idx4] = await Promise.all([
@@ -493,6 +495,103 @@ const definedMigrations: Migration[] = [
               CHECK(priority IN ('low', 'normal', 'high', 'urgent'));
             CREATE INDEX IF NOT EXISTS idx_batch_tasks_priority ON batch_tasks(priority);
         `,
+  },
+  {
+    id: 18,
+    name: 'Fix Telnet CHECK constraint and add missing FK indexes',
+    check: async (db: Database): Promise<boolean> => {
+      try {
+        const row = await new Promise<{ sql: string } | undefined>((resolve, reject) => {
+          db.get(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='connections'",
+            (err, r: { sql: string } | undefined) => (err ? reject(err) : resolve(r)),
+          );
+        });
+        if (!row?.sql) return true;
+        // 如果已包含 Telnet，则无需迁移
+        return !row.sql.includes("'Telnet'");
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
+        return true;
+      }
+    },
+    sql: `
+
+            -- 步骤 1: 重命名旧表
+            ALTER TABLE connections RENAME TO connections_old_for_telnet_fix;
+            ALTER TABLE connection_tags RENAME TO connection_tags_old_for_telnet_fix;
+
+            -- 步骤 2: 创建新表，包含 Telnet 的 CHECK 约束
+            CREATE TABLE connections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NULL,
+                type TEXT NOT NULL CHECK(type IN ('SSH', 'RDP', 'VNC', 'Telnet')) DEFAULT 'SSH',
+                host TEXT NOT NULL,
+                port INTEGER NOT NULL,
+                username TEXT NOT NULL,
+                auth_method TEXT NOT NULL CHECK(auth_method IN ('password', 'key')),
+                encrypted_password TEXT NULL,
+                encrypted_private_key TEXT NULL,
+                encrypted_passphrase TEXT NULL,
+                proxy_id INTEGER NULL,
+                ssh_key_id INTEGER NULL,
+                notes TEXT NULL,
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                last_connected_at INTEGER NULL,
+                sort_order INTEGER NOT NULL DEFAULT 0,
+                proxy_type TEXT NULL CHECK(proxy_type IN ('proxy', 'jump')),
+                jump_chain TEXT NULL,
+                force_keyboard_interactive INTEGER NOT NULL DEFAULT 0,
+                is_monitored INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY (proxy_id) REFERENCES proxies(id) ON DELETE SET NULL,
+                FOREIGN KEY (ssh_key_id) REFERENCES ssh_keys(id) ON DELETE SET NULL
+            );
+
+            -- 步骤 3: 复制数据（显式列清单，避免旧表列顺序不匹配）
+            INSERT INTO connections (
+                id, name, type, host, port, username, auth_method,
+                encrypted_password, encrypted_private_key, encrypted_passphrase,
+                proxy_id, ssh_key_id, notes,
+                created_at, updated_at, last_connected_at,
+                sort_order, proxy_type, jump_chain, force_keyboard_interactive, is_monitored
+            )
+            SELECT
+                id, name, type, host, port, username, auth_method,
+                encrypted_password, encrypted_private_key, encrypted_passphrase,
+                proxy_id, ssh_key_id, notes,
+                created_at, updated_at, last_connected_at,
+                COALESCE(sort_order, 0),
+                proxy_type,
+                jump_chain,
+                COALESCE(force_keyboard_interactive, 0),
+                COALESCE(is_monitored, 0)
+            FROM connections_old_for_telnet_fix;
+
+            -- 步骤 4: 重建 connection_tags 表
+            CREATE TABLE connection_tags (
+                connection_id INTEGER NOT NULL,
+                tag_id INTEGER NOT NULL,
+                PRIMARY KEY (connection_id, tag_id),
+                FOREIGN KEY (connection_id) REFERENCES connections(id) ON DELETE CASCADE,
+                FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+            );
+            INSERT INTO connection_tags (connection_id, tag_id)
+            SELECT connection_id, tag_id FROM connection_tags_old_for_telnet_fix;
+
+            -- 步骤 5: 删除旧表
+            DROP TABLE connections_old_for_telnet_fix;
+            DROP TABLE connection_tags_old_for_telnet_fix;
+
+            -- 步骤 6: 添加缺失的外键列索引
+            CREATE INDEX IF NOT EXISTS idx_connections_proxy_id ON connections(proxy_id);
+            CREATE INDEX IF NOT EXISTS idx_connections_ssh_key_id ON connections(ssh_key_id);
+            CREATE INDEX IF NOT EXISTS idx_connection_tags_tag_id ON connection_tags(tag_id);
+        `,
+    // PRAGMA 必须在事务外执行（SQLite 限制），通过 preSql 在 BEGIN TRANSACTION 前运行
+    preSql: `
+            PRAGMA foreign_keys=off;
+    `,
   },
 ];
 
@@ -538,7 +637,7 @@ export const runMigrations = (db: Database): Promise<void> => {
 
             logger.debug(
               `[Migrations] 发现 ${migrationsToApply.length} 个新迁移需要应用:`,
-              migrationsToApply.map((m) => `  #${m.id}: ${m.name}`)
+              migrationsToApply.map((m) => `  #${m.id}: ${m.name}`),
             );
 
             // 步骤 4: 使用 async/await 方式按顺序应用迁移
@@ -547,108 +646,162 @@ export const runMigrations = (db: Database): Promise<void> => {
                 // 使用 for...of 循环
                 logger.info(`[Migrations] 应用迁移 #${migration.id}: ${migration.name}...`);
 
-                // 开始事务
-                await new Promise<void>((resolveTx, rejectTx) => {
-                  db.run('BEGIN TRANSACTION', (beginErr) => {
-                    if (beginErr) {
-                      logger.error(`[Migrations] 开始迁移 #${migration.id} 事务失败:`, beginErr);
-                      rejectTx(
-                        new Error(`开始迁移 #${migration.id} 事务失败: ${beginErr.message}`)
-                      );
-                    } else {
-                      resolveTx();
-                    }
-                  });
-                });
+                // 标记是否需要恢复 foreign_keys（preSql 成功执行后置为 true）
+                let needsFkRestore = false;
 
                 try {
-                  // 步骤 4.1: 执行前置检查 (如果存在)
-                  let needsSqlExecution = true;
-                  if (migration.check) {
-                    logger.debug(`[Migrations] 执行迁移 #${migration.id} 的前置检查...`);
-                    needsSqlExecution = await migration.check(db);
-                    logger.debug(
-                      `[Migrations] 迁移 #${migration.id} 前置检查结果: ${needsSqlExecution ? '需要执行 SQL' : '跳过 SQL 执行'}`
-                    );
-                  }
-
-                  if (needsSqlExecution) {
-                    // 步骤 4.2: 执行迁移 SQL
-                    logger.debug(`[Migrations] 执行迁移 #${migration.id} 的 SQL...`);
-                    await new Promise<void>((resolveSql, rejectSql) => {
-                      db.exec(migration.sql, (execErr) => {
-                        if (execErr) {
-                          // 特别处理 "duplicate column name" 错误
-                          if (execErr.message.includes('duplicate column name')) {
+                  // 执行事务外预 SQL（如 PRAGMA foreign_keys=off，SQLite 要求此类语句在事务外执行）
+                  if (migration.preSql) {
+                    await new Promise<void>((resolvePre, rejectPre) => {
+                      db.exec(migration.preSql as string, (preErr) => {
+                        if (preErr) {
+                          // 与主 SQL 一致，"duplicate column name" 视为可接受
+                          if (preErr.message.includes('duplicate column name')) {
                             logger.warn(
-                              `[Migrations] 迁移 #${migration.id} SQL 执行时出现 'duplicate column name' 错误，视为可接受并继续。`
+                              `[Migrations] 迁移 #${migration.id} preSql 出现 'duplicate column name'，视为可接受。`,
                             );
-                            resolveSql();
+                            resolvePre();
                           } else {
                             logger.error(
-                              `[Migrations] 执行迁移 #${migration.id} SQL 失败:`,
-                              execErr
+                              `[Migrations] 迁移 #${migration.id} preSql 执行失败:`,
+                              preErr,
                             );
-                            rejectSql(execErr);
+                            rejectPre(
+                              new Error(`迁移 #${migration.id} preSql 失败: ${preErr.message}`),
+                            );
                           }
                         } else {
-                          resolveSql();
+                          resolvePre();
                         }
                       });
                     });
+                    // preSql 成功执行，标记需要恢复
+                    needsFkRestore = true;
                   }
 
-                  // 步骤 4.3: 记录迁移到 migrations 表
-                  logger.debug(`[Migrations] 记录迁移 #${migration.id} 到 migrations 表...`);
-                  const insertSQL =
-                    "INSERT INTO migrations (id, name, applied_at) VALUES (?, ?, strftime('%s', 'now'))";
-                  await new Promise<void>((resolveInsert, rejectInsert) => {
-                    db.run(insertSQL, [migration.id, migration.name], (insertErr) => {
-                      if (insertErr) {
-                        logger.error(
-                          `[Migrations] 记录迁移 #${migration.id} 到 migrations 表失败:`,
-                          insertErr
+                  // 开始事务
+                  await new Promise<void>((resolveTx, rejectTx) => {
+                    db.run('BEGIN TRANSACTION', (beginErr) => {
+                      if (beginErr) {
+                        logger.error(`[Migrations] 开始迁移 #${migration.id} 事务失败:`, beginErr);
+                        rejectTx(
+                          new Error(`开始迁移 #${migration.id} 事务失败: ${beginErr.message}`),
                         );
-                        rejectInsert(insertErr);
                       } else {
-                        resolveInsert();
+                        resolveTx();
                       }
                     });
                   });
 
-                  // 步骤 4.4: 提交事务
-                  logger.debug(`[Migrations] 提交迁移 #${migration.id} 事务...`);
-                  await new Promise<void>((resolveCommit, rejectCommit) => {
-                    db.run('COMMIT', (commitErr) => {
-                      if (commitErr) {
-                        logger.error(`[Migrations] 提交迁移 #${migration.id} 事务失败:`, commitErr);
-                        rejectCommit(commitErr);
-                      } else {
-                        logger.info(
-                          `[Migrations] 迁移 #${migration.id}: ${migration.name} 应用成功 (SQL 可能已跳过)。`
-                        );
-                        resolveCommit();
-                      }
+                  try {
+                    // 步骤 4.1: 执行前置检查 (如果存在)
+                    let needsSqlExecution = true;
+                    if (migration.check) {
+                      logger.debug(`[Migrations] 执行迁移 #${migration.id} 的前置检查...`);
+                      needsSqlExecution = await migration.check(db);
+                      logger.debug(
+                        `[Migrations] 迁移 #${migration.id} 前置检查结果: ${needsSqlExecution ? '需要执行 SQL' : '跳过 SQL 执行'}`,
+                      );
+                    }
+
+                    if (needsSqlExecution) {
+                      // 步骤 4.2: 执行迁移 SQL
+                      logger.debug(`[Migrations] 执行迁移 #${migration.id} 的 SQL...`);
+                      await new Promise<void>((resolveSql, rejectSql) => {
+                        db.exec(migration.sql, (execErr) => {
+                          if (execErr) {
+                            // 特别处理 "duplicate column name" 错误
+                            if (execErr.message.includes('duplicate column name')) {
+                              logger.warn(
+                                `[Migrations] 迁移 #${migration.id} SQL 执行时出现 'duplicate column name' 错误，视为可接受并继续。`,
+                              );
+                              resolveSql();
+                            } else {
+                              logger.error(
+                                `[Migrations] 执行迁移 #${migration.id} SQL 失败:`,
+                                execErr,
+                              );
+                              rejectSql(execErr);
+                            }
+                          } else {
+                            resolveSql();
+                          }
+                        });
+                      });
+                    }
+
+                    // 步骤 4.3: 记录迁移到 migrations 表
+                    logger.debug(`[Migrations] 记录迁移 #${migration.id} 到 migrations 表...`);
+                    const insertSQL =
+                      "INSERT INTO migrations (id, name, applied_at) VALUES (?, ?, strftime('%s', 'now'))";
+                    await new Promise<void>((resolveInsert, rejectInsert) => {
+                      db.run(insertSQL, [migration.id, migration.name], (insertErr) => {
+                        if (insertErr) {
+                          logger.error(
+                            `[Migrations] 记录迁移 #${migration.id} 到 migrations 表失败:`,
+                            insertErr,
+                          );
+                          rejectInsert(insertErr);
+                        } else {
+                          resolveInsert();
+                        }
+                      });
                     });
-                  });
-                } catch (migrationStepError: unknown) {
-                  // 捕获 check, exec, insert 或 commit 中的任何错误
-                  const migrationStepErrMsg = getErrorMessage(migrationStepError);
-                  logger.error(`[Migrations] 迁移 #${migration.id} 步骤失败，正在回滚事务...`);
-                  await new Promise<void>((resolveRollback) => {
-                    // No reject needed for rollback itself
-                    db.run('ROLLBACK', (rollbackErr) => {
-                      if (rollbackErr)
-                        logger.error(
-                          `[Migrations] 回滚迁移 #${migration.id} 事务失败:`,
-                          rollbackErr
-                        );
-                      // 拒绝整个迁移过程
-                      reject(new Error(`迁移 #${migration.id} 失败: ${migrationStepErrMsg}`));
-                      resolveRollback(); // Indicate rollback attempt finished
+
+                    // 步骤 4.4: 提交事务
+                    logger.debug(`[Migrations] 提交迁移 #${migration.id} 事务...`);
+                    await new Promise<void>((resolveCommit, rejectCommit) => {
+                      db.run('COMMIT', (commitErr) => {
+                        if (commitErr) {
+                          logger.error(
+                            `[Migrations] 提交迁移 #${migration.id} 事务失败:`,
+                            commitErr,
+                          );
+                          rejectCommit(commitErr);
+                        } else {
+                          logger.info(
+                            `[Migrations] 迁移 #${migration.id}: ${migration.name} 应用成功 (SQL 可能已跳过)。`,
+                          );
+                          resolveCommit();
+                        }
+                      });
                     });
-                  });
-                  return; // 停止应用后续迁移
+                  } catch (migrationStepError: unknown) {
+                    // 捕获 check, exec, insert 或 commit 中的任何错误
+                    const migrationStepErrMsg = getErrorMessage(migrationStepError);
+                    logger.error(`[Migrations] 迁移 #${migration.id} 步骤失败，正在回滚事务...`);
+                    await new Promise<void>((resolveRollback) => {
+                      // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
+                      db.run('ROLLBACK', (rollbackErr) => {
+                        if (rollbackErr)
+                          logger.error(
+                            `[Migrations] 回滚迁移 #${migration.id} 事务失败:`,
+                            rollbackErr,
+                          );
+                        resolveRollback(); // Indicate rollback attempt finished
+                      });
+                    });
+
+                    // 抛出错误，由 applyMigrationsSequentially().catch(reject) 统一处理
+                    // 使用 throw 而非 reject+return，确保外层 finally 完整执行后再 reject
+                    throw new Error(`迁移 #${migration.id} 失败: ${migrationStepErrMsg}`);
+                  }
+                } finally {
+                  // 无论成功或失败，只要 preSql 执行过就恢复 foreign_keys
+                  // 覆盖所有失败路径：preSql 成功但 BEGIN TRANSACTION 失败、SQL 执行失败、COMMIT 失败等
+                  if (needsFkRestore) {
+                    await new Promise<void>((resolveRestore) => {
+                      db.exec('PRAGMA foreign_keys=on;', (restoreErr) => {
+                        if (restoreErr) {
+                          logger.warn(
+                            `[Migrations] 恢复 foreign_keys=on 失败 (迁移 #${migration.id}):`,
+                            restoreErr,
+                          );
+                        }
+                        resolveRestore(); // 即使恢复失败也继续，避免阻塞后续迁移
+                      });
+                    });
+                  }
                 }
               }
 
@@ -659,7 +812,7 @@ export const runMigrations = (db: Database): Promise<void> => {
 
             // 开始按顺序应用迁移
             applyMigrationsSequentially().catch(reject); // 将 applyMigrationsSequentially 的拒绝传递给外层 Promise
-          }
+          },
         );
       });
     });

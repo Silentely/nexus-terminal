@@ -92,7 +92,7 @@ export function createTerminalThemeStore(deps: TerminalThemeDeps) {
       log.error('[AppearanceStore] Failed to update backend activeTerminalThemeId:', updateError);
       getSettings().activeTerminalThemeId = previousActiveId;
       throw new Error(
-        `应用主题失败: ${updateError instanceof Error ? updateError.message : String(updateError)}`
+        `应用主题失败: ${updateError instanceof Error ? updateError.message : String(updateError)}`,
       );
     }
   }
@@ -129,7 +129,7 @@ export function createTerminalThemeStore(deps: TerminalThemeDeps) {
         const defaultThemeId = defaultTheme?._id;
         if (defaultThemeId) {
           log.info(
-            `[AppearanceStore] 删除的主题是当前激活主题，尝试切换到默认主题 ID: ${defaultThemeId}`
+            `[AppearanceStore] 删除的主题是当前激活主题，尝试切换到默认主题 ID: ${defaultThemeId}`,
           );
           await setActiveTerminalTheme(defaultThemeId);
         } else {
@@ -210,13 +210,13 @@ export function createTerminalThemeStore(deps: TerminalThemeDeps) {
           log.info(`[AppearanceStore] Updated theme data for ${themeId} in local store.`);
         } else {
           log.warn(
-            `[AppearanceStore] Theme metadata for ${themeId} not found in initial list, but loaded data.`
+            `[AppearanceStore] Theme metadata for ${themeId} not found in initial list, but loaded data.`,
           );
         }
         return fullTheme.themeData;
       }
       log.error(
-        `[AppearanceStore] Loaded data for theme ${themeId} is invalid or missing themeData.`
+        `[AppearanceStore] Loaded data for theme ${themeId} is invalid or missing themeData.`,
       );
       return null;
     } catch (err: unknown) {

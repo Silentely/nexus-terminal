@@ -45,7 +45,7 @@ export function createWorkerPool(
     timeout?: number;
     /** Worker 不可用时的降级处理函数 */
     fallback?: (type: string, payload: unknown) => unknown;
-  } = {}
+  } = {},
 ) {
   const { size = 2, timeout = 30000, fallback } = options;
 

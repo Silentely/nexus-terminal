@@ -49,13 +49,13 @@ describe('翻译完整性校验', () => {
         if (missingInCurrent.length > 0) {
           mockLog.warn(
             `[${localeName}] 缺少 ${missingInCurrent.length} 个 key:`,
-            missingInCurrent.slice(0, 10)
+            missingInCurrent.slice(0, 10),
           );
         }
         if (extraInCurrent.length > 0) {
           mockLog.warn(
             `[${localeName}] 多出 ${extraInCurrent.length} 个 key:`,
-            extraInCurrent.slice(0, 10)
+            extraInCurrent.slice(0, 10),
           );
         }
 

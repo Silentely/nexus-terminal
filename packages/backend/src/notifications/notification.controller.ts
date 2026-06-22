@@ -215,7 +215,7 @@ export class NotificationController {
             id,
             name: settingToTest.name,
           }),
-        }
+        },
       );
       const result = await notificationDispatcherService.sendTestNotification(testNotification);
       res.status(200).json(result);
@@ -260,14 +260,14 @@ export class NotificationController {
           message: i18next.t('notificationController.testMessageUnsaved', {
             channelType: channel_type,
           }),
-        }
+        },
       );
       const result = await notificationDispatcherService.sendTestNotification(testNotification);
       res.status(200).json(result);
     } catch (error: unknown) {
       logger.error(
         `[NotificationController] Error triggering test for unsaved ${channel_type}:`,
-        error
+        error,
       );
       // Use i18next.t for i18n
       res.status(500).json({

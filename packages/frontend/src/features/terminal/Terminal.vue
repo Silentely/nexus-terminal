@@ -65,14 +65,14 @@ watch(
   () => props.isActive,
   (val) => {
     isActiveRef.value = val;
-  }
+  },
 );
 const streamRef = ref(props.stream);
 watch(
   () => props.stream,
   (val) => {
     streamRef.value = val;
-  }
+  },
 );
 
 const { isMobile } = useDeviceDetection();
@@ -83,7 +83,7 @@ const { fitAddon, fitAndEmitResizeNow, setupResizeObserver } = useTerminalFit(
   terminalRef,
   props.sessionId,
   isActiveRef,
-  computed(() => terminalAutoWrapEnabledBoolean.value)
+  computed(() => terminalAutoWrapEnabledBoolean.value),
 );
 
 const { setupInputHandler } = useTerminalSocket(terminalInstance, props.sessionId, streamRef);
@@ -297,7 +297,7 @@ const getDistanceBetweenTouches = (touches: TouchList): number => {
   const touch1 = touches[0];
   const touch2 = touches[1];
   return Math.sqrt(
-    Math.pow(touch2.clientX - touch1.clientX, 2) + Math.pow(touch2.clientY - touch1.clientY, 2)
+    Math.pow(touch2.clientX - touch1.clientX, 2) + Math.pow(touch2.clientY - touch1.clientY, 2),
   );
 };
 
@@ -400,12 +400,12 @@ onMounted(() => {
       });
       term.loadAddon(outputEnhancerAddon);
       log.info(
-        `[Terminal ${props.sessionId}] OutputEnhancerAddon 加载成功 (enabled: ${terminalOutputEnhancerEnabledBoolean.value})`
+        `[Terminal ${props.sessionId}] OutputEnhancerAddon 加载成功 (enabled: ${terminalOutputEnhancerEnabledBoolean.value})`,
       );
     } catch (error: unknown) {
       log.error(
         `[Terminal ${props.sessionId}] OutputEnhancerAddon 加载失败，降级使用原始终端：`,
-        error
+        error,
       );
       outputEnhancerAddon = null; // 降级：不使用输出增强功能
     }
@@ -481,7 +481,7 @@ onMounted(() => {
                 } catch (refreshError: unknown) {
                   log.warn(
                     `[Terminal ${props.sessionId}] WebGL refresh failed, WebGL context may be lost:`,
-                    refreshError
+                    refreshError,
                   );
                 }
               });
@@ -492,7 +492,7 @@ onMounted(() => {
           }
         }
       },
-      { deep: true }
+      { deep: true },
     );
 
     watch(currentTerminalFontFamily, (newFontFamily) => {
@@ -693,7 +693,7 @@ const applyTerminalTextStyles = () => {
       hostElement.classList.add('has-text-stroke');
       hostElement.style.setProperty(
         '--terminal-stroke-width',
-        `${terminalTextStrokeWidth.value}px`
+        `${terminalTextStrokeWidth.value}px`,
       );
       hostElement.style.setProperty('--terminal-stroke-color', terminalTextStrokeColor.value);
     } else {
@@ -729,7 +729,7 @@ watch(
       });
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 watchEffect(() => {

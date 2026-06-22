@@ -139,11 +139,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
         const isCaptchaValid = await captchaService.verifyToken(captchaToken);
         if (!isCaptchaValid) {
           const captchaInvalidLogAction = buildLoginCaptchaInvalidDebugLogAction(username);
-          console[captchaInvalidLogAction.level](captchaInvalidLogAction.message);
+          logger[captchaInvalidLogAction.level](captchaInvalidLogAction.message);
           const clientIp = resolveRequestClientIp(req);
           recordLoginFailureAttempt(
             { ipBlacklistService, auditLogService, notificationService },
-            { username, reason: 'Invalid CAPTCHA token', clientIp }
+            { username, reason: 'Invalid CAPTCHA token', clientIp },
           );
           eventService.emitEvent(AppEventType.LoginFailure, {
             details: { username, reason: 'Invalid CAPTCHA token', clientIp },
@@ -154,12 +154,12 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
           return;
         }
         const captchaVerifiedLogAction = buildLoginCaptchaVerifiedDebugLogAction(username);
-        console[captchaVerifiedLogAction.level](captchaVerifiedLogAction.message);
+        logger[captchaVerifiedLogAction.level](captchaVerifiedLogAction.message);
       } catch (captchaError: unknown) {
         const captchaErrorLogAction = buildLoginCaptchaVerificationErrorLogAction(username);
-        console[captchaErrorLogAction.level](
+        logger[captchaErrorLogAction.level](
           captchaErrorLogAction.message,
-          getErrorMessage(captchaError)
+          getErrorMessage(captchaError),
         );
         res.status(500).json({
           success: false,
@@ -170,7 +170,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       }
     } else {
       const captchaSkippedLogAction = buildLoginCaptchaSkippedDebugLogAction(username);
-      console[captchaSkippedLogAction.level](captchaSkippedLogAction.message);
+      logger[captchaSkippedLogAction.level](captchaSkippedLogAction.message);
     }
 
     const db = await getDbInstance();
@@ -179,11 +179,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 
     if (!user) {
       const userNotFoundLogAction = buildLoginUserNotFoundDebugLogAction(username);
-      console[userNotFoundLogAction.level](userNotFoundLogAction.message);
+      logger[userNotFoundLogAction.level](userNotFoundLogAction.message);
       const clientIp = resolveRequestClientIp(req);
       recordLoginFailureAttempt(
         { ipBlacklistService, auditLogService, notificationService },
-        { username, reason: 'User not found', clientIp }
+        { username, reason: 'User not found', clientIp },
       );
       eventService.emitEvent(AppEventType.LoginFailure, {
         details: { username, reason: 'User not found', clientIp },
@@ -198,11 +198,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 
     if (!isMatch) {
       const passwordInvalidLogAction = buildLoginInvalidPasswordDebugLogAction(username);
-      console[passwordInvalidLogAction.level](passwordInvalidLogAction.message);
+      logger[passwordInvalidLogAction.level](passwordInvalidLogAction.message);
       const clientIp = resolveRequestClientIp(req);
       recordLoginFailureAttempt(
         { ipBlacklistService, auditLogService, notificationService },
-        { username, reason: 'Invalid password', clientIp }
+        { username, reason: 'Invalid password', clientIp },
       );
       eventService.emitEvent(AppEventType.LoginFailure, {
         details: { username, reason: 'Invalid password', clientIp },
@@ -216,7 +216,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     // 检查是否启用了 2FA
     if (user.two_factor_secret) {
       const twoFactorRequiredLogAction = buildLoginTwoFactorRequiredDebugLogAction(username);
-      console[twoFactorRequiredLogAction.level](twoFactorRequiredLogAction.message);
+      logger[twoFactorRequiredLogAction.level](twoFactorRequiredLogAction.message);
       const pendingAuth = createPendingLoginTwoFactorAuthState({
         userId: user.id,
         username: user.username,
@@ -226,11 +226,11 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       startPendingTwoFactorSession(req, res, { pendingAuth, rememberMe, isDev });
     } else {
       const loginSuccessLogAction = buildLoginSuccessWithoutTwoFactorInfoLogAction(username);
-      console[loginSuccessLogAction.level](loginSuccessLogAction.message);
+      logger[loginSuccessLogAction.level](loginSuccessLogAction.message);
       const clientIp = resolveRequestClientIp(req);
       recordLoginSuccessAttempt(
         { ipBlacklistService, auditLogService, notificationService },
-        { userId: user.id, username, clientIp }
+        { userId: user.id, username, clientIp },
       );
       completeAuthenticatedSession(req, res, {
         user: { id: user.id, username: user.username },
@@ -244,7 +244,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     }
   } catch (error: unknown) {
     const loginErrorLogAction = buildLoginInternalErrorLogAction();
-    console[loginErrorLogAction.level](loginErrorLogAction.message, error);
+    logger[loginErrorLogAction.level](loginErrorLogAction.message, error);
     next(error);
   }
 };
@@ -255,7 +255,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 export const getAuthStatus = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { userId } = req.session;
   const { username } = req.session;
@@ -275,7 +275,7 @@ export const getAuthStatus = async (
     const user = await getDb<{ two_factor_secret: string | null }>(
       db,
       userQueryAction.sql,
-      userQueryAction.params
+      userQueryAction.params,
     );
 
     const authState = user
@@ -305,7 +305,7 @@ export const getAuthStatus = async (
 export const verifyLogin2FA = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { token, tempToken } = req.body;
   const pendingAuthState = req.session.pendingAuth as PendingAuth | undefined;
@@ -322,7 +322,7 @@ export const verifyLogin2FA = async (
       forwardedProto: getRequestHeaderValue(req, 'X-Forwarded-Proto'),
     });
     for (const logAction of diagnosticsLogActions) {
-      console[logAction.level](logAction.message);
+      logger[logAction.level](logAction.message);
     }
   }
 
@@ -337,7 +337,7 @@ export const verifyLogin2FA = async (
         hasPendingAuth: !!pendingAuthState,
         hasTempToken: !!tempToken,
       });
-      console[failedDebugLogAction.level](failedDebugLogAction.message);
+      logger[failedDebugLogAction.level](failedDebugLogAction.message);
     }
     res
       .status(verificationPrecheckAction.failure.statusCode)
@@ -354,14 +354,14 @@ export const verifyLogin2FA = async (
     const user = await getDb<LoginTwoFactorUserRow>(
       db,
       userQueryAction.sql,
-      userQueryAction.params
+      userQueryAction.params,
     );
     const userLookupAction = resolveLoginTwoFactorUserLookupAction({
       pendingUserId: verifiedPendingAuth.userId,
       user,
     });
     if (!userLookupAction.ok) {
-      console[userLookupAction.failureAction.log.level](userLookupAction.failureAction.log.message);
+      logger[userLookupAction.failureAction.log.level](userLookupAction.failureAction.log.message);
       res
         .status(userLookupAction.failureAction.response.statusCode)
         .json(userLookupAction.failureAction.response.body);
@@ -386,7 +386,7 @@ export const verifyLogin2FA = async (
     });
     if (verificationOutcomeAction.kind === 'failure') {
       if (verificationOutcomeAction.log) {
-        console[verificationOutcomeAction.log.level](verificationOutcomeAction.log.message);
+        logger[verificationOutcomeAction.log.level](verificationOutcomeAction.log.message);
       }
       applyLoginTwoFactorAttemptAction({
         attemptAction: verificationOutcomeAction.attemptAction,
@@ -411,7 +411,7 @@ export const verifyLogin2FA = async (
     }
 
     for (const logAction of verificationOutcomeAction.logs) {
-      console[logAction.level](logAction.message);
+      logger[logAction.level](logAction.message);
     }
     applyLoginTwoFactorAttemptAction({
       attemptAction: verificationOutcomeAction.attemptAction,
@@ -431,7 +431,7 @@ export const verifyLogin2FA = async (
   } catch (error: unknown) {
     logger.error(
       `2FA 验证时发生内部错误 (用户: ${verifiedPendingAuth?.userId || 'unknown'}):`,
-      error
+      error,
     );
     next(error);
   }
@@ -443,7 +443,7 @@ export const verifyLogin2FA = async (
 export const needsSetup = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const db = await getDbInstance();
@@ -464,7 +464,7 @@ export const needsSetup = async (
 export const setupAdmin = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { username, password, confirmPassword } = req.body;
 
@@ -617,7 +617,7 @@ export const logout = (req: Request, res: Response): void => {
 export const getPublicCaptchaConfig = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     logger.debug('[AuthController] Received request for public CAPTCHA config.');
@@ -638,7 +638,7 @@ export const getPublicCaptchaConfig = async (
 export const getInitData = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const db = await getDbInstance();
@@ -653,11 +653,11 @@ export const getInitData = async (
         needsSetup: requiresSetup,
         authState,
         captchaConfig,
-      })
+      }),
     );
 
     logger.debug(
-      `[AuthController] 初始化数据已发送: needsSetup=${requiresSetup}, isAuthenticated=${authState.isAuthenticated}`
+      `[AuthController] 初始化数据已发送: needsSetup=${requiresSetup}, isAuthenticated=${authState.isAuthenticated}`,
     );
   } catch (error: unknown) {
     logger.error('[AuthController] 获取初始化数据时出错:', error);

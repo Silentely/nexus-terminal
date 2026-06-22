@@ -184,7 +184,7 @@ export const useSettingsStore = defineStore('settings', () => {
         fallbackLang = navigatorLangPart;
       }
       log.info(
-        `[SettingsStore] Error loading settings. Falling back to language: ${fallbackLang}. Calling setLocale...`
+        `[SettingsStore] Error loading settings. Falling back to language: ${fallbackLang}. Calling setLocale...`,
       );
       setLocale(fallbackLang);
     } finally {
@@ -412,7 +412,7 @@ export const useSettingsStore = defineStore('settings', () => {
         apiPromise = apiClient.put('/settings', payload);
       } else {
         throw new Error(
-          `Invalid value type for setting '${key}': expected boolean for specific endpoint or string for general.`
+          `Invalid value type for setting '${key}': expected boolean for specific endpoint or string for general.`,
         );
       }
 
@@ -428,7 +428,7 @@ export const useSettingsStore = defineStore('settings', () => {
         } catch (storageError: unknown) {
           log.error(
             '[SettingsStore] Failed to save quickCommandsCompactMode to localStorage:',
-            storageError
+            storageError,
           );
         }
       }
@@ -437,7 +437,7 @@ export const useSettingsStore = defineStore('settings', () => {
         setLocale(value);
       } else if (key === 'language') {
         log.warn(
-          `[SettingsStore] updateSetting: Attempted to set invalid language '${value}'. Ignoring i18n update.`
+          `[SettingsStore] updateSetting: Attempted to set invalid language '${value}'. Ignoring i18n update.`,
         );
       }
     } catch (err: unknown) {
@@ -530,14 +530,14 @@ export const useSettingsStore = defineStore('settings', () => {
     } catch (err: unknown) {
       log.error(
         `[SettingsStore] Failed to save sidebarPaneWidths after updating ${paneName}:`,
-        err
+        err,
       );
     }
   }
 
   async function updateFileManagerLayoutSettings(
     multiplier: number,
-    widths: Record<string, number>
+    widths: Record<string, number>,
   ) {
     const multiplierString = multiplier.toFixed(2);
     const widthsString = JSON.stringify(widths);
@@ -563,7 +563,7 @@ export const useSettingsStore = defineStore('settings', () => {
       } catch (storageError: unknown) {
         log.error(
           '[SettingsStore] Failed to save quickCommandRowSizeMultiplier to localStorage:',
-          storageError
+          storageError,
         );
       }
     } catch (err: unknown) {

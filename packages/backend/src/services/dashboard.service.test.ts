@@ -336,7 +336,7 @@ describe('DashboardService', () => {
       expect(typeof result.uploadsSize).toBe('number');
       expect(typeof result.totalSize).toBe('number');
       expect(result.totalSize).toBe(
-        result.recordingsSize + result.databaseSize + result.uploadsSize
+        result.recordingsSize + result.databaseSize + result.uploadsSize,
       );
     });
 

@@ -42,7 +42,7 @@ describe('app config - passkey rp configs', () => {
     process.env.RP_ORIGIN = 'https://primary.example.com';
 
     await expect(import('./app.config')).rejects.toThrow(
-      'RP_ID and RP_ORIGIN must have the same number of entries'
+      'RP_ID and RP_ORIGIN must have the same number of entries',
     );
   });
 });

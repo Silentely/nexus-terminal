@@ -51,7 +51,7 @@ router.get(
           timeout: 10000,
           headers: { Accept: 'application/vnd.github.v3+json' },
         },
-        'Version'
+        'Version',
       );
 
       if (response.status >= 400) {
@@ -76,7 +76,7 @@ router.get(
       logger.error({ err: error }, '[Version] 未知错误');
       res.status(502).json({ tag: null, htmlUrl: null, error: 'fetch_failed' });
     }
-  })
+  }),
 );
 
 /**
@@ -98,7 +98,7 @@ router.get(
         {
           timeout: 10000,
         },
-        'Version'
+        'Version',
       );
 
       if (response.status >= 400) {
@@ -116,7 +116,7 @@ router.get(
       logger.warn({ err: error }, '[Version] 远程 VERSION 文件请求失败');
       res.status(502).json({ version: null, error: 'fetch_failed' });
     }
-  })
+  }),
 );
 
 export default router;

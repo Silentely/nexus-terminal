@@ -35,7 +35,7 @@ interface DbQuickCommandWithTagsRow extends QuickCommand {
 export const addQuickCommand = async (
   name: string | null,
   command: string,
-  variables?: Record<string, string>
+  variables?: Record<string, string>,
 ): Promise<number> => {
   const sql = `INSERT INTO quick_commands (name, command, variables, created_at, updated_at) VALUES (?, ?, ?, strftime('%s', 'now'), strftime('%s', 'now'))`;
   try {
@@ -45,7 +45,7 @@ export const addQuickCommand = async (
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
       throw ErrorFactory.databaseError(
         '添加快捷指令后未能获取有效的 lastID',
-        '添加快捷指令后未能获取有效的 lastID'
+        '添加快捷指令后未能获取有效的 lastID',
       );
     }
     return result.lastID;
@@ -67,7 +67,7 @@ export const updateQuickCommand = async (
   id: number,
   name: string | null,
   command: string,
-  variables?: Record<string, string>
+  variables?: Record<string, string>,
 ): Promise<boolean> => {
   const sql = `UPDATE quick_commands SET name = ?, command = ?, variables = ?, updated_at = strftime('%s', 'now') WHERE id = ?`;
   try {
@@ -104,14 +104,14 @@ export const deleteQuickCommand = async (id: number): Promise<boolean> => {
  * @returns 返回包含所有快捷指令条目及标签 ID 的数组
  */
 export const getAllQuickCommands = async (
-  sortBy: 'name' | 'usage_count' = 'name'
+  sortBy: 'name' | 'usage_count' = 'name',
 ): Promise<QuickCommandWithTags[]> => {
   // P1-4: 显式 allowlist 验证（纵深防御）
   const ALLOWED_SORT_COLUMNS: Array<'name' | 'usage_count'> = ['name', 'usage_count'];
   if (!ALLOWED_SORT_COLUMNS.includes(sortBy)) {
     throw ErrorFactory.validationError(
       `无效的排序字段: ${sortBy}`,
-      `field: sortBy, value: ${sortBy}, allowed: ${ALLOWED_SORT_COLUMNS.join(', ')}`
+      `field: sortBy, value: ${sortBy}, allowed: ${ALLOWED_SORT_COLUMNS.join(', ')}`,
     );
   }
 
@@ -183,7 +183,7 @@ export const incrementUsageCount = async (id: number): Promise<boolean> => {
  * @returns 返回找到的快捷指令条目及标签 ID，如果未找到则返回 undefined
  */
 export const findQuickCommandById = async (
-  id: number
+  id: number,
 ): Promise<QuickCommandWithTags | undefined> => {
   // 使用 LEFT JOIN 连接关联表，并使用 GROUP_CONCAT 获取标签 ID 字符串
   const sql = `

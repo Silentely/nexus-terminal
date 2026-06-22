@@ -231,7 +231,7 @@ describe('EventService', () => {
       // 错误应被记录
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('监听器执行异常'),
-        expect.objectContaining({ eventType: AppEventType.LoginSuccess })
+        expect.objectContaining({ eventType: AppEventType.LoginSuccess }),
       );
     });
 
@@ -300,7 +300,7 @@ describe('EventService', () => {
       // 错误应被记录
       expect(mockLogger.error).toHaveBeenCalledWith(
         expect.stringContaining('中间件执行异常'),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -335,7 +335,7 @@ describe('EventService', () => {
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener).toHaveBeenCalledWith(
         AppEventType.LoginSuccess,
-        expect.objectContaining({ userId: 1 })
+        expect.objectContaining({ userId: 1 }),
       );
     });
 

@@ -420,7 +420,7 @@ const handleLineEndingChange = (event: Event) => {
 
   if (currentActiveTab && newLineEnding && newLineEnding !== currentLineEnding.value) {
     log.info(
-      `[EditorOverlay] Line ending changed to ${newLineEnding} for tab ${currentActiveTab.id}`
+      `[EditorOverlay] Line ending changed to ${newLineEnding} for tab ${currentActiveTab.id}`,
     );
     if (shareFileEditorTabsBoolean.value) {
       fileEditorStore.changeLineEnding(currentActiveTab.id, newLineEnding); // 全局 Store
@@ -541,7 +541,7 @@ const stopResize = () => {
 watch(popupTrigger, () => {
   if (!showPopupFileEditorBoolean.value || !popupFileInfo.value) {
     log.info(
-      '[FileEditorOverlay] Popup trigger changed, but overlay is disabled or file info is missing.'
+      '[FileEditorOverlay] Popup trigger changed, but overlay is disabled or file info is missing.',
     );
     isVisible.value = false;
     return;
@@ -559,7 +559,7 @@ watch(
   () => {
     updateSelectWidth();
   },
-  { immediate: true }
+  { immediate: true },
 ); // immediate: true ensures it runs on initial load too
 
 watch(currentSelectedEncoding, () => {

@@ -1186,7 +1186,7 @@ describe('quickCommands.store', () => {
 
       // 生成 100 条指令
       const cmds = Array.from({ length: 100 }, (_, i) =>
-        createMockCommand({ id: i + 1, name: `cmd-${i}`, tagIds: [] })
+        createMockCommand({ id: i + 1, name: `cmd-${i}`, tagIds: [] }),
       );
 
       store.quickCommandsList = cmds;
@@ -1205,7 +1205,7 @@ describe('quickCommands.store', () => {
       // watcher 使用 localStorage.setItem 保存
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'quickCommandsExpandedGroups',
-        expect.any(String)
+        expect.any(String),
       );
     });
   });

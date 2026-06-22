@@ -164,7 +164,7 @@ describe('Terminal Theme Repository', () => {
         createTheme({
           name: 'Test',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('创建终端主题失败');
     });
 
@@ -176,7 +176,7 @@ describe('Terminal Theme Repository', () => {
         createTheme({
           name: 'Test',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('创建终端主题失败');
     });
 
@@ -187,7 +187,7 @@ describe('Terminal Theme Repository', () => {
         createTheme({
           name: 'Duplicate',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('主题名称 "Duplicate" 已存在');
     });
 
@@ -198,7 +198,7 @@ describe('Terminal Theme Repository', () => {
         createTheme({
           name: 'Test',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('创建终端主题失败');
     });
   });
@@ -236,7 +236,7 @@ describe('Terminal Theme Repository', () => {
         updateTheme(1, {
           name: 'Duplicate',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('主题名称 "Duplicate" 已存在');
     });
 
@@ -247,7 +247,7 @@ describe('Terminal Theme Repository', () => {
         updateTheme(1, {
           name: 'Test',
           themeData: { foreground: '#fff', background: '#000' },
-        })
+        }),
       ).rejects.toThrow('更新终端主题失败');
     });
   });

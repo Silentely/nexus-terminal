@@ -41,7 +41,7 @@ test.describe('认证流程测试', () => {
 
       // 确认登出
       const confirmButton = authenticatedPage.locator(
-        '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")'
+        '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")',
       );
       if (await confirmButton.isVisible()) {
         await confirmButton.click();

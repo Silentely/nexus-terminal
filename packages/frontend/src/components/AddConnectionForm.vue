@@ -19,7 +19,7 @@ import { getTranslation } from '../utils/languageUtils';
 
 const { t, locale } = useI18n();
 const scriptModeFormatInfo = ref(
-  getTranslation('connections.form.scriptModeFormatInfo', locale.value)
+  getTranslation('connections.form.scriptModeFormatInfo', locale.value),
 );
 
 const {

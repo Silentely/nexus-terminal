@@ -41,7 +41,8 @@ const safeParseAuditDetails = (details: string | null): Record<string, unknown> 
   try {
     const parsed = JSON.parse(details);
     return parsed && typeof parsed === 'object' ? parsed : null;
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     return null;
   }
 };
@@ -106,7 +107,7 @@ const actionTypeMappings: Record<string, AuditLogActionType[]> = {
 const countAuditLogs = async (
   db: Awaited<ReturnType<typeof getDbInstance>>,
   timeRange: TimeRange,
-  actionTypes: string[]
+  actionTypes: string[],
 ): Promise<number> => {
   if (actionTypes.length === 0) return 0;
   const placeholders = actionTypes.map(() => '?').join(', ');
@@ -115,7 +116,7 @@ const countAuditLogs = async (
     `SELECT COUNT(*) as count
          FROM audit_logs
          WHERE timestamp BETWEEN ? AND ? AND action_type IN (${placeholders})`,
-    [timeRange.start, timeRange.end, ...actionTypes]
+    [timeRange.start, timeRange.end, ...actionTypes],
   );
   return result?.count || 0;
 };
@@ -140,7 +141,7 @@ export const getDashboardStats = async (timeRange?: { start: number; end: number
          FROM audit_logs
          WHERE timestamp BETWEEN ? AND ? AND action_type IN (${actionTypeMappings.connection_connected.map(() => '?').join(', ')})
          ORDER BY timestamp ASC`,
-        [effectiveRange.start, effectiveRange.end, ...actionTypeMappings.connection_connected]
+        [effectiveRange.start, effectiveRange.end, ...actionTypeMappings.connection_connected],
       ),
       allDb<{ timestamp: number; details: string | null }>(
         db,
@@ -148,12 +149,12 @@ export const getDashboardStats = async (timeRange?: { start: number; end: number
          FROM audit_logs
          WHERE timestamp BETWEEN ? AND ? AND action_type IN (${actionTypeMappings.connection_disconnected.map(() => '?').join(', ')})
          ORDER BY timestamp ASC`,
-        [effectiveRange.start, effectiveRange.end, ...actionTypeMappings.connection_disconnected]
+        [effectiveRange.start, effectiveRange.end, ...actionTypeMappings.connection_disconnected],
       ),
       countAuditLogs(db, effectiveRange, actionTypeMappings.auth_login_failed),
       countAuditLogs(db, effectiveRange, actionTypeMappings.command_blocked),
       countAuditLogs(db, effectiveRange, actionTypeMappings.alerts),
-    ]
+    ],
   );
 
   // 会话时长分布：基于 connect/disconnect（若缺失 disconnect，则按时间范围 end 截断）
@@ -248,7 +249,7 @@ let assetHealthCache: AssetHealthCache | null = null;
 const tcpProbe = async (
   host: string,
   port: number,
-  timeoutMs: number
+  timeoutMs: number,
 ): Promise<{ ok: boolean; latency?: number }> => {
   return new Promise((resolve) => {
     const startedAt = Date.now();
@@ -277,7 +278,7 @@ const tcpProbe = async (
 const mapWithConcurrency = async <T, R>(
   items: T[],
   concurrency: number,
-  mapper: (item: T) => Promise<R>
+  mapper: (item: T) => Promise<R>,
 ): Promise<R[]> => {
   const results: R[] = [];
   let index = 0;
@@ -384,7 +385,7 @@ export const getAssetHealth = async (): Promise<{
  */
 export const getActivityTimeline = async (
   limit: number = 20,
-  timeRange?: TimeRange
+  timeRange?: TimeRange,
 ): Promise<
   Array<{
     id: number;
@@ -417,7 +418,7 @@ export const getActivityTimeline = async (
                FROM audit_logs
                ORDER BY timestamp DESC
                LIMIT ?`,
-    effectiveRange ? [effectiveRange.start, effectiveRange.end, limit] : [limit]
+    effectiveRange ? [effectiveRange.start, effectiveRange.end, limit] : [limit],
   );
 
   return events.map((e) => {

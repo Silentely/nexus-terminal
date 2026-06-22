@@ -91,7 +91,7 @@ export const getSshKeyDbRowById = async (id: number): Promise<SshKeyDbRow | null
  * @returns Promise<DecryptedSshKeyDetails | null> 解密后的密钥详情或 null
  */
 export const getDecryptedSshKeyById = async (
-  id: number
+  id: number,
 ): Promise<DecryptedSshKeyDetails | null> => {
   const dbRow = await SshKeyRepository.findSshKeyById(id);
   if (!dbRow) {
@@ -122,7 +122,7 @@ export const getDecryptedSshKeyById = async (
  */
 export const updateSshKey = async (
   id: number,
-  input: UpdateSshKeyInput
+  input: UpdateSshKeyInput,
 ): Promise<SshKeyBasicInfo | null> => {
   // 1. 检查密钥是否存在
   const existingKey = await SshKeyRepository.findSshKeyById(id);

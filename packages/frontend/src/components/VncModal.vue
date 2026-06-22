@@ -121,14 +121,14 @@ const MIN_MODAL_HEIGHT = 600;
 const desiredModalWidth = ref(
   Math.min(
     Math.max(MIN_MODAL_WIDTH, isNaN(initialStoreWidth) ? MIN_MODAL_WIDTH : initialStoreWidth),
-    maxAllowedWidth.value
-  )
+    maxAllowedWidth.value,
+  ),
 );
 const desiredModalHeight = ref(
   Math.min(
     Math.max(MIN_MODAL_HEIGHT, isNaN(initialStoreHeight) ? MIN_MODAL_HEIGHT : initialStoreHeight),
-    maxAllowedHeight.value
-  )
+    maxAllowedHeight.value,
+  ),
 );
 
 const tempInputWidth = ref<number | string>(desiredModalWidth.value);
@@ -168,7 +168,7 @@ const handleConnection = async () => {
     const token = await connectionsStore.getVncSessionToken(
       props.connection.id,
       desiredModalWidth.value,
-      desiredModalHeight.value
+      desiredModalHeight.value,
     );
     if (!token) {
       throw new Error('VNC Token not found from store action');
@@ -312,7 +312,7 @@ const trySyncClipboardOnDisplayFocus = async () => {
       writer.sendEnd();
       log.info(
         '[VncModal] Sent clipboard to VNC on display focus:',
-        currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : '')
+        currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : ''),
       );
     }
   } catch (err: unknown) {
@@ -609,17 +609,17 @@ watch(
       statusMessage.value = t('remoteDesktopModal.errors.noConnection');
       connectionStatus.value = 'error';
     }
-  }
+  },
 );
 
 const computedModalStyle = computed(() => {
   const actualWidth = Math.min(
     Math.max(MIN_MODAL_WIDTH, desiredModalWidth.value),
-    maxAllowedWidth.value
+    maxAllowedWidth.value,
   );
   const actualHeight = Math.min(
     Math.max(MIN_MODAL_HEIGHT, desiredModalHeight.value),
-    maxAllowedHeight.value
+    maxAllowedHeight.value,
   );
   return {
     width: `${actualWidth}px`,
@@ -641,7 +641,7 @@ watchEffect(() => {
 
         if (displayWidth > 0 && displayHeight > 0) {
           log.info(
-            `[VncModal] Resizing VNC display to: ${displayWidth}x${displayHeight} due to style change.`
+            `[VncModal] Resizing VNC display to: ${displayWidth}x${displayHeight} due to style change.`,
           );
           guacClient.value.sendSize(displayWidth, displayHeight);
         }

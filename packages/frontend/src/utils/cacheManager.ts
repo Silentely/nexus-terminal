@@ -68,7 +68,7 @@ export class CacheManager {
       // 版本检查
       if (cached.version !== version) {
         log.debug(
-          `[CacheManager] 缓存版本不匹配: ${key} (期望: ${version}, 实际: ${cached.version})`
+          `[CacheManager] 缓存版本不匹配: ${key} (期望: ${version}, 实际: ${cached.version})`,
         );
         this.remove(key);
         return defaultValue;

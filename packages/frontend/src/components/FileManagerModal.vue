@@ -56,7 +56,7 @@ const open = (sessionId: string) => {
   const dbConnectionId = session.connectionId;
   if (!dbConnectionId) {
     log.error(
-      `[FileManagerModal] Cannot open file manager: Missing dbConnectionId for session ${sessionId}.`
+      `[FileManagerModal] Cannot open file manager: Missing dbConnectionId for session ${sessionId}.`,
     );
     props.showError(props.t('workspace.errors.missingConnectionId'));
     return;
@@ -65,7 +65,7 @@ const open = (sessionId: string) => {
   // 2. 获取 wsDeps
   if (!session.wsManager) {
     log.error(
-      `[FileManagerModal] Cannot open file manager: wsManager not found for session ${sessionId}.`
+      `[FileManagerModal] Cannot open file manager: wsManager not found for session ${sessionId}.`,
     );
     props.showError(props.t('workspace.errors.wsManagerNotFound'));
     return;
@@ -93,7 +93,7 @@ const open = (sessionId: string) => {
   showFileManagerModal.value = true;
   log.info(
     `[FileManagerModal] Opening FileManager modal with props for session ${sessionId}:`,
-    newProps
+    newProps,
   );
 };
 

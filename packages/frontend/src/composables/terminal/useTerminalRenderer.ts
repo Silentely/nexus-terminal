@@ -186,7 +186,7 @@ export function useTerminalRenderer(terminal: Ref<Terminal | null>, sessionId: s
       if (recoveryAttempts < MAX_WEBGL_RECOVERY_ATTEMPTS) {
         recoveryAttempts++;
         log.info(
-          `[Terminal ${sessionId}] WebGL 恢复尝试 ${recoveryAttempts}/${MAX_WEBGL_RECOVERY_ATTEMPTS}`
+          `[Terminal ${sessionId}] WebGL 恢复尝试 ${recoveryAttempts}/${MAX_WEBGL_RECOVERY_ATTEMPTS}`,
         );
         const success = loadWebglAddon(term);
         if (success) {
@@ -199,7 +199,7 @@ export function useTerminalRenderer(terminal: Ref<Terminal | null>, sessionId: s
           contextState.value = 'unavailable';
           if (recoveryAttempts >= MAX_WEBGL_RECOVERY_ATTEMPTS) {
             log.warn(
-              `[Terminal ${sessionId}] WebGL 恢复已达最大次数 ${MAX_WEBGL_RECOVERY_ATTEMPTS}，渲染器永久降级为 DOM`
+              `[Terminal ${sessionId}] WebGL 恢复已达最大次数 ${MAX_WEBGL_RECOVERY_ATTEMPTS}，渲染器永久降级为 DOM`,
             );
           }
         }

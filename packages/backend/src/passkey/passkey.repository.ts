@@ -93,7 +93,7 @@ export class PasskeyRepository {
     if (!newPasskey) {
       throw ErrorFactory.databaseError(
         'Passkey 创建失败',
-        'Failed to create or retrieve passkey after insert.'
+        'Failed to create or retrieve passkey after insert.',
       );
     }
     return newPasskey;

@@ -60,7 +60,7 @@ export const useProxiesStore = defineStore('proxies', {
       try {
         const response = await apiClient.post<{ message: string; proxy: ProxyInfo }>(
           '/proxies',
-          newProxyData
+          newProxyData,
         );
         this.proxies.unshift(response.data.proxy);
         return true;
@@ -77,14 +77,14 @@ export const useProxiesStore = defineStore('proxies', {
     // 更新代理 Action
     async updateProxy(
       proxyId: number,
-      updatedData: Partial<ProxyInfo & { password?: string | null }>
+      updatedData: Partial<ProxyInfo & { password?: string | null }>,
     ) {
       this.isLoading = true;
       this.error = null;
       try {
         const response = await apiClient.put<{ message: string; proxy: ProxyInfo }>(
           `/proxies/${proxyId}`,
-          updatedData
+          updatedData,
         );
         const index = this.proxies.findIndex((p) => p.id === proxyId);
         if (index !== -1) {

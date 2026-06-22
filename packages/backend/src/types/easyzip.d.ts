@@ -4,7 +4,7 @@ declare module 'easyzip' {
     file(name: string, content: string): void;
     writeToBuffer(
       options: { password: string; compress: boolean },
-      callback: (err: Error | null, buffer: Buffer) => void
+      callback: (err: Error | null, buffer: Buffer) => void,
     ): void;
   }
 }

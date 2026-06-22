@@ -72,7 +72,7 @@ router.post(
       next();
     });
   },
-  importConnections
+  importConnections,
 );
 
 // GET /api/v1/connections - 获取连接列表

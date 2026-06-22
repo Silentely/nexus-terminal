@@ -97,7 +97,7 @@ export const deleteTag = async (id: number): Promise<boolean> => {
  */
 export const updateTagConnections = async (
   tagId: number,
-  connectionIds: number[]
+  connectionIds: number[],
 ): Promise<void> => {
   // 在服务层可以添加额外的业务逻辑，例如验证 tagId 和 connectionIds 的有效性
   // 例如，检查标签是否存在，连接 ID 是否都存在于数据库中等。

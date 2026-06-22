@@ -25,7 +25,7 @@ export function sendWsMessage(
   ws: AuthenticatedWebSocket,
   type: string,
   payload: unknown,
-  sessionId?: string
+  sessionId?: string,
 ): void {
   if (ws.readyState !== WebSocket.OPEN) return;
   const message: Record<string, unknown> = { type, payload };
@@ -62,7 +62,7 @@ const getSshSuspendKeepAliveSecondsFromSettings = async (): Promise<number> => {
   } catch (error: unknown) {
     logger.warn(
       `[WebSocket] 读取 ${SSH_SUSPEND_KEEP_ALIVE_SECONDS_KEY} 失败，将使用默认值 ${DEFAULT_SSH_SUSPEND_KEEP_ALIVE_SECONDS}:`,
-      error
+      error,
     );
     return DEFAULT_SSH_SUSPEND_KEEP_ALIVE_SECONDS;
   }
@@ -135,7 +135,7 @@ export const cleanupClientConnection = async (sessionId: string | undefined) => 
   const state = clientStates.get(sessionId);
   if (state) {
     logger.debug(
-      `WebSocket: 清理会话 ${sessionId} (用户: ${state.ws.username}, DB 连接 ID: ${state.dbConnectionId})...`
+      `WebSocket: 清理会话 ${sessionId} (用户: ${state.ws.username}, DB 连接 ID: ${state.dbConnectionId})...`,
     );
     const nowSeconds = Math.floor(Date.now() / 1000);
     const durationSeconds =
@@ -158,7 +158,7 @@ export const cleanupClientConnection = async (sessionId: string | undefined) => 
       state.ws.userId !== undefined
     ) {
       logger.debug(
-        `WebSocket: 会话 ${sessionId} 已被标记为待挂起，尝试移交给 SshSuspendService...`
+        `WebSocket: 会话 ${sessionId} 已被标记为待挂起，尝试移交给 SshSuspendService...`,
       );
       try {
         // H-16: CAS 模式 - await 前原子清除标志，防止双重清理竞态
@@ -190,7 +190,7 @@ export const cleanupClientConnection = async (sessionId: string | undefined) => 
 
         if (newSuspendId) {
           logger.info(
-            `WebSocket: 会话 ${sessionId} 已成功移交给 SshSuspendService，新的挂起ID: ${newSuspendId}。SSH 连接将由服务管理。`
+            `WebSocket: 会话 ${sessionId} 已成功移交给 SshSuspendService，新的挂起ID: ${newSuspendId}。SSH 连接将由服务管理。`,
           );
           const suspendPayload: Record<string, unknown> = {
             userId: state.ws.userId,
@@ -219,7 +219,7 @@ export const cleanupClientConnection = async (sessionId: string | undefined) => 
           // SSH 资源已移交，不需要在这里关闭它们
         } else {
           logger.warn(
-            `WebSocket: 会话 ${sessionId} 移交给 SshSuspendService 失败 (takeOverMarkedSession 返回 null)。可能 SSH 连接在标记后已断开。将执行常规清理。`
+            `WebSocket: 会话 ${sessionId} 移交给 SshSuspendService 失败 (takeOverMarkedSession 返回 null)。可能 SSH 连接在标记后已断开。将执行常规清理。`,
           );
           // 移交失败，执行常规关闭
           channelToPass?.end();

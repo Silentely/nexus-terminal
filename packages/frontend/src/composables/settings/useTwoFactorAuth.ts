@@ -45,14 +45,14 @@ export function useTwoFactorAuth() {
     verificationCode.value = '';
     try {
       const response = await apiClient.post<{ secret: string; qrCodeUrl: string }>(
-        '/auth/2fa/setup'
+        '/auth/2fa/setup',
       );
       setupData.value = response.data;
     } catch (error: unknown) {
       log.error('开始设置 2FA 失败:', error);
       twoFactorMessage.value = extractErrorMessage(
         error,
-        t('settings.twoFactor.error.setupFailed')
+        t('settings.twoFactor.error.setupFailed'),
       );
     } finally {
       twoFactorLoading.value = false;
@@ -92,7 +92,7 @@ export function useTwoFactorAuth() {
       } else {
         twoFactorMessage.value = extractErrorMessage(
           error,
-          t('settings.twoFactor.error.verificationFailed')
+          t('settings.twoFactor.error.verificationFailed'),
         );
       }
     } finally {
@@ -119,7 +119,7 @@ export function useTwoFactorAuth() {
       log.error('禁用 2FA 失败:', error);
       twoFactorMessage.value = extractErrorMessage(
         error,
-        t('settings.twoFactor.error.disableFailed')
+        t('settings.twoFactor.error.disableFailed'),
       );
     } finally {
       twoFactorLoading.value = false;

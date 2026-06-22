@@ -17,7 +17,7 @@ export function useVirtualListSetup<T>(
     itemHeight: number | (() => number);
     /** overscan 预渲染数量，默认自动缩放 */
     overscan?: number;
-  }
+  },
 ) {
   const { itemHeight, overscan: overscanOverride } = options;
 

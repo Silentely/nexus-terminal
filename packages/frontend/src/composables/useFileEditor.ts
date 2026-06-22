@@ -71,7 +71,7 @@ const getLanguageFromFilename = (filename: string): string => {
 export function useFileEditor(
   // 注入依赖：需要 SFTP 操作模块提供的读写文件方法
   sftpReadFile: (path: string) => Promise<EditorFileContent>,
-  sftpWriteFile: (path: string, content: string) => Promise<void>
+  sftpWriteFile: (path: string, content: string) => Promise<void>,
 ) {
   const { t } = useI18n();
 

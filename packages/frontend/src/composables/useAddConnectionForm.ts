@@ -78,7 +78,8 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
 
   // 合并所有 store 的加载和错误状态
   const isLoading = computed(
-    () => isConnLoading.value || isProxyLoading.value || isTagLoading.value || isSshKeyLoading.value
+    () =>
+      isConnLoading.value || isProxyLoading.value || isTagLoading.value || isSshKeyLoading.value,
   ); // +++ Include SSH Key loading +++
 
   // 测试连接状态
@@ -127,13 +128,11 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
         formData.auth_method = newVal.auth_method;
         formData.proxy_id = newVal.proxy_id ?? null;
         formData.proxy_type = newVal.proxy_type ?? null;
-        formData.jump_chain = newVal.jump_chain
-          ? JSON.parse(JSON.stringify(newVal.jump_chain))
-          : null;
+        formData.jump_chain = newVal.jump_chain ? structuredClone(newVal.jump_chain) : null;
         log.info('[Debug] watch connectionToEdit - newVal.jump_chain:', newVal.jump_chain);
         log.info(
           '[Debug] watch connectionToEdit - formData.jump_chain initialized:',
-          formData.jump_chain
+          formData.jump_chain,
         );
         formData.notes = newVal.notes ?? '';
         formData.tag_ids = newVal.tag_ids ? [...newVal.tag_ids] : [];
@@ -185,7 +184,7 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
         advancedConnectionMode.value = 'proxy';
       }
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   // 组件挂载时获取代理、标签和 SSH 密钥列表
@@ -217,7 +216,7 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
         formData.auth_method = 'password';
         formData.selected_ssh_key_id = null;
       }
-    }
+    },
   );
 
   watch(
@@ -235,10 +234,10 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
         formData.proxy_type = null;
       }
       log.info(
-        `[Debug] useAddConnectionForm: proxy_type set to ${formData.proxy_type} (type: ${newType}, mode: ${newAdvMode})`
+        `[Debug] useAddConnectionForm: proxy_type set to ${formData.proxy_type} (type: ${newType}, mode: ${newAdvMode})`,
       );
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   // 脚本模式提交处理器（委托给子模块）

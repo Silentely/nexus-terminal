@@ -32,7 +32,7 @@ describe('env validator - RP_ID', () => {
     } catch (error: unknown) {
       expect(error).toBeInstanceOf(EnvironmentValidationError);
       expect((error as EnvironmentValidationError).errors).toContain(
-        'RP_ID 必须是有效的域名，多个值请用逗号分隔'
+        'RP_ID 必须是有效的域名，多个值请用逗号分隔',
       );
     }
   });

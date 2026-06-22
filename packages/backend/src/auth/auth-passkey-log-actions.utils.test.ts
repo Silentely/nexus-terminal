@@ -29,7 +29,7 @@ describe('auth-passkey-log-actions.utils', () => {
       buildPasskeyRegistrationSuccessInfoLogAction({
         userHandle: '1',
         credentialId: 'credential-123456',
-      })
+      }),
     ).toEqual({
       level: 'info',
       message: '[AuthController] 用户 1 的 Passkey 注册成功并已保存。 CredentialID: credenti***',
@@ -62,7 +62,7 @@ describe('auth-passkey-log-actions.utils', () => {
         username: 'alice',
         userId: 12,
         passkeyId: 987654,
-      })
+      }),
     ).toEqual({
       level: 'info',
       message: '[AuthController] 用户 alice (ID: 12) 通过 Passkey (ID: ***7654) 认证成功。',

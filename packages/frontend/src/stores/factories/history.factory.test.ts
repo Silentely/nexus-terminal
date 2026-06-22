@@ -82,7 +82,7 @@ function makePathStore() {
 }
 
 const createMockEntry = (
-  overrides: Partial<{ id: number; command: string; timestamp: number }> = {}
+  overrides: Partial<{ id: number; command: string; timestamp: number }> = {},
 ) => ({
   id: overrides.id ?? 1,
   command: overrides.command ?? 'ls -la',
@@ -386,7 +386,7 @@ describe('createHistoryStore factory', () => {
     it('有缓存时应先从缓存加载', async () => {
       const cachedData = [createMockEntry({ id: 1, command: 'cached', timestamp: 1000 })];
       (localStorage.getItem as ReturnType<typeof vi.fn>).mockReturnValue(
-        JSON.stringify(cachedData)
+        JSON.stringify(cachedData),
       );
 
       const freshData = [
@@ -454,7 +454,7 @@ describe('createHistoryStore factory', () => {
 
       expect(localStorage.setItem).toHaveBeenCalledWith(
         'testCommandHistoryCache',
-        expect.any(String)
+        expect.any(String),
       );
     });
 

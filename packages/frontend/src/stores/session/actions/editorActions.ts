@@ -17,7 +17,7 @@ const loadTabContentInSession = async (
   dependencies: {
     getOrCreateSftpManager: (sessionId: string, instanceId: string) => SftpManagerInstance | null;
     t: ReturnType<typeof useI18n>['t'];
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -44,7 +44,7 @@ const loadTabContentInSession = async (
 
     const fileData: SftpReadFileSuccessPayload = await sftpManager.readFile(filePath);
     log.info(
-      `[EditorActions ${sessionId}] 文件 ${filePath} 读取成功。后端使用编码: ${fileData.encodingUsed}`
+      `[EditorActions ${sessionId}] 文件 ${filePath} 读取成功。后端使用编码: ${fileData.encodingUsed}`,
     );
 
     const currentTabState = session.editorTabs.value.find((tabItem) => tabItem.id === tabId);
@@ -77,7 +77,7 @@ export const openFileInSession = (
   dependencies: {
     getOrCreateSftpManager: (sessionId: string, instanceId: string) => SftpManagerInstance | null;
     t: ReturnType<typeof useI18n>['t'];
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -90,7 +90,7 @@ export const openFileInSession = (
   if (existingTab) {
     session.activeEditorTabId.value = existingTab.id;
     log.info(
-      `[EditorActions] 会话 ${sessionId} 中已存在文件 ${fileInfo.fullPath} 的标签页，已激活: ${existingTab.id}`
+      `[EditorActions] 会话 ${sessionId} 中已存在文件 ${fileInfo.fullPath} 的标签页，已激活: ${existingTab.id}`,
     );
   } else {
     const newTabId = `${sessionId}:${fileInfo.fullPath}`; // 保证唯一性
@@ -115,7 +115,7 @@ export const openFileInSession = (
     session.editorTabs.value.push(newTab);
     session.activeEditorTabId.value = newTab.id;
     log.info(
-      `[EditorActions] 已在会话 ${sessionId} 中为文件 ${fileInfo.fullPath} 创建新标签页: ${newTab.id}`
+      `[EditorActions] 已在会话 ${sessionId} 中为文件 ${fileInfo.fullPath} 创建新标签页: ${newTab.id}`,
     );
     loadTabContentInSession(sessionId, newTab.id, fileInfo.fullPath, { getOrCreateSftpManager, t });
   }
@@ -127,7 +127,7 @@ export const reloadTabInSession = async (
   dependencies: {
     getOrCreateSftpManager: (sessionId: string, instanceId: string) => SftpManagerInstance | null;
     t: ReturnType<typeof useI18n>['t'];
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -160,7 +160,7 @@ export const closeEditorTabInSession = async (
       cancelText?: string;
     }) => Promise<boolean>;
     t?: (key: string, defaultMessage: string) => string;
-  }
+  },
 ): Promise<boolean> => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -182,7 +182,7 @@ export const closeEditorTabInSession = async (
       title: dependencies.t('editor.unsavedChanges.title', '未保存的更改'),
       message: dependencies.t(
         'editor.unsavedChanges.message',
-        `文件 "${tab.filename}" 有未保存的更改。确定要丢弃这些更改吗？`
+        `文件 "${tab.filename}" 有未保存的更改。确定要丢弃这些更改吗？`,
       ),
       confirmText: dependencies.t('editor.unsavedChanges.discard', '丢弃更改'),
       cancelText: dependencies.t('common.cancel', '取消'),
@@ -229,7 +229,7 @@ export const setActiveEditorTabInSession = (sessionId: string, tabId: string) =>
 export const updateFileContentInSession = (
   sessionId: string,
   tabId: string,
-  newContent: string
+  newContent: string,
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -257,7 +257,7 @@ export const saveFileInSession = async (
   dependencies: {
     getOrCreateSftpManager: (sessionId: string, instanceId: string) => SftpManagerInstance | null;
     t: ReturnType<typeof useI18n>['t'];
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -294,7 +294,7 @@ export const saveFileInSession = async (
   const sftpManager = getOrCreateSftpManager(sessionId, 'primary-editor');
   if (!sftpManager) {
     log.error(
-      `[EditorActions] 保存失败：无法获取会话 ${sessionId} 的 primary-editor sftpManager。`
+      `[EditorActions] 保存失败：无法获取会话 ${sessionId} 的 primary-editor sftpManager。`,
     );
     tab.saveStatus = 'error';
     tab.saveError = t('fileManager.errors.sftpManagerNotFound');
@@ -308,7 +308,7 @@ export const saveFileInSession = async (
   }
 
   log.info(
-    `[EditorActions] 开始保存文件: ${tab.filePath} (会话 ${sessionId}, Tab ID: ${tab.id}) using primary-editor sftpManager`
+    `[EditorActions] 开始保存文件: ${tab.filePath} (会话 ${sessionId}, Tab ID: ${tab.id}) using primary-editor sftpManager`,
   );
   tab.isSaving = true;
   tab.saveStatus = 'saving';
@@ -320,7 +320,7 @@ export const saveFileInSession = async (
   try {
     await sftpManager.writeFile(tab.filePath, contentToSave, encodingToUse);
     log.info(
-      `[EditorActions] 文件 ${tab.filePath} (会话 ${sessionId}) 使用编码 ${encodingToUse} 保存成功。`
+      `[EditorActions] 文件 ${tab.filePath} (会话 ${sessionId}) 使用编码 ${encodingToUse} 保存成功。`,
     );
     tab.isSaving = false;
     tab.saveStatus = 'success';
@@ -367,13 +367,13 @@ export const changeEncodingInSession = (sessionId: string, tabId: string, newEnc
   }
   if (tab.selectedEncoding === newEncoding) {
     log.info(
-      `[EditorActions] 会话 ${sessionId} 标签页 ${tabId} 编码已经是 ${newEncoding}，无需更改。`
+      `[EditorActions] 会话 ${sessionId} 标签页 ${tabId} 编码已经是 ${newEncoding}，无需更改。`,
     );
     return;
   }
 
   log.info(
-    `[EditorActions] 使用新编码 "${newEncoding}" 在前端重新解码文件: ${tab.filePath} (会话 ${sessionId}, Tab ID: ${tabId})`
+    `[EditorActions] 使用新编码 "${newEncoding}" 在前端重新解码文件: ${tab.filePath} (会话 ${sessionId}, Tab ID: ${tabId})`,
   );
 
   try {
@@ -388,12 +388,12 @@ export const changeEncodingInSession = (sessionId: string, tabId: string, newEnc
     // 为了简单起见，这里不改变 isModified，由后续的 content 比较来决定
     tab.loadingError = null; // 清除可能存在的旧错误
     log.info(
-      `[EditorActions] 文件 ${tab.filePath} (会话 ${sessionId}) 使用新编码 "${newEncoding}" 解码完成。`
+      `[EditorActions] 文件 ${tab.filePath} (会话 ${sessionId}) 使用新编码 "${newEncoding}" 解码完成。`,
     );
   } catch (err: unknown) {
     log.error(
       `[EditorActions] 使用编码 "${newEncoding}" 在前端解码文件 ${tab.filePath} (会话 ${sessionId}) 失败:`,
-      err
+      err,
     );
     const errMsg = err instanceof Error ? err.message : String(err);
     tab.loadingError = `前端解码失败 (编码: ${newEncoding}): ${errMsg}`;
@@ -407,7 +407,7 @@ export const changeLineEndingInSession = (
   newLineEnding: LineEnding,
   dependencies?: {
     t: ReturnType<typeof useI18n>['t'];
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -421,13 +421,13 @@ export const changeLineEndingInSession = (
   }
   if (tab.lineEnding === newLineEnding) {
     log.info(
-      `[EditorActions] 会话 ${sessionId} 标签页 ${tabId} 换行符已经是 ${newLineEnding}，无需更改。`
+      `[EditorActions] 会话 ${sessionId} 标签页 ${tabId} 换行符已经是 ${newLineEnding}，无需更改。`,
     );
     return;
   }
 
   log.info(
-    `[EditorActions] 会话 ${sessionId} 标签页 ${tabId} 更换行符: ${tab.lineEnding} → ${newLineEnding}`
+    `[EditorActions] 会话 ${sessionId} 标签页 ${tabId} 更换行符: ${tab.lineEnding} → ${newLineEnding}`,
   );
 
   try {
@@ -437,7 +437,7 @@ export const changeLineEndingInSession = (
     tab.isModified = tab.content !== tab.originalContent;
     tab.loadingError = null; // 清除可能存在的旧错误
     log.info(
-      `[EditorActions] 文件 ${tab.filePath} (会话 ${sessionId}) 换行符已更改为 ${newLineEnding}。`
+      `[EditorActions] 文件 ${tab.filePath} (会话 ${sessionId}) 换行符已更改为 ${newLineEnding}。`,
     );
   } catch (err: unknown) {
     log.error(`[EditorActions] 更换行符失败 (会话 ${sessionId}, 标签页 ${tabId}):`, err);
@@ -460,7 +460,7 @@ export const closeOtherTabsInSession = async (
       cancelText?: string;
     }) => Promise<boolean>;
     t?: (key: string, defaultMessage: string) => string;
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) return;
@@ -486,7 +486,7 @@ export const closeTabsToTheRightInSession = async (
       cancelText?: string;
     }) => Promise<boolean>;
     t?: (key: string, defaultMessage: string) => string;
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) return;
@@ -505,7 +505,7 @@ export const updateTabScrollPositionInSession = (
   sessionId: string,
   tabId: string,
   scrollTop: number,
-  scrollLeft: number
+  scrollLeft: number,
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) {
@@ -532,7 +532,7 @@ export const closeTabsToTheLeftInSession = async (
       cancelText?: string;
     }) => Promise<boolean>;
     t?: (key: string, defaultMessage: string) => string;
-  }
+  },
 ) => {
   const session = sessions.value.get(sessionId);
   if (!session) return;

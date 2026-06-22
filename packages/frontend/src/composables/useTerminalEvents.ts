@@ -62,21 +62,21 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
       command.trim() === ''
     ) {
       log.info(
-        `[useTerminalEvents] Command bar Enter detected in disconnected session ${sessionToCommand.sessionId}, attempting reconnect...`
+        `[useTerminalEvents] Command bar Enter detected in disconnected session ${sessionToCommand.sessionId}, attempting reconnect...`,
       );
       if (terminalManager.terminalInstance?.value) {
         terminalManager.terminalInstance.value.writeln(
-          `\r\n\x1b[33m${t('workspace.terminal.reconnectingMsg')}\x1b[0m`
+          `\r\n\x1b[33m${t('workspace.terminal.reconnectingMsg')}\x1b[0m`,
         );
       }
       const connectionInfo = connectionsStore.connections.find(
-        (c) => c.id === Number(sessionToCommand.connectionId)
+        (c) => c.id === Number(sessionToCommand.connectionId),
       );
       if (connectionInfo) {
         sessionStore.handleConnectRequest(connectionInfo);
       } else {
         log.error(
-          `[useTerminalEvents] handleSendCommand: 未找到 ID 为 ${sessionToCommand.connectionId} 的连接信息。`
+          `[useTerminalEvents] handleSendCommand: 未找到 ID 为 ${sessionToCommand.connectionId} 的连接信息。`,
         );
       }
       return;
@@ -85,7 +85,7 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
     if (terminalManager && typeof terminalManager.sendData === 'function') {
       const commandToSend = command.trim();
       log.info(
-        `[useTerminalEvents] Sending command/data to session ${sessionToCommand.sessionId}: ${JSON.stringify(command)}`
+        `[useTerminalEvents] Sending command/data to session ${sessionToCommand.sessionId}: ${JSON.stringify(command)}`,
       );
       const dataToSend = command === '\x03' ? command : command + '\r';
       terminalManager.sendData(dataToSend);
@@ -99,7 +99,7 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
       }
     } else {
       log.warn(
-        `[useTerminalEvents] Cannot send command for session ${sessionToCommand.sessionId}, terminal manager or sendData method not available.`
+        `[useTerminalEvents] Cannot send command for session ${sessionToCommand.sessionId}, terminal manager or sendData method not available.`,
       );
     }
   };
@@ -113,7 +113,7 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
     const manager = session?.terminalManager as SshTerminalInstance | undefined;
     if (!session || !manager) {
       log.warn(
-        `[useTerminalEvents] handleTerminalInput: 未找到会话 ${sessionId} 或其 terminalManager`
+        `[useTerminalEvents] handleTerminalInput: 未找到会话 ${sessionId} 或其 terminalManager`,
       );
       return;
     }
@@ -121,19 +121,19 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
       log.info(`[useTerminalEvents] 检测到在断开的会话 ${sessionId} 中按下回车，尝试重连...`);
       if (manager.terminalInstance?.value) {
         manager.terminalInstance.value.writeln(
-          `\r\n\x1b[33m${t('workspace.terminal.reconnectingMsg')}\x1b[0m`
+          `\r\n\x1b[33m${t('workspace.terminal.reconnectingMsg')}\x1b[0m`,
         );
       } else {
         log.warn(`[useTerminalEvents] 无法写入重连提示，terminalInstance 不可用。`);
       }
       const connectionInfo = connectionsStore.connections.find(
-        (c) => c.id === Number(session.connectionId)
+        (c) => c.id === Number(session.connectionId),
       );
       if (connectionInfo) {
         sessionStore.handleConnectRequest(connectionInfo);
       } else {
         log.error(
-          `[useTerminalEvents] handleTerminalInput: 未找到 ID 为 ${session.connectionId} 的连接信息。`
+          `[useTerminalEvents] handleTerminalInput: 未找到 ID 为 ${session.connectionId} 的连接信息。`,
         );
       }
     } else {
@@ -163,14 +163,14 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
   }) => {
     log.info(
       `[useTerminalEvents ${payload.sessionId}] 收到 terminal-ready 事件。Payload:`,
-      payload
+      payload,
     );
     if (payload && payload.searchAddon) {
       log.info(`[useTerminalEvents ${payload.sessionId}] Payload 包含 searchAddon 实例。`);
     } else {
       log.warn(
         `[useTerminalEvents ${payload.sessionId}] Payload 未包含 searchAddon 实例！ Payload:`,
-        payload
+        payload,
       );
     }
     sessionStore.sessions.get(payload.sessionId)?.terminalManager.handleTerminalReady(payload);
@@ -194,12 +194,12 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
       typeof terminalManager.terminalInstance.value.clear === 'function'
     ) {
       log.info(
-        `[useTerminalEvents ${mode}] Clearing terminal for active session ${currentSession.sessionId}`
+        `[useTerminalEvents ${mode}] Clearing terminal for active session ${currentSession.sessionId}`,
       );
       terminalManager.terminalInstance.value.clear();
     } else {
       log.warn(
-        `[useTerminalEvents ${mode}] Cannot clear terminal for session ${currentSession.sessionId}, terminal manager, instance, or clear method not available.`
+        `[useTerminalEvents ${mode}] Cannot clear terminal for session ${currentSession.sessionId}, terminal manager, instance, or clear method not available.`,
       );
     }
   };
@@ -215,7 +215,7 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
       terminalManager.terminalInstance.value.scrollToBottom();
     } else {
       log.warn(
-        `[useTerminalEvents] Cannot scroll to bottom for session ${payload.sessionId}, terminal instance not found.`
+        `[useTerminalEvents] Cannot scroll to bottom for session ${payload.sessionId}, terminal instance not found.`,
       );
     }
   };
@@ -232,12 +232,12 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
     const terminalManager = currentSession.terminalManager as SshTerminalInstance | undefined;
     if (terminalManager && typeof terminalManager.sendData === 'function') {
       log.info(
-        `[useTerminalEvents Mobile] Sending virtual key sequence: ${JSON.stringify(keySequence)}`
+        `[useTerminalEvents Mobile] Sending virtual key sequence: ${JSON.stringify(keySequence)}`,
       );
       terminalManager.sendData(keySequence);
     } else {
       log.warn(
-        `[useTerminalEvents Mobile] Cannot send virtual key for session ${currentSession.sessionId}, terminal manager or sendData method not available.`
+        `[useTerminalEvents Mobile] Cannot send virtual key for session ${currentSession.sessionId}, terminal manager or sendData method not available.`,
       );
     }
   };
@@ -248,7 +248,7 @@ export function useTerminalEvents(deps: TerminalEventsDependencies) {
   const handleQuickCommandExecuteProcessed = (payload: { command: string; sessionId?: string }) => {
     const { command, sessionId: targetSessionId } = payload;
     log.info(
-      `[useTerminalEvents] Received quickCommand:executeProcessed event. Command: "${command}", TargetSessionID: ${targetSessionId}`
+      `[useTerminalEvents] Received quickCommand:executeProcessed event. Command: "${command}", TargetSessionID: ${targetSessionId}`,
     );
     handleSendCommand(command, targetSessionId);
   };

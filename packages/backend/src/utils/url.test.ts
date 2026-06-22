@@ -32,7 +32,7 @@ describe('url utils', () => {
   describe('getSingleHeaderToken', () => {
     it('应返回逗号分隔头部的第一个有效值', () => {
       expect(getSingleHeaderToken('https://a.example.com, https://b.example.com')).toBe(
-        'https://a.example.com'
+        'https://a.example.com',
       );
     });
 
@@ -84,43 +84,43 @@ describe('url utils', () => {
     describe('直接 IP 地址检测（无需 DNS 解析）', () => {
       it('应阻止 IPv4 回环地址 127.0.0.1', async () => {
         await expect(validateUrlNotPrivate('http://127.0.0.1/api')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
       it('应阻止 IPv4 回环地址 127.0.0.2', async () => {
         await expect(validateUrlNotPrivate('http://127.0.0.2:8080')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
       it('应阻止 RFC 1918 私有地址 10.x.x.x', async () => {
         await expect(validateUrlNotPrivate('http://10.0.0.1/internal')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
       it('应阻止 RFC 1918 私有地址 172.16.x.x', async () => {
         await expect(validateUrlNotPrivate('http://172.16.0.1/api')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
       it('应阻止 RFC 1918 私有地址 192.168.x.x', async () => {
         await expect(validateUrlNotPrivate('http://192.168.1.1/')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
       it('应阻止链路本地地址 169.254.x.x', async () => {
         await expect(validateUrlNotPrivate('http://169.254.169.254/latest/')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
       it('应阻止 IPv6 回环地址', async () => {
         await expect(validateUrlNotPrivate('http://[::1]/')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
@@ -135,7 +135,7 @@ describe('url utils', () => {
         vi.mocked(dns.resolve6).mockResolvedValue([]);
 
         await expect(validateUrlNotPrivate('http://internal.example.com/api')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
@@ -144,7 +144,7 @@ describe('url utils', () => {
         vi.mocked(dns.resolve6).mockResolvedValue([]);
 
         await expect(validateUrlNotPrivate('http://metadata.example.com/')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
@@ -153,7 +153,7 @@ describe('url utils', () => {
         vi.mocked(dns.resolve6).mockResolvedValue([]);
 
         await expect(validateUrlNotPrivate('http://multi.example.com/')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
@@ -169,7 +169,7 @@ describe('url utils', () => {
         vi.mocked(dns.resolve6).mockRejectedValue(new Error('ENOTFOUND'));
 
         await expect(validateUrlNotPrivate('https://api.openai.com/')).rejects.toThrow(
-          '目标域名无法解析，无法验证地址安全性，请求已阻止。'
+          '目标域名无法解析，无法验证地址安全性，请求已阻止。',
         );
       });
 
@@ -178,7 +178,7 @@ describe('url utils', () => {
         vi.mocked(dns.resolve6).mockResolvedValue(['fd12:3456:789a::1']);
 
         await expect(validateUrlNotPrivate('http://ipv6-internal.example.com/')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
     });
@@ -208,7 +208,7 @@ describe('url utils', () => {
         vi.mocked(dns.resolve6).mockResolvedValue([]);
 
         await expect(resolveAndValidatePublicHost('http://internal.example.com/')).rejects.toThrow(
-          '目标地址解析到不允许的网络范围'
+          '目标地址解析到不允许的网络范围',
         );
       });
 
@@ -217,7 +217,7 @@ describe('url utils', () => {
         vi.mocked(dns.resolve6).mockRejectedValue(new Error('ENOTFOUND'));
 
         await expect(resolveAndValidatePublicHost('https://api.openai.com/')).rejects.toThrow(
-          '目标域名无法解析，无法验证地址安全性，请求已阻止。'
+          '目标域名无法解析，无法验证地址安全性，请求已阻止。',
         );
       });
 

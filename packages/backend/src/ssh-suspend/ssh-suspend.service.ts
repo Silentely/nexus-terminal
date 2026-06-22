@@ -1,6 +1,7 @@
+import crypto from 'crypto';
 import { Client, Channel, ClientChannel } from 'ssh2';
 import { EventEmitter } from 'events';
-import { v4 as uuidv4 } from 'uuid';
+
 import {
   SuspendSessionDetails,
   SuspendedSessionsMap,
@@ -39,7 +40,7 @@ export class SshSuspendService extends EventEmitter {
     const isTestEnv = process.env.NODE_ENV === 'test';
     if (!isTestEnv) {
       logger.debug(
-        '[SshSuspendService DEBUG] Loading persisted disconnected sessions from disk...'
+        '[SshSuspendService DEBUG] Loading persisted disconnected sessions from disk...',
       );
     }
 
@@ -50,7 +51,7 @@ export class SshSuspendService extends EventEmitter {
       const metadata = await this.logStorageService.readMetadata(suspendSessionId);
       if (!metadata) {
         logger.warn(
-          `[SshSuspendService WARN] Invalid or missing metadata for ${suspendSessionId}, skipping.`
+          `[SshSuspendService WARN] Invalid or missing metadata for ${suspendSessionId}, skipping.`,
         );
         continue;
       }
@@ -58,7 +59,7 @@ export class SshSuspendService extends EventEmitter {
       // 只恢复 'disconnected_by_backend' 状态的会话
       if (metadata.backendSshStatus !== 'disconnected_by_backend') {
         logger.warn(
-          `[SshSuspendService WARN] Metadata for ${suspendSessionId} has unexpected status '${metadata.backendSshStatus}', skipping.`
+          `[SshSuspendService WARN] Metadata for ${suspendSessionId} has unexpected status '${metadata.backendSshStatus}', skipping.`,
         );
         continue;
       }
@@ -68,7 +69,7 @@ export class SshSuspendService extends EventEmitter {
       // 如果内存中已存在该会话，跳过
       if (userSessions.has(suspendSessionId)) {
         logger.debug(
-          `[SshSuspendService DEBUG] Session ${suspendSessionId} already in memory, skipping.`
+          `[SshSuspendService DEBUG] Session ${suspendSessionId} already in memory, skipping.`,
         );
         continue;
       }
@@ -90,13 +91,13 @@ export class SshSuspendService extends EventEmitter {
 
       userSessions.set(suspendSessionId, sessionDetails);
       logger.debug(
-        `[SshSuspendService DEBUG] Loaded persisted disconnected session: ${suspendSessionId} for user ${metadata.userId}`
+        `[SshSuspendService DEBUG] Loaded persisted disconnected session: ${suspendSessionId} for user ${metadata.userId}`,
       );
     }
 
     if (!isTestEnv) {
       logger.debug(
-        `[SshSuspendService INFO] Finished loading persisted sessions. Total loaded: ${metadataIds.length}`
+        `[SshSuspendService INFO] Finished loading persisted sessions. Total loaded: ${metadataIds.length}`,
       );
     }
   }
@@ -128,7 +129,7 @@ export class SshSuspendService extends EventEmitter {
   private scheduleKeepAliveTimeout(
     userId: number,
     suspendSessionId: string,
-    keepAliveSeconds: number
+    keepAliveSeconds: number,
   ): void {
     this.clearKeepAliveTimer(suspendSessionId);
     if (keepAliveSeconds <= 0) {
@@ -146,7 +147,7 @@ export class SshSuspendService extends EventEmitter {
 
       const reason = `Suspended session keepalive timeout reached (${keepAliveSeconds}s).`;
       logger.info(
-        `[SshSuspendService INFO] 用户 ${userId} 的挂起会话 ${suspendSessionId} 已达到保活上限 ${keepAliveSeconds}s，准备自动断开。`
+        `[SshSuspendService INFO] 用户 ${userId} 的挂起会话 ${suspendSessionId} 已达到保活上限 ${keepAliveSeconds}s，准备自动断开。`,
       );
       this.handleUnexpectedDisconnection(userId, suspendSessionId, reason);
       try {
@@ -155,7 +156,7 @@ export class SshSuspendService extends EventEmitter {
         /* ignore - 通道可能已关闭 */
         logger.debug(
           '[SshSuspend] 关闭通道失败 (可能已关闭):',
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
       }
       try {
@@ -164,7 +165,7 @@ export class SshSuspendService extends EventEmitter {
         /* ignore - SSH 客户端可能已断开 */
         logger.debug(
           '[SshSuspend] 关闭 SSH 客户端失败 (可能已断开):',
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
       }
     }, timeoutMs);
@@ -201,18 +202,18 @@ export class SshSuspendService extends EventEmitter {
       keepAliveSeconds,
     } = details;
     logger.debug(
-      `[SshSuspendService DEBUG] takeOverMarkedSession: Called for userId=${userId}, originalSessionId=${originalSessionId}`
+      `[SshSuspendService DEBUG] takeOverMarkedSession: Called for userId=${userId}, originalSessionId=${originalSessionId}`,
     );
 
     // 检查 SSH client 和 channel 是否仍然可用
     // ClientChannel 有 readable 和 writable, Client 本身没有直接的此类属性
     // 如果 channel 不可读写，通常意味着底层连接有问题。
     logger.debug(
-      `[SshSuspendService DEBUG] takeOverMarkedSession: Checking channel for originalSessionId=${originalSessionId}. Readable: ${channel?.readable}, Writable: ${channel?.writable}`
+      `[SshSuspendService DEBUG] takeOverMarkedSession: Checking channel for originalSessionId=${originalSessionId}. Readable: ${channel?.readable}, Writable: ${channel?.writable}`,
     );
     if (!channel || !channel.readable || !channel.writable) {
       logger.warn(
-        `[SshSuspendService WARN] takeOverMarkedSession: userId=${userId}, originalSessionId=${originalSessionId}. SSH channel is not usable. readable=${channel?.readable}, writable=${channel?.writable}. Cannot take over.`
+        `[SshSuspendService WARN] takeOverMarkedSession: userId=${userId}, originalSessionId=${originalSessionId}. SSH channel is not usable. readable=${channel?.readable}, writable=${channel?.writable}. Cannot take over.`,
       );
       // 确保如果 SSH 连接已经关闭，日志文件仍然保留，但不创建挂起条目。
       // SshSuspendService 不会管理这个"已经断开"的会话，但日志保留供用户清理。
@@ -222,7 +223,7 @@ export class SshSuspendService extends EventEmitter {
         /* ignore - 通道可能已关闭 */
         logger.debug(
           '[SshSuspend] 关闭通道失败 (通道不可用):',
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
       }
       try {
@@ -231,13 +232,13 @@ export class SshSuspendService extends EventEmitter {
         /* ignore - SSH 客户端可能已断开 */
         logger.debug(
           '[SshSuspend] 关闭 SSH 客户端失败 (通道不可用):',
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
       }
       return null; // 无法接管
     }
 
-    const suspendSessionId = uuidv4();
+    const suspendSessionId = crypto.randomUUID();
     const userSessions = this.getUserSessions(userId);
 
     channel.removeAllListeners('data');
@@ -264,7 +265,7 @@ export class SshSuspendService extends EventEmitter {
 
     userSessions.set(suspendSessionId, sessionDetails);
     logger.debug(
-      `[SshSuspendService INFO] takeOverMarkedSession: userId=${userId}, originalSessionId=${originalSessionId} taken over. New suspendSessionId=${suspendSessionId}, initial status=${sessionDetails.backendSshStatus}. Log identifier=${logIdentifier}`
+      `[SshSuspendService INFO] takeOverMarkedSession: userId=${userId}, originalSessionId=${originalSessionId} taken over. New suspendSessionId=${suspendSessionId}, initial status=${sessionDetails.backendSshStatus}. Log identifier=${logIdentifier}`,
     );
 
     await this.logStorageService.ensureLogDirectoryExists();
@@ -275,7 +276,7 @@ export class SshSuspendService extends EventEmitter {
     this.scheduleKeepAliveTimeout(userId, suspendSessionId, normalizedKeepAliveSeconds);
 
     logger.debug(
-      `[SshSuspendService DEBUG] takeOverMarkedSession: Setting up channel 'data' listener for suspendSessionId=${suspendSessionId}`
+      `[SshSuspendService DEBUG] takeOverMarkedSession: Setting up channel 'data' listener for suspendSessionId=${suspendSessionId}`,
     );
     channel.on('data', (data: Buffer) => {
       const currentDetails = userSessions.get(suspendSessionId);
@@ -286,7 +287,7 @@ export class SshSuspendService extends EventEmitter {
           .catch((err: unknown) => {
             logger.error(
               `[SshSuspendService ERROR] channel.on('data') for suspendSessionId=${suspendSessionId}, log=${logIdentifier}: Failed to write to log:`,
-              err
+              err,
             );
           });
       } else {
@@ -297,12 +298,12 @@ export class SshSuspendService extends EventEmitter {
     const handleSessionTermination = (reasonSuffix: string) => {
       const currentSession = userSessions.get(suspendSessionId);
       logger.debug(
-        `[SshSuspendService DEBUG] handleSessionTermination: Called for suspendSessionId=${suspendSessionId}, reasonSuffix='${reasonSuffix}'. Session found: ${!!currentSession}. Current status: ${currentSession?.backendSshStatus}`
+        `[SshSuspendService DEBUG] handleSessionTermination: Called for suspendSessionId=${suspendSessionId}, reasonSuffix='${reasonSuffix}'. Session found: ${!!currentSession}. Current status: ${currentSession?.backendSshStatus}`,
       );
       if (currentSession && currentSession.backendSshStatus === 'hanging') {
         const reason = `SSH connection ${reasonSuffix}.`;
         logger.warn(
-          `[SshSuspendService WARN] handleSessionTermination: userId=${currentSession.userId}, suspendSessionId=${suspendSessionId}. SSH connection terminated during suspension. Reason: ${reason}`
+          `[SshSuspendService WARN] handleSessionTermination: userId=${currentSession.userId}, suspendSessionId=${suspendSessionId}. SSH connection terminated during suspension. Reason: ${reason}`,
         );
         currentSession.backendSshStatus = 'disconnected_by_backend';
         currentSession.disconnectionTimestamp = new Date().toISOString();
@@ -322,13 +323,13 @@ export class SshSuspendService extends EventEmitter {
         this.logStorageService.writeMetadata(suspendSessionId, metadata).catch((err: unknown) => {
           logger.error(
             `[SshSuspendService ERROR] Failed to persist metadata for ${suspendSessionId}:`,
-            err
+            err,
           );
         });
 
         this.removeChannelListeners(channel, sshClient);
         logger.debug(
-          `[SshSuspendService DEBUG] handleSessionTermination: Listeners removed for suspendSessionId=${suspendSessionId}.`
+          `[SshSuspendService DEBUG] handleSessionTermination: Listeners removed for suspendSessionId=${suspendSessionId}.`,
         );
 
         this.emit('sessionAutoTerminated', {
@@ -337,44 +338,44 @@ export class SshSuspendService extends EventEmitter {
           reason,
         });
         logger.debug(
-          `[SshSuspendService INFO] handleSessionTermination: Emitted 'sessionAutoTerminated' for suspendSessionId=${suspendSessionId}, userId=${currentSession.userId}.`
+          `[SshSuspendService INFO] handleSessionTermination: Emitted 'sessionAutoTerminated' for suspendSessionId=${suspendSessionId}, userId=${currentSession.userId}.`,
         );
       } else if (currentSession) {
         logger.debug(
-          `[SshSuspendService DEBUG] handleSessionTermination: Condition not met for suspendSessionId=${suspendSessionId}. Status was '${currentSession.backendSshStatus}', not 'hanging'. No action taken.`
+          `[SshSuspendService DEBUG] handleSessionTermination: Condition not met for suspendSessionId=${suspendSessionId}. Status was '${currentSession.backendSshStatus}', not 'hanging'. No action taken.`,
         );
       } else {
         logger.warn(
-          `[SshSuspendService WARN] handleSessionTermination: Session not found for suspendSessionId=${suspendSessionId} when event '${reasonSuffix}' occurred.`
+          `[SshSuspendService WARN] handleSessionTermination: Session not found for suspendSessionId=${suspendSessionId} when event '${reasonSuffix}' occurred.`,
         );
       }
     };
 
     logger.debug(
-      `[SshSuspendService DEBUG] takeOverMarkedSession: Setting up channel/client event listeners for suspendSessionId=${suspendSessionId}`
+      `[SshSuspendService DEBUG] takeOverMarkedSession: Setting up channel/client event listeners for suspendSessionId=${suspendSessionId}`,
     );
     channel.on('close', () => {
       logger.debug(
-        `[SshSuspendService DEBUG] channel.on('close') triggered for suspendSessionId=${suspendSessionId}`
+        `[SshSuspendService DEBUG] channel.on('close') triggered for suspendSessionId=${suspendSessionId}`,
       );
       handleSessionTermination('channel closed');
     });
     channel.on('error', (err: Error) => {
       logger.error(
         `[SshSuspendService ERROR] channel.on('error') for suspendSessionId=${suspendSessionId}:`,
-        err
+        err,
       );
       handleSessionTermination('channel errored');
     });
     channel.on('end', () => {
       logger.debug(
-        `[SshSuspendService DEBUG] channel.on('end') triggered for suspendSessionId=${suspendSessionId}`
+        `[SshSuspendService DEBUG] channel.on('end') triggered for suspendSessionId=${suspendSessionId}`,
       );
       handleSessionTermination('channel ended');
     });
     channel.on('exit', (code: number | null, signalName: string | null) => {
       logger.debug(
-        `[SshSuspendService DEBUG] channel.on('exit') triggered for suspendSessionId=${suspendSessionId}. Code: ${code}, Signal: ${signalName}`
+        `[SshSuspendService DEBUG] channel.on('exit') triggered for suspendSessionId=${suspendSessionId}. Code: ${code}, Signal: ${signalName}`,
       );
       handleSessionTermination(`channel exited with code ${code}, signal ${signalName}`);
     });
@@ -382,13 +383,13 @@ export class SshSuspendService extends EventEmitter {
     sshClient.on('error', (err: Error) => {
       logger.error(
         `[SshSuspendService ERROR] sshClient.on('error') for suspendSessionId=${suspendSessionId}:`,
-        err
+        err,
       );
       handleSessionTermination('client errored');
     });
     sshClient.on('end', () => {
       logger.debug(
-        `[SshSuspendService DEBUG] sshClient.on('end') triggered for suspendSessionId=${suspendSessionId}`
+        `[SshSuspendService DEBUG] sshClient.on('end') triggered for suspendSessionId=${suspendSessionId}`,
       );
       handleSessionTermination('client ended');
     });
@@ -438,7 +439,7 @@ export class SshSuspendService extends EventEmitter {
    */
   async resumeSession(
     userId: number,
-    suspendSessionId: string
+    suspendSessionId: string,
   ): Promise<{
     sshClient: Client;
     channel: ClientChannel;
@@ -471,13 +472,13 @@ export class SshSuspendService extends EventEmitter {
       // 使用 session.tempLogPath (即 logIdentifier, 基于 originalSessionId) 来读取日志
       logData = await this.logStorageService.readLog(session.tempLogPath);
       logger.debug(
-        `[SshSuspendService][用户: ${userId}] resumeSession: 已读取挂起会话 ${suspendSessionId} (日志: ${session.tempLogPath}) 的数据，长度: ${logData.length}`
+        `[SshSuspendService][用户: ${userId}] resumeSession: 已读取挂起会话 ${suspendSessionId} (日志: ${session.tempLogPath}) 的数据，长度: ${logData.length}`,
       );
     } catch (error: unknown) {
       // 根据策略，读取日志失败可能也应该导致恢复失败
       logger.warn(
         `[SshSuspend] resumeSession: 读取挂起会话日志失败 (会话: ${suspendSessionId}, 日志: ${session.tempLogPath}):`,
-        error instanceof Error ? error.message : error
+        error instanceof Error ? error.message : error,
       );
       return null;
     }
@@ -519,7 +520,7 @@ export class SshSuspendService extends EventEmitter {
 
     if (!session || session.backendSshStatus !== 'hanging') {
       logger.warn(
-        `[用户: ${userId}] 尝试终止的会话 ${suspendSessionId} 不存在或不是活跃状态 (${session?.backendSshStatus})。`
+        `[用户: ${userId}] 尝试终止的会话 ${suspendSessionId} 不存在或不是活跃状态 (${session?.backendSshStatus})。`,
       );
       // 如果会话已断开，但记录还在，也应该能被"终止"（即移除）
       if (session && session.backendSshStatus === 'disconnected_by_backend') {
@@ -531,7 +532,7 @@ export class SshSuspendService extends EventEmitter {
           this.logStorageService.deleteMetadata(suspendSessionId),
         ]);
         logger.info(
-          `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} 已通过终止操作移除（日志和元数据已删除）。`
+          `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} 已通过终止操作移除（日志和元数据已删除）。`,
         );
         return true;
       }
@@ -567,7 +568,7 @@ export class SshSuspendService extends EventEmitter {
     ]);
 
     logger.info(
-      `[用户: ${userId}] 活跃的挂起会话 ${suspendSessionId} (日志: ${logPathToFinallyDelete}) 已成功终止并移除。`
+      `[用户: ${userId}] 活跃的挂起会话 ${suspendSessionId} (日志: ${logPathToFinallyDelete}) 已成功终止并移除。`,
     );
     return true;
   }
@@ -585,7 +586,7 @@ export class SshSuspendService extends EventEmitter {
 
     if (session && session.backendSshStatus === 'hanging') {
       logger.warn(
-        `[用户: ${userId}] 尝试移除的会话 ${suspendSessionId} 仍处于活跃状态，请先终止。`
+        `[用户: ${userId}] 尝试移除的会话 ${suspendSessionId} 仍处于活跃状态，请先终止。`,
       );
       return false; // 不允许直接移除活跃会话，应先终止
     }
@@ -604,7 +605,7 @@ export class SshSuspendService extends EventEmitter {
         this.logStorageService.deleteMetadata(suspendSessionId),
       ]);
       logger.info(
-        `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} 的日志和元数据已删除 (内存中状态: ${session ? session.backendSshStatus : '不在内存'})。`
+        `[用户: ${userId}] 已断开的挂起会话条目 ${suspendSessionId} 的日志和元数据已删除 (内存中状态: ${session ? session.backendSshStatus : '不在内存'})。`,
       );
       return true;
     } catch (error: unknown) {
@@ -624,7 +625,7 @@ export class SshSuspendService extends EventEmitter {
   async editSuspendedSessionName(
     userId: number,
     suspendSessionId: string,
-    newCustomName: string
+    newCustomName: string,
   ): Promise<boolean> {
     // userId: string -> number
     const userSessions = this.getUserSessions(userId);
@@ -637,7 +638,7 @@ export class SshSuspendService extends EventEmitter {
 
     session.customSuspendName = newCustomName;
     logger.debug(
-      `[用户: ${userId}] 挂起会话 ${suspendSessionId} 的自定义名称已更新为: ${newCustomName}`
+      `[用户: ${userId}] 挂起会话 ${suspendSessionId} 的自定义名称已更新为: ${newCustomName}`,
     );
 
     // 如果会话已断开，同步更新元数据文件
@@ -673,7 +674,7 @@ export class SshSuspendService extends EventEmitter {
   public handleUnexpectedDisconnection(
     userId: number,
     suspendSessionId: string,
-    reason = 'Unexpected disconnection handled by SshSuspendService.'
+    reason = 'Unexpected disconnection handled by SshSuspendService.',
   ): void {
     // userId: string -> number
     const userSessions = this.getUserSessions(userId);
@@ -685,7 +686,7 @@ export class SshSuspendService extends EventEmitter {
       this.removeChannelListeners(session.channel, session.sshClient); // 移除监听器
       this.clearKeepAliveTimer(suspendSessionId);
       logger.info(
-        `[用户: ${userId}] 会话 ${suspendSessionId} 状态更新为 'disconnected_by_backend'。原因: ${reason}`
+        `[用户: ${userId}] 会话 ${suspendSessionId} 状态更新为 'disconnected_by_backend'。原因: ${reason}`,
       );
 
       // 保存会话元数据到磁盘
@@ -702,7 +703,7 @@ export class SshSuspendService extends EventEmitter {
       this.logStorageService.writeMetadata(suspendSessionId, metadata).catch((err: unknown) => {
         logger.error(
           `[SshSuspendService ERROR] Failed to persist metadata for ${suspendSessionId} in handleUnexpectedDisconnection:`,
-          err
+          err,
         );
       });
 
@@ -723,17 +724,17 @@ export class SshSuspendService extends EventEmitter {
    */
   async getSessionLogContent(
     userId: number,
-    suspendSessionId: string
+    suspendSessionId: string,
   ): Promise<{ content: string; filename: string } | null> {
     logger.debug(
-      `[SshSuspendService][用户: ${userId}] getSessionLogContent 调用，suspendSessionId: ${suspendSessionId}`
+      `[SshSuspendService][用户: ${userId}] getSessionLogContent 调用，suspendSessionId: ${suspendSessionId}`,
     );
     const userSessions = this.getUserSessions(userId);
     const session = userSessions.get(suspendSessionId);
 
     if (!session) {
       logger.warn(
-        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 未找到挂起的会话 ${suspendSessionId}。`
+        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 未找到挂起的会话 ${suspendSessionId}。`,
       );
       return null;
     }
@@ -743,14 +744,14 @@ export class SshSuspendService extends EventEmitter {
       session.backendSshStatus !== 'hanging'
     ) {
       logger.warn(
-        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 会话 ${suspendSessionId} 状态为 ${session.backendSshStatus}，不符合导出条件 (需要 'disconnected_by_backend' 或 'hanging')。`
+        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 会话 ${suspendSessionId} 状态为 ${session.backendSshStatus}，不符合导出条件 (需要 'disconnected_by_backend' 或 'hanging')。`,
       );
       return null;
     }
 
     if (!session.tempLogPath) {
       logger.error(
-        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 会话 ${suspendSessionId} 缺少 tempLogPath。`
+        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 会话 ${suspendSessionId} 缺少 tempLogPath。`,
       );
       return null;
     }
@@ -758,7 +759,7 @@ export class SshSuspendService extends EventEmitter {
     try {
       const logContent = await this.logStorageService.readLog(session.tempLogPath);
       logger.debug(
-        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 已读取挂起会话 ${suspendSessionId} (日志: ${session.tempLogPath}) 的数据，长度: ${logContent.length}`
+        `[SshSuspendService][用户: ${userId}] getSessionLogContent: 已读取挂起会话 ${suspendSessionId} (日志: ${session.tempLogPath}) 的数据，长度: ${logContent.length}`,
       );
 
       const baseName =
@@ -772,7 +773,7 @@ export class SshSuspendService extends EventEmitter {
     } catch (error: unknown) {
       logger.error(
         `[SshSuspendService][用户: ${userId}] getSessionLogContent: 读取挂起会话 ${suspendSessionId} (日志: ${session.tempLogPath}) 失败:`,
-        error
+        error,
       );
       return null;
     }

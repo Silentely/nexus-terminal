@@ -26,7 +26,7 @@ export const addFavoritePath = async (name: string | null, path: string): Promis
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
       throw ErrorFactory.databaseError(
         '添加收藏路径后未能获取有效的 lastID',
-        '添加收藏路径后未能获取有效的 lastID'
+        '添加收藏路径后未能获取有效的 lastID',
       );
     }
     return result.lastID;
@@ -46,7 +46,7 @@ export const addFavoritePath = async (name: string | null, path: string): Promis
 export const updateFavoritePath = async (
   id: number,
   name: string | null,
-  path: string
+  path: string,
 ): Promise<boolean> => {
   const sql = `UPDATE favorite_paths SET name = ?, path = ?, updated_at = strftime('%s', 'now') WHERE id = ?`;
   try {
@@ -82,14 +82,14 @@ export const deleteFavoritePath = async (id: number): Promise<boolean> => {
  * @returns 返回包含所有收藏路径条目的数组
  */
 export const getAllFavoritePaths = async (
-  sortBy: 'name' | 'last_used_at' = 'name'
+  sortBy: 'name' | 'last_used_at' = 'name',
 ): Promise<FavoritePath[]> => {
   // P1-4: 显式 allowlist 验证（纵深防御）
   const ALLOWED_SORT_COLUMNS: Array<'name' | 'last_used_at'> = ['name', 'last_used_at'];
   if (!ALLOWED_SORT_COLUMNS.includes(sortBy)) {
     throw ErrorFactory.validationError(
       `无效的排序字段: ${sortBy}`,
-      `field: sortBy, value: ${sortBy}, allowed: ${ALLOWED_SORT_COLUMNS.join(', ')}`
+      `field: sortBy, value: ${sortBy}, allowed: ${ALLOWED_SORT_COLUMNS.join(', ')}`,
     );
   }
 
@@ -123,7 +123,7 @@ export const updateFavoritePathLastUsedAt = async (id: number): Promise<boolean>
     logger.error('更新收藏路径上次使用时间时出错:', getErrorMessage(err));
     throw ErrorFactory.databaseError(
       '无法更新收藏路径上次使用时间',
-      '无法更新收藏路径上次使用时间'
+      '无法更新收藏路径上次使用时间',
     );
   }
 };

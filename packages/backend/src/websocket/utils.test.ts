@@ -109,7 +109,7 @@ describe('WebSocket Utils', () => {
 
     it('应跳过无法解析的条目', () => {
       const result = parsePortsString(
-        '0.0.0.0:8080->80/tcp, invalid-entry, 0.0.0.0:3306->3306/tcp'
+        '0.0.0.0:8080->80/tcp, invalid-entry, 0.0.0.0:3306->3306/tcp',
       );
 
       expect(result).toHaveLength(2);
@@ -226,7 +226,7 @@ describe('WebSocket Utils', () => {
       expect(sshSuspendService.takeOverMarkedSession).toHaveBeenCalledWith(
         expect.objectContaining({
           keepAliveSeconds: 3600,
-        })
+        }),
       );
       expect(mockSshClient.end).not.toHaveBeenCalled();
       expect(clientStates.has('session-1')).toBe(false);
@@ -351,7 +351,7 @@ describe('WebSocket Utils', () => {
       clientStates.set('session-1', state as ClientState);
 
       (sshSuspendService.takeOverMarkedSession as any).mockRejectedValue(
-        new Error('Takeover failed')
+        new Error('Takeover failed'),
       );
 
       await cleanupClientConnection('session-1');

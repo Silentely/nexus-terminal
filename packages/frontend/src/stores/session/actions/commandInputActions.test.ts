@@ -77,7 +77,7 @@ describe('session/actions/commandInputActions', () => {
       updateSessionCommandInput('nonexistent', 'test');
 
       expect(log.warn).toHaveBeenCalledWith(
-        expect.stringContaining('尝试更新不存在的会话 nonexistent 的命令输入内容')
+        expect.stringContaining('尝试更新不存在的会话 nonexistent 的命令输入内容'),
       );
     });
 

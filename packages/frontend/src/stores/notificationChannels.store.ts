@@ -32,7 +32,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   };
 
   const addSetting = async (
-    settingData: NotificationSettingData
+    settingData: NotificationSettingData,
   ): Promise<NotificationSetting | null> => {
     isLoading.value = true;
     error.value = null;
@@ -51,14 +51,14 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   const updateSetting = async (
     id: number,
-    settingData: Partial<NotificationSettingData>
+    settingData: Partial<NotificationSettingData>,
   ): Promise<NotificationSetting | null> => {
     isLoading.value = true;
     error.value = null;
     try {
       const response = await apiClient.put<NotificationSetting>(
         `/notifications/${id}`,
-        settingData
+        settingData,
       ); // 使用 apiClient
       const index = settings.value.findIndex((s) => s.id === id);
       if (index !== -1) {
@@ -95,7 +95,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   const testSetting = async (
     id: number,
-    _config: NotificationChannelConfig
+    _config: NotificationChannelConfig,
   ): Promise<NotificationTestResult> => {
     // Note: We don't set isLoading here as it might interfere with the main form submission state.
     // The component handles its own 'testingNotification' state.
@@ -103,7 +103,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     try {
       // Send the request without a body, as the backend uses the saved config for the given ID
       const response = await apiClient.post<Partial<NotificationTestResult>>(
-        `/notifications/${id}/test`
+        `/notifications/${id}/test`,
       );
       return {
         success: response.data.success ?? true,
@@ -121,7 +121,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   // Test an unsaved setting configuration
   const testUnsavedSetting = async (
     channelType: NotificationChannelType,
-    config: NotificationChannelConfig
+    config: NotificationChannelConfig,
   ): Promise<NotificationTestResult> => {
     error.value = null;
     try {
@@ -131,7 +131,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
         {
           channel_type: channelType,
           config,
-        }
+        },
       ); // 使用 apiClient
       return {
         success: response.data.success ?? true,
@@ -145,11 +145,11 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   // Computed property to get settings by type (example)
   const webhookSettings = computed(() =>
-    settings.value.filter((s) => s.channel_type === 'webhook')
+    settings.value.filter((s) => s.channel_type === 'webhook'),
   );
   const emailSettings = computed(() => settings.value.filter((s) => s.channel_type === 'email'));
   const telegramSettings = computed(() =>
-    settings.value.filter((s) => s.channel_type === 'telegram')
+    settings.value.filter((s) => s.channel_type === 'telegram'),
   );
 
   return {

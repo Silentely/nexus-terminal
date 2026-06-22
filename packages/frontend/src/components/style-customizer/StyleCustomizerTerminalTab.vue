@@ -152,7 +152,7 @@ watch(
       initializeEditableState();
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 // Methods
@@ -224,10 +224,10 @@ const handleSaveTerminalTextShadow = async () => {
   try {
     await appearanceStore.setTerminalTextShadowEnabled(editableTerminalTextShadowEnabled.value);
     await appearanceStore.setTerminalTextShadowOffsetX(
-      Number(editableTerminalTextShadowOffsetX.value)
+      Number(editableTerminalTextShadowOffsetX.value),
     );
     await appearanceStore.setTerminalTextShadowOffsetY(
-      Number(editableTerminalTextShadowOffsetY.value)
+      Number(editableTerminalTextShadowOffsetY.value),
     );
     await appearanceStore.setTerminalTextShadowBlur(Number(editableTerminalTextShadowBlur.value));
     await appearanceStore.setTerminalTextShadowColor(editableTerminalTextShadowColor.value);
@@ -287,7 +287,7 @@ const handleAddNewTheme = () => {
   const newTheme: TerminalTheme = {
     _id: undefined,
     name: t('styleCustomizer.newThemeDefaultName'),
-    themeData: JSON.parse(JSON.stringify(defaultXtermTheme)),
+    themeData: structuredClone(defaultXtermTheme),
     isPreset: false,
   };
   emit('update:editingTheme', newTheme);
@@ -336,7 +336,7 @@ const handleEditTheme = async (theme: TerminalTheme) => {
     const themeToEdit: TerminalTheme = {
       _id: themeIdToEdit,
       name: themeNameToEdit,
-      themeData: JSON.parse(JSON.stringify(themeDataToEdit)),
+      themeData: structuredClone(themeDataToEdit),
       isPreset: false,
     };
     emit('update:editingTheme', themeToEdit);
@@ -383,7 +383,7 @@ const handleSaveEditingTheme = async () => {
       await appearanceStore.updateTerminalTheme(
         props.editingTheme._id,
         updateDto.name,
-        updateDto.themeData
+        updateDto.themeData,
       );
       notificationsStore.addNotification({
         type: 'success',
@@ -515,7 +515,7 @@ const activeThemeName = computed(() => {
     return t('styleCustomizer.noThemeSelected');
   }
   const theme = allTerminalThemes.value.find(
-    (t: TerminalTheme) => t._id === currentIdNum.toString()
+    (t: TerminalTheme) => t._id === currentIdNum.toString(),
   );
   return theme ? theme.name : t('styleCustomizer.unknownTheme');
 });
@@ -558,7 +558,7 @@ watch(
       }
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 watch(
@@ -588,7 +588,7 @@ watch(
       initializeEditableState();
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>
 

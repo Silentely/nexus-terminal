@@ -33,7 +33,7 @@ const selectedTagIds = ref<number[]>([]); // 本地维护选中的 tag_ids
 // Default values for props
 const availableTags = computed(() => props.availableTags ?? []);
 const placeholder = computed(
-  () => props.placeholder ?? t('tags.inputPlaceholder', '添加或选择标签...')
+  () => props.placeholder ?? t('tags.inputPlaceholder', '添加或选择标签...'),
 );
 const allowCreate = computed(() => props.allowCreate !== false); // Default true
 const allowDelete = computed(() => props.allowDelete !== false); // Default true
@@ -50,7 +50,7 @@ watch(
       selectedTagIds.value = [...newVal];
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 
 // 监听本地 selectedTagIds 的变化，通知父组件
@@ -62,7 +62,7 @@ watch(
       emit('update:modelValue', [...newVal]);
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 计算属性：所有标签的 Map，方便通过 ID 查找
@@ -97,7 +97,7 @@ const suggestions = computed(() => {
     const lowerCaseInput = inputValue.value.toLowerCase();
     result = currentAvailableTags.filter(
       (tag) =>
-        tag.name.toLowerCase().includes(lowerCaseInput) && !selectedTagIds.value.includes(tag.id) // 排除已选中的
+        tag.name.toLowerCase().includes(lowerCaseInput) && !selectedTagIds.value.includes(tag.id), // 排除已选中的
     );
   }
   return result;
@@ -109,7 +109,7 @@ const handleFocus = () => {
   let potentialSuggestions: GenericTag[];
   const currentInput = inputValue.value;
   const currentAvailableTags = availableTags.value.filter(
-    (tag) => !selectedTagIds.value.includes(tag.id)
+    (tag) => !selectedTagIds.value.includes(tag.id),
   );
 
   if (!currentInput) {
@@ -117,7 +117,7 @@ const handleFocus = () => {
   } else {
     const lowerCaseInput = currentInput.toLowerCase();
     potentialSuggestions = currentAvailableTags.filter((tag) =>
-      tag.name.toLowerCase().includes(lowerCaseInput)
+      tag.name.toLowerCase().includes(lowerCaseInput),
     );
   }
   // 只有当确实存在潜在建议时，才显示建议列表
@@ -138,7 +138,7 @@ const handleKeyDown = async (event: KeyboardEvent) => {
     const lowerCaseInput = trimmedInput.toLowerCase();
     // Check against availableTags prop
     const existingTag = availableTags.value.find(
-      (tag) => tag.name.toLowerCase() === lowerCaseInput
+      (tag) => tag.name.toLowerCase() === lowerCaseInput,
     );
 
     if (existingTag && !selectedTagIds.value.includes(existingTag.id)) {
@@ -180,7 +180,7 @@ const removeTagLocally = (tagToRemove: GenericTag) => {
 // 处理全局删除标签 (点击标签上的 'x' 图标) - Emit event
 const handleDeleteTagGlobally = (tagToDelete: GenericTag) => {
   log.info(
-    `[TagInput] handleDeleteTagGlobally called for tag ID: ${tagToDelete.id}, Name: ${tagToDelete.name}`
+    `[TagInput] handleDeleteTagGlobally called for tag ID: ${tagToDelete.id}, Name: ${tagToDelete.name}`,
   );
   // Emit event for parent to handle deletion confirmation and API call
   log.info(`[TagInput] Emitting delete-tag with ID: ${tagToDelete.id}`);

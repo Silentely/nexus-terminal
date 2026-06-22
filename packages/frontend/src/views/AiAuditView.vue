@@ -670,7 +670,7 @@ let pollingTimer: ReturnType<typeof setInterval> | null = null;
 function startPolling() {
   pollingTimer = setInterval(async () => {
     const hasPending = auditStore.reports.some(
-      (r) => r.status === 'pending' || r.status === 'in_progress'
+      (r) => r.status === 'pending' || r.status === 'in_progress',
     );
     if (hasPending) {
       await auditStore.fetchReports();

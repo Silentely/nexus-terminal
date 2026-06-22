@@ -146,7 +146,7 @@ describe('SFTP Controller', () => {
       expect(mockSftp.lstat).toHaveBeenCalled();
       expect(mockRes.setHeader).toHaveBeenCalledWith(
         'Content-Disposition',
-        'attachment; filename="file.txt"'
+        'attachment; filename="file.txt"',
       );
       expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
       expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Length', '1024');

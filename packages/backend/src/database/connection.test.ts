@@ -35,7 +35,7 @@ describe('数据库连接辅助函数', () => {
         }
       }).then(
         () => null as unknown,
-        (e) => e
+        (e) => e,
       );
 
       expect(error).toBeInstanceOf(Error);
@@ -72,7 +72,7 @@ describe('数据库连接辅助函数', () => {
         else resolve(null);
       }).then(
         () => null,
-        (e) => e
+        (e) => e,
       );
 
       expect(error).toBeInstanceOf(Error);
@@ -114,7 +114,7 @@ describe('数据库连接辅助函数', () => {
         else resolve([]);
       }).then(
         () => null,
-        (e) => e
+        (e) => e,
       );
 
       expect(error).toBeInstanceOf(Error);

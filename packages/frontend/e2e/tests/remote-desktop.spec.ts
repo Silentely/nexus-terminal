@@ -6,13 +6,13 @@ type RemoteType = 'rdp' | 'vnc';
 
 function remoteCanvas(page: Page) {
   return page.locator(
-    'canvas.guac-display, [data-testid="rdp-canvas"], [data-testid="vnc-canvas"]'
+    'canvas.guac-display, [data-testid="rdp-canvas"], [data-testid="vnc-canvas"]',
   );
 }
 
 function remoteFailureHint(page: Page) {
   return page.locator(
-    'text=/连接失败|Connection failed|远程桌面|remote desktop|guacamole|断开|disconnected|超时|timeout/i'
+    'text=/连接失败|Connection failed|远程桌面|remote desktop|guacamole|断开|disconnected|超时|timeout/i',
   );
 }
 
@@ -191,7 +191,7 @@ test.describe('远程桌面测试', () => {
 
       await fullscreenButton.click();
       const isFullscreen = await authenticatedPage.evaluate(
-        () => document.fullscreenElement !== null
+        () => document.fullscreenElement !== null,
       );
       const exitFullscreenHint = await authenticatedPage
         .locator('button:has-text("退出全屏"), button:has-text("Exit Fullscreen")')

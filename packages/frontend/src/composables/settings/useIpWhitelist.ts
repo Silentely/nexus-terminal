@@ -19,7 +19,7 @@ export function useIpWhitelist() {
     (newVal) => {
       ipWhitelistInput.value = newVal || '';
     },
-    { immediate: true }
+    { immediate: true },
   );
 
   const handleUpdateIpWhitelist = async () => {

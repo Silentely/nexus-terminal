@@ -14,7 +14,7 @@ import { logger } from '../utils/logger';
 export const createConnection = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const newConnection = await ConnectionService.createConnection(req.body);
@@ -36,7 +36,7 @@ export const createConnection = async (
 export const getConnections = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connections = await ConnectionService.getAllConnections();
@@ -53,7 +53,7 @@ export const getConnections = async (
 export const getConnectionById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
@@ -81,7 +81,7 @@ export const getConnectionById = async (
 export const updateConnection = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
@@ -114,7 +114,7 @@ export const updateConnection = async (
 export const deleteConnection = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
@@ -142,7 +142,7 @@ export const deleteConnection = async (
 export const testConnection = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
@@ -167,7 +167,7 @@ export const testConnection = async (
 export const testUnsavedConnection = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     // 从请求体中提取连接信息 (添加 ssh_key_id)
@@ -213,7 +213,7 @@ export const testUnsavedConnection = async (
     // 如果同时提供了 ssh_key_id 和 private_key，优先使用 ssh_key_id (或者可以报错，这里选择优先)
     if (auth_method === 'key' && ssh_key_id && private_key) {
       logger.warn(
-        '[testUnsavedConnection] 同时提供了 ssh_key_id 和 private_key，将优先使用 ssh_key_id。'
+        '[testUnsavedConnection] 同时提供了 ssh_key_id 和 private_key，将优先使用 ssh_key_id。',
       );
       // 不需要额外操作，后续逻辑会处理
     }
@@ -281,7 +281,7 @@ export const testUnsavedConnection = async (
 export const exportConnections = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const passwordHeader = req.header('x-export-password');
@@ -309,7 +309,7 @@ export const exportConnections = async (
 export const importConnections = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   if (!req.file) {
     res.status(400).json({
@@ -357,7 +357,7 @@ export const importConnections = async (
 export const getRdpSessionToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
@@ -390,13 +390,13 @@ export const getRdpSessionToken = async (
       const currentTimeSeconds = Math.floor(Date.now() / 1000);
       await ConnectionRepository.updateLastConnected(connectionId, currentTimeSeconds);
       logger.info(
-        `[Controller:getRdpSessionToken] 已更新 RDP 连接 ${connectionId} 的 last_connected_at 为 ${currentTimeSeconds}`
+        `[Controller:getRdpSessionToken] 已更新 RDP 连接 ${connectionId} 的 last_connected_at 为 ${currentTimeSeconds}`,
       );
     } catch (updateError: unknown) {
       // 记录更新时间戳的错误，但不阻止获取令牌的流程
       logger.error(
         `[Controller:getRdpSessionToken] 更新 RDP 连接 ${connectionId} 的 last_connected_at 时出错:`,
-        updateError
+        updateError,
       );
     }
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -404,7 +404,7 @@ export const getRdpSessionToken = async (
     // 3. 验证 RDP 连接是否使用密码认证
     if (connection.auth_method !== 'password' || !decryptedPassword) {
       logger.warn(
-        `[Controller:getRdpSessionToken] RDP connection ${connectionId} does not use password auth or password decryption failed.`
+        `[Controller:getRdpSessionToken] RDP connection ${connectionId} does not use password auth or password decryption failed.`,
       );
       res.status(400).json({
         success: false,
@@ -427,11 +427,11 @@ export const getRdpSessionToken = async (
       decryptedPassword,
       rdpWidth,
       rdpHeight,
-      rdpDpi
+      rdpDpi,
     );
 
     logger.info(
-      `[Controller:getRdpSessionToken] Received Guacamole token via GuacamoleService for RDP connection ${connectionId}`
+      `[Controller:getRdpSessionToken] Received Guacamole token via GuacamoleService for RDP connection ${connectionId}`,
     );
 
     // 5. 将 Guacamole 令牌返回给前端
@@ -467,7 +467,7 @@ export const getRdpSessionToken = async (
       if (error.response) {
         logger.error(
           '[Controller:getRdpSessionToken] Remote Gateway error response:',
-          error.response.data
+          error.response.data,
         );
         responseMessage += ` (状态: ${error.response.status})`;
         statusCode = error.response.status >= 500 ? 502 : 400;
@@ -496,7 +496,7 @@ export const getRdpSessionToken = async (
 export const getVncSessionToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);
@@ -526,18 +526,18 @@ export const getVncSessionToken = async (
       const currentTimeSeconds = Math.floor(Date.now() / 1000);
       await ConnectionRepository.updateLastConnected(connectionId, currentTimeSeconds);
       logger.info(
-        `[Controller:getVncSessionToken] 已更新 VNC 连接 ${connectionId} 的 last_connected_at 为 ${currentTimeSeconds}`
+        `[Controller:getVncSessionToken] 已更新 VNC 连接 ${connectionId} 的 last_connected_at 为 ${currentTimeSeconds}`,
       );
     } catch (updateError: unknown) {
       logger.error(
         `[Controller:getVncSessionToken] 更新 VNC 连接 ${connectionId} 的 last_connected_at 时出错:`,
-        updateError
+        updateError,
       );
     }
 
     if (connection.auth_method !== 'password' || !decryptedPassword) {
       logger.warn(
-        `[Controller:getVncSessionToken] VNC connection ${connectionId} does not use password auth or password decryption failed.`
+        `[Controller:getVncSessionToken] VNC connection ${connectionId} does not use password auth or password decryption failed.`,
       );
       res.status(400).json({
         success: false,
@@ -556,11 +556,11 @@ export const getVncSessionToken = async (
       connection,
       decryptedPassword,
       initialWidth,
-      initialHeight
+      initialHeight,
     );
 
     logger.info(
-      `[Controller:getVncSessionToken] Received Guacamole token via GuacamoleService for VNC connection ${connectionId} with size ${initialWidth}x${initialHeight}`
+      `[Controller:getVncSessionToken] Received Guacamole token via GuacamoleService for VNC connection ${connectionId} with size ${initialWidth}x${initialHeight}`,
     );
 
     res.status(200).json({ token: guacamoleToken });
@@ -595,7 +595,7 @@ export const getVncSessionToken = async (
       if (error.response) {
         logger.error(
           '[Controller:getVncSessionToken] Remote Gateway error response:',
-          error.response.data
+          error.response.data,
         );
         responseMessage += ` (状态: ${error.response.status})`;
         statusCode = error.response.status >= 500 ? 502 : 400;
@@ -622,7 +622,7 @@ export const getVncSessionToken = async (
 export const cloneConnection = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const originalConnectionId = parseInt(req.params.id, 10);
@@ -665,7 +665,7 @@ export const cloneConnection = async (
 export const addTagToConnections = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const { connection_ids, tag_id } = req.body;
@@ -716,7 +716,7 @@ export const addTagToConnections = async (
 export const updateConnectionTags = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const connectionId = parseInt(req.params.id, 10);

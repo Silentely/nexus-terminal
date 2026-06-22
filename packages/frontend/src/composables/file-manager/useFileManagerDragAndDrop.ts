@@ -180,7 +180,7 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
         },
         (err) => {
           log.error(`[DragDrop] Error getting file from entry: ${traversalPath}${item.name}`, err);
-        }
+        },
       );
     } else if (item.isDirectory) {
       // 目录处理
@@ -189,7 +189,7 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
         (entries) => {
           const dirRelativePath = traversalPath ? `${traversalPath}${item.name}/` : `${item.name}/`;
           log.info(
-            `[DragDrop] Traversing directory: ${dirRelativePath}, found ${entries.length} entries.`
+            `[DragDrop] Traversing directory: ${dirRelativePath}, found ${entries.length} entries.`,
           );
           // 递归遍历目录中的每个条目，使用相对路径
           entries.forEach((entry) => {
@@ -199,9 +199,9 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
         (err) => {
           log.error(
             `[DragDrop] Error reading directory entries: ${traversalPath}${item.name}`,
-            err
+            err,
           );
-        }
+        },
       );
     }
   };
@@ -309,7 +309,7 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
       targetItem.filename !== currentDragOverTarget
     ) {
       log.info(
-        `[DragDrop] Internal drop on row ignored: Invalid conditions. Source: ${sourceItem?.filename}, Target: ${targetItem.filename}, Drop Target: ${currentDragOverTarget}`
+        `[DragDrop] Internal drop on row ignored: Invalid conditions. Source: ${sourceItem?.filename}, Target: ${targetItem.filename}, Drop Target: ${currentDragOverTarget}`,
       );
       if (sourceItem) draggedItem.value = null; // 清理拖拽状态
       return;
@@ -350,7 +350,7 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
     if (selectedItems.value.has(sourceItem.filename)) {
       // 多选拖拽：移动所有选中的项
       log.info(
-        `[DragDrop] Multi-item drop detected. Moving ${selectedItems.value.size} selected items.`
+        `[DragDrop] Multi-item drop detected. Moving ${selectedItems.value.size} selected items.`,
       );
       selectedItems.value.forEach((filename) => {
         // 从完整文件列表中查找对应的 FileListItem 对象
@@ -364,7 +364,7 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
             itemsToMove.push(itemToMove);
           } else {
             log.warn(
-              `[DragDrop] Skipping move for ${itemToMove.filename}: Source and destination paths are the same.`
+              `[DragDrop] Skipping move for ${itemToMove.filename}: Source and destination paths are the same.`,
             );
           }
         }
@@ -379,7 +379,7 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
         itemsToMove.push(sourceItem);
       } else {
         log.warn(
-          `[DragDrop] Skipping move for ${sourceItem.filename}: Source and destination paths are the same.`
+          `[DragDrop] Skipping move for ${sourceItem.filename}: Source and destination paths are the same.`,
         );
       }
     }
@@ -387,7 +387,7 @@ export function useFileManagerDragAndDrop(options: UseFileManagerDragAndDropOpti
     // 统一执行移动操作
     if (itemsToMove.length > 0) {
       log.info(
-        `[DragDrop] Executing move for ${itemsToMove.length} items to target directory: ${targetDirectoryFullPath}`
+        `[DragDrop] Executing move for ${itemsToMove.length} items to target directory: ${targetDirectoryFullPath}`,
       );
       itemsToMove.forEach((item) => {
         const itemNewFullPath = joinPath(targetDirectoryFullPath, item.filename);

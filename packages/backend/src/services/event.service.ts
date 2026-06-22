@@ -33,7 +33,7 @@ class EventService extends EventEmitter {
 
   emitEvent<T extends AppEventType>(
     eventType: T,
-    payload: Omit<TypedEventPayload<T>, 'timestamp'>
+    payload: Omit<TypedEventPayload<T>, 'timestamp'>,
   ): void;
   emitEvent(eventType: AppEventType, payload: Omit<AppEventPayload, 'timestamp'>): void;
   emitEvent(eventType: AppEventType, payload: Omit<AppEventPayload, 'timestamp'>): void {
@@ -65,7 +65,7 @@ class EventService extends EventEmitter {
   private runMiddlewareChain(
     eventType: AppEventType,
     payload: AppEventPayload,
-    finalAction: () => void
+    finalAction: () => void,
   ): void {
     const middlewares = this.middlewares;
     let index = 0;
@@ -137,7 +137,7 @@ class EventService extends EventEmitter {
    */
   onDomainEvent(
     domain: EventDomain,
-    listener: (eventType: AppEventType, payload: AppEventPayload) => void
+    listener: (eventType: AppEventType, payload: AppEventPayload) => void,
   ): () => void {
     const domainEventTypes = DOMAIN_EVENTS[domain];
     if (!domainEventTypes) {
@@ -207,7 +207,7 @@ class EventService extends EventEmitter {
    */
   onEventWithCleanup(
     eventType: AppEventType,
-    listener: (payload: AppEventPayload) => void
+    listener: (payload: AppEventPayload) => void,
   ): () => void {
     this.on(eventType, listener);
 

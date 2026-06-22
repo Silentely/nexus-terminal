@@ -28,7 +28,7 @@ export interface UseFileManagerColumnResizeReturn {
 }
 
 export const useFileManagerColumnResize = (
-  options: UseFileManagerColumnResizeOptions
+  options: UseFileManagerColumnResizeOptions,
 ): UseFileManagerColumnResizeReturn => {
   const { colWidths, onResizeEnd } = options;
 

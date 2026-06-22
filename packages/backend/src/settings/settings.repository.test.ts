@@ -148,7 +148,7 @@ describe('Settings Repository', () => {
       (runDb as any).mockRejectedValueOnce(new Error('Database error'));
 
       await expect(settingsRepository.setMultipleSettings({ key1: 'value1' })).rejects.toThrow(
-        '批量设置失败'
+        '批量设置失败',
       );
     });
   });
@@ -265,7 +265,7 @@ describe('Settings Repository', () => {
 
     it('enabled 不是布尔值时应抛出异常', async () => {
       await expect(setCaptchaConfig({ enabled: 'true' } as any)).rejects.toThrow(
-        '保存 CAPTCHA 配置失败。'
+        '保存 CAPTCHA 配置失败。',
       );
     });
   });

@@ -322,7 +322,7 @@ function extractChangelogBody(aiOutput, expectedVersion) {
   const versionPattern = new RegExp(`^## v${escaped}(?:\\s|（|\\()`);
   if (!versionPattern.test(body)) {
     console.warn(
-      `[auto-changelog] AI 输出版本号不匹配：期望 v${expectedVersion}，实际开头为 "${body.slice(0, 50)}..."`
+      `[auto-changelog] AI 输出版本号不匹配：期望 v${expectedVersion}，实际开头为 "${body.slice(0, 50)}..."`,
     );
     return null;
   }
@@ -483,7 +483,7 @@ async function generateAndWriteChangelog(version, prevTag, force) {
     const escaped = escapeRegExp(version);
     const versionPattern = new RegExp(
       `^## v${escaped}(?:\\s|（|\\()[\\s\\S]*?(?=\\n## v|\\n*$)`,
-      'm'
+      'm',
     );
     const newChangelog = changelog.replace(versionPattern, '').replace(/\n{3,}/g, '\n\n');
     fs.writeFileSync(CHANGELOG_FILE, newChangelog, 'utf8');

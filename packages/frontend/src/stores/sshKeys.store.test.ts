@@ -437,7 +437,7 @@ describe('sshKeys.store', () => {
         () =>
           new Promise((resolve) => {
             resolveGet = resolve;
-          })
+          }),
       );
 
       const store = useSshKeysStore();

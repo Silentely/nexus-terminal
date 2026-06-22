@@ -125,7 +125,7 @@ describe('auth-passkey-management-flow.utils', () => {
 
   it('mapUpdatePasskeyNameError: 权限不足映射 403', () => {
     const result = mapUpdatePasskeyNameError(
-      new Error('Unauthorized to update this passkey name.')
+      new Error('Unauthorized to update this passkey name.'),
     );
     expect(result).toEqual({
       handled: true,
@@ -194,7 +194,7 @@ describe('auth-passkey-management-flow.utils', () => {
         userId: 1,
         username: 'alice',
         credentialIdAttempted: 'cred-4',
-      }
+      },
     );
   });
 });

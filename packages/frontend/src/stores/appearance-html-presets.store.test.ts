@@ -212,7 +212,7 @@ describe('appearance-html-presets.store', () => {
       const store = createHtmlPresetsStore(deps);
 
       await expect(
-        store.updateRemoteHtmlPresetsRepositoryUrl('https://new-url.com')
+        store.updateRemoteHtmlPresetsRepositoryUrl('https://new-url.com'),
       ).rejects.toThrow();
     });
   });
@@ -292,7 +292,7 @@ describe('appearance-html-presets.store', () => {
       const store = createHtmlPresetsStore(deps);
 
       await expect(
-        store.getRemoteHtmlPresetContent('https://example.com/theme.html')
+        store.getRemoteHtmlPresetContent('https://example.com/theme.html'),
       ).rejects.toThrow();
     });
   });

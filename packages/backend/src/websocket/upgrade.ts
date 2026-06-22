@@ -27,7 +27,7 @@ function getUpgradeRequest(request: Request): UpgradeRequest {
 export function initializeUpgradeHandler(
   server: http.Server,
   wss: WebSocketServer,
-  sessionParser: RequestHandler
+  sessionParser: RequestHandler,
 ): void {
   server.on('upgrade', (request: Request, socket, head) => {
     // --- 添加详细日志：检查传入的请求头和 request.ip ---
@@ -45,7 +45,7 @@ export function initializeUpgradeHandler(
     logger.debug(`[WebSocket Upgrade] Initial request.ip value: ${request.ip}`); // Express 尝试解析的 IP
     logger.debug(`[WebSocket Upgrade] X-Real-IP Header: ${request.headers['x-real-ip']}`);
     logger.debug(
-      `[WebSocket Upgrade] X-Forwarded-For Header: ${request.headers['x-forwarded-for']}`
+      `[WebSocket Upgrade] X-Forwarded-For Header: ${request.headers['x-forwarded-for']}`,
     );
     // --- 结束添加日志 ---
 
@@ -61,7 +61,7 @@ export function initializeUpgradeHandler(
     // 辅助函数：验证并返回合法 IP，失败则返回 undefined
     const validateAndExtractIp = (
       rawIp: string | undefined,
-      source: string
+      source: string,
     ): string | undefined => {
       if (!rawIp) return undefined;
       const trimmedIp = rawIp.trim();
@@ -71,7 +71,7 @@ export function initializeUpgradeHandler(
         return trimmedIp;
       } else {
         logger.warn(
-          `[WebSocket Upgrade] Invalid IP format from ${source}: ${trimmedIp}, rejecting.`
+          `[WebSocket Upgrade] Invalid IP format from ${source}: ${trimmedIp}, rejecting.`,
         );
         return undefined;
       }
@@ -129,7 +129,7 @@ export function initializeUpgradeHandler(
         return;
       }
       logger.debug(
-        `WebSocket 认证成功 (Path: ${pathname})：用户 ${request.session.username} (ID: ${request.session.userId})`
+        `WebSocket 认证成功 (Path: ${pathname})：用户 ${request.session.username} (ID: ${request.session.userId})`,
       );
       const typedRequest = getUpgradeRequest(request);
 
@@ -137,7 +137,7 @@ export function initializeUpgradeHandler(
       // WebRTC 信令路径
       if (pathname === '/webrtc-signaling' || pathname === '/ws/webrtc-signaling') {
         logger.debug(
-          `WebSocket: Handling WebRTC signaling upgrade for user ${request.session.username}`
+          `WebSocket: Handling WebRTC signaling upgrade for user ${request.session.username}`,
         );
         wss.handleUpgrade(request, socket, head, (ws) => {
           const extWs = ws as AuthenticatedWebSocket;

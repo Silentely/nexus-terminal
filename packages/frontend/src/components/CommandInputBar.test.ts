@@ -470,7 +470,7 @@ describe('CommandInputBar.vue', () => {
 
       expect(mockEmitWorkspaceEvent).not.toHaveBeenCalledWith(
         'fileManager:openModalRequest',
-        expect.anything()
+        expect.anything(),
       );
     });
 
@@ -592,11 +592,11 @@ describe('CommandInputBar.vue', () => {
 
       expect(mockFocusSwitcherStore.registerFocusAction).toHaveBeenCalledWith(
         'commandInput',
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockFocusSwitcherStore.registerFocusAction).toHaveBeenCalledWith(
         'terminalSearch',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });

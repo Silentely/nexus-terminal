@@ -61,7 +61,7 @@ export class RepositoryUtils {
     operation: () => Promise<T>,
     context: string,
     userMessage: string,
-    errorHandler?: (err: unknown, errMsg: string) => AppError | null
+    errorHandler?: (err: unknown, errMsg: string) => AppError | null,
   ): Promise<T> {
     try {
       return await operation();
@@ -97,7 +97,7 @@ export class RepositoryUtils {
   static async executeInTransaction<T>(
     operation: (db: sqlite3.Database) => Promise<T>,
     context: string,
-    userMessage: string
+    userMessage: string,
   ): Promise<T> {
     const db = await getDbInstance();
 
@@ -135,13 +135,13 @@ export class RepositoryUtils {
   static createUniqueConstraintHandler(
     fieldName: string,
     fieldValue: string,
-    displayName: string
+    displayName: string,
   ): (err: unknown, errMsg: string) => AppError | null {
     return (_err: unknown, errMsg: string) => {
       if (errMsg.includes('UNIQUE constraint failed')) {
         return ErrorFactory.validationError(
           `${displayName} "${fieldValue}" 已存在`,
-          `field: ${fieldName}, value: ${fieldValue}`
+          `field: ${fieldName}, value: ${fieldValue}`,
         );
       }
       return null;

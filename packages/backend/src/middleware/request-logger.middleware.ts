@@ -64,7 +64,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
           statusCode: res.statusCode,
           duration,
         },
-        '请求完成'
+        '请求完成',
       );
     };
 

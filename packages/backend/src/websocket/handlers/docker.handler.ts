@@ -55,11 +55,11 @@ const parseDockerStatsPayload = (payload: unknown): DockerStatsPayload => {
 };
 
 export async function fetchRemoteDockerStatus(
-  state: ClientState
+  state: ClientState,
 ): Promise<{ available: boolean; containers: DockerContainer[] }> {
   if (!state || !state.sshClient) {
     logger.warn(
-      `[fetchRemoteDockerStatus] SSH client not available or not connected for session ${state?.ws?.sessionId}.`
+      `[fetchRemoteDockerStatus] SSH client not available or not connected for session ${state?.ws?.sessionId}.`,
     );
     return { available: false, containers: [] };
   }
@@ -97,26 +97,26 @@ export async function fetchRemoteDockerStatus(
       versionStderr.includes('Cannot connect to the Docker daemon')
     ) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker version check failed on session ${state.ws.sessionId}. Docker unavailable or inaccessible. Stderr: ${versionStderr.trim()}`
+        `[fetchRemoteDockerStatus] Docker version check failed on session ${state.ws.sessionId}. Docker unavailable or inaccessible. Stderr: ${versionStderr.trim()}`,
       );
       return { available: false, containers: [] };
     }
     if (versionStderr) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker version command stderr on session ${state.ws.sessionId}: ${versionStderr.trim()}`
+        `[fetchRemoteDockerStatus] Docker version command stderr on session ${state.ws.sessionId}: ${versionStderr.trim()}`,
       );
     }
 
     if (!versionStdout.trim()) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker version check on session ${state.ws.sessionId} produced no output, assuming Docker unavailable.`
+        `[fetchRemoteDockerStatus] Docker version check on session ${state.ws.sessionId} produced no output, assuming Docker unavailable.`,
       );
       return { available: false, containers: [] };
     }
   } catch (error: unknown) {
     logger.error(
       `[fetchRemoteDockerStatus] Error executing docker version for session ${state.ws.sessionId}:`,
-      getErrorMessage(error)
+      getErrorMessage(error),
     );
     return { available: false, containers: [] };
   }
@@ -151,13 +151,13 @@ export async function fetchRemoteDockerStatus(
       psStderr.includes('Cannot connect to the Docker daemon')
     ) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker ps command failed unexpectedly after version check on session ${state.ws.sessionId}. Stderr: ${psStderr.trim()}`
+        `[fetchRemoteDockerStatus] Docker ps command failed unexpectedly after version check on session ${state.ws.sessionId}. Stderr: ${psStderr.trim()}`,
       );
       return { available: false, containers: [] };
     }
     if (psStderr) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker ps command stderr on session ${state.ws.sessionId}: ${psStderr.trim()}`
+        `[fetchRemoteDockerStatus] Docker ps command stderr on session ${state.ws.sessionId}: ${psStderr.trim()}`,
       );
     }
 
@@ -182,7 +182,7 @@ export async function fetchRemoteDockerStatus(
           return container;
         } catch (parseError: unknown) {
           logger.error(
-            `[fetchRemoteDockerStatus] Failed to parse container JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`
+            `[fetchRemoteDockerStatus] Failed to parse container JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`,
           );
           return null;
         }
@@ -191,7 +191,7 @@ export async function fetchRemoteDockerStatus(
   } catch (error: unknown) {
     logger.error(
       `[fetchRemoteDockerStatus] Error executing docker ps for session ${state.ws.sessionId}:`,
-      getErrorMessage(error)
+      getErrorMessage(error),
     );
     return { available: false, containers: [] };
   }
@@ -207,7 +207,7 @@ export async function fetchRemoteDockerStatus(
 
       if (cleanContainerIds.length === 0) {
         logger.warn(
-          `[fetchRemoteDockerStatus] All running container IDs failed sanitization for session ${state.ws.sessionId}.`
+          `[fetchRemoteDockerStatus] All running container IDs failed sanitization for session ${state.ws.sessionId}.`,
         );
         return { available: true, containers: allContainers }; // Return containers without stats
       }
@@ -237,7 +237,7 @@ export async function fetchRemoteDockerStatus(
 
       if (statsStderr) {
         logger.warn(
-          `[fetchRemoteDockerStatus] Docker stats command stderr on session ${state.ws.sessionId}: ${statsStderr.trim()}`
+          `[fetchRemoteDockerStatus] Docker stats command stderr on session ${state.ws.sessionId}: ${statsStderr.trim()}`,
         );
       }
 
@@ -250,14 +250,14 @@ export async function fetchRemoteDockerStatus(
           }
         } catch (parseError: unknown) {
           logger.error(
-            `[fetchRemoteDockerStatus] Failed to parse stats JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`
+            `[fetchRemoteDockerStatus] Failed to parse stats JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`,
           );
         }
       });
     } catch (error: unknown) {
       logger.warn(
         `[fetchRemoteDockerStatus] Error executing docker stats for session ${state.ws.sessionId}:`,
-        getErrorMessage(error)
+        getErrorMessage(error),
       );
     }
   }
@@ -275,19 +275,19 @@ export async function fetchRemoteDockerStatus(
 
 export async function handleDockerGetStatus(
   ws: AuthenticatedWebSocket,
-  sessionId: string | undefined
+  sessionId: string | undefined,
 ): Promise<void> {
   const state = sessionId ? clientStates.get(sessionId) : undefined;
   if (!state) {
     logger.warn(
-      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:get_status 请求，但无活动会话状态。`
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:get_status 请求，但无活动会话状态。`,
     );
     sendWsMessage(ws, 'docker:status:error', { message: 'Session state not found.' }, sessionId);
     return;
   }
   if (!state.sshClient) {
     logger.warn(
-      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:get_status 请求，但无活动 SSH 连接。`
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:get_status 请求，但无活动 SSH 连接。`,
     );
     sendWsMessage(ws, 'docker:status:error', { message: 'SSH connection not active.' }, sessionId);
     return;
@@ -308,7 +308,7 @@ export async function handleDockerGetStatus(
         ws,
         'docker:status:error',
         { message: `Failed to get remote Docker status: ${errorMessage}` },
-        sessionId
+        sessionId,
       );
     }
   }
@@ -317,19 +317,19 @@ export async function handleDockerGetStatus(
 export async function handleDockerCommand(
   ws: AuthenticatedWebSocket,
   sessionId: string | undefined,
-  payload: unknown
+  payload: unknown,
 ): Promise<void> {
   const commandPayload = parseDockerCommandPayload(payload);
   const state = sessionId ? clientStates.get(sessionId) : undefined;
   if (!state || !state.sshClient) {
     logger.warn(
-      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:command 请求，但无活动 SSH 连接。`
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:command 请求，但无活动 SSH 连接。`,
     );
     sendWsMessage(
       ws,
       'docker:command:error',
       { command: commandPayload.command, message: 'SSH connection not active.' },
-      sessionId
+      sessionId,
     );
     return;
   }
@@ -342,19 +342,19 @@ export async function handleDockerCommand(
   ) {
     logger.error(
       `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的无效 docker:command 请求。Payload:`,
-      payload
+      payload,
     );
     sendWsMessage(
       ws,
       'docker:command:error',
       { command, message: 'Invalid containerId or command.' },
-      sessionId
+      sessionId,
     );
     return;
   }
 
   logger.debug(
-    `WebSocket: Processing command '${command}' for container '${containerId}' on session ${sessionId}...`
+    `WebSocket: Processing command '${command}' for container '${containerId}' on session ${sessionId}...`,
   );
   try {
     const cleanContainerId = sanitizeDockerContainerId(containerId);
@@ -393,12 +393,12 @@ export async function handleDockerCommand(
         stream.on('close', (code: number | null) => {
           if (code === 0) {
             logger.info(
-              `WebSocket: 远程 Docker 命令 (${dockerCliCommand}) on session ${sessionId} 执行成功。`
+              `WebSocket: 远程 Docker 命令 (${dockerCliCommand}) on session ${sessionId} 执行成功。`,
             );
             resolve();
           } else {
             logger.error(
-              `WebSocket: 远程 Docker 命令 (${dockerCliCommand}) on session ${sessionId} 执行失败 (Code: ${code}). Stderr: ${stderr}`
+              `WebSocket: 远程 Docker 命令 (${dockerCliCommand}) on session ${sessionId} 执行失败 (Code: ${code}). Stderr: ${stderr}`,
             );
             reject(new Error(`Command failed with code ${code}. ${stderr || 'No stderr output.'}`));
           }
@@ -420,7 +420,7 @@ export async function handleDockerCommand(
   } catch (error: unknown) {
     logger.error(
       `WebSocket: 执行远程 Docker 命令 (${command} for ${containerId}) 失败 for session ${sessionId}:`,
-      error
+      error,
     );
     sendWsMessage(
       ws,
@@ -430,7 +430,7 @@ export async function handleDockerCommand(
         containerId,
         message: `Failed to execute remote command: ${getErrorMessage(error)}`,
       },
-      sessionId
+      sessionId,
     );
   }
 }
@@ -438,12 +438,12 @@ export async function handleDockerCommand(
 export async function handleDockerGetStats(
   ws: AuthenticatedWebSocket,
   sessionId: string | undefined,
-  payload: unknown
+  payload: unknown,
 ): Promise<void> {
   const state = sessionId ? clientStates.get(sessionId) : undefined;
   if (!state || !state.sshClient) {
     logger.warn(
-      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:get_stats 请求，但无活动 SSH 连接。`
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 docker:get_stats 请求，但无活动 SSH 连接。`,
     );
     sendWsMessage(
       ws,
@@ -452,7 +452,7 @@ export async function handleDockerGetStats(
         containerId: parseDockerStatsPayload(payload).containerId,
         message: 'SSH connection not active.',
       },
-      sessionId
+      sessionId,
     );
     return;
   }
@@ -460,13 +460,13 @@ export async function handleDockerGetStats(
   if (!containerId) {
     logger.warn(
       `WebSocket: Invalid payload for docker:get_stats in session ${sessionId}:`,
-      payload
+      payload,
     );
     sendWsMessage(
       ws,
       'docker:stats:error',
       { containerId, message: 'Missing containerId.' },
-      sessionId
+      sessionId,
     );
     return;
   }
@@ -475,19 +475,19 @@ export async function handleDockerGetStats(
   const cleanContainerId = sanitizeDockerContainerId(containerId);
   if (!cleanContainerId) {
     logger.error(
-      `WebSocket: Invalid container ID format after sanitization for session ${sessionId}: ${containerId}`
+      `WebSocket: Invalid container ID format after sanitization for session ${sessionId}: ${containerId}`,
     );
     sendWsMessage(
       ws,
       'docker:stats:error',
       { containerId, message: 'Invalid container ID format.' },
-      sessionId
+      sessionId,
     );
     return;
   }
 
   logger.debug(
-    `WebSocket: Handling docker:get_stats for container ${cleanContainerId} in session ${sessionId}`
+    `WebSocket: Handling docker:get_stats for container ${cleanContainerId} in session ${sessionId}`,
   );
   const command = `docker stats ${cleanContainerId} --no-stream --format '{{json .}}'`;
 
@@ -513,7 +513,7 @@ export async function handleDockerGetStats(
 
     if (execResult.stderr) {
       logger.error(
-        `WebSocket: Docker stats stderr for ${containerId} in session ${sessionId}: ${execResult.stderr}`
+        `WebSocket: Docker stats stderr for ${containerId} in session ${sessionId}: ${execResult.stderr}`,
       );
       sendWsMessage(
         ws,
@@ -522,14 +522,14 @@ export async function handleDockerGetStats(
           containerId,
           message: execResult.stderr.trim() || 'Error executing stats command.',
         },
-        sessionId
+        sessionId,
       );
       return;
     }
 
     if (!execResult.stdout) {
       logger.warn(
-        `WebSocket: No stats output for container ${containerId} in session ${sessionId}. Might be stopped or error occurred.`
+        `WebSocket: No stats output for container ${containerId} in session ${sessionId}. Might be stopped or error occurred.`,
       );
       if (!execResult.stderr) {
         sendWsMessage(
@@ -539,7 +539,7 @@ export async function handleDockerGetStats(
             containerId,
             message: 'No stats data received (container might be stopped).',
           },
-          sessionId
+          sessionId,
         );
       }
       return;
@@ -550,19 +550,19 @@ export async function handleDockerGetStats(
       sendWsMessage(ws, 'docker:stats:update', { containerId, stats: statsData }, sessionId);
     } catch (parseError: unknown) {
       logger.error(
-        `WebSocket: Failed to parse docker stats JSON for ${containerId} in session ${sessionId}: ${execResult.stdout} (${getErrorMessage(parseError)})`
+        `WebSocket: Failed to parse docker stats JSON for ${containerId} in session ${sessionId}: ${execResult.stdout} (${getErrorMessage(parseError)})`,
       );
       sendWsMessage(
         ws,
         'docker:stats:error',
         { containerId, message: 'Failed to parse stats data.' },
-        sessionId
+        sessionId,
       );
     }
   } catch (error: unknown) {
     logger.error(
       `WebSocket: Failed to execute docker stats for ${containerId} in session ${sessionId}:`,
-      error
+      error,
     );
     sendWsMessage(
       ws,
@@ -571,7 +571,7 @@ export async function handleDockerGetStats(
         containerId,
         message: getErrorMessage(error) || 'Failed to fetch Docker stats.',
       },
-      sessionId
+      sessionId,
     );
   }
 }
@@ -592,21 +592,21 @@ export async function startDockerStatusPolling(sessionId: string): Promise<void>
       if (!Number.isNaN(intervalSeconds) && intervalSeconds >= 1) {
         dockerPollIntervalMs = intervalSeconds * 1000;
         logger.debug(
-          `[Docker Polling] Using interval from settings: ${intervalSeconds}s (${dockerPollIntervalMs}ms) for session ${sessionId}`
+          `[Docker Polling] Using interval from settings: ${intervalSeconds}s (${dockerPollIntervalMs}ms) for session ${sessionId}`,
         );
       } else {
         logger.warn(
-          `[Docker Polling] Invalid interval setting '${intervalSetting}' found. Using default ${dockerPollIntervalMs}ms for session ${sessionId}`
+          `[Docker Polling] Invalid interval setting '${intervalSetting}' found. Using default ${dockerPollIntervalMs}ms for session ${sessionId}`,
         );
       }
     } else {
       logger.debug(
-        `[Docker Polling] No interval setting found. Using default ${dockerPollIntervalMs}ms for session ${sessionId}`
+        `[Docker Polling] No interval setting found. Using default ${dockerPollIntervalMs}ms for session ${sessionId}`,
       );
     }
   } catch (settingError: unknown) {
     logger.error(
-      `[Docker Polling] Error fetching interval setting for session ${sessionId}. Using default ${dockerPollIntervalMs}ms: ${getErrorMessage(settingError)}`
+      `[Docker Polling] Error fetching interval setting for session ${sessionId}. Using default ${dockerPollIntervalMs}ms: ${getErrorMessage(settingError)}`,
     );
   }
 
@@ -614,7 +614,7 @@ export async function startDockerStatusPolling(sessionId: string): Promise<void>
   if (state.dockerStatusIntervalId) {
     clearInterval(state.dockerStatusIntervalId);
     logger.debug(
-      `[Docker Polling] Cleared existing Docker status interval for session ${sessionId}.`
+      `[Docker Polling] Cleared existing Docker status interval for session ${sessionId}.`,
     );
   }
 
@@ -622,7 +622,7 @@ export async function startDockerStatusPolling(sessionId: string): Promise<void>
     const currentState = clientStates.get(sessionId); // Re-fetch state in case it changed (e.g., disconnected)
     if (!currentState || currentState.ws.readyState !== WebSocket.OPEN || !currentState.sshClient) {
       logger.debug(
-        `[Docker Polling] Session ${sessionId} no longer valid, WS closed, or SSH disconnected. Stopping poll.`
+        `[Docker Polling] Session ${sessionId} no longer valid, WS closed, or SSH disconnected. Stopping poll.`,
       );
       clearInterval(dockerIntervalId);
       if (currentState && currentState.dockerStatusIntervalId === dockerIntervalId) {
@@ -642,7 +642,7 @@ export async function startDockerStatusPolling(sessionId: string): Promise<void>
     } catch (error: unknown) {
       logger.error(
         `[Docker Polling] Error fetching Docker status for session ${sessionId}:`,
-        getErrorMessage(error)
+        getErrorMessage(error),
       );
     } finally {
       dockerPollInFlightSessions.delete(sessionId);
@@ -662,7 +662,7 @@ export async function startDockerStatusPolling(sessionId: string): Promise<void>
       } catch (error: unknown) {
         logger.error(
           `[Docker Initial Fetch] Error fetching Docker status for session ${sessionId}:`,
-          getErrorMessage(error)
+          getErrorMessage(error),
         );
         if (initialState.ws.readyState === WebSocket.OPEN) {
           const errorMessage = getErrorMessage(error) || 'Unknown error during initial fetch';
@@ -674,14 +674,14 @@ export async function startDockerStatusPolling(sessionId: string): Promise<void>
               initialState.ws,
               'docker:status:update',
               { available: false, containers: [] },
-              sessionId
+              sessionId,
             );
           } else {
             sendWsMessage(
               initialState.ws,
               'docker:status:error',
               { message: `Initial Docker status fetch failed: ${errorMessage}` },
-              sessionId
+              sessionId,
             );
           }
         }

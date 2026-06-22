@@ -102,7 +102,7 @@ onMounted(() => {
     () => {
       itemRefs.value = [];
     },
-    { flush: 'pre' }
+    { flush: 'pre' },
   );
 });
 

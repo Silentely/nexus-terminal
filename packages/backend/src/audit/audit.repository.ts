@@ -26,7 +26,7 @@ export class AuditLogRepository {
   async addLog(
     actionType: AuditLogActionType,
     details?: Record<string, unknown> | string | null,
-    userId?: number | null
+    userId?: number | null,
   ): Promise<void> {
     const timestamp = Math.floor(Date.now() / 1000);
     let detailsString: string | null = null;
@@ -109,7 +109,7 @@ export class AuditLogRepository {
       if (total > MAX_LOG_ENTRIES) {
         const logsToDelete = total - MAX_LOG_ENTRIES;
         logger.info(
-          `[审计日志] 日志数量 (${total}) 超过限制 (${MAX_LOG_ENTRIES})。正在删除 ${logsToDelete} 条最旧的记录。`
+          `[审计日志] 日志数量 (${total}) 超过限制 (${MAX_LOG_ENTRIES})。正在删除 ${logsToDelete} 条最旧的记录。`,
         );
         await runDb(db, deleteSql, [logsToDelete]);
       }
@@ -124,26 +124,38 @@ export class AuditLogRepository {
    * @returns 删除的记录数
    */
   async deleteAllLogs(): Promise<number> {
-    const sql = 'DELETE FROM audit_logs';
     try {
       const db = await getDbInstance();
-      const result = await runDb(db, sql, []);
-      logger.info(`[审计日志] 已删除所有审计日志，共 ${result.changes} 条记录。`);
 
-      // 同步清理 IP 地理定位缓存（审计日志清除后缓存不再需要）
+      // 使用事务确保原子性：审计日志和 IP 缓存要么都删除，要么都不删除
+      let deletedCount = 0;
+      await runDb(db, 'BEGIN TRANSACTION');
       try {
-        await runDb(db, 'DELETE FROM ip_geo_cache', []);
-        logger.info('[审计日志] 已同步清理 IP 地理定位缓存。');
-      } catch {
-        // 缓存清理失败不影响审计日志删除的主流程
-      }
+        const result = await runDb(db, 'DELETE FROM audit_logs', []);
+        deletedCount = result.changes;
 
-      return result.changes;
+        // 同步清理 IP 地理定位缓存（审计日志清除后缓存不再需要）
+        await runDb(db, 'DELETE FROM ip_geo_cache', []);
+
+        await runDb(db, 'COMMIT');
+        // 成功日志放在 COMMIT 之后记录，避免回滚时产生误导
+        logger.info(`[审计日志] 已删除所有审计日志，共 ${deletedCount} 条记录。`);
+        logger.info('[审计日志] 已同步清理 IP 地理定位缓存。');
+      } catch (err) {
+        // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
+        try {
+          await runDb(db, 'ROLLBACK');
+        } catch (rollbackErr) {
+          logger.error('[审计日志] deleteAllLogs rollback 失败:', rollbackErr);
+        }
+        throw err;
+      }
+      return deletedCount;
     } catch (err: unknown) {
       logger.error(`[审计日志] 删除所有日志时出错: ${getErrorMessage(err)}`);
       throw ErrorFactory.databaseError(
         '删除审计日志失败',
-        `删除审计日志失败: ${getErrorMessage(err)}`
+        `删除审计日志失败: ${getErrorMessage(err)}`,
       );
     }
   }
@@ -162,7 +174,7 @@ export class AuditLogRepository {
       logger.error(`[审计日志] 获取日志总数时出错: ${getErrorMessage(err)}`);
       throw ErrorFactory.databaseError(
         '获取审计日志总数失败',
-        `获取审计日志总数失败: ${getErrorMessage(err)}`
+        `获取审计日志总数失败: ${getErrorMessage(err)}`,
       );
     }
   }
@@ -182,7 +194,7 @@ export class AuditLogRepository {
     actionType?: AuditLogActionType,
     startDate?: number,
     endDate?: number,
-    searchTerm?: string // 添加 searchTerm 参数
+    searchTerm?: string, // 添加 searchTerm 参数
   ): Promise<{ logs: AuditLogEntry[]; total: number }> {
     let baseSql = 'SELECT * FROM audit_logs';
     let countSql = 'SELECT COUNT(*) as total FROM audit_logs';
@@ -225,7 +237,7 @@ export class AuditLogRepository {
       logger.error(`获取审计日志时出错:`, getErrorMessage(err));
       throw ErrorFactory.databaseError(
         '获取审计日志失败',
-        `获取审计日志时出错: ${getErrorMessage(err)}`
+        `获取审计日志时出错: ${getErrorMessage(err)}`,
       );
     }
   }

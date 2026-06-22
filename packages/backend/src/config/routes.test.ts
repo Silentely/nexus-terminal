@@ -50,10 +50,10 @@ describe('config/routes', () => {
   let getCalls: unknown[][];
 
   const mockApiLimiter = vi.fn((_req: Request, _res: Response, next: NextFunction) =>
-    next()
+    next(),
   ) as unknown as RequestHandler;
   const mockSettingsLimiter = vi.fn((_req: Request, _res: Response, next: NextFunction) =>
-    next()
+    next(),
   ) as unknown as RequestHandler;
 
   beforeEach(() => {

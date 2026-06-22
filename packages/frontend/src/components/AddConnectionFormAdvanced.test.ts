@@ -466,7 +466,7 @@ describe('AddConnectionFormAdvanced.vue', () => {
       wrapper = createComponent(createMockFormData());
 
       expect(wrapper.find('textarea#conn-notes').attributes('placeholder')).toContain(
-        '输入连接备注'
+        '输入连接备注',
       );
     });
 

@@ -23,7 +23,7 @@ type Edge =
 
 export function useResizable(
   elementRef: Ref<HTMLElement | null>,
-  options: UseResizableOptions = {}
+  options: UseResizableOptions = {},
 ) {
   const {
     minWidth = 100, // Default min width

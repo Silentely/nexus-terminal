@@ -58,7 +58,7 @@ export function parseIpRange(ipRangeStr: string, t: TranslateFn): string[] | { e
     return {
       error: t(
         'connections.form.errorIpRangeNotSameSubnet',
-        'IP 范围必须在同一个C段子网中 (例如 1.2.3.x ~ 1.2.3.y)'
+        'IP 范围必须在同一个C段子网中 (例如 1.2.3.x ~ 1.2.3.y)',
       ),
     };
   }
@@ -104,7 +104,7 @@ export function parseIpRange(ipRangeStr: string, t: TranslateFn): string[] | { e
  */
 export function parseScriptLine(
   line: string,
-  t: TranslateFn
+  t: TranslateFn,
 ): {
   type: ConnectionType;
   userHostPort: string;

@@ -107,7 +107,7 @@ watch(
     localEditorContent.value = newTab?.content ?? '';
     updateSelectWidth(); // Update select width when tab changes
   },
-  { immediate: true }
+  { immediate: true },
 ); // immediate: true ensures it runs on initial load too
 
 // 移除用于调试的 watch 函数
@@ -236,7 +236,7 @@ const handleLineEndingChange = (event: Event) => {
   const newLineEnding = target.value as 'lf' | 'crlf' | 'cr';
   if (activeTab.value && newLineEnding && newLineEnding !== currentLineEnding.value) {
     log.info(
-      `[EditorContainer] Line ending changed to ${newLineEnding} for tab ${activeTab.value.id}`
+      `[EditorContainer] Line ending changed to ${newLineEnding} for tab ${activeTab.value.id}`,
     );
     emitWorkspaceEvent('editor:changeLineEnding', {
       tabId: activeTab.value.id,

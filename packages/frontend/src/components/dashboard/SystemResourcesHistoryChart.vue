@@ -31,7 +31,7 @@ ChartJS.register(
   LineElement,
   LinearScale,
   PointElement,
-  CategoryScale
+  CategoryScale,
 );
 
 const props = defineProps<{
@@ -48,7 +48,7 @@ const appearanceStore = useAppearanceStore();
 
 const textColor = computed(() => appearanceStore.currentUiTheme['--text-color'] || '#333333');
 const textColorSecondary = computed(
-  () => appearanceStore.currentUiTheme['--text-color-secondary'] || '#666666'
+  () => appearanceStore.currentUiTheme['--text-color-secondary'] || '#666666',
 );
 const borderColor = computed(() => appearanceStore.currentUiTheme['--border-color'] || '#cccccc');
 
@@ -59,7 +59,7 @@ const labels = computed(() =>
       .getSeconds()
       .toString()
       .padStart(2, '0')}`;
-  })
+  }),
 );
 
 const chartData = computed<ChartData<'line'>>(() => ({

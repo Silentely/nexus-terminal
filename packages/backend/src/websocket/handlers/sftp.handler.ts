@@ -7,6 +7,7 @@ import { clientStates, sftpService } from '../state';
 import { getErrorMessage } from '../../utils/AppError';
 import { logger } from '../../utils/logger';
 import { sendWsMessage } from '../utils';
+import { validateSafePath } from '../../sftp/sftp-path.utils';
 
 type SftpOperationPayload = {
   path?: string;
@@ -45,7 +46,7 @@ export async function handleSftpOperation(
   type: string,
   payload: SftpOperationPayload,
   requestId?: string,
-  overrideSessionId?: string
+  overrideSessionId?: string,
 ): Promise<void> {
   const sessionId = overrideSessionId ?? ws.sessionId;
   const state = sessionId ? clientStates.get(sessionId) : undefined;
@@ -60,7 +61,7 @@ export async function handleSftpOperation(
   if (!requestId) {
     logger.error(
       { username: ws.username, sessionId, type },
-      'WebSocket: SFTP 请求收到但缺少 requestId'
+      'WebSocket: SFTP 请求收到但缺少 requestId',
     );
     sendWsMessage(ws, 'sftp_error', { message: `SFTP 操作 ${type} 缺少 requestId` }, sessionId);
     return;
@@ -69,75 +70,116 @@ export async function handleSftpOperation(
   try {
     switch (type) {
       case 'sftp:readdir':
-        if (payload?.path) sftpService.readdir(sessionId, payload.path, requestId);
-        else throw new Error("Missing 'path' in payload for readdir");
+        if (payload?.path && validateSafePath(payload.path))
+          sftpService.readdir(sessionId, payload.path, requestId);
+        else throw new Error("Missing or unsafe 'path' in payload for readdir");
         break;
       case 'sftp:stat':
-        if (payload?.path) sftpService.stat(sessionId, payload.path, requestId);
-        else throw new Error("Missing 'path' in payload for stat");
+        if (payload?.path && validateSafePath(payload.path))
+          sftpService.stat(sessionId, payload.path, requestId);
+        else throw new Error("Missing or unsafe 'path' in payload for stat");
         break;
       case 'sftp:readfile':
-        if (payload?.path) {
+        if (payload?.path && validateSafePath(payload.path)) {
           const requestedEncoding = payload?.encoding;
           sftpService.readFile(sessionId, payload.path, requestId, requestedEncoding);
         } else {
-          throw new Error("Missing 'path' in payload for readfile");
+          throw new Error("Missing or unsafe 'path' in payload for readfile");
         }
         break;
       case 'sftp:writefile':
         const fileContent = payload?.content ?? payload?.data;
         const encoding = payload?.encoding;
-        if (payload?.path) {
+        if (payload?.path && validateSafePath(payload.path)) {
           if (fileContent === undefined || fileContent === null) {
             throw new Error("Missing 'content' or 'data' in payload for writefile");
           }
           const dataToSend = typeof fileContent === 'string' ? fileContent : String(fileContent);
           await sftpService.writefile(sessionId, payload.path, dataToSend, requestId, encoding);
-        } else throw new Error("Missing 'path' in payload for writefile");
+        } else throw new Error("Missing or unsafe 'path' in payload for writefile");
         break;
       case 'sftp:mkdir':
-        if (payload?.path) sftpService.mkdir(sessionId, payload.path, requestId);
-        else throw new Error("Missing 'path' in payload for mkdir");
+        if (payload?.path && validateSafePath(payload.path))
+          sftpService.mkdir(sessionId, payload.path, requestId);
+        else throw new Error("Missing or unsafe 'path' in payload for mkdir");
         break;
       case 'sftp:rmdir':
-        if (payload?.path) sftpService.rmdir(sessionId, payload.path, requestId);
-        else throw new Error("Missing 'path' in payload for rmdir");
+        if (payload?.path && validateSafePath(payload.path))
+          sftpService.rmdir(sessionId, payload.path, requestId);
+        else throw new Error("Missing or unsafe 'path' in payload for rmdir");
         break;
       case 'sftp:unlink':
-        if (payload?.path) sftpService.unlink(sessionId, payload.path, requestId);
-        else throw new Error("Missing 'path' in payload for unlink");
+        if (payload?.path && validateSafePath(payload.path))
+          sftpService.unlink(sessionId, payload.path, requestId);
+        else throw new Error("Missing or unsafe 'path' in payload for unlink");
         break;
       case 'sftp:rename':
-        if (payload?.oldPath && payload?.newPath)
+        if (
+          payload?.oldPath &&
+          payload?.newPath &&
+          validateSafePath(payload.oldPath) &&
+          validateSafePath(payload.newPath)
+        )
           sftpService.rename(sessionId, payload.oldPath, payload.newPath, requestId);
-        else throw new Error("Missing 'oldPath' or 'newPath' in payload for rename");
+        else throw new Error("Missing or unsafe 'oldPath' or 'newPath' in payload for rename");
         break;
       case 'sftp:chmod':
-        if (payload?.path && typeof payload?.mode === 'number')
+        if (payload?.path && typeof payload?.mode === 'number' && validateSafePath(payload.path))
           sftpService.chmod(sessionId, payload.path, payload.mode, requestId);
-        else throw new Error("Missing 'path' or invalid 'mode' in payload for chmod");
+        else throw new Error("Missing or unsafe 'path' or invalid 'mode' in payload for chmod");
         break;
       case 'sftp:realpath':
-        if (payload?.path) sftpService.realpath(sessionId, payload.path, requestId);
-        else throw new Error("Missing 'path' in payload for realpath");
+        if (payload?.path && validateSafePath(payload.path))
+          sftpService.realpath(sessionId, payload.path, requestId);
+        else throw new Error("Missing or unsafe 'path' in payload for realpath");
         break;
       case 'sftp:copy':
-        if (Array.isArray(payload?.sources) && payload?.destination) {
+        if (
+          Array.isArray(payload?.sources) &&
+          payload?.destination &&
+          validateSafePath(payload.destination as string)
+        ) {
+          // 校验每个源路径
+          const allSourcesSafe = (payload.sources as string[]).every((s: string) =>
+            validateSafePath(s),
+          );
+          if (!allSourcesSafe) throw new Error("Unsafe path in 'sources' for copy");
           sftpService.copy(sessionId, payload.sources, payload.destination, requestId);
-        } else throw new Error("Missing 'sources' (array) or 'destination' in payload for copy");
+        } else
+          throw new Error(
+            "Missing or unsafe 'sources' (array) or 'destination' in payload for copy",
+          );
         break;
       case 'sftp:move':
-        if (Array.isArray(payload?.sources) && payload?.destination) {
+        if (
+          Array.isArray(payload?.sources) &&
+          payload?.destination &&
+          validateSafePath(payload.destination as string)
+        ) {
+          const allSourcesSafe = (payload.sources as string[]).every((s: string) =>
+            validateSafePath(s),
+          );
+          if (!allSourcesSafe) throw new Error("Unsafe path in 'sources' for move");
           sftpService.move(sessionId, payload.sources, payload.destination, requestId);
-        } else throw new Error("Missing 'sources' (array) or 'destination' in payload for move");
+        } else
+          throw new Error(
+            "Missing or unsafe 'sources' (array) or 'destination' in payload for move",
+          );
         break;
       case 'sftp:compress':
         if (
           Array.isArray(payload?.sources) &&
           payload?.destination &&
           payload?.format &&
-          requestId
+          typeof payload.format === 'string' &&
+          ['zip', 'targz', 'tarbz2'].includes(payload.format) &&
+          requestId &&
+          validateSafePath(payload.destination as string)
         ) {
+          const allSourcesSafe = (payload.sources as string[]).every((s: string) =>
+            validateSafePath(s),
+          );
+          if (!allSourcesSafe) throw new Error("Unsafe path in 'sources' for compress");
           const destinationPath = payload.destination as string;
           // 从 destinationPath 中提取 targetDirectory 和 destinationArchiveName
           // pathModule.posix 总是使用 / 作为分隔符
@@ -155,11 +197,11 @@ export async function handleSftpOperation(
           sftpService.compress(sessionId, compressPayload);
         } else
           throw new Error(
-            "Missing 'sources' (array), 'destination', 'format', or 'requestId' in payload for compress"
+            "Missing 'sources' (array), 'destination', 'format', or 'requestId' in payload for compress",
           );
         break;
       case 'sftp:decompress':
-        if (payload?.source && requestId) {
+        if (payload?.source && requestId && validateSafePath(payload.source as string)) {
           const decompressPayload: SftpDecompressRequestPayload = {
             archivePath: payload.source,
             // destinationDirectory: payload.destination as string, // sftpService.decompress 目前不使用此参数
@@ -174,7 +216,7 @@ export async function handleSftpOperation(
           ws,
           'sftp_error',
           { message: `内部未处理的 SFTP 类型: ${type}`, requestId },
-          sessionId
+          sessionId,
         );
         throw new Error(`Unhandled SFTP type: ${type}`);
     }
@@ -182,13 +224,13 @@ export async function handleSftpOperation(
     const sftpCallErrMsg = getErrorMessage(sftpCallError);
     logger.error(
       `WebSocket: Error preparing/calling SFTP service for ${type} (Request ID: ${requestId}):`,
-      sftpCallError
+      sftpCallError,
     );
     sendWsMessage(
       ws,
       'sftp_error',
       { message: `处理 SFTP 请求 ${type} 时出错: ${sftpCallErrMsg}`, requestId },
-      sessionId
+      sessionId,
     );
   }
 }
@@ -196,7 +238,7 @@ export async function handleSftpOperation(
 export function handleSftpUploadStart(
   ws: AuthenticatedWebSocket,
   payload: SftpUploadStartPayload,
-  overrideSessionId?: string
+  overrideSessionId?: string,
 ): void {
   const sessionId = overrideSessionId ?? ws.sessionId;
   const state = sessionId ? clientStates.get(sessionId) : undefined;
@@ -207,39 +249,52 @@ export function handleSftpUploadStart(
       ws,
       'sftp:upload:error',
       { uploadId: payload?.uploadId, message: '无效的会话' },
-      sessionId
+      sessionId,
     );
     return;
   }
   if (!payload?.uploadId || !payload?.remotePath || typeof payload?.size !== 'number') {
     logger.error(
-      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:start 请求，但缺少 uploadId, remotePath 或 size。`
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:start 请求，但缺少 uploadId, remotePath 或 size。`,
     );
     sendWsMessage(
       ws,
       'sftp:upload:error',
       { uploadId: payload?.uploadId, message: '缺少 uploadId, remotePath 或 size' },
-      sessionId
+      sessionId,
+    );
+    return;
+  }
+  // 校验上传目标路径，防止路径穿越和 Shell 注入（与 handleSftpOperation 保持一致）
+  if (!validateSafePath(payload.remotePath)) {
+    logger.warn(
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:start 请求，但 remotePath 不安全: ${payload.remotePath}`,
+    );
+    sendWsMessage(
+      ws,
+      'sftp:upload:error',
+      { uploadId: payload.uploadId, message: '无效或不安全的上传路径' },
+      sessionId,
     );
     return;
   }
   const relativePath = payload?.relativePath;
   logger.info(
-    `WebSocket: SFTP Upload Start - Session: ${sessionId}, UploadID: ${payload.uploadId}, RemotePath: ${payload.remotePath}, Size: ${payload.size}, RelativePath: ${relativePath}`
+    `WebSocket: SFTP Upload Start - Session: ${sessionId}, UploadID: ${payload.uploadId}, RemotePath: ${payload.remotePath}, Size: ${payload.size}, RelativePath: ${relativePath}`,
   );
   sftpService.startUpload(
     sessionId,
     payload.uploadId,
     payload.remotePath,
     payload.size,
-    relativePath
+    relativePath,
   );
 }
 
 export async function handleSftpUploadChunk(
   ws: AuthenticatedWebSocket,
   payload: SftpUploadChunkPayload,
-  overrideSessionId?: string
+  overrideSessionId?: string,
 ): Promise<void> {
   const sessionId = overrideSessionId ?? ws.sessionId;
   const state = sessionId ? clientStates.get(sessionId) : undefined;
@@ -251,7 +306,7 @@ export async function handleSftpUploadChunk(
     typeof payload?.data !== 'string'
   ) {
     logger.error(
-      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:chunk 请求，但缺少 uploadId, chunkIndex 或 data。`
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:chunk 请求，但缺少 uploadId, chunkIndex 或 data。`,
     );
     // Optionally send error to client, but be mindful of flooding for many chunks
     return;
@@ -261,14 +316,14 @@ export async function handleSftpUploadChunk(
     payload.uploadId,
     payload.chunkIndex,
     payload.data,
-    payload.isLast
+    payload.isLast,
   );
 }
 
 export function handleSftpUploadCancel(
   ws: AuthenticatedWebSocket,
   payload: SftpUploadCancelPayload,
-  overrideSessionId?: string
+  overrideSessionId?: string,
 ): void {
   const sessionId = overrideSessionId ?? ws.sessionId;
   const state = sessionId ? clientStates.get(sessionId) : undefined;
@@ -276,13 +331,13 @@ export function handleSftpUploadCancel(
 
   if (!payload?.uploadId) {
     logger.error(
-      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:cancel 请求，但缺少 uploadId。`
+      `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的 sftp:upload:cancel 请求，但缺少 uploadId。`,
     );
     sendWsMessage(
       ws,
       'sftp:upload:error',
       { uploadId: payload?.uploadId, message: '缺少 uploadId' },
-      sessionId
+      sessionId,
     );
     return;
   }

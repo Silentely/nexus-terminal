@@ -101,7 +101,7 @@
           <small class="block mt-1 text-xs text-warning italic">{{
             $t(
               'settings.captcha.secretKeyEmptyHint',
-              '留空则保留原有密钥，如需清除请填写新值后保存。'
+              '留空则保留原有密钥，如需清除请填写新值后保存。',
             )
           }}</small>
         </div>
@@ -155,7 +155,7 @@
           <small class="block mt-1 text-xs text-warning italic">{{
             $t(
               'settings.captcha.secretKeyEmptyHint',
-              '留空则保留原有密钥，如需清除请填写新值后保存。'
+              '留空则保留原有密钥，如需清除请填写新值后保存。',
             )
           }}</small>
         </div>

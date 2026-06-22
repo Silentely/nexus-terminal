@@ -220,7 +220,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers,
         },
-        'session-1'
+        'session-1',
       );
 
       expect(manager.containers.value.length).toBe(2);
@@ -239,7 +239,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer()],
         },
-        'session-2'
+        'session-2',
       ); // 不同的 sessionId
 
       // 应该仍然为空（初始状态）
@@ -257,7 +257,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer()],
         },
-        'session-1'
+        'session-1',
       );
       expect(manager.containers.value.length).toBe(1);
 
@@ -267,7 +267,7 @@ describe('useDockerManager (createDockerManager)', () => {
         {
           available: false,
         },
-        'session-1'
+        'session-1',
       );
 
       expect(manager.containers.value).toEqual([]);
@@ -297,7 +297,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers,
         },
-        'session-1'
+        'session-1',
       );
 
       expect(manager.expandedContainerIds.value.has('c1')).toBe(true);
@@ -315,7 +315,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer({ id: 'c1' }), createTestContainer({ id: 'c2' })],
         },
-        'session-1'
+        'session-1',
       );
 
       // 展开 c2
@@ -329,7 +329,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer({ id: 'c1' })],
         },
-        'session-1'
+        'session-1',
       );
 
       expect(manager.expandedContainerIds.value.has('c2')).toBe(false);
@@ -346,7 +346,7 @@ describe('useDockerManager (createDockerManager)', () => {
         {
           message: 'Docker daemon not running',
         },
-        'session-1'
+        'session-1',
       );
 
       expect(manager.error.value).toBe('Docker daemon not running');
@@ -398,7 +398,7 @@ describe('useDockerManager (createDockerManager)', () => {
         {
           available: false,
         },
-        'session-1'
+        'session-1',
       );
 
       mockSendMessage.mockClear();
@@ -418,7 +418,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer({ id: 'c1', State: 'exited' })],
         },
-        'session-1'
+        'session-1',
       );
 
       mockSendMessage.mockClear();
@@ -441,7 +441,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer({ id: 'c1' })],
         },
-        'session-1'
+        'session-1',
       );
 
       mockSendMessage.mockClear();
@@ -464,7 +464,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer({ id: 'c1' })],
         },
-        'session-1'
+        'session-1',
       );
 
       mockSendMessage.mockClear();
@@ -487,7 +487,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer({ id: 'c1', State: 'exited' })],
         },
-        'session-1'
+        'session-1',
       );
 
       mockSendMessage.mockClear();
@@ -528,7 +528,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer({ id: 'c1' })],
         },
-        'session-1'
+        'session-1',
       );
       manager.toggleExpand('c1');
 
@@ -572,7 +572,7 @@ describe('useDockerManager (createDockerManager)', () => {
           available: true,
           containers: [createTestContainer()],
         },
-        'session-1'
+        'session-1',
       );
       expect(manager.containers.value.length).toBe(1);
 

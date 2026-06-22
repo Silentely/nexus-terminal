@@ -106,7 +106,7 @@ watch(
     } else {
       document.removeEventListener('click', handleGlobalClick);
     }
-  }
+  },
 );
 
 // 监听位置变化，在菜单已显示时重新调整
@@ -118,7 +118,7 @@ watch(
       nextTick(() => adjustPosition());
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 // 组件卸载时清理事件监听

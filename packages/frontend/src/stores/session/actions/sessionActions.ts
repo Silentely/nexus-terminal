@@ -27,7 +27,7 @@ import { log } from '@/utils/log';
 // --- 辅助函数 (特定于此模块的 actions) ---
 const findConnectionInfo = (
   connectionId: number | string,
-  connectionsStore: ReturnType<typeof useConnectionsStore>
+  connectionsStore: ReturnType<typeof useConnectionsStore>,
 ): ConnectionInfo | undefined => {
   return connectionsStore.connections.find((c) => c.id === Number(connectionId));
 };
@@ -40,7 +40,7 @@ export const openNewSession = (
     t: ReturnType<typeof useI18n>['t'];
     showError?: (message: string) => void;
   },
-  existingSessionId?: string // 可选的预定义会话 ID
+  existingSessionId?: string, // 可选的预定义会话 ID
 ) => {
   const { connectionsStore, t, showError } = dependencies;
   let connInfo: ConnectionInfo | undefined;
@@ -55,7 +55,7 @@ export const openNewSession = (
   }
 
   log.info(
-    `[SessionActions] 请求打开新会话: ${connIdForLog}${existingSessionId ? `, 使用预定义 ID: ${existingSessionId}` : ''}`
+    `[SessionActions] 请求打开新会话: ${connIdForLog}${existingSessionId ? `, 使用预定义 ID: ${existingSessionId}` : ''}`,
   );
   if (!connInfo) {
     log.error(`[SessionActions] 无法打开新会话：找不到 ID 为 ${connIdForLog} 的连接信息。`);
@@ -163,7 +163,7 @@ export const openNewSession = (
       const backendCID = String(connectedPayload.connectionId);
 
       log.info(
-        `[SessionActions/ssh:connected] 收到消息。前端初始SID: ${originalFrontendSessionIdForHandler}, 后端SID: ${backendSID}, 后端CID: ${backendCID}`
+        `[SessionActions/ssh:connected] 收到消息。前端初始SID: ${originalFrontendSessionIdForHandler}, 后端SID: ${backendSID}, 后端CID: ${backendCID}`,
       );
 
       // reconnect 后会话键可能已从初始 SID 改写，优先按 wsManager 反查'当前'会话键。
@@ -189,21 +189,21 @@ export const openNewSession = (
       if (sessionToUpdate && currentFrontendSessionId) {
         if (sessionToUpdate.connectionId !== backendCID) {
           log.warn(
-            `[SessionActions/ssh:connected] 后端CID ${backendCID} 与会话 ${currentFrontendSessionId} 的期望CID ${sessionToUpdate.connectionId} 不匹配。终止SID更新。`
+            `[SessionActions/ssh:connected] 后端CID ${backendCID} 与会话 ${currentFrontendSessionId} 的期望CID ${sessionToUpdate.connectionId} 不匹配。终止SID更新。`,
           );
           return;
         }
 
         if (backendSID && backendSID !== currentFrontendSessionId) {
           log.info(
-            `[SessionActions/ssh:connected] 会话ID需要更新：从 ${currentFrontendSessionId} 到 ${backendSID}。`
+            `[SessionActions/ssh:connected] 会话ID需要更新：从 ${currentFrontendSessionId} 到 ${backendSID}。`,
           );
           const currentSessions = new Map(sessions.value);
           const existingSession = currentSessions.get(backendSID);
           if (existingSession && existingSession !== sessionToUpdate) {
             // 防止异常时序下把另一个会话覆盖到同一 SID。
             log.warn(
-              `[SessionActions/ssh:connected] 检测到 SID 冲突：目标 SID ${backendSID} 已绑定其他会话，跳过本次重映射。`
+              `[SessionActions/ssh:connected] 检测到 SID 冲突：目标 SID ${backendSID} 已绑定其他会话，跳过本次重映射。`,
             );
             return;
           }
@@ -227,24 +227,24 @@ export const openNewSession = (
           });
         } else if (backendSID === currentFrontendSessionId) {
           log.info(
-            `[SessionActions/ssh:connected] 后端SID ${backendSID} 与前端当前SID匹配。无需重新键控。`
+            `[SessionActions/ssh:connected] 后端SID ${backendSID} 与前端当前SID匹配。无需重新键控。`,
           );
         } else {
           log.error(
             `[SessionActions/ssh:connected] 从后端收到的 ssh:connected 消息中缺少有效的sessionId。Payload:`,
-            connectedPayload
+            connectedPayload,
           );
         }
       } else {
         log.warn(
-          `[SessionActions/ssh:connected] 当处理后端SID ${backendSID} 时，未找到与当前 wsManager 绑定的会话（初始SID: ${originalFrontendSessionIdForHandler}）。`
+          `[SessionActions/ssh:connected] 当处理后端SID ${backendSID} 时，未找到与当前 wsManager 绑定的会话（初始SID: ${originalFrontendSessionIdForHandler}）。`,
         );
       }
       // 此处理器主要用于初始的 sessionId 同步，通常在第一次收到 ssh:connected 后就可以注销，
       // 以避免后续可能的意外重连消息再次触发此逻辑。
       // 但如果 backendID 保证在 ssh:connected 时才首次确定，则保留可能也无害。
       // 为简单起见，暂不在此处自动注销。注销将在 closeSession 中处理。
-    }
+    },
   );
 
   if (newSession.disposables) {
@@ -273,7 +273,7 @@ export const openNewSession = (
       });
   } else if (connInfo) {
     log.info(
-      `[SessionActions] 会话 ${newSessionId} 类型为 ${connInfo.type}，不注册 SSH 挂起处理器。`
+      `[SessionActions] 会话 ${newSessionId} 类型为 ${connInfo.type}，不注册 SSH 挂起处理器。`,
     );
   }
 };
@@ -310,7 +310,7 @@ export const closeSession = (sessionId: string) => {
   sessionToClose.sftpManagers.forEach((manager, instanceId) => {
     manager.cleanup();
     log.info(
-      `[SessionActions] 已为会话 ${sessionId} 的 sftpManager (实例 ${instanceId}) 调用 cleanup()`
+      `[SessionActions] 已为会话 ${sessionId} 的 sftpManager (实例 ${instanceId}) 调用 cleanup()`,
     );
   });
   sessionToClose.sftpManagers.clear();
@@ -357,7 +357,7 @@ export const handleConnectRequest = (
     openRdpModalAction: (connection: ConnectionInfo) => void; // 来自 modalActions
     openVncModalAction: (connection: ConnectionInfo) => void; // 来自 modalActions
     t: ReturnType<typeof useI18n>['t'];
-  }
+  },
 ) => {
   const { connectionsStore, router, openRdpModalAction, openVncModalAction, t } = dependencies;
 
@@ -374,7 +374,7 @@ export const handleConnectRequest = (
       if (currentActiveSession && currentActiveSession.connectionId === connIdStr) {
         const currentStatus = currentActiveSession.wsManager.connectionStatus.value;
         log.info(
-          `[SessionActions] 点击的是当前活动会话 ${activeSessionId.value}，状态: ${currentStatus}`
+          `[SessionActions] 点击的是当前活动会话 ${activeSessionId.value}，状态: ${currentStatus}`,
         );
         if (currentStatus === 'disconnected' || currentStatus === 'error') {
           activeAndDisconnected = true;
@@ -383,7 +383,7 @@ export const handleConnectRequest = (
           const wsHostAndPort = window.location.host;
           const wsUrl = `${protocol}//${wsHostAndPort}/ws/`;
           log.info(
-            `[SessionActions handleConnectRequest] Generated WebSocket URL for reconnect: ${wsUrl}`
+            `[SessionActions handleConnectRequest] Generated WebSocket URL for reconnect: ${wsUrl}`,
           );
           currentActiveSession.wsManager.connect(wsUrl);
           activateSession(activeSessionId.value);
@@ -394,7 +394,7 @@ export const handleConnectRequest = (
 
     if (!activeAndDisconnected) {
       log.info(
-        `[SessionActions] 不满足重连条件或点击了其他连接，将打开新会话 for ID: ${connIdStr}`
+        `[SessionActions] 不满足重连条件或点击了其他连接，将打开新会话 for ID: ${connIdStr}`,
       );
       openNewSession(connIdStr, { connectionsStore, t });
       router.push({ name: 'Workspace' });
@@ -407,7 +407,7 @@ export const handleOpenNewSession = (
   dependencies: {
     connectionsStore: ReturnType<typeof useConnectionsStore>;
     t: ReturnType<typeof useI18n>['t'];
-  }
+  },
 ) => {
   log.info(`[SessionActions] handleOpenNewSession called for ID: ${connectionId}`);
   openNewSession(connectionId, dependencies); // existingSessionId 将为 undefined，因此会生成新的

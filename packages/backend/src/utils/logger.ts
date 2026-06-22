@@ -55,6 +55,7 @@ function createPinoInstance(): pino.Logger {
       hour12: false,
     });
   } catch {
+    // 不能使用 logger，此时 logger 尚未初始化会导致无限递归
     // 时区无效时回退到 ISO 格式
   }
 
@@ -88,6 +89,7 @@ function createPinoInstance(): pino.Logger {
           : undefined,
     });
   } catch {
+    // 不能使用 logger，此时 logger 尚未初始化会导致无限递归
     // LOG_LEVEL 非法值（如 verbose）会导致 pino 崩溃，回退到 info 级别
     return pino({ level: 'info', timestamp });
   }

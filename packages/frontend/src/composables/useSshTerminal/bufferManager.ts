@@ -64,7 +64,7 @@ export function createBufferManager(terminal: Terminal) {
             requestAnimationFrame(callback);
           }
         },
-        { timeout }
+        { timeout },
       );
     } else {
       requestAnimationFrame(callback);
@@ -149,7 +149,7 @@ export function createBufferManager(terminal: Terminal) {
           lastFlushTime = Date.now();
           scheduleIdleTask(doFlush);
         },
-        FLUSH_INTERVAL_MS - (now - lastFlushTime)
+        FLUSH_INTERVAL_MS - (now - lastFlushTime),
       );
     }
   };

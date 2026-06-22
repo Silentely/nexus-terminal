@@ -60,7 +60,7 @@ describe('SFTP 服务集成测试', () => {
             if (err) reject(err);
             else resolve();
           });
-        })
+        }),
       ).rejects.toThrow('EEXIST');
     });
 
@@ -90,7 +90,7 @@ describe('SFTP 服务集成测试', () => {
             else if (!statResult) reject(new Error('Expected stat result before delete check'));
             else resolve(statResult);
           });
-        })
+        }),
       ).rejects.toThrow('ENOENT');
     });
   });
@@ -121,7 +121,7 @@ describe('SFTP 服务集成测试', () => {
               reject(new Error('Unexpected empty stat result for missing file'));
             } else resolve(statResult);
           });
-        })
+        }),
       ).rejects.toThrow('ENOENT');
     });
 
@@ -242,7 +242,7 @@ describe('SFTP 服务集成测试', () => {
             else if (!statResult) reject(new Error('Expected stat result before delete assertion'));
             else resolve(statResult);
           });
-        })
+        }),
       ).rejects.toThrow('ENOENT');
     });
 
@@ -276,7 +276,7 @@ describe('SFTP 服务集成测试', () => {
             else if (!statResult) reject(new Error('Expected stat result for old path check'));
             else resolve(statResult);
           });
-        })
+        }),
       ).rejects.toThrow('ENOENT');
     });
   });

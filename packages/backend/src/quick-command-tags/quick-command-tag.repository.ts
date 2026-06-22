@@ -18,7 +18,7 @@ export const findAllQuickCommandTags = async (): Promise<QuickCommandTag[]> => {
     const db = await getDbInstance();
     const rows = await allDb<QuickCommandTag>(
       db,
-      `SELECT * FROM quick_command_tags ORDER BY name ASC`
+      `SELECT * FROM quick_command_tags ORDER BY name ASC`,
     );
     return rows;
   } catch (err: unknown) {
@@ -36,7 +36,7 @@ export const findQuickCommandTagById = async (id: number): Promise<QuickCommandT
     const row = await getDbRow<QuickCommandTag>(
       db,
       `SELECT * FROM quick_command_tags WHERE id = ?`,
-      [id]
+      [id],
     );
     return row || null;
   } catch (err: unknown) {
@@ -57,7 +57,7 @@ export const createQuickCommandTag = async (name: string): Promise<number> => {
     if (typeof result.lastID !== 'number' || result.lastID <= 0) {
       throw ErrorFactory.databaseError(
         '创建快捷指令标签后未能获取有效的 lastID',
-        '创建快捷指令标签后未能获取有效的 lastID'
+        '创建快捷指令标签后未能获取有效的 lastID',
       );
     }
     return result.lastID;
@@ -67,7 +67,7 @@ export const createQuickCommandTag = async (name: string): Promise<number> => {
     if (errMsg.includes('UNIQUE constraint failed')) {
       throw ErrorFactory.validationError(
         `快捷指令标签名称 "${name}" 已存在`,
-        `field: name, value: ${name}`
+        `field: name, value: ${name}`,
       );
     }
     throw ErrorFactory.databaseError('创建快捷指令标签失败', `创建快捷指令标签失败: ${errMsg}`);
@@ -90,7 +90,7 @@ export const updateQuickCommandTag = async (id: number, name: string): Promise<b
     if (errMsg.includes('UNIQUE constraint failed')) {
       throw ErrorFactory.validationError(
         `快捷指令标签名称 "${name}" 已存在`,
-        `field: name, value: ${name}`
+        `field: name, value: ${name}`,
       );
     }
     throw ErrorFactory.databaseError('更新快捷指令标签失败', `更新快捷指令标签失败: ${errMsg}`);
@@ -122,7 +122,7 @@ export const deleteQuickCommandTag = async (id: number): Promise<boolean> => {
  */
 export const setCommandTagAssociations = async (
   commandId: number,
-  tagIds: number[]
+  tagIds: number[],
 ): Promise<void> => {
   const db = await getDbInstance();
   const deleteSql = `DELETE FROM quick_command_tag_associations WHERE quick_command_id = ?`;
@@ -140,7 +140,7 @@ export const setCommandTagAssociations = async (
         // 验证 tagId 是否为有效数字
         if (typeof tagId !== 'number' || Number.isNaN(tagId)) {
           logger.warn(
-            `[Repo] setCommandTagAssociations: 无效的 tagId (${tagId})，跳过关联到指令 ${commandId}。`
+            `[Repo] setCommandTagAssociations: 无效的 tagId (${tagId})，跳过关联到指令 ${commandId}。`,
           );
           continue;
         }
@@ -182,7 +182,7 @@ export const addTagToCommands = async (commandIds: number[], tagId: number): Pro
         Number.isNaN(tagId)
       ) {
         logger.warn(
-          `[Repo] addTagToCommands: 无效的 commandId (${commandId}) 或 tagId (${tagId})，跳过关联。`
+          `[Repo] addTagToCommands: 无效的 commandId (${commandId}) 或 tagId (${tagId})，跳过关联。`,
         );
         continue;
       }
@@ -191,12 +191,12 @@ export const addTagToCommands = async (commandIds: number[], tagId: number): Pro
     await stmt.finalize(); // 完成批量插入
     await runDb(db, 'COMMIT');
     logger.info(
-      `[Repo] addTagToCommands: 成功将标签 ${tagId} 关联到 ${commandIds.length} 个指令。`
+      `[Repo] addTagToCommands: 成功将标签 ${tagId} 关联到 ${commandIds.length} 个指令。`,
     );
   } catch (err: unknown) {
     logger.error(
       `[Repo] addTagToCommands: 批量关联标签 ${tagId} 到指令时出错:`,
-      getErrorMessage(err)
+      getErrorMessage(err),
     );
     await runDb(db, 'ROLLBACK');
     throw ErrorFactory.databaseError('无法批量关联标签到快捷指令', '无法批量关联标签到快捷指令');

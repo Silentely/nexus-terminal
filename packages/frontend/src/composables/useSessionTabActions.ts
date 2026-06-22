@@ -24,7 +24,7 @@ export function useSessionTabActions(deps: SessionTabActionsDependencies) {
    */
   const handleCloseOtherSessions = (targetSessionId: string) => {
     const targetExists = sessionTabsWithStatus.value.some(
-      (tab) => tab.sessionId === targetSessionId
+      (tab) => tab.sessionId === targetSessionId,
     );
     if (!targetExists) return;
     const sessionsToClose = sessionTabsWithStatus.value
@@ -38,7 +38,7 @@ export function useSessionTabActions(deps: SessionTabActionsDependencies) {
    */
   const handleCloseSessionsToRight = (targetSessionId: string) => {
     const targetIndex = sessionTabsWithStatus.value.findIndex(
-      (tab) => tab.sessionId === targetSessionId
+      (tab) => tab.sessionId === targetSessionId,
     );
     if (targetIndex === -1) return;
     const sessionsToClose = sessionTabsWithStatus.value
@@ -52,7 +52,7 @@ export function useSessionTabActions(deps: SessionTabActionsDependencies) {
    */
   const handleCloseSessionsToLeft = (targetSessionId: string) => {
     const targetIndex = sessionTabsWithStatus.value.findIndex(
-      (tab) => tab.sessionId === targetSessionId
+      (tab) => tab.sessionId === targetSessionId,
     );
     if (targetIndex === -1) return;
     const sessionsToClose = sessionTabsWithStatus.value

@@ -47,7 +47,7 @@ describe('auth-two-factor-flow.utils', () => {
       sessionSecretMismatched: true,
     });
     expect((req.session as unknown as { tempTwoFactorSecret?: string }).tempTwoFactorSecret).toBe(
-      'PROVIDED_SECRET'
+      'PROVIDED_SECRET',
     );
   });
 

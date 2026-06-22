@@ -58,7 +58,7 @@ throw new AppError(
   400,
   ErrorSeverity.LOW,
   true,
-  '技术细节（仅记录到日志）'
+  '技术细节（仅记录到日志）',
 );
 ```
 
@@ -79,7 +79,7 @@ router.get(
   asyncHandler(async (req, res, next) => {
     const data = await someAsyncOperation();
     res.json(data);
-  })
+  }),
 );
 ```
 
@@ -170,7 +170,7 @@ function getUserId(req: Request): number {
 export const createTask = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = getUserId(req);
@@ -201,7 +201,7 @@ export const createTask = async (
 export const getTaskById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = getUserId(req);
@@ -255,7 +255,7 @@ export const findUserById = async (id: number) => {
     // 将数据库错误转换为应用错误
     throw ErrorFactory.databaseError(
       '查询用户失败',
-      `Database error: ${getErrorMessage(error)}` // 技术细节仅记录到日志
+      `Database error: ${getErrorMessage(error)}`, // 技术细节仅记录到日志
     );
   }
 };

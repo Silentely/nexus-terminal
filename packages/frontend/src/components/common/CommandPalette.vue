@@ -124,7 +124,7 @@ whenever(
   () => Meta_K.value || Ctrl_K.value,
   () => {
     open();
-  }
+  },
 );
 
 whenever(Escape, () => {

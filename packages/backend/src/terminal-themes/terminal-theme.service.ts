@@ -53,7 +53,7 @@ export const createNewTheme = async (themeDto: CreateTerminalThemeDto): Promise<
  */
 export const updateExistingTheme = async (
   id: number,
-  themeDto: UpdateTerminalThemeDto
+  themeDto: UpdateTerminalThemeDto,
 ): Promise<boolean> => {
   if (Number.isNaN(id)) {
     throw new Error('无效的主题 ID');

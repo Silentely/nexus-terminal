@@ -97,14 +97,14 @@ export const decodeRawContent = (rawContentBase64: string, encoding: string): st
     // 如果 iconv-lite 也不支持，回退到 UTF-8 并警告
 
     log.warn(
-      `[SessionUtils decodeRawContent] Unsupported encoding "${encoding}" requested. Falling back to UTF-8.`
+      `[SessionUtils decodeRawContent] Unsupported encoding "${encoding}" requested. Falling back to UTF-8.`,
     );
     const decoder = new TextDecoder('utf-8');
     return decoder.decode(buffer);
   } catch (error: unknown) {
     log.error(
       `[SessionUtils decodeRawContent] Error decoding content with encoding "${encoding}":`,
-      error
+      error,
     );
     const message = error instanceof Error ? error.message : String(error);
     return `// Error decoding content: ${message}`; // 返回错误信息

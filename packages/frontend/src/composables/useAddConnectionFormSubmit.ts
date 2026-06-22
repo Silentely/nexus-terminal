@@ -101,7 +101,7 @@ export function createSubmitHandler(deps: SubmitDeps) {
 
     const availableTagIds = tags.value.map((t_) => t_.id);
     const currentSelectedValidTagIds = formData.tag_ids.filter((id) =>
-      availableTagIds.includes(id)
+      availableTagIds.includes(id),
     );
 
     if (!formData.host || !formData.username) {
@@ -157,7 +157,7 @@ export function createSubmitHandler(deps: SubmitDeps) {
     } else if (formData.type === 'VNC') {
       if (!isEditMode.value && !formData.vncPassword && !formData.host.includes('~')) {
         uiNotificationsStore.showError(
-          t('connections.form.errorVncPasswordRequired', 'VNC 密码是必填项。')
+          t('connections.form.errorVncPasswordRequired', 'VNC 密码是必填项。'),
         );
         return;
       }
@@ -176,8 +176,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
           uiNotificationsStore.showError(
             t(
               'connections.form.errorSshKeyRequiredForBatch',
-              '批量添加 SSH (密钥认证) 连接时，必须选择一个 SSH 密钥。'
-            )
+              '批量添加 SSH (密钥认证) 连接时，必须选择一个 SSH 密钥。',
+            ),
           );
           return;
         }
@@ -185,8 +185,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
           uiNotificationsStore.showError(
             t(
               'connections.form.errorPasswordRequiredForBatchSSH',
-              '批量添加 SSH (密码认证) 连接时，必须提供密码。'
-            )
+              '批量添加 SSH (密码认证) 连接时，必须提供密码。',
+            ),
           );
           return;
         }
@@ -194,8 +194,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
           uiNotificationsStore.showError(
             t(
               'connections.form.errorPasswordRequiredForBatchRDP',
-              '批量添加 RDP 连接时，必须提供密码。'
-            )
+              '批量添加 RDP 连接时，必须提供密码。',
+            ),
           );
           return;
         }
@@ -203,8 +203,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
           uiNotificationsStore.showError(
             t(
               'connections.form.errorPasswordRequiredForBatchVNC',
-              '批量添加 VNC 连接时，必须提供 VNC 密码。'
-            )
+              '批量添加 VNC 连接时，必须提供 VNC 密码。',
+            ),
           );
           return;
         }
@@ -274,7 +274,7 @@ export function createSubmitHandler(deps: SubmitDeps) {
           }
         } else if (successCount > 0) {
           uiNotificationsStore.showSuccess(
-            t('connections.form.successBatchAddResult', { successCount })
+            t('connections.form.successBatchAddResult', { successCount }),
           );
           emit('connection-added');
         }
@@ -290,8 +290,8 @@ export function createSubmitHandler(deps: SubmitDeps) {
       uiNotificationsStore.showError(
         t(
           'connections.form.errorIpRangeNotAllowedInEditMode',
-          '编辑模式下不支持 IP 范围。请使用单个 IP 地址。'
-        )
+          '编辑模式下不支持 IP 范围。请使用单个 IP 地址。',
+        ),
       );
       return;
     }
@@ -339,7 +339,7 @@ export function createSubmitHandler(deps: SubmitDeps) {
         emit('connection-updated');
       } else {
         uiNotificationsStore.showError(
-          t('connections.form.errorUpdate', { error: connectionsStore.error || '未知错误' })
+          t('connections.form.errorUpdate', { error: connectionsStore.error || '未知错误' }),
         );
       }
     } else {
@@ -348,7 +348,7 @@ export function createSubmitHandler(deps: SubmitDeps) {
         emit('connection-added');
       } else {
         uiNotificationsStore.showError(
-          t('connections.form.errorAdd', { error: connectionsStore.error || '未知错误' })
+          t('connections.form.errorAdd', { error: connectionsStore.error || '未知错误' }),
         );
       }
     }
@@ -393,7 +393,7 @@ export function createDeleteHandler(deps: DeleteDeps) {
       uiNotificationsStore.showError(
         t('connections.form.errorDelete', {
           error: connectionsStore.error || t('errors.unknown', '未知错误'),
-        })
+        }),
       );
     }
   };

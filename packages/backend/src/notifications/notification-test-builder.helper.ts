@@ -23,7 +23,7 @@ export function buildTestNotification(
   channelType: NotificationChannelType,
   config: NotificationChannelConfig,
   userId?: number,
-  payload?: TestPayloadDetails
+  payload?: TestPayloadDetails,
 ): ProcessedNotification {
   const eventPayload = {
     event: AppEventType.TestNotification,
@@ -76,7 +76,7 @@ export function buildTestNotification(
  */
 function getTestTemplateFromConfig(
   config: NotificationChannelConfig,
-  key: 'bodyTemplate' | 'messageTemplate'
+  key: 'bodyTemplate' | 'messageTemplate',
 ): string | undefined {
   if (config && typeof config === 'object') {
     const value = (config as unknown as Record<string, unknown>)[key];

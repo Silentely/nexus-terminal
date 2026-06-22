@@ -33,7 +33,7 @@ function resolveAuthenticatedUser(req: Request): { userId: number; username: str
 export const listUserPasskeys = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const actor = resolveAuthenticatedUser(req);
   if (!actor) {
@@ -57,7 +57,7 @@ export const listUserPasskeys = async (
 export const deleteUserPasskey = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const actor = resolveAuthenticatedUser(req);
   if (!actor) {
@@ -96,7 +96,7 @@ export const deleteUserPasskey = async (
     const errMsg = getErrorMessage(error);
     logger.error(
       error as Error,
-      `[Passkey] 用户 ${actor.username} 删除 Passkey 失败: ${credentialID}`
+      `[Passkey] 用户 ${actor.username} 删除 Passkey 失败: ${credentialID}`,
     );
     if (errMsg.includes('Unauthorized')) {
       auditLogService.logAction('PASSKEY_DELETE_UNAUTHORIZED', {
@@ -119,7 +119,7 @@ export const deleteUserPasskey = async (
 export const updateUserPasskeyName = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const actor = resolveAuthenticatedUser(req);
   if (!actor) {
@@ -148,7 +148,7 @@ export const updateUserPasskeyName = async (
   try {
     await passkeyService.updatePasskeyName(actor.userId, credentialID, trimmedName);
     logger.info(
-      `[Passkey] 用户 ${actor.username} 更新 Passkey 名称成功: ${credentialID} -> ${trimmedName}`
+      `[Passkey] 用户 ${actor.username} 更新 Passkey 名称成功: ${credentialID} -> ${trimmedName}`,
     );
     auditLogService.logAction('PASSKEY_NAME_UPDATED', {
       userId: actor.userId,
@@ -160,7 +160,7 @@ export const updateUserPasskeyName = async (
     const errMsg = getErrorMessage(error);
     logger.error(
       error as Error,
-      `[Passkey] 用户 ${actor.username} 更新 Passkey 名称失败: ${credentialID}`
+      `[Passkey] 用户 ${actor.username} 更新 Passkey 名称失败: ${credentialID}`,
     );
     if (errMsg.includes('Unauthorized')) {
       auditLogService.logAction('PASSKEY_NAME_UPDATE_UNAUTHORIZED', {
@@ -184,7 +184,7 @@ export const updateUserPasskeyName = async (
 export const checkHasPasskeys = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const username = req.query.username as string | undefined;

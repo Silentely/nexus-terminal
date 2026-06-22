@@ -37,14 +37,14 @@ class EmailSenderService implements INotificationSender {
 
       if (!finalSmtpHost) {
         logger.error(
-          '[EmailSender] SMTP host is not configured (neither channel-specific nor global).'
+          '[EmailSender] SMTP host is not configured (neither channel-specific nor global).',
         );
         throw new Error('SMTP host configuration is missing.');
       }
 
       if (Number.isNaN(finalSmtpPort) || finalSmtpPort <= 0) {
         logger.error(
-          `[EmailSender] Invalid SMTP port configured: ${finalSmtpPort}. Using default 587.`
+          `[EmailSender] Invalid SMTP port configured: ${finalSmtpPort}. Using default 587.`,
         );
 
         throw new Error(`Invalid SMTP port configured: ${finalSmtpPort}`);

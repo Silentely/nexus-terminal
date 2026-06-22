@@ -17,7 +17,7 @@ export const executeReaddirSftpOperation = async (
   state: ClientState | undefined,
   sessionId: string,
   path: string,
-  requestId: string
+  requestId: string,
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 readdir (ID: ${requestId})`);
@@ -27,7 +27,7 @@ export const executeReaddirSftpOperation = async (
         path,
         payload: 'SFTP 会话未就绪',
         requestId,
-      })
+      }),
     );
     return;
   }
@@ -44,7 +44,7 @@ export const executeReaddirSftpOperation = async (
             path,
             payload: `读取目录失败: ${err.message}`,
             requestId,
-          })
+          }),
         );
         return;
       }
@@ -82,7 +82,7 @@ export const executeReaddirSftpOperation = async (
 
       // 大目录列表：按大小分批发送，每批控制在上限以内
       logger.warn(
-        `[SFTP ${sessionId}] readdir ${path} 结果过大 (${Math.round(Buffer.byteLength(fullMessage, 'utf8') / 1024)}KB, ${files.length} 项)，分批发送。`
+        `[SFTP ${sessionId}] readdir ${path} 结果过大 (${Math.round(Buffer.byteLength(fullMessage, 'utf8') / 1024)}KB, ${files.length} 项)，分批发送。`,
       );
       let byteOffset = 0;
       let chunkIndex = 0;
@@ -112,7 +112,7 @@ export const executeReaddirSftpOperation = async (
   } catch (error: unknown) {
     logger.error(
       `[SFTP ${sessionId}] readdir ${path} caught unexpected error (ID: ${requestId}):`,
-      error
+      error,
     );
     if (state.ws.readyState !== WebSocket.OPEN) return;
     state.ws.send(
@@ -121,7 +121,7 @@ export const executeReaddirSftpOperation = async (
         path,
         payload: `读取目录时发生意外错误: ${getErrorMessage(error)}`,
         requestId,
-      })
+      }),
     );
   }
 };
@@ -135,7 +135,7 @@ function sendReaddirChunk(
   files: Array<{ filename: string; longname: string; attrs: Record<string, unknown> }>,
   requestId: string,
   chunkIndex: number,
-  isLast: boolean
+  isLast: boolean,
 ): void {
   if (state.ws.readyState !== WebSocket.OPEN) return;
 
@@ -147,6 +147,6 @@ function sendReaddirChunk(
       requestId,
       chunkIndex,
       isLast,
-    })
+    }),
   );
 }

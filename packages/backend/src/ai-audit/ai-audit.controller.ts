@@ -3,9 +3,9 @@
  * 处理 HTTP 请求
  */
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AiAuditService } from './ai-audit.service';
-import { logger } from '../utils/logger';
+import { ErrorFactory } from '../utils/AppError';
 import type { GetReportsQuery, GetAnomaliesQuery } from './ai-audit.types';
 
 // 扩展 Request 类型以包含 session.userId
@@ -21,22 +21,21 @@ export class AiAuditController {
   /**
    * 从请求中获取用户 ID
    */
-  private getUserId(req: Request): number | null {
+  private getUserId(req: Request): number {
     const userId = (req.session as SessionWithUserId | undefined)?.userId;
-    return userId ?? null;
+    if (!userId) {
+      throw ErrorFactory.unauthorized('未授权');
+    }
+    return userId;
   }
 
   /**
    * 创建审计报告
    * POST /api/v1/ai-audit/reports
    */
-  async createReport(req: Request, res: Response): Promise<void> {
+  async createReport(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = this.getUserId(req);
-      if (!userId) {
-        res.status(401).json({ error: '未授权' });
-        return;
-      }
 
       const { reportType, timeRangeStart, timeRangeEnd } = req.body;
 
@@ -49,8 +48,7 @@ export class AiAuditController {
         !Number.isFinite(Number(timeRangeStart)) ||
         !Number.isFinite(Number(timeRangeEnd))
       ) {
-        res.status(400).json({ error: '缺少必要参数或参数无效' });
-        return;
+        throw ErrorFactory.badRequest('缺少必要参数或参数无效');
       }
 
       const result = await this.service.createReport(userId, {
@@ -61,8 +59,7 @@ export class AiAuditController {
 
       res.json(result);
     } catch (err) {
-      logger.error({ error: err }, '创建审计报告失败');
-      res.status(500).json({ error: '创建报告失败' });
+      next(err);
     }
   }
 
@@ -70,13 +67,9 @@ export class AiAuditController {
    * 获取报告列表
    * GET /api/v1/ai-audit/reports
    */
-  async getReports(req: Request, res: Response): Promise<void> {
+  async getReports(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = this.getUserId(req);
-      if (!userId) {
-        res.status(401).json({ error: '未授权' });
-        return;
-      }
 
       const query: GetReportsQuery = {
         page: req.query.page ? Number(req.query.page) : 1,
@@ -87,8 +80,7 @@ export class AiAuditController {
       const result = await this.service.getReports(userId, query);
       res.json(result);
     } catch (err) {
-      logger.error({ error: err }, '获取报告列表失败');
-      res.status(500).json({ error: '获取报告列表失败' });
+      next(err);
     }
   }
 
@@ -96,24 +88,21 @@ export class AiAuditController {
    * 获取报告详情
    * GET /api/v1/ai-audit/reports/:id
    */
-  async getReportById(req: Request, res: Response): Promise<void> {
+  async getReportById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const reportId = Number(req.params.id);
       if (!reportId) {
-        res.status(400).json({ error: '无效的报告 ID' });
-        return;
+        throw ErrorFactory.badRequest('无效的报告 ID');
       }
 
       const report = await this.service.getReportById(reportId);
       if (!report) {
-        res.status(404).json({ error: '报告不存在' });
-        return;
+        throw ErrorFactory.notFound('报告不存在');
       }
 
       res.json(report);
     } catch (err) {
-      logger.error({ error: err }, '获取报告详情失败');
-      res.status(500).json({ error: '获取报告详情失败' });
+      next(err);
     }
   }
 
@@ -121,7 +110,7 @@ export class AiAuditController {
    * 获取异常列表
    * GET /api/v1/ai-audit/anomalies
    */
-  async getAnomalies(req: Request, res: Response): Promise<void> {
+  async getAnomalies(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       let acknowledged: boolean | undefined;
       if (req.query.acknowledged === 'true') {
@@ -140,8 +129,7 @@ export class AiAuditController {
       const result = await this.service.getAnomalies(query);
       res.json(result);
     } catch (err) {
-      logger.error({ error: err }, '获取异常列表失败');
-      res.status(500).json({ error: '获取异常列表失败' });
+      next(err);
     }
   }
 
@@ -149,19 +137,14 @@ export class AiAuditController {
    * 获取异常统计（按用户过滤）
    * GET /api/v1/ai-audit/anomalies/stats
    */
-  async getAnomalyStats(req: Request, res: Response): Promise<void> {
+  async getAnomalyStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = this.getUserId(req);
-      if (!userId) {
-        res.status(401).json({ error: '未授权' });
-        return;
-      }
 
       const stats = await this.service.getAnomalyStats(userId);
       res.json(stats);
     } catch (err) {
-      logger.error({ error: err }, '获取异常统计失败');
-      res.status(500).json({ error: '获取异常统计失败' });
+      next(err);
     }
   }
 
@@ -169,19 +152,17 @@ export class AiAuditController {
    * 确认异常
    * PATCH /api/v1/ai-audit/anomalies/:id/acknowledge
    */
-  async acknowledgeAnomaly(req: Request, res: Response): Promise<void> {
+  async acknowledgeAnomaly(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const anomalyId = Number(req.params.id);
       if (!anomalyId) {
-        res.status(400).json({ error: '无效的异常 ID' });
-        return;
+        throw ErrorFactory.badRequest('无效的异常 ID');
       }
 
       await this.service.acknowledgeAnomaly(anomalyId);
       res.json({ success: true });
     } catch (err) {
-      logger.error({ error: err }, '确认异常失败');
-      res.status(500).json({ error: '确认异常失败' });
+      next(err);
     }
   }
 
@@ -189,30 +170,23 @@ export class AiAuditController {
    * 删除审计报告
    * DELETE /api/v1/ai-audit/reports/:id
    */
-  async deleteReport(req: Request, res: Response): Promise<void> {
+  async deleteReport(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = this.getUserId(req);
-      if (!userId) {
-        res.status(401).json({ error: '未授权' });
-        return;
-      }
 
       const reportId = Number(req.params.id);
       if (!reportId) {
-        res.status(400).json({ error: '无效的报告 ID' });
-        return;
+        throw ErrorFactory.badRequest('无效的报告 ID');
       }
 
       const success = await this.service.deleteReport(reportId, userId);
       if (!success) {
-        res.status(404).json({ error: '报告不存在' });
-        return;
+        throw ErrorFactory.notFound('报告不存在');
       }
 
       res.json({ success: true });
     } catch (err) {
-      logger.error({ error: err }, '删除报告失败');
-      res.status(500).json({ error: '删除报告失败' });
+      next(err);
     }
   }
 }

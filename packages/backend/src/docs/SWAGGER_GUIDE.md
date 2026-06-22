@@ -257,7 +257,7 @@ app.get(
   swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: '星枢终端 API 文档',
-  })
+  }),
 );
 ```
 

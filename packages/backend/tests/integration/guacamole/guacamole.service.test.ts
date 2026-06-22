@@ -75,7 +75,7 @@ describe('Guacamole 服务测试', () => {
             hostname: mockConnection.host,
             username: mockConnection.username,
           }),
-        })
+        }),
       );
     });
 
@@ -128,7 +128,7 @@ describe('Guacamole 服务测试', () => {
             hostname: 'test.example.com',
             port: '3389',
           },
-        })
+        }),
       ).rejects.toThrow('ECONNREFUSED');
     });
   });

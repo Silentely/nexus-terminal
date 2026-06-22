@@ -3,6 +3,7 @@
  */
 
 import { getDbInstance, runDb, getDb as getDbRow, allDb } from '../database/connection';
+import { logger } from '../utils/logger';
 import type {
   AuditReport,
   AuditAnomaly,
@@ -28,7 +29,7 @@ export class AiAuditRepository {
       db,
       `INSERT INTO audit_reports (user_id, report_type, time_range_start, time_range_end, summary)
        VALUES (?, ?, ?, ?, '{}')`,
-      [data.userId, data.reportType, data.timeRangeStart, data.timeRangeEnd]
+      [data.userId, data.reportType, data.timeRangeStart, data.timeRangeEnd],
     );
     return result.lastID;
   }
@@ -41,7 +42,7 @@ export class AiAuditRepository {
     status: ReportStatus,
     summary?: string,
     anomaliesJson?: string,
-    aiAnalysis?: string
+    aiAnalysis?: string,
   ): Promise<void> {
     const db = await getDbInstance();
     const updates: string[] = ['status = ?'];
@@ -75,18 +76,28 @@ export class AiAuditRepository {
     const report = await getDbRow<{ id: number }>(
       db,
       'SELECT id FROM audit_reports WHERE id = ? AND user_id = ?',
-      [reportId, userId]
+      [reportId, userId],
     );
 
     if (!report) {
       return false;
     }
 
-    // 删除关联的异常记录
-    await runDb(db, 'DELETE FROM audit_anomalies WHERE report_id = ?', [reportId]);
-
-    // 删除报告
-    await runDb(db, 'DELETE FROM audit_reports WHERE id = ? AND user_id = ?', [reportId, userId]);
+    // 使用事务确保原子性：异常记录和报告要么都删除，要么都不删除
+    await runDb(db, 'BEGIN TRANSACTION');
+    try {
+      await runDb(db, 'DELETE FROM audit_anomalies WHERE report_id = ?', [reportId]);
+      await runDb(db, 'DELETE FROM audit_reports WHERE id = ? AND user_id = ?', [reportId, userId]);
+      await runDb(db, 'COMMIT');
+    } catch (err) {
+      // 用嵌套 try/catch 保护 rollback，避免 rollback 失败掩盖原始错误
+      try {
+        await runDb(db, 'ROLLBACK');
+      } catch (rollbackErr) {
+        logger.error('[AiAudit] deleteReport rollback 失败:', rollbackErr);
+      }
+      throw err;
+    }
 
     return true;
   }
@@ -114,14 +125,14 @@ export class AiAuditRepository {
     const totalRow = await getDbRow<{ count: number }>(
       db,
       `SELECT COUNT(*) as count FROM audit_reports ${whereClause}`,
-      queryParams
+      queryParams,
     );
 
     const offset = (page - 1) * pageSize;
     const reports = await allDb<AuditReport>(
       db,
       `SELECT * FROM audit_reports ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-      [...queryParams, pageSize, offset]
+      [...queryParams, pageSize, offset],
     );
 
     return { reports, total: totalRow?.count || 0 };
@@ -161,7 +172,7 @@ export class AiAuditRepository {
         data.title,
         data.description,
         data.evidenceJson || null,
-      ]
+      ],
     );
     return result.lastID;
   }
@@ -177,7 +188,7 @@ export class AiAuditRepository {
       title: string;
       description: string;
       evidenceJson?: string;
-    }>
+    }>,
   ): Promise<void> {
     const db = await getDbInstance();
 
@@ -196,7 +207,7 @@ export class AiAuditRepository {
             item.title,
             item.description,
             item.evidenceJson || null,
-          ]
+          ],
         );
       }
       await runDb(db, 'COMMIT');
@@ -240,14 +251,14 @@ export class AiAuditRepository {
     const totalRow = await getDbRow<{ count: number }>(
       db,
       `SELECT COUNT(*) as count FROM audit_anomalies a ${whereClause}`,
-      queryParams
+      queryParams,
     );
 
     const offset = (page - 1) * pageSize;
     const anomalies = await allDb<AuditAnomaly>(
       db,
       `SELECT a.* FROM audit_anomalies a ${whereClause} ORDER BY a.detected_at DESC LIMIT ? OFFSET ?`,
-      [...queryParams, pageSize, offset]
+      [...queryParams, pageSize, offset],
     );
 
     return { anomalies, total: totalRow?.count || 0 };
@@ -268,7 +279,7 @@ export class AiAuditRepository {
       `SELECT COUNT(*) as count FROM audit_anomalies a
        JOIN audit_reports r ON a.report_id = r.id
        WHERE r.user_id = ?`,
-      [userId]
+      [userId],
     );
 
     const bySeverityRows = await allDb<{ severity: string; count: number }>(
@@ -277,7 +288,7 @@ export class AiAuditRepository {
        JOIN audit_reports r ON a.report_id = r.id
        WHERE r.user_id = ?
        GROUP BY a.severity`,
-      [userId]
+      [userId],
     );
 
     const oneDayAgo = Math.floor(Date.now() / 1000) - 86400;
@@ -286,7 +297,7 @@ export class AiAuditRepository {
       `SELECT COUNT(*) as count FROM audit_anomalies a
        JOIN audit_reports r ON a.report_id = r.id
        WHERE r.user_id = ? AND a.detected_at >= ?`,
-      [userId, oneDayAgo]
+      [userId, oneDayAgo],
     );
 
     const severityMap: Record<string, number> = {};
@@ -320,7 +331,7 @@ export class AiAuditRepository {
       db,
       `SELECT COUNT(*) as total FROM command_history
        WHERE timestamp >= ? AND timestamp <= ?`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
 
     // 热门命令
@@ -329,7 +340,7 @@ export class AiAuditRepository {
       `SELECT command, COUNT(*) as count FROM command_history
        WHERE timestamp >= ? AND timestamp <= ?
        GROUP BY command ORDER BY count DESC LIMIT 10`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
 
     // 登录统计
@@ -341,7 +352,7 @@ export class AiAuditRepository {
        FROM audit_logs
        WHERE action_type IN ('LOGIN_SUCCESS', 'LOGIN_FAILURE')
        AND timestamp >= ? AND timestamp <= ?`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
 
     // 连接统计
@@ -350,7 +361,7 @@ export class AiAuditRepository {
       `SELECT COUNT(*) as total FROM audit_logs
        WHERE action_type = 'SSH_CONNECT_SUCCESS'
        AND timestamp >= ? AND timestamp <= ?`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
 
     // 唯一 IP 数
@@ -359,7 +370,7 @@ export class AiAuditRepository {
       `SELECT COUNT(DISTINCT json_extract(details, '$.ip')) as count FROM audit_logs
        WHERE details IS NOT NULL
        AND timestamp >= ? AND timestamp <= ?`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
 
     // 命令频率（按小时）
@@ -368,7 +379,7 @@ export class AiAuditRepository {
       `SELECT command, COUNT(*) as count FROM command_history
        WHERE timestamp >= ? AND timestamp <= ?
        GROUP BY command`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
 
     // 登录时间分布
@@ -378,7 +389,7 @@ export class AiAuditRepository {
        WHERE action_type IN ('LOGIN_SUCCESS', 'LOGIN_FAILURE')
        AND timestamp >= ? AND timestamp <= ?
        GROUP BY hour`,
-      [timeRangeStart, timeRangeEnd]
+      [timeRangeStart, timeRangeEnd],
     );
 
     const loginByHourMap: Record<number, number> = {};

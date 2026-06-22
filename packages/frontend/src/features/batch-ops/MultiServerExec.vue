@@ -298,7 +298,7 @@ const executeBatch = async () => {
   // L6: sudo 确认对话框
   if (useSudo.value) {
     const confirmed = window.confirm(
-      t('batchOps.sudoConfirm', 'Warning: Running with sudo privileges. Continue?')
+      t('batchOps.sudoConfirm', 'Warning: Running with sudo privileges. Continue?'),
     );
     if (!confirmed) return;
   }
@@ -383,7 +383,7 @@ watch(
   () => batchStore.wsEventReceived,
   (received) => {
     if (received) stopPolling();
-  }
+  },
 );
 
 // 任务终态时也停止轮询（兜底）
@@ -393,7 +393,7 @@ watch(
     if (status && status !== 'in-progress' && status !== 'queued') {
       stopPolling();
     }
-  }
+  },
 );
 
 // 组件挂载时获取连接列表

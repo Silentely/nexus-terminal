@@ -287,7 +287,7 @@ describe('Connection Repository', () => {
           auth_method: 'password',
           proxy_id: null,
           jump_chain: null,
-        })
+        }),
       ).rejects.toThrow('创建连接记录失败');
     });
   });
@@ -302,13 +302,11 @@ describe('Connection Repository', () => {
       expect(runDb).toHaveBeenCalled();
     });
 
-    it('无字段更新时应至少更新时间戳并返回 true', async () => {
+    it('无业务字段更新时应跳过更新并返回 false', async () => {
       const result = await updateConnection(1, {});
 
-      expect(result).toBe(true);
-      expect(runDb).toHaveBeenCalled();
-      const call = (runDb as any).mock.calls[0];
-      expect(call[1]).toContain('updated_at');
+      expect(result).toBe(false);
+      expect(runDb).not.toHaveBeenCalled();
     });
 
     it('连接不存在时应返回 false', async () => {

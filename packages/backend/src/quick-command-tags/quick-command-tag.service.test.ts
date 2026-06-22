@@ -99,7 +99,7 @@ describe('Quick Command Tag Service', () => {
 
     it('repository 错误应向上传递', async () => {
       (QuickCommandTagRepository.createQuickCommandTag as any).mockRejectedValueOnce(
-        new Error('快捷指令标签名称 "Dup" 已存在。')
+        new Error('快捷指令标签名称 "Dup" 已存在。'),
       );
 
       await expect(addQuickCommandTag('Dup')).rejects.toThrow('快捷指令标签名称 "Dup" 已存在。');
@@ -115,7 +115,7 @@ describe('Quick Command Tag Service', () => {
       expect(result).toBe(true);
       expect(QuickCommandTagRepository.updateQuickCommandTag).toHaveBeenCalledWith(
         1,
-        'UpdatedName'
+        'UpdatedName',
       );
     });
 
@@ -141,7 +141,7 @@ describe('Quick Command Tag Service', () => {
 
     it('repository 错误应向上传递', async () => {
       (QuickCommandTagRepository.updateQuickCommandTag as any).mockRejectedValueOnce(
-        new Error('更新快捷指令标签失败')
+        new Error('更新快捷指令标签失败'),
       );
 
       await expect(updateQuickCommandTag(1, 'Test')).rejects.toThrow('更新快捷指令标签失败');
@@ -168,7 +168,7 @@ describe('Quick Command Tag Service', () => {
 
     it('repository 错误应向上传递', async () => {
       (QuickCommandTagRepository.deleteQuickCommandTag as any).mockRejectedValueOnce(
-        new Error('删除快捷指令标签失败')
+        new Error('删除快捷指令标签失败'),
       );
 
       await expect(deleteQuickCommandTag(1)).rejects.toThrow('删除快捷指令标签失败');
@@ -183,7 +183,7 @@ describe('Quick Command Tag Service', () => {
 
       expect(QuickCommandTagRepository.setCommandTagAssociations).toHaveBeenCalledWith(
         1,
-        [1, 2, 3]
+        [1, 2, 3],
       );
     });
 
@@ -197,19 +197,19 @@ describe('Quick Command Tag Service', () => {
 
     it('非数组的 tagIds 应抛出异常', async () => {
       await expect(setCommandTags(1, 'not array' as any)).rejects.toThrow(
-        '标签 ID 列表必须是一个数字数组'
+        '标签 ID 列表必须是一个数字数组',
       );
     });
 
     it('包含非数字的 tagIds 应抛出异常', async () => {
       await expect(setCommandTags(1, [1, 'two', 3] as any)).rejects.toThrow(
-        '标签 ID 列表必须是一个数字数组'
+        '标签 ID 列表必须是一个数字数组',
       );
     });
 
     it('repository 错误应向上传递', async () => {
       (QuickCommandTagRepository.setCommandTagAssociations as any).mockRejectedValueOnce(
-        new Error('无法设置快捷指令标签关联')
+        new Error('无法设置快捷指令标签关联'),
       );
 
       await expect(setCommandTags(1, [1, 2])).rejects.toThrow('无法设置快捷指令标签关联');
@@ -236,7 +236,7 @@ describe('Quick Command Tag Service', () => {
 
     it('repository 错误应向上传递', async () => {
       (QuickCommandTagRepository.findTagsByCommandId as any).mockRejectedValueOnce(
-        new Error('获取快捷指令标签失败')
+        new Error('获取快捷指令标签失败'),
       );
 
       await expect(getTagsForCommand(1)).rejects.toThrow('获取快捷指令标签失败');

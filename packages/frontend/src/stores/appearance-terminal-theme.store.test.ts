@@ -244,7 +244,7 @@ describe('appearance-terminal-theme.store', () => {
       const store = createTerminalThemeStore(deps);
 
       await expect(
-        store.updateTerminalTheme('1', '更新主题', { background: '#111' })
+        store.updateTerminalTheme('1', '更新主题', { background: '#111' }),
       ).rejects.toThrow();
     });
   });

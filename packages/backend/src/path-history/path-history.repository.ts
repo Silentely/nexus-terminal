@@ -35,7 +35,7 @@ export const upsertPath = async (path: string): Promise<number> => {
     }
     throw ErrorFactory.databaseError(
       '路径历史 UPSERT 后未能获取记录 ID',
-      '路径历史 UPSERT 后未能获取记录 ID'
+      '路径历史 UPSERT 后未能获取记录 ID',
     );
   } catch (err: unknown) {
     logger.error('UPSERT 路径历史记录时出错:', getErrorMessage(err));

@@ -104,7 +104,7 @@ let guacServer: GuacServerLike | null = null;
 try {
   logger.info(
     { wsPort: websocketOptions.port, guacdHost: guacdOptions.host, guacdPort: guacdOptions.port },
-    '正在初始化 GuacamoleLite'
+    '正在初始化 GuacamoleLite',
   );
   const server = new GuacamoleLite(websocketOptions, guacdOptions, clientOptions) as GuacServerLike;
   guacServer = server;

@@ -35,7 +35,7 @@ apiClient.interceptors.request.use(
     // 处理请求错误
     log.error('Request error:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器
@@ -54,7 +54,7 @@ apiClient.interceptors.response.use(
       const { status, statusText, headers } = error.response;
       const contentType = headers?.['content-type'] ?? 'unknown';
       const isUpstreamUnavailableStatus = TRANSIENT_UPSTREAM_STATUS_CODES.includes(
-        status as (typeof TRANSIENT_UPSTREAM_STATUS_CODES)[number]
+        status as (typeof TRANSIENT_UPSTREAM_STATUS_CODES)[number],
       );
 
       // 对 GET 请求的瞬时上游错误做一次短延迟重试，减少偶发 502/503/504 带来的页面噪声
@@ -110,19 +110,19 @@ apiClient.interceptors.response.use(
         case 503: // 服务不可用
         case 504: // 网关超时
           log.warn(
-            `[apiClient] Upstream service unavailable (${status}) for ${requestMethod} ${requestUrl}`
+            `[apiClient] Upstream service unavailable (${status}) for ${requestMethod} ${requestUrl}`,
           );
           break;
         // 可以根据需要添加更多错误状态码的处理
         default:
           log.error(
-            `[apiClient] Unhandled error status: ${status} (${requestMethod} ${requestUrl})`
+            `[apiClient] Unhandled error status: ${status} (${requestMethod} ${requestUrl})`,
           );
       }
     } else if (error.request) {
       // 请求已发出，但没有收到响应 (例如网络问题)
       log.error(
-        `[apiClient] Network error or no response received: ${requestMethod} ${requestUrl}`
+        `[apiClient] Network error or no response received: ${requestMethod} ${requestUrl}`,
       );
     } else {
       // 发送请求时出了点问题
@@ -131,7 +131,7 @@ apiClient.interceptors.response.use(
 
     // 将错误继续抛出，以便调用方可以捕获并处理
     return Promise.reject(error);
-  }
+  },
 );
 
 // Passkey Management（已迁移至 /api/v1/passkey 模块）

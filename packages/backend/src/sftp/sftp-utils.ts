@@ -4,13 +4,14 @@
  */
 
 import { SFTPWrapper, Stats } from 'ssh2';
+import { logger } from '../utils/logger';
 import * as pathModule from 'path';
 import { getErrorMessage } from '../utils/AppError';
 
 type MkdirWithRecursive = (
   path: string,
   attrs: { recursive?: boolean },
-  callback: (err?: Error | undefined) => void
+  callback: (err?: Error | undefined) => void,
 ) => void;
 
 const getSftpErrorCode = (error: unknown): string | undefined => {
@@ -142,7 +143,8 @@ export class SftpUtils {
               }
             });
           });
-        } catch {
+        } catch (err: unknown) {
+          logger.debug({ err }, '操作失败，已忽略');
           const parentDir = pathModule.dirname(normalizedPath).replace(/\\/g, '/');
           if (parentDir && parentDir !== '/' && parentDir !== '.') {
             await SftpUtils.ensureDirectoryExists(sftp, parentDir);
@@ -163,7 +165,8 @@ export class SftpUtils {
               if (!finalStats.isDirectory()) {
                 throw new Error(`路径 ${normalizedPath} 已存在但不是目录`);
               }
-            } catch {
+            } catch (innerErr: unknown) {
+              logger.debug({ err: innerErr }, '操作失败，已忽略');
               throw iterativeMkdirError;
             }
           }
@@ -210,7 +213,7 @@ export class SftpUtils {
   static async copyDirectoryRecursive(
     sftp: SFTPWrapper,
     sourcePath: string,
-    destPath: string
+    destPath: string,
   ): Promise<void> {
     await SftpUtils.ensureDirectoryExists(sftp, destPath);
     const items = await SftpUtils.listDirectory(sftp, sourcePath);

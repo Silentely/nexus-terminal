@@ -34,7 +34,7 @@ export function useFileManagerClipboard(options: UseFileManagerClipboardOptions)
     const manager = currentSftpManager.value;
     if (!manager || selectedItems.value.size === 0) return;
     clipboardSourcePaths.value = Array.from(selectedItems.value).map((filename) =>
-      manager.joinPath(manager.currentPath.value, filename)
+      manager.joinPath(manager.currentPath.value, filename),
     );
     clipboardState.value = { hasContent: true, operation: 'copy' };
     clipboardSourceBaseDir.value = manager.currentPath.value;
@@ -46,7 +46,7 @@ export function useFileManagerClipboard(options: UseFileManagerClipboardOptions)
     const manager = currentSftpManager.value;
     if (!manager || selectedItems.value.size === 0) return;
     clipboardSourcePaths.value = Array.from(selectedItems.value).map((filename) =>
-      manager.joinPath(manager.currentPath.value, filename)
+      manager.joinPath(manager.currentPath.value, filename),
     );
     clipboardState.value = { hasContent: true, operation: 'cut' };
     clipboardSourceBaseDir.value = manager.currentPath.value;
@@ -65,7 +65,7 @@ export function useFileManagerClipboard(options: UseFileManagerClipboardOptions)
     const sourceBaseDir = clipboardSourceBaseDir.value;
 
     log.info(
-      `${logPrefix.value} Pasting items. Operation: ${operation}, Sources: ${sources.join(', ')}, Destination: ${destinationDir}`
+      `${logPrefix.value} Pasting items. Operation: ${operation}, Sources: ${sources.join(', ')}, Destination: ${destinationDir}`,
     );
 
     if (operation === 'copy') {

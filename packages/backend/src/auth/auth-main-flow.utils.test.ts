@@ -59,7 +59,7 @@ describe('auth-main-flow.utils', () => {
 
       expect(services.ipBlacklistService.recordFailedAttempt).toHaveBeenCalledWith(
         '10.0.0.1',
-        undefined
+        undefined,
       );
       expect(services.auditLogService.logAction).toHaveBeenCalledWith('LOGIN_FAILURE', {
         username: 'alice',
@@ -161,7 +161,7 @@ describe('auth-main-flow.utils', () => {
       const req = {
         session: {
           regenerate: vi.fn((callback: (err?: Error) => void) =>
-            callback(new Error('regenerate failed'))
+            callback(new Error('regenerate failed')),
           ),
           save: vi.fn(),
         },
@@ -209,7 +209,7 @@ describe('auth-main-flow.utils', () => {
       startPendingTwoFactorSession(req, res, { pendingAuth, rememberMe: true, isDev: false });
 
       expect((req.session as unknown as { pendingAuth: PendingAuthPayload }).pendingAuth).toEqual(
-        pendingAuth
+        pendingAuth,
       );
       expect((req.session as unknown as { rememberMe?: boolean }).rememberMe).toBe(true);
       expect(res.status).toHaveBeenCalledWith(200);
@@ -226,7 +226,7 @@ describe('auth-main-flow.utils', () => {
       const req = {
         session: {
           regenerate: vi.fn((callback: (err?: Error) => void) =>
-            callback(new Error('regenerate failed'))
+            callback(new Error('regenerate failed')),
           ),
           cookie: {},
           save: vi.fn(),
@@ -290,10 +290,10 @@ describe('auth-main-flow.utils', () => {
       expect((req.session as unknown as { userId?: number }).userId).toBe(1);
       expect((req.session as unknown as { username?: string }).username).toBe('alice');
       expect((req.session as unknown as { requiresTwoFactor?: boolean }).requiresTwoFactor).toBe(
-        false
+        false,
       );
       expect((req.session as unknown as { cookie: { maxAge?: number } }).cookie.maxAge).toBe(
-        SECURITY_CONFIG.SESSION_COOKIE_MAX_AGE
+        SECURITY_CONFIG.SESSION_COOKIE_MAX_AGE,
       );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
@@ -312,7 +312,7 @@ describe('auth-main-flow.utils', () => {
       const req = {
         session: {
           destroy: vi.fn((callback: (err?: Error) => void) =>
-            callback(new Error('destroy failed'))
+            callback(new Error('destroy failed')),
           ),
         },
       } as unknown as Request;

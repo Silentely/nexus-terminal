@@ -23,7 +23,7 @@ export {
 
 export const initializeWebSocket = async (
   server: http.Server,
-  sessionParser: RequestHandler
+  sessionParser: RequestHandler,
 ): Promise<WebSocketServer> => {
   // Environment variables are expected to be loaded by index.ts
 
@@ -67,7 +67,7 @@ export const initializeWebSocket = async (
       cleanupClientConnection(sessionId).catch((error: unknown) => {
         logger.debug(
           { sessionId, err: error instanceof Error ? error : undefined },
-          '[WebSocket] 服务器关闭时清理会话失败'
+          '[WebSocket] 服务器关闭时清理会话失败',
         );
       });
     });

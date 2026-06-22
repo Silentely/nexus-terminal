@@ -37,7 +37,7 @@ test.describe('终端功能边缘场景测试', () => {
       // 进入工作区并激活一个会话（若有连接）
       await workspace.goto();
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (!(await connection.isVisible({ timeout: 5000 }).catch(() => false))) {
         // 测试环境可能没有可用连接，无法验证终端类名；恢复设置后安全退出
@@ -78,7 +78,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -94,7 +94,7 @@ test.describe('终端功能边缘场景测试', () => {
 
         // 应该显示挂起状态
         const suspendedState = authenticatedPage.locator(
-          '[data-status="suspended"], text=/挂起|Suspended/i'
+          '[data-status="suspended"], text=/挂起|Suspended/i',
         );
         if (!(await suspendedState.isVisible({ timeout: 5000 }).catch(() => false))) {
           await context.setOffline(false);
@@ -106,7 +106,7 @@ test.describe('终端功能边缘场景测试', () => {
 
         // 点击恢复会话
         const resumeButton = authenticatedPage.locator(
-          'button:has-text("恢复"), button:has-text("Resume")'
+          'button:has-text("恢复"), button:has-text("Resume")',
         );
         if (!(await resumeButton.isVisible({ timeout: 3000 }).catch(() => false))) {
           return;
@@ -132,7 +132,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -140,19 +140,19 @@ test.describe('终端功能边缘场景测试', () => {
 
         // 点击挂起按钮
         const suspendButton = authenticatedPage.locator(
-          'button:has-text("挂起"), [data-action="suspend"]'
+          'button:has-text("挂起"), [data-action="suspend"]',
         );
         if (await suspendButton.isVisible()) {
           await suspendButton.click();
 
           // 应该显示挂起确认
           await expect(
-            authenticatedPage.locator('text=/会话已挂起|Session suspended/i')
+            authenticatedPage.locator('text=/会话已挂起|Session suspended/i'),
           ).toBeVisible({ timeout: 5000 });
 
           // 查看挂起的会话列表
           const viewSuspendedButton = authenticatedPage.locator(
-            'button:has-text("查看挂起的会话")'
+            'button:has-text("查看挂起的会话")',
           );
           if (!(await viewSuspendedButton.isVisible({ timeout: 3000 }).catch(() => false))) {
             return;
@@ -171,7 +171,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -187,7 +187,7 @@ test.describe('终端功能边缘场景测试', () => {
 
         // 查看挂起的会话
         const menuButton = authenticatedPage.locator(
-          'button:has-text("菜单"), [data-testid="menu"]'
+          'button:has-text("菜单"), [data-testid="menu"]',
         );
         if (!(await menuButton.isVisible({ timeout: 3000 }).catch(() => false))) {
           return;
@@ -212,7 +212,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -249,7 +249,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -257,7 +257,7 @@ test.describe('终端功能边缘场景测试', () => {
 
         // 打开命令历史面板
         const historyButton = authenticatedPage.locator(
-          'button:has-text("历史"), [data-testid="history"]'
+          'button:has-text("历史"), [data-testid="history"]',
         );
         if (!(await historyButton.isVisible({ timeout: 3000 }).catch(() => false))) {
           return;
@@ -284,7 +284,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -292,7 +292,7 @@ test.describe('终端功能边缘场景测试', () => {
 
         // 打开命令历史面板
         const historyButton = authenticatedPage.locator(
-          'button:has-text("历史"), [data-testid="history"]'
+          'button:has-text("历史"), [data-testid="history"]',
         );
         if (!(await historyButton.isVisible({ timeout: 3000 }).catch(() => false))) {
           return;
@@ -304,13 +304,13 @@ test.describe('终端功能边缘场景测试', () => {
 
         // 点击清除按钮
         const clearButton = historyPanel.locator(
-          'button:has-text("清除"), button:has-text("Clear")'
+          'button:has-text("清除"), button:has-text("Clear")',
         );
         await clearButton.click();
 
         // 确认清除
         const confirmButton = authenticatedPage.locator(
-          '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")'
+          '.el-message-box__btns button:has-text("确定"), .el-message-box__btns button:has-text("OK")',
         );
         if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
           await confirmButton.click();
@@ -333,7 +333,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -393,11 +393,11 @@ test.describe('终端功能边缘场景测试', () => {
       // 填写命令信息
       await authenticatedPage.fill(
         'input[name="name"], input[placeholder*="名称"]',
-        'Test Command'
+        'Test Command',
       );
       await authenticatedPage.fill(
         'textarea[name="command"], textarea[placeholder*="命令"]',
-        'echo "Hello World"'
+        'echo "Hello World"',
       );
       await authenticatedPage.click('button:has-text("保存")');
 
@@ -414,7 +414,7 @@ test.describe('终端功能边缘场景测试', () => {
       // 打开两个连接
       const connections = await authenticatedPage
         .locator(
-          '.connection-list [data-testid="connection-item"], .connection-list .connection-item'
+          '.connection-list [data-testid="connection-item"], .connection-list .connection-item',
         )
         .all();
       if (connections.length >= 2) {
@@ -444,7 +444,7 @@ test.describe('终端功能边缘场景测试', () => {
 
       const connections = await authenticatedPage
         .locator(
-          '.connection-list [data-testid="connection-item"], .connection-list .connection-item'
+          '.connection-list [data-testid="connection-item"], .connection-list .connection-item',
         )
         .all();
       if (connections.length >= 2) {
@@ -479,7 +479,7 @@ test.describe('终端功能边缘场景测试', () => {
 
       const connections = await authenticatedPage
         .locator(
-          '.connection-list [data-testid="connection-item"], .connection-list .connection-item'
+          '.connection-list [data-testid="connection-item"], .connection-list .connection-item',
         )
         .all();
       if (connections.length >= 2) {
@@ -514,7 +514,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -542,7 +542,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -568,7 +568,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -598,7 +598,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();
@@ -634,7 +634,7 @@ test.describe('终端功能边缘场景测试', () => {
       await workspace.goto();
 
       const connection = authenticatedPage.locator(
-        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child'
+        '.connection-list [data-testid="connection-item"]:first-child, .connection-list .connection-item:first-child',
       );
       if (await connection.isVisible()) {
         await connection.dblclick();

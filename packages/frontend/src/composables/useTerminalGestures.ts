@@ -22,7 +22,7 @@ export interface GestureState {
  */
 export function useTerminalGestures(
   containerRef: Ref<HTMLElement | null>,
-  onFontSizeChange?: (delta: number) => void
+  onFontSizeChange?: (delta: number) => void,
 ) {
   const scale = ref(1);
   const isScaling = ref(false);
@@ -88,7 +88,7 @@ export function useTerminalGestures(
       if (Math.abs(distanceDiff) > PINCH_THRESHOLD) {
         const newScale = Math.max(
           MIN_SCALE,
-          Math.min(MAX_SCALE, initialScale * (currentDistance / initialDistance))
+          Math.min(MAX_SCALE, initialScale * (currentDistance / initialDistance)),
         );
         const scaleDelta = newScale - scale.value;
         scale.value = newScale;

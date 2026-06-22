@@ -33,7 +33,7 @@ function ensureFlushTimer(): void {
   flushTimer = setInterval(() => {
     flushOutputBuffers().catch((err: unknown) => {
       logger.warn(
-        `[BatchRepo] 输出缓冲刷盘失败: ${err instanceof Error ? err.message : String(err)}`
+        `[BatchRepo] 输出缓冲刷盘失败: ${err instanceof Error ? err.message : String(err)}`,
       );
     });
   }, FLUSH_INTERVAL_MS);
@@ -65,7 +65,7 @@ async function flushOutputBuffers(): Promise<void> {
       outputBuffers.delete(subTaskId);
     } catch (err: unknown) {
       logger.warn(
-        `[BatchRepo] 刷盘子任务 ${subTaskId} 输出失败，将在下次刷盘重试: ${err instanceof Error ? err.message : String(err)}`
+        `[BatchRepo] 刷盘子任务 ${subTaskId} 输出失败，将在下次刷盘重试: ${err instanceof Error ? err.message : String(err)}`,
       );
       // 写入失败，保留缓冲区数据不删除，下次重试
     }
@@ -86,7 +86,7 @@ const rowToTask = (row: BatchTaskRow, subTasks: BatchSubTask[] = []): BatchTask 
     const preview = rawPayload.length > 200 ? `${rawPayload.slice(0, 200)}…` : rawPayload;
     logger.warn(
       { taskId: row.id, preview, error: error instanceof Error ? error.message : String(error) },
-      '[BatchRepo] payload_json 解析失败，使用降级 payload'
+      '[BatchRepo] payload_json 解析失败，使用降级 payload',
     );
     payload = { command: '', connectionIds: [] };
   }
@@ -163,7 +163,7 @@ export const createTask = async (task: BatchTask): Promise<void> => {
           now,
           task.startedAt ? Math.floor(task.startedAt.getTime() / 1000) : null,
           task.endedAt ? Math.floor(task.endedAt.getTime() / 1000) : null,
-        ]
+        ],
       );
 
       // 批量插入子任务
@@ -189,12 +189,12 @@ export const createTask = async (task: BatchTask): Promise<void> => {
             subTask.message || null,
             subTask.startedAt ? Math.floor(subTask.startedAt.getTime() / 1000) : null,
             subTask.endedAt ? Math.floor(subTask.endedAt.getTime() / 1000) : null,
-          ]
+          ],
         );
       }
     },
     '创建批量任务',
-    '批量任务创建失败'
+    '批量任务创建失败',
   );
 };
 
@@ -208,7 +208,7 @@ export const getTask = async (taskId: string): Promise<BatchTask | null> => {
     `
         SELECT * FROM batch_tasks WHERE id = ?
     `,
-    [taskId]
+    [taskId],
   );
 
   if (!taskRow) return null;
@@ -218,7 +218,7 @@ export const getTask = async (taskId: string): Promise<BatchTask | null> => {
     `
         SELECT * FROM batch_subtasks WHERE task_id = ? ORDER BY started_at ASC
     `,
-    [taskId]
+    [taskId],
   );
 
   const subTasks = subTaskRows.map(rowToSubTask);
@@ -231,7 +231,7 @@ export const getTask = async (taskId: string): Promise<BatchTask | null> => {
 export const getTasksByUser = async (
   userId: number | string,
   limit: number = 20,
-  offset: number = 0
+  offset: number = 0,
 ): Promise<BatchTask[]> => {
   const db = await getDbInstance();
 
@@ -239,7 +239,7 @@ export const getTasksByUser = async (
   const taskIdRows = await allDb<{ id: string }>(
     db,
     `SELECT id FROM batch_tasks WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-    [userId, limit, offset]
+    [userId, limit, offset],
   );
 
   if (taskIdRows.length === 0) return [];
@@ -277,7 +277,7 @@ export const getTasksByUser = async (
         WHERE t.id IN (${placeholders})
         ORDER BY t.created_at DESC
     `,
-    taskIds
+    taskIds,
   );
 
   // 按 taskId 聚合子任务
@@ -303,7 +303,7 @@ export const getTasksByUser = async (
             message: row.sub_message,
             started_at: row.sub_started_at,
             ended_at: row.sub_ended_at,
-          })
+          }),
         );
       }
     }
@@ -326,7 +326,7 @@ export const updateTaskStatus = async (
     message: string;
     startedAt: Date;
     endedAt: Date;
-  }> = {}
+  }> = {},
 ): Promise<void> => {
   const db = await getDbInstance();
   const now = Math.floor(Date.now() / 1000);
@@ -369,7 +369,7 @@ export const updateTaskStatus = async (
     `
         UPDATE batch_tasks SET ${setClauses.join(', ')} WHERE id = ?
     `,
-    values
+    values,
   );
 };
 
@@ -387,7 +387,7 @@ export const updateSubTaskStatus = async (
     message: string;
     startedAt: Date;
     endedAt: Date;
-  }> = {}
+  }> = {},
 ): Promise<void> => {
   const db = await getDbInstance();
   const setClauses: string[] = ['status = ?', 'progress = ?'];
@@ -421,7 +421,7 @@ export const updateSubTaskStatus = async (
     `
         UPDATE batch_subtasks SET ${setClauses.join(', ')} WHERE id = ?
     `,
-    values
+    values,
   );
 };
 
@@ -442,7 +442,7 @@ export const appendSubTaskOutput = (subTaskId: string, chunk: string): void => {
  */
 export const getSubTask = async (
   taskId: string,
-  subTaskId: string
+  subTaskId: string,
 ): Promise<BatchSubTask | null> => {
   const db = await getDbInstance();
   const row = await getDb<BatchSubTaskRow>(
@@ -450,7 +450,7 @@ export const getSubTask = async (
     `
         SELECT * FROM batch_subtasks WHERE id = ? AND task_id = ?
     `,
-    [subTaskId, taskId]
+    [subTaskId, taskId],
   );
 
   return row ? rowToSubTask(row) : null;
@@ -461,7 +461,7 @@ export const getSubTask = async (
  */
 export const cancelSubTasks = async (
   taskId: string,
-  reason: string = 'Cancelled by user'
+  reason: string = 'Cancelled by user',
 ): Promise<number> => {
   const db = await getDbInstance();
   const result = await runDb(
@@ -471,7 +471,7 @@ export const cancelSubTasks = async (
         SET status = 'cancelled', message = ?
         WHERE task_id = ? AND status IN ('queued', 'connecting')
     `,
-    [reason, taskId]
+    [reason, taskId],
   );
 
   return typeof result.changes === 'number' ? result.changes : 0;
@@ -497,7 +497,7 @@ export const cleanupOldTasks = async (daysOld: number = 7): Promise<number> => {
         DELETE FROM batch_tasks
         WHERE ended_at IS NOT NULL AND ended_at < ?
     `,
-    [cutoff]
+    [cutoff],
   );
 
   return typeof result.changes === 'number' ? result.changes : 0;
@@ -526,7 +526,7 @@ export const recoverOrphanedTasks = async (processStartedAt?: number): Promise<n
         WHERE status IN ('queued', 'in-progress')
           ${processStartedAt ? 'AND updated_at < ?' : ''}
     `,
-    processStartedAt ? [processStartedAt] : []
+    processStartedAt ? [processStartedAt] : [],
   );
 
   const count = typeof result.changes === 'number' ? result.changes : 0;
@@ -544,7 +544,7 @@ export const recoverOrphanedTasks = async (processStartedAt?: number): Promise<n
           )
             AND status IN ('queued', 'connecting', 'running')
       `,
-      []
+      [],
     );
   }
 

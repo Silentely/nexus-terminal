@@ -299,7 +299,7 @@ onBeforeUnmount(() => {
   unsubscribeFromWorkspaceEvents('fileManager:openModalRequest', _onFileManagerOpenModal);
   unsubscribeFromWorkspaceEvents(
     'quickCommand:executeProcessed',
-    handleQuickCommandExecuteProcessed
+    handleQuickCommandExecuteProcessed,
   );
 });
 

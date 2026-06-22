@@ -42,7 +42,7 @@ const pinnedAgentCache = new Map<string, { httpAgent: http.Agent; httpsAgent: ht
 
 function getPinnedAgents(
   baseUrl: string,
-  addresses: string[]
+  addresses: string[],
 ): { httpAgent: http.Agent; httpsAgent: https.Agent } {
   const cached = pinnedAgentCache.get(baseUrl);
   if (cached) return cached;
@@ -139,7 +139,8 @@ export async function getAISettings(): Promise<AISettings | null> {
     if (config.apiKey) {
       try {
         config.apiKey = decrypt(config.apiKey);
-      } catch {
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
         logger.warn('[NL2CMD] API Key 解密失败，可能是旧格式明文存储');
       }
     }
@@ -273,7 +274,7 @@ async function callOpenAIChatCompletions(
   config: AIProviderConfig,
   prompt: string,
   stream: boolean = false,
-  endpointPath: string = '/chat/completions'
+  endpointPath: string = '/chat/completions',
 ): Promise<ProviderResult> {
   const client = await getAxiosClient(config.baseUrl, config.apiKey);
 
@@ -312,7 +313,7 @@ async function callOpenAIChatCompletions(
     if (!choices || choices.length === 0) {
       logger.warn(
         '[NL2CMD] OpenAI API 返回空 choices，响应体:',
-        JSON.stringify(response.data).slice(0, 500)
+        JSON.stringify(response.data).slice(0, 500),
       );
       throw new Error('OpenAI API 返回空响应');
     }
@@ -395,7 +396,7 @@ async function parseStreamResponse(data: unknown): Promise<string> {
  */
 async function parseStreamResponseWithCallback(
   data: unknown,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
 ): Promise<string> {
   const chunks: string[] = [];
 
@@ -410,7 +411,8 @@ async function parseStreamResponseWithCallback(
           chunks.push(content);
           onChunk(content);
         }
-      } catch {
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
         logger.debug('[NL2CMD] SSE streaming 数据块解析失败');
       }
     }
@@ -448,7 +450,7 @@ export async function generateCommandStream(
   request: NL2CMDRequest,
   onChunk: (chunk: string) => void,
   traceId?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<NL2CMDResponse> {
   const startTime = Date.now();
   try {
@@ -493,7 +495,7 @@ export async function generateCommandStream(
         client.post(endpointPath, requestBody, {
           responseType: 'stream',
           signal,
-        })
+        }),
       );
       const command = await parseStreamResponseWithCallback(streamResponse.data, onChunk);
       providerResult = { command };
@@ -555,7 +557,7 @@ export async function generateCommandStream(
 async function callOpenAIResponses(
   config: AIProviderConfig,
   prompt: string,
-  endpointPath: string = '/responses'
+  endpointPath: string = '/responses',
 ): Promise<ProviderResult> {
   const client = await getAxiosClient(config.baseUrl, config.apiKey);
 
@@ -718,7 +720,8 @@ function cleanCommandOutput(output: string): string {
     if (parsed && typeof parsed.command === 'string' && parsed.command.trim()) {
       return parsed.command.trim();
     }
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     // 非 JSON 响应，继续使用正则清理
   }
 
@@ -810,7 +813,7 @@ function buildErrorMessage(error: AxiosError): string {
  */
 export async function generateCommand(
   request: NL2CMDRequest,
-  traceId?: string
+  traceId?: string,
 ): Promise<NL2CMDResponse> {
   const startTime = Date.now();
 
@@ -956,7 +959,7 @@ export async function generateCommand(
  */
 export async function testAIConnection(
   config: AIProviderConfig,
-  traceId?: string
+  traceId?: string,
 ): Promise<boolean> {
   const startTime = Date.now();
 

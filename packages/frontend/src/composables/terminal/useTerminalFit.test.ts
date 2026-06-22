@@ -18,7 +18,7 @@ let resizeCallback: ((entries: ResizeObserverEntry[]) => void) | null = null;
 
 function MockResizeObserver(
   this: Record<string, unknown>,
-  cb: (entries: ResizeObserverEntry[]) => void
+  cb: (entries: ResizeObserverEntry[]) => void,
 ) {
   resizeCallback = cb;
   this.observe = mockObserve;
@@ -95,7 +95,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       // 不应抛出错误
@@ -114,7 +114,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       fitAndEmitResizeNow();
@@ -133,7 +133,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       fitAndEmitResizeNow();
@@ -153,7 +153,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       fitAndEmitResizeNow();
@@ -174,7 +174,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       fitAndEmitResizeNow();
@@ -194,7 +194,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       setupResizeObserver();
@@ -212,7 +212,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       setupResizeObserver();
@@ -230,7 +230,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       setupResizeObserver();
@@ -249,7 +249,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       setupResizeObserver();
@@ -272,7 +272,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       setupResizeObserver();
@@ -300,7 +300,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
 
       setupResizeObserver();
@@ -324,7 +324,7 @@ describe('useTerminalFit', () => {
         el,
         's1',
         isActive,
-        shouldFitByWidth
+        shouldFitByWidth,
       );
       setupResizeObserver();
       mockObserve.mockClear();

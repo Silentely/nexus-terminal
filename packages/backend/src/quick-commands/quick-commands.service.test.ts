@@ -50,7 +50,7 @@ describe('Quick Commands Service', () => {
       expect(QuickCommandsRepository.addQuickCommand).toHaveBeenCalledWith(
         'List Files',
         'ls -la',
-        undefined
+        undefined,
       );
     });
 
@@ -62,7 +62,7 @@ describe('Quick Commands Service', () => {
       expect(QuickCommandsRepository.addQuickCommand).toHaveBeenCalledWith(
         'Name with spaces',
         'command',
-        undefined
+        undefined,
       );
     });
 
@@ -74,7 +74,7 @@ describe('Quick Commands Service', () => {
       expect(QuickCommandsRepository.addQuickCommand).toHaveBeenCalledWith(
         null,
         'command',
-        undefined
+        undefined,
       );
     });
 
@@ -91,14 +91,14 @@ describe('Quick Commands Service', () => {
 
       expect(QuickCommandTagRepository.setCommandTagAssociations).toHaveBeenCalledWith(
         5,
-        [1, 2, 3]
+        [1, 2, 3],
       );
     });
 
     it('标签关联失败不应影响主记录创建', async () => {
       (QuickCommandsRepository.addQuickCommand as any).mockResolvedValueOnce(5);
       (QuickCommandTagRepository.setCommandTagAssociations as any).mockRejectedValueOnce(
-        new Error('Tag error')
+        new Error('Tag error'),
       );
 
       const result = await addQuickCommand('Name', 'command', [1, 2]);
@@ -115,7 +115,7 @@ describe('Quick Commands Service', () => {
       expect(QuickCommandsRepository.addQuickCommand).toHaveBeenCalledWith(
         'Name',
         'ssh {{host}}',
-        variables
+        variables,
       );
     });
   });
@@ -131,7 +131,7 @@ describe('Quick Commands Service', () => {
         1,
         'Updated Name',
         'updated command',
-        undefined
+        undefined,
       );
     });
 
@@ -267,7 +267,7 @@ describe('Quick Commands Service', () => {
     it('无效的指令 ID 列表应抛出异常', async () => {
       await expect(assignTagToCommands([1, NaN, 3], 5)).rejects.toThrow('无效的指令 ID 列表');
       await expect(assignTagToCommands('not array' as any, 5)).rejects.toThrow(
-        '无效的指令 ID 列表'
+        '无效的指令 ID 列表',
       );
     });
 
@@ -278,7 +278,7 @@ describe('Quick Commands Service', () => {
 
     it('repository 错误应向上传递', async () => {
       (QuickCommandTagRepository.addTagToCommands as any).mockRejectedValueOnce(
-        new Error('Repo error')
+        new Error('Repo error'),
       );
 
       await expect(assignTagToCommands([1, 2], 5)).rejects.toThrow('Repo error');

@@ -24,7 +24,7 @@ export const findAllTags = async (): Promise<TagData[]> => {
       return allDb<TagData>(db, `SELECT * FROM tags ORDER BY name ASC`);
     },
     '查询标签列表时出错',
-    '获取标签列表失败'
+    '获取标签列表失败',
   );
 };
 
@@ -39,7 +39,7 @@ export const findTagById = async (id: number): Promise<TagData | null> => {
       return row || null;
     },
     `查询标签 ${id} 时出错`,
-    '获取标签信息失败'
+    '获取标签信息失败',
   );
 };
 
@@ -54,13 +54,13 @@ export const createTag = async (name: string): Promise<number> => {
       const result = await runDb(
         db,
         `INSERT INTO tags (name, created_at, updated_at) VALUES (?, ?, ?)`,
-        [name, now, now]
+        [name, now, now],
       );
       return RepositoryUtils.validateLastId(result, '创建标签后未能获取有效的 lastID');
     },
     '创建标签时出错',
     '创建标签失败',
-    RepositoryUtils.createUniqueConstraintHandler('name', name, '标签名称')
+    RepositoryUtils.createUniqueConstraintHandler('name', name, '标签名称'),
   );
 };
 
@@ -81,7 +81,7 @@ export const updateTag = async (id: number, name: string): Promise<boolean> => {
     },
     `更新标签 ${id} 时出错`,
     '更新标签失败',
-    RepositoryUtils.createUniqueConstraintHandler('name', name, '标签名称')
+    RepositoryUtils.createUniqueConstraintHandler('name', name, '标签名称'),
   );
 };
 
@@ -96,7 +96,7 @@ export const deleteTag = async (id: number): Promise<boolean> => {
       return RepositoryUtils.hasChanges(result);
     },
     `删除标签 ${id} 时出错`,
-    '删除标签失败'
+    '删除标签失败',
   );
 };
 
@@ -105,7 +105,7 @@ export const deleteTag = async (id: number): Promise<boolean> => {
  */
 export const updateTagConnections = async (
   tagId: number,
-  connectionIds: number[]
+  connectionIds: number[],
 ): Promise<void> => {
   return RepositoryUtils.executeInTransaction(
     async (db) => {
@@ -123,6 +123,6 @@ export const updateTagConnections = async (
       }
     },
     `更新标签 ${tagId} 的连接关联时出错`,
-    '更新标签连接关联失败'
+    '更新标签连接关联失败',
   );
 };

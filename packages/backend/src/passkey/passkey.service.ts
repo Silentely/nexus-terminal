@@ -57,7 +57,7 @@ function base64UrlToUint8Array(base64urlString: string): Uint8Array {
 }
 
 function getNestedRegistrationResponse(
-  value: RegistrationResponseJSON
+  value: RegistrationResponseJSON,
 ): RegistrationResponseJSON | undefined {
   if (typeof value !== 'object' || value === null || !('registrationResponse' in value)) {
     return undefined;
@@ -93,7 +93,7 @@ function getRegistrationCredentialDetails(value: unknown): {
 export class PasskeyService {
   constructor(
     private passkeyRepo: typeof passkeyRepository,
-    private userRepo: typeof userRepository
+    private userRepo: typeof userRepository,
   ) {}
 
   private getAvailableRpConfigs(): PasskeyRpConfig[] {
@@ -130,7 +130,7 @@ export class PasskeyService {
     }
 
     const byExactOrigin = rpConfigs.find(
-      (item) => item.normalizedRpOrigin === normalizedRequestOrigin
+      (item) => item.normalizedRpOrigin === normalizedRequestOrigin,
     );
     if (byExactOrigin) {
       return byExactOrigin;
@@ -185,7 +185,7 @@ export class PasskeyService {
     registrationResponseJSON: RegistrationResponseJSON,
     expectedChallenge: string,
     userHandleFromClient: string,
-    requestOrigin?: string
+    requestOrigin?: string,
   ): Promise<VerifiedRegistrationResponse & { newPasskeyToSave?: NewPasskey }> {
     const userId = parseInt(userHandleFromClient, 10);
     if (Number.isNaN(userId)) {
@@ -203,7 +203,7 @@ export class PasskeyService {
     if (!actualRegistrationResponse || !actualRegistrationResponse.id) {
       logger.error(
         'Missing credential ID in actualRegistrationResponse from client:',
-        registrationResponseJSON
+        registrationResponseJSON,
       );
       throw new Error('Registration failed: Missing or malformed credential ID from client.');
     }
@@ -236,10 +236,10 @@ export class PasskeyService {
       ) {
         logger.error(
           'Verification successful, but registrationInfo.credential structure is unexpected or missing:',
-          regInfo
+          regInfo,
         );
         throw new Error(
-          'Failed to process registration info due to unexpected credential structure.'
+          'Failed to process registration info due to unexpected credential structure.',
         );
       }
 
@@ -298,7 +298,7 @@ export class PasskeyService {
   async verifyAuthentication(
     authenticationResponseJSON: AuthenticationResponseJSON,
     expectedChallenge: string,
-    requestOrigin?: string
+    requestOrigin?: string,
   ): Promise<VerifiedAuthenticationResponse & { passkey?: Passkey; userId?: number }> {
     // Decode and check authenticatorData length
     if (
@@ -307,7 +307,7 @@ export class PasskeyService {
     ) {
       try {
         const authenticatorDataBytes = base64UrlToUint8Array(
-          authenticationResponseJSON.response.authenticatorData
+          authenticationResponseJSON.response.authenticatorData,
         );
         if (authenticatorDataBytes.length < 37) {
           // logger.warn(`[PasskeyService] WARNING: Decoded authenticatorData length (${authenticatorDataBytes.length} bytes) is less than the expected minimum of 37 bytes. This may lead to CBOR parsing errors and subsequent failures (e.g., 'cannot read counter').`);
@@ -315,7 +315,7 @@ export class PasskeyService {
       } catch (error: unknown) {
         logger.error(
           '[PasskeyService] Error decoding authenticatorData from client response:',
-          getErrorMessage(error)
+          getErrorMessage(error),
         );
         throw ErrorFactory.badRequest('authenticatorData 解码失败，请求体可能已损坏');
       }
@@ -333,7 +333,7 @@ export class PasskeyService {
     if (!passkey) {
       logger.error(
         '[PasskeyService] Passkey not found for credential ID:',
-        credentialIdFromResponse
+        credentialIdFromResponse,
       );
       throw new Error('Authentication failed. Passkey not found.');
     }
@@ -345,7 +345,7 @@ export class PasskeyService {
       logger.error(
         '[PasskeyService] Error decoding credential_id to Uint8Array:',
         passkey.credential_id,
-        getErrorMessage(error)
+        getErrorMessage(error),
       );
       throw new Error('Failed to decode credential_id.');
     }
@@ -357,13 +357,13 @@ export class PasskeyService {
       authenticatorPublicKey = new Uint8Array(
         pkBuffer.buffer,
         pkBuffer.byteOffset,
-        pkBuffer.byteLength
+        pkBuffer.byteLength,
       );
     } catch (error: unknown) {
       logger.error(
         '[PasskeyService] Error decoding public_key to Uint8Array:',
         passkey.public_key,
-        getErrorMessage(error)
+        getErrorMessage(error),
       );
       throw new Error('Failed to decode public_key.');
     }
@@ -377,7 +377,7 @@ export class PasskeyService {
       logger.error(
         '[PasskeyService] Error parsing transports JSON:',
         passkey.transports,
-        getErrorMessage(error)
+        getErrorMessage(error),
       );
       authenticatorTransports = undefined;
     }

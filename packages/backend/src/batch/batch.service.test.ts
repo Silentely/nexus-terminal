@@ -18,8 +18,9 @@ import * as ConnectionRepository from '../connections/connection.repository';
 import type { BatchTask, BatchExecPayload } from './batch.types';
 
 // Mock 依赖模块
-vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mock-uuid-1234'),
+vi.mock('crypto', () => ({
+  default: { randomUUID: vi.fn(() => 'mock-uuid-1234') },
+  randomUUID: vi.fn(() => 'mock-uuid-1234'),
 }));
 
 vi.mock('./batch.repository', () => ({
@@ -115,7 +116,7 @@ describe('Batch Service', () => {
 
     it('应在获取连接名称失败时使用默认名称', async () => {
       (ConnectionRepository.findConnectionByIdWithTags as any).mockRejectedValue(
-        new Error('Connection not found')
+        new Error('Connection not found'),
       );
       (BatchRepository.createTask as any).mockResolvedValue(undefined);
       (BatchRepository.getTask as any).mockResolvedValue(null);

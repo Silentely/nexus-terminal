@@ -55,7 +55,7 @@ const toVerificationErrorMessage = (value: unknown): string | undefined => {
 const isExpiredChallenge = (
   challengeData: ChallengeData,
   now: number,
-  timeoutMs: number
+  timeoutMs: number,
 ): boolean => now - challengeData.timestamp > timeoutMs;
 
 export const persistPasskeyChallengeSession = async (
@@ -66,7 +66,7 @@ export const persistPasskeyChallengeSession = async (
     userHandle?: string;
     clearUserHandle?: boolean;
     now?: number;
-  }
+  },
 ): Promise<void> => {
   req.session.currentChallenge = {
     challenge: payload.challenge,
@@ -272,7 +272,7 @@ const asNewPasskey = (value: unknown): NewPasskey | undefined => {
 };
 
 export const mapPasskeyRegistrationVerificationResult = (
-  verification: unknown
+  verification: unknown,
 ): PasskeyRegistrationVerificationResult => {
   const value = verification as PasskeyRegistrationVerificationLike;
   const newPasskeyToSave = asNewPasskey(value?.newPasskeyToSave);
@@ -312,7 +312,7 @@ export type PasskeyAuthenticationVerificationResult =
     };
 
 const asPasskey = (
-  value: unknown
+  value: unknown,
 ):
   | {
       id: number;
@@ -338,7 +338,7 @@ const asPasskey = (
 };
 
 export const mapPasskeyAuthenticationVerificationResult = (
-  verification: unknown
+  verification: unknown,
 ): PasskeyAuthenticationVerificationResult => {
   const value = verification as PasskeyAuthenticationVerificationLike;
   const userId = typeof value?.userId === 'number' ? value.userId : undefined;

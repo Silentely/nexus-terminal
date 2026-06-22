@@ -342,7 +342,7 @@ watch(
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // --- 监听 activeSessionId 变化以处理会话切换状态 ---
@@ -354,7 +354,7 @@ watch(
       await nextTick(); // 等待DOM更新（currentServerStatus已改变，displayPercent们会返回0）
       isSwitchingSession.value = false;
     }
-  }
+  },
 );
 
 // --- Computed properties for display ---
@@ -438,7 +438,7 @@ const sessionIpAddress = computed(() => {
       return null; // 如果 connectionId 不是有效的数字，则返回 null
     }
     const connectionInfo = connectionsStore.connections.find(
-      (conn) => conn.id === connectionIdAsNumber
+      (conn) => conn.id === connectionIdAsNumber,
     );
     return connectionInfo?.host || null;
   }

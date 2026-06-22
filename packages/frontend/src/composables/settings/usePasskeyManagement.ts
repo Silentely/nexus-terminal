@@ -55,7 +55,7 @@ export function usePasskeyManagement() {
       } else {
         passkeyMessage.value = extractErrorMessage(
           error,
-          t('settings.passkey.error.registrationFailed')
+          t('settings.passkey.error.registrationFailed'),
         );
       }
       passkeySuccess.value = false;
@@ -95,7 +95,7 @@ export function usePasskeyManagement() {
       log.error(`更新 Passkey ${credentialID} 名称失败:`, error);
       passkeyMessage.value = extractErrorMessage(
         error,
-        t('settings.passkey.error.nameUpdateFailed', '更新 Passkey 名称失败。')
+        t('settings.passkey.error.nameUpdateFailed', '更新 Passkey 名称失败。'),
       );
       passkeySuccess.value = false;
     } finally {
@@ -110,11 +110,11 @@ export function usePasskeyManagement() {
     if (!credentialID || typeof credentialID !== 'string') {
       log.error(
         'Attempted to delete a passkey with an invalid or undefined credentialID:',
-        credentialID
+        credentialID,
       );
       passkeyDeleteError.value = t(
         'settings.passkey.error.deleteFailedInvalidId',
-        '删除失败：无效的凭证 ID。'
+        '删除失败：无效的凭证 ID。',
       );
       return;
     }
@@ -135,7 +135,7 @@ export function usePasskeyManagement() {
       log.error(`删除 Passkey ${credentialID} 失败:`, error);
       passkeyDeleteError.value = extractErrorMessage(
         error,
-        t('settings.passkey.error.deleteFailedGeneral')
+        t('settings.passkey.error.deleteFailedGeneral'),
       );
       passkeySuccess.value = false;
     } finally {

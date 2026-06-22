@@ -42,14 +42,14 @@ export function useAuditSettings() {
       }
       auditLogMaxEntriesMessage.value = t(
         'settings.auditLog.success.maxEntriesSaved',
-        '最大保留条数已保存'
+        '最大保留条数已保存',
       );
       auditLogMaxEntriesSuccess.value = true;
     } catch (error: unknown) {
       log.error('更新审计日志最大保留条数失败:', error);
       auditLogMaxEntriesMessage.value = extractErrorMessage(
         error,
-        t('settings.auditLog.error.maxEntriesSaveFailed', '保存失败')
+        t('settings.auditLog.error.maxEntriesSaveFailed', '保存失败'),
       );
       auditLogMaxEntriesSuccess.value = false;
     } finally {
@@ -90,7 +90,7 @@ export function useAuditSettings() {
       log.error('删除审计日志失败:', error);
       deleteAuditLogsMessage.value = extractErrorMessage(
         error,
-        t('settings.auditLog.error.deleteFailed', '删除失败')
+        t('settings.auditLog.error.deleteFailed', '删除失败'),
       );
       deleteAuditLogsSuccess.value = false;
     } finally {

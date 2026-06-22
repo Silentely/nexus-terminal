@@ -7,11 +7,11 @@ import {
 } from './auth-passkey-flow.utils';
 
 export const resolvePasskeyRegistrationVerificationOutcome = (
-  verification: unknown
+  verification: unknown,
 ): PasskeyRegistrationVerificationResult => mapPasskeyRegistrationVerificationResult(verification);
 
 export const resolvePasskeyAuthenticationVerificationOutcome = (
-  verification: unknown
+  verification: unknown,
 ): PasskeyAuthenticationVerificationResult =>
   mapPasskeyAuthenticationVerificationResult(verification);
 

@@ -73,7 +73,8 @@ export class DockerService {
       await execAsync('docker version', { timeout: 2000 }); // 5秒超时
       this.isDockerAvailableCache = true;
       return true;
-    } catch {
+    } catch (err: unknown) {
+      logger.debug({ err }, '操作失败，已忽略');
       this.isDockerAvailableCache = false;
       return false;
     }
@@ -95,7 +96,7 @@ export class DockerService {
     try {
       const { stdout: psStdout } = await execAsync(
         "docker ps -a --no-trunc --format '{{json .}}'",
-        { timeout: this.commandTimeout }
+        { timeout: this.commandTimeout },
       );
       const lines = psStdout.trim().split('\n');
       allContainers = lines
@@ -134,7 +135,7 @@ export class DockerService {
       // --no-stream 获取一次性快照
       const { stdout: statsStdout } = await execAsync(
         "docker stats --no-stream --format '{{json .}}'",
-        { timeout: this.commandTimeout }
+        { timeout: this.commandTimeout },
       );
       const statsLines = statsStdout.trim().split('\n');
       statsLines.forEach((line) => {

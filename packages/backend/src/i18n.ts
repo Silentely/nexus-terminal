@@ -56,7 +56,7 @@ const i18nInitializationPromise = new Promise<void>((resolve, reject) => {
       logger.info('[i18next] 初始化完成。已加载语言:', Object.keys(i18next.store.data || {})); // Safe access to store.data
       i18nInitialized = true; // Mark as initialized
       resolve(); // Resolve the promise on success
-    }
+    },
   );
 });
 

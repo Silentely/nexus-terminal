@@ -665,7 +665,7 @@ describe('FileManager.vue', () => {
               cmd: expect.stringContaining('__NX_PWD__'),
             }),
           }),
-        })
+        }),
       );
       expect(wsDeps.onMessage).toHaveBeenCalledWith('ssh:exec_silent:result', expect.any(Function));
       expect(wsDeps.onMessage).toHaveBeenCalledWith('ssh:exec_silent:error', expect.any(Function));
@@ -704,7 +704,7 @@ describe('FileManager.vue', () => {
           output:
             'root@localhost:/root$ pwd 2>/dev/null\n\u001b[0m__NX_PWD__/root\nroot@localhost:/root$ ',
         },
-        { requestId: request.requestId }
+        { requestId: request.requestId },
       );
       await nextTick();
 
@@ -758,7 +758,7 @@ describe('FileManager.vue', () => {
 
       // 移动端应有多选模式切换
       expect(wrapper.find('.fa-check-square').exists() || wrapper.find('.fa-square').exists()).toBe(
-        true
+        true,
       );
     });
   });
@@ -777,7 +777,7 @@ describe('FileManager.vue', () => {
       expect(mockSessionStore.getOrCreateSftpManager).toHaveBeenCalledWith(
         'session-1',
         'instance-1',
-        undefined
+        undefined,
       );
     });
 
@@ -810,11 +810,11 @@ describe('FileManager.vue', () => {
 
       expect(mockFocusSwitcherStore.registerFocusAction).toHaveBeenCalledWith(
         'fileManagerSearch',
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(mockFocusSwitcherStore.registerFocusAction).toHaveBeenCalledWith(
         'fileManagerPathInput',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
   });
@@ -943,7 +943,7 @@ describe('FileManager.vue', () => {
       expect(mockSessionStore.getOrCreateSftpManager).toHaveBeenCalledWith(
         'session-2',
         'instance-1',
-        undefined
+        undefined,
       );
     });
   });

@@ -7,7 +7,7 @@ const toPasskeyIdSuffix = (passkeyId: number): string => {
 };
 
 export const buildPasskeyRegistrationOptionsGeneratedDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -17,7 +17,7 @@ export const buildPasskeyRegistrationOptionsGeneratedDebugLogAction = (
 });
 
 export const buildPasskeyRegistrationOptionsErrorLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'error';
   message: string;
@@ -38,7 +38,7 @@ export const buildPasskeyRegistrationSuccessInfoLogAction = (payload: {
 });
 
 export const buildPasskeyRegistrationVerificationFailedWarnLogAction = (
-  userHandle: string
+  userHandle: string,
 ): {
   level: 'warn';
   message: string;
@@ -48,7 +48,7 @@ export const buildPasskeyRegistrationVerificationFailedWarnLogAction = (
 });
 
 export const buildPasskeyRegistrationVerificationErrorLogAction = (
-  userHandle: string
+  userHandle: string,
 ): {
   level: 'error';
   message: string;
@@ -58,7 +58,7 @@ export const buildPasskeyRegistrationVerificationErrorLogAction = (
 });
 
 export const buildPasskeyAuthenticationOptionsGeneratedDebugLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'debug';
   message: string;
@@ -68,7 +68,7 @@ export const buildPasskeyAuthenticationOptionsGeneratedDebugLogAction = (
 });
 
 export const buildPasskeyAuthenticationOptionsErrorLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'error';
   message: string;
@@ -78,7 +78,7 @@ export const buildPasskeyAuthenticationOptionsErrorLogAction = (
 });
 
 export const buildPasskeyAuthenticationUserNotFoundAfterVerifiedErrorLogAction = (
-  userId: number
+  userId: number,
 ): {
   level: 'error';
   message: string;
@@ -127,7 +127,7 @@ export const buildPasskeyListErrorLogAction = (payload: {
 });
 
 export const buildPasskeyHasConfiguredCheckErrorLogAction = (
-  username: string
+  username: string,
 ): {
   level: 'error';
   message: string;

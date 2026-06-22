@@ -56,7 +56,7 @@ vi.mock('./session.store', () => ({
 async function createTab(
   store: ReturnType<typeof useFileEditorStore>,
   filePath: string,
-  sessionId: string = 's1'
+  sessionId: string = 's1',
 ) {
   mockGetOrCreateSftpManager.mockReturnValue(null);
   await store.openFile(filePath, sessionId, 'primary');
@@ -443,7 +443,7 @@ describe('fileEditor.store', () => {
      */
     function setupSessionWithSftpManager(
       sessionId: string,
-      sftpManager: { writeFile: ReturnType<typeof vi.fn>; readFile: ReturnType<typeof vi.fn> }
+      sftpManager: { writeFile: ReturnType<typeof vi.fn>; readFile: ReturnType<typeof vi.fn> },
     ) {
       mockSessions.set(sessionId, {
         wsManager: {
@@ -744,7 +744,7 @@ describe('fileEditor.store', () => {
   describe('saveFile 特殊分支', () => {
     function setupSessionWithSftpManager(
       sessionId: string,
-      sftpManager: { writeFile: ReturnType<typeof vi.fn>; readFile: ReturnType<typeof vi.fn> }
+      sftpManager: { writeFile: ReturnType<typeof vi.fn>; readFile: ReturnType<typeof vi.fn> },
     ) {
       mockSessions.set(sessionId, {
         wsManager: {

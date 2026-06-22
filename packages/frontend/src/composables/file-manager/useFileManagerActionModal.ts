@@ -45,7 +45,7 @@ export function useFileManagerActionModal(options: UseFileManagerActionModalOpti
   // --- 模态框状态 ---
   const isActionModalVisible = ref(false);
   const currentActionType = ref<'delete' | 'rename' | 'chmod' | 'newFile' | 'newFolder' | null>(
-    null
+    null,
   );
   const actionItem = ref<FileListItem | null>(null);
   const actionItems = ref<FileListItem[]>([]);
@@ -56,7 +56,7 @@ export function useFileManagerActionModal(options: UseFileManagerActionModalOpti
     type: 'delete' | 'rename' | 'chmod' | 'newFile' | 'newFolder',
     item?: FileListItem | null,
     items?: FileListItem[],
-    initialValue?: string
+    initialValue?: string,
   ) => {
     currentActionType.value = type;
     actionItem.value = item || null;
@@ -118,7 +118,7 @@ export function useFileManagerActionModal(options: UseFileManagerActionModalOpti
         if (value) {
           if (manager.fileList.value.some((item: FileListItem) => item.filename === value)) {
             log.warn(
-              `${logPrefix.value} Folder ${value} already exists. Modal should prevent this.`
+              `${logPrefix.value} Folder ${value} already exists. Modal should prevent this.`,
             );
             showError(`Folder "${value}" already exists`);
             return;

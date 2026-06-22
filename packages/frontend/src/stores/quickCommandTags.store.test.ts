@@ -86,7 +86,7 @@ describe('quickCommandTags.store', () => {
 
     // 默认 extractErrorMessage 行为
     vi.mocked(extractErrorMessage).mockImplementation(
-      (_err: unknown, fallback: string) => fallback
+      (_err: unknown, fallback: string) => fallback,
     );
   });
 
@@ -119,7 +119,7 @@ describe('quickCommandTags.store', () => {
       expect(apiClient.get).toHaveBeenCalledWith('/quick-command-tags');
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'quickCommandTagsCache',
-        JSON.stringify(mockTags)
+        JSON.stringify(mockTags),
       );
     });
 
@@ -155,7 +155,7 @@ describe('quickCommandTags.store', () => {
       expect(store.tags).toEqual(freshTags);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'quickCommandTagsCache',
-        JSON.stringify(freshTags)
+        JSON.stringify(freshTags),
       );
     });
 
@@ -529,7 +529,7 @@ describe('quickCommandTags.store', () => {
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         'quickCommandTagsCache',
-        JSON.stringify(tags)
+        JSON.stringify(tags),
       );
     });
   });

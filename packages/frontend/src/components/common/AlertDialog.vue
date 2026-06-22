@@ -20,7 +20,7 @@ watch(
   () => props.visible,
   (newValue) => {
     dialogVisible.value = newValue;
-  }
+  },
 );
 
 watch(dialogVisible, (newValue) => {

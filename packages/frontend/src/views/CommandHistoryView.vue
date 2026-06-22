@@ -178,7 +178,7 @@ onMounted(() => {
   // +++ 保存返回的注销函数 +++
   unregisterFocus = focusSwitcherStore.registerFocusAction(
     'commandHistorySearch',
-    focusSearchInput
+    focusSearchInput,
   );
 });
 onBeforeUnmount(() => {
@@ -349,7 +349,7 @@ const showCommandHistoryContextMenu = (event: MouseEvent, entry: CommandHistoryE
         finalY !== commandHistoryContextMenuPosition.value.y
       ) {
         log.info(
-          `[CommandHistoryView] Adjusting command history context menu position: (${commandHistoryContextMenuPosition.value.x}, ${commandHistoryContextMenuPosition.value.y}) -> (${finalX}, ${finalY})`
+          `[CommandHistoryView] Adjusting command history context menu position: (${commandHistoryContextMenuPosition.value.x}, ${commandHistoryContextMenuPosition.value.y}) -> (${finalX}, ${finalY})`,
         );
         commandHistoryContextMenuPosition.value = { x: finalX, y: finalY };
       }
@@ -365,7 +365,7 @@ const closeCommandHistoryContextMenu = () => {
 
 const handleCommandHistoryMenuAction = (
   action: 'sendToAllSessions',
-  entry: CommandHistoryEntryFE
+  entry: CommandHistoryEntryFE,
 ) => {
   closeCommandHistoryContextMenu();
   if (action === 'sendToAllSessions') {
@@ -374,7 +374,7 @@ const handleCommandHistoryMenuAction = (
         if (s.wsManager.connectionStatus.value !== 'connected') return false;
         const connInfo = connectionsStore.connections.find((c) => c.id === Number(s.connectionId));
         return connInfo?.type === 'SSH';
-      }
+      },
     );
 
     if (activeSshSessions.length > 0) {

@@ -10,7 +10,7 @@ import { logger } from '../utils/logger';
 export const createFavoritePath = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const { name, path } = req.body;
 
@@ -44,7 +44,7 @@ export const createFavoritePath = async (
 export const getAllFavoritePaths = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const sortBy = req.query.sortBy as FavoritePathSortBy | undefined;
   const validSortByOptions: FavoritePathSortBy[] = ['name', 'last_used_at'];
@@ -66,7 +66,7 @@ export const getAllFavoritePaths = async (
 export const getFavoritePathById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
@@ -94,7 +94,7 @@ export const getFavoritePathById = async (
 export const updateFavoritePath = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
   const { name, path } = req.body;
@@ -144,7 +144,7 @@ export const updateFavoritePath = async (
 export const deleteFavoritePath = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
@@ -172,7 +172,7 @@ export const deleteFavoritePath = async (
 export const incrementUsage = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 
@@ -219,7 +219,7 @@ export const incrementUsage = async (
 export const updateLastUsedTimestamp = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const id = parseInt(req.params.id, 10);
 

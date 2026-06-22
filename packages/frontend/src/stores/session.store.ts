@@ -80,7 +80,7 @@ export const useSessionStore = defineStore('session', () => {
   const changeLineEndingInSession = (
     sessionId: string,
     tabId: string,
-    newLineEnding: 'lf' | 'crlf' | 'cr'
+    newLineEnding: 'lf' | 'crlf' | 'cr',
   ) => editorActions.changeLineEndingInSession(sessionId, tabId, newLineEnding, { t });
   const closeOtherTabsInSession = (sessionId: string, targetTabId: string) =>
     editorActions.closeOtherTabsInSession(sessionId, targetTabId);
@@ -92,7 +92,7 @@ export const useSessionStore = defineStore('session', () => {
     sessionId: string,
     tabId: string,
     scrollTop: number,
-    scrollLeft: number
+    scrollLeft: number,
   ) => editorActions.updateTabScrollPositionInSession(sessionId, tabId, scrollTop, scrollLeft);
 
   // Command Input Actions

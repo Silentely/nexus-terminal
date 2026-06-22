@@ -87,10 +87,10 @@ describe('sftp-path-operations', () => {
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
         ) => {
           callback(null, createMockStats());
-        }
+        },
       );
 
       await executeMkdirPathOperation(state, sessionId, '/tmp/dir', requestId);
@@ -125,7 +125,7 @@ describe('sftp-path-operations', () => {
         callback();
       });
       state.sftp.lstat.mockImplementation((_path: string, callback: (err: Error | null) => void) =>
-        callback(new Error('lstat failed'))
+        callback(new Error('lstat failed')),
       );
 
       await executeMkdirPathOperation(state, sessionId, '/tmp/dir', requestId);
@@ -151,7 +151,7 @@ describe('sftp-path-operations', () => {
       state.sshClient.exec.mockImplementation(
         (_command: string, callback: (err?: Error, stream?: EventEmitter) => void) => {
           callback(new Error('exec failed'));
-        }
+        },
       );
 
       await executeRmdirPathOperation(state, sessionId, '/tmp/dir', requestId);
@@ -171,7 +171,7 @@ describe('sftp-path-operations', () => {
           setTimeout(() => {
             stream.emit('close', 0, null);
           }, 0);
-        }
+        },
       );
 
       await executeRmdirPathOperation(state, sessionId, '/tmp/dir', requestId);
@@ -193,7 +193,7 @@ describe('sftp-path-operations', () => {
             stream.stderr.emit('data', Buffer.from('permission denied'));
             stream.emit('close', 1, null);
           }, 0);
-        }
+        },
       );
 
       await executeRmdirPathOperation(state, sessionId, '/tmp/dir', requestId);
@@ -257,7 +257,7 @@ describe('sftp-path-operations', () => {
       state.sftp.rename.mockImplementation(
         (_oldPath: string, _newPath: string, callback: (err?: Error) => void) => {
           callback(new Error('rename failed'));
-        }
+        },
       );
 
       await executeRenamePathOperation(state, sessionId, '/tmp/a.txt', '/tmp/b.txt', requestId);
@@ -272,15 +272,15 @@ describe('sftp-path-operations', () => {
       state.sftp.rename.mockImplementation(
         (_oldPath: string, _newPath: string, callback: (err?: Error) => void) => {
           callback();
-        }
+        },
       );
       state.sftp.lstat.mockImplementation(
         (
           _path: string,
-          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void
+          callback: (err: Error | null, stats?: ReturnType<typeof createMockStats>) => void,
         ) => {
           callback(null, createMockStats());
-        }
+        },
       );
 
       await executeRenamePathOperation(state, sessionId, '/tmp/a.txt', '/tmp/b.txt', requestId);
@@ -301,10 +301,10 @@ describe('sftp-path-operations', () => {
       state.sftp.rename.mockImplementation(
         (_oldPath: string, _newPath: string, callback: (err?: Error) => void) => {
           callback();
-        }
+        },
       );
       state.sftp.lstat.mockImplementation((_path: string, callback: (err: Error | null) => void) =>
-        callback(new Error('lstat failed'))
+        callback(new Error('lstat failed')),
       );
 
       await executeRenamePathOperation(state, sessionId, '/tmp/a.txt', '/tmp/b.txt', requestId);

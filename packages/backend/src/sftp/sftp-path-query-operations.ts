@@ -41,7 +41,7 @@ export const executeStatPathQueryOperation = async (
   state: ClientState | undefined,
   sessionId: string,
   path: string,
-  requestId: string
+  requestId: string,
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 stat (ID: ${requestId})`);
@@ -51,7 +51,7 @@ export const executeStatPathQueryOperation = async (
         path,
         payload: 'SFTP 会话未就绪',
         requestId,
-      })
+      }),
     );
     return;
   }
@@ -67,7 +67,7 @@ export const executeStatPathQueryOperation = async (
             path,
             payload: `获取状态失败: ${err.message}`,
             requestId,
-          })
+          }),
         );
         return;
       }
@@ -89,13 +89,13 @@ export const executeStatPathQueryOperation = async (
           path,
           payload: fileStats,
           requestId,
-        })
+        }),
       );
     });
   } catch (error: unknown) {
     logger.error(
       `[SFTP ${sessionId}] stat ${path} caught unexpected error (ID: ${requestId}):`,
-      error
+      error,
     );
     state.ws.send(
       JSON.stringify({
@@ -103,7 +103,7 @@ export const executeStatPathQueryOperation = async (
         path,
         payload: `获取状态时发生意外错误: ${getErrorMessage(error)}`,
         requestId,
-      })
+      }),
     );
   }
 };
@@ -113,7 +113,7 @@ export const executeChmodPathQueryOperation = async (
   sessionId: string,
   path: string,
   mode: number,
-  requestId: string
+  requestId: string,
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 chmod (ID: ${requestId})`);
@@ -123,21 +123,21 @@ export const executeChmodPathQueryOperation = async (
         path,
         payload: 'SFTP 会话未就绪',
         requestId,
-      })
+      }),
     );
     return;
   }
 
   const { sftp } = state;
   logger.debug(
-    `[SFTP ${sessionId}] Received chmod request for ${path} to ${mode.toString(8)} (ID: ${requestId})`
+    `[SFTP ${sessionId}] Received chmod request for ${path} to ${mode.toString(8)} (ID: ${requestId})`,
   );
   try {
     sftp.chmod(path, mode, (err) => {
       if (err) {
         logger.error(
           `[SFTP ${sessionId}] chmod ${path} to ${mode.toString(8)} failed (ID: ${requestId}):`,
-          err
+          err,
         );
         state.ws.send(
           JSON.stringify({
@@ -145,7 +145,7 @@ export const executeChmodPathQueryOperation = async (
             path,
             payload: `修改权限失败: ${err.message}`,
             requestId,
-          })
+          }),
         );
         return;
       }
@@ -154,7 +154,7 @@ export const executeChmodPathQueryOperation = async (
         if (statErr) {
           logger.error(
             `[SFTP ${sessionId}] lstat after chmod ${path} failed (ID: ${requestId}):`,
-            statErr
+            statErr,
           );
           state.ws.send(
             JSON.stringify({
@@ -162,7 +162,7 @@ export const executeChmodPathQueryOperation = async (
               path,
               payload: null,
               requestId,
-            })
+            }),
           );
           return;
         }
@@ -173,14 +173,14 @@ export const executeChmodPathQueryOperation = async (
             path,
             payload: toPathItemPayload(path, stats),
             requestId,
-          })
+          }),
         );
       });
     });
   } catch (error: unknown) {
     logger.error(
       `[SFTP ${sessionId}] chmod ${path} caught unexpected error (ID: ${requestId}):`,
-      error
+      error,
     );
     state.ws.send(
       JSON.stringify({
@@ -188,7 +188,7 @@ export const executeChmodPathQueryOperation = async (
         path,
         payload: `修改权限时发生意外错误: ${getErrorMessage(error)}`,
         requestId,
-      })
+      }),
     );
   }
 };
@@ -198,7 +198,7 @@ export const executeRealpathPathQueryOperation = async (
   sessionId: string,
   path: string,
   requestId: string,
-  resolveCurrentState: () => ClientState | undefined
+  resolveCurrentState: () => ClientState | undefined,
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 realpath (ID: ${requestId})`);
@@ -208,7 +208,7 @@ export const executeRealpathPathQueryOperation = async (
         path,
         payload: 'SFTP 会话未就绪',
         requestId,
-      })
+      }),
     );
     return;
   }
@@ -224,7 +224,7 @@ export const executeRealpathPathQueryOperation = async (
             path,
             payload: { requestedPath: path, error: `获取绝对路径失败: ${err.message}` },
             requestId,
-          })
+          }),
         );
         return;
       }
@@ -232,7 +232,7 @@ export const executeRealpathPathQueryOperation = async (
       const currentState = resolveCurrentState();
       if (!currentState || !currentState.sftp) {
         logger.warn(
-          `[SFTP ${sessionId}] SFTP session for ${absPath} became invalid before stat call (ID: ${requestId}).`
+          `[SFTP ${sessionId}] SFTP session for ${absPath} became invalid before stat call (ID: ${requestId}).`,
         );
         state.ws.send(
           JSON.stringify({
@@ -244,7 +244,7 @@ export const executeRealpathPathQueryOperation = async (
               error: 'SFTP 会话在获取目标类型前已失效',
             },
             requestId,
-          })
+          }),
         );
         return;
       }
@@ -253,7 +253,7 @@ export const executeRealpathPathQueryOperation = async (
         if (statErr) {
           logger.error(
             `[SFTP ${sessionId}] stat on realpath target ${absPath} failed (ID: ${requestId}):`,
-            statErr
+            statErr,
           );
           state.ws.send(
             JSON.stringify({
@@ -265,7 +265,7 @@ export const executeRealpathPathQueryOperation = async (
                 error: `获取目标类型失败: ${statErr.message}`,
               },
               requestId,
-            })
+            }),
           );
           return;
         }
@@ -287,14 +287,14 @@ export const executeRealpathPathQueryOperation = async (
               targetType,
             },
             requestId,
-          })
+          }),
         );
       });
     });
   } catch (error: unknown) {
     logger.error(
       `[SFTP ${sessionId}] realpath ${path} caught unexpected error (ID: ${requestId}):`,
-      error
+      error,
     );
     state.ws.send(
       JSON.stringify({
@@ -302,7 +302,7 @@ export const executeRealpathPathQueryOperation = async (
         path,
         payload: `获取绝对路径时发生意外错误: ${getErrorMessage(error)}`,
         requestId,
-      })
+      }),
     );
   }
 };

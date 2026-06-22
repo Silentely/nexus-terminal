@@ -67,7 +67,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
 
   // 存储注册的聚焦动作 (Map: id -> Array of actions)
   const registeredActions = ref<Map<string, Array<() => boolean | Promise<boolean | undefined>>>>(
-    new Map()
+    new Map(),
   );
 
   // --- Actions ---
@@ -100,7 +100,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
         // log.info('[FocusSwitcherStore] Successfully loaded and set sequenceOrder:', JSON.stringify(sequenceOrder.value));
       } else {
         log.warn(
-          '[FocusSwitcherStore] Invalid or missing sequence in loaded config. Resetting to empty array.'
+          '[FocusSwitcherStore] Invalid or missing sequence in loaded config. Resetting to empty array.',
         );
         sequenceOrder.value = [];
       }
@@ -121,7 +121,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
               validConfigs[id] = { shortcut: config.shortcut }; // 只保留 shortcut
             } else {
               log.warn(
-                `[FocusSwitcherStore] Invalid shortcut config for ID ${id}. Ignoring shortcut.`
+                `[FocusSwitcherStore] Invalid shortcut config for ID ${id}. Ignoring shortcut.`,
               );
               validConfigs[id] = {}; // 保留 ID 但清空无效快捷键
             }
@@ -133,14 +133,14 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
         // log.info('[FocusSwitcherStore] Successfully loaded and set itemConfigs:', JSON.stringify(itemConfigs.value));
       } else {
         log.warn(
-          '[FocusSwitcherStore] Invalid or missing shortcuts in loaded config. Resetting to empty object.'
+          '[FocusSwitcherStore] Invalid or missing shortcuts in loaded config. Resetting to empty object.',
         );
         itemConfigs.value = {};
       }
     } catch (error: unknown) {
       log.error(
         `[FocusSwitcherStore] Failed to load or parse configuration from backend (${apiPath}):`,
-        error
+        error,
       );
       sequenceOrder.value = [];
       itemConfigs.value = {};
@@ -165,7 +165,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
     } catch (error: unknown) {
       log.error(
         `[FocusSwitcherStore] Failed to save configuration to backend (${apiPath}):`,
-        error
+        error,
       );
     }
   }
@@ -210,7 +210,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
       // log.info('[FocusSwitcherStore] sequenceOrder updated locally to:', JSON.stringify(sequenceOrder.value));
     } else {
       log.warn(
-        '[FocusSwitcherStore] Invalid sequence provided in updateConfiguration. Keeping existing sequence.'
+        '[FocusSwitcherStore] Invalid sequence provided in updateConfiguration. Keeping existing sequence.',
       );
     }
 
@@ -236,7 +236,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
       // log.info('[FocusSwitcherStore] itemConfigs updated locally to:', JSON.stringify(itemConfigs.value));
     } else {
       log.warn(
-        '[FocusSwitcherStore] Invalid shortcuts provided in updateConfiguration. Keeping existing configs.'
+        '[FocusSwitcherStore] Invalid shortcuts provided in updateConfiguration. Keeping existing configs.',
       );
     }
 
@@ -248,7 +248,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
   // 返回一个注销函数，以便组件可以方便地注销自己添加的动作
   function registerFocusAction(
     id: string,
-    action: () => boolean | Promise<boolean | undefined>
+    action: () => boolean | Promise<boolean | undefined>,
   ): () => void {
     if (!availableInputs.value.some((input) => input.id === id)) {
       log.warn(`[FocusSwitcherStore] Attempted to register focus action for unknown ID: ${id}`);
@@ -275,7 +275,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
           }
         } else {
           log.warn(
-            `[FocusSwitcherStore] Attempted to unregister an action for ID ${id} that was not found.`
+            `[FocusSwitcherStore] Attempted to unregister an action for ID ${id} that was not found.`,
           );
         }
       }
@@ -359,7 +359,7 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
 
     // Step 2: Filter out any undefined values using the type predicate
     const filteredInputs = mappedInputs.filter(
-      (input): input is FocusableInput & FocusItemConfig => input !== undefined
+      (input): input is FocusableInput & FocusItemConfig => input !== undefined,
     );
 
     return filteredInputs; // Return the correctly typed array

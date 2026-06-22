@@ -34,7 +34,7 @@ type Canvas2DContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContex
 const DEFAULT_CODEC = 'avc1.42001E';
 
 function isCanvasRef(
-  canvas: Ref<HTMLCanvasElement | null> | HTMLCanvasElement | null
+  canvas: Ref<HTMLCanvasElement | null> | HTMLCanvasElement | null,
 ): canvas is Ref<HTMLCanvasElement | null> {
   return Boolean(canvas && typeof canvas === 'object' && 'value' in canvas);
 }
@@ -105,7 +105,7 @@ export function useVideoDecoder(options: UseVideoDecoderOptions): VideoDecoderCo
 
     try {
       bitmapContext = renderCanvas.getContext(
-        'bitmaprenderer'
+        'bitmaprenderer',
       ) as ImageBitmapRenderingContext | null;
     } catch (error: unknown) {
       bitmapContext = null;

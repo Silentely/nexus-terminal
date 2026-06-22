@@ -25,7 +25,8 @@ function isInternalGatewayUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     return INTERNAL_GATEWAY_HOSTNAMES.has(parsed.hostname);
-  } catch {
+  } catch (err: unknown) {
+    logger.debug({ err }, '操作失败，已忽略');
     return false;
   }
 }
@@ -45,7 +46,7 @@ const CLIENT_HANDSHAKE_FILTER = /^(connect|select|size|audio|video|image|timezon
 export async function bridgeDataChannelToGateway(
   dc: RTCDataChannel,
   remoteGatewayUrl: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<void> {
   if (!remoteGatewayUrl) {
     logger.error(`[WebRTC Bridge] remoteGatewayUrl 为空: ${sessionId}`);
@@ -59,7 +60,7 @@ export async function bridgeDataChannelToGateway(
     try {
       const { addresses } = await resolveAndValidatePublicHost(
         remoteGatewayUrl,
-        `WebRTC-Bridge-${sessionId}`
+        `WebRTC-Bridge-${sessionId}`,
       );
       const lookup = createPinnedLookup(addresses);
       const urlObj = new URL(remoteGatewayUrl);
@@ -70,7 +71,7 @@ export async function bridgeDataChannelToGateway(
         JSON.stringify({
           type: 'error',
           payload: `remote-gateway URL 验证失败: ${error instanceof Error ? error.message : '未知错误'}`,
-        })
+        }),
       );
       return;
     }
@@ -125,7 +126,7 @@ export async function bridgeDataChannelToGateway(
     msgCountClientToGateway++;
     if (msgCountClientToGateway % 100 === 1) {
       logger.debug(
-        `[WebRTC Bridge] C→G: ${sessionId} (${msgCountClientToGateway}), len=${msgStr.length}`
+        `[WebRTC Bridge] C→G: ${sessionId} (${msgCountClientToGateway}), len=${msgStr.length}`,
       );
     }
 
@@ -140,7 +141,7 @@ export async function bridgeDataChannelToGateway(
     msgCountGatewayToClient++;
     if (msgCountGatewayToClient % 100 === 1) {
       logger.debug(
-        `[WebRTC Bridge] G→C: ${sessionId} (${msgCountGatewayToClient}), len=${typeof data === 'string' ? data.length : data.length}`
+        `[WebRTC Bridge] G→C: ${sessionId} (${msgCountGatewayToClient}), len=${typeof data === 'string' ? data.length : data.length}`,
       );
     }
 
@@ -162,7 +163,7 @@ export async function bridgeDataChannelToGateway(
     if (dcClosed && gwClosed) return;
 
     logger.info(
-      `[WebRTC Bridge] 清理连接: ${sessionId}, 原因=${reason}, C→G=${msgCountClientToGateway}, G→C=${msgCountGatewayToClient}`
+      `[WebRTC Bridge] 清理连接: ${sessionId}, 原因=${reason}, C→G=${msgCountClientToGateway}, G→C=${msgCountGatewayToClient}`,
     );
 
     clearTimeout(connectTimeout);
@@ -171,7 +172,8 @@ export async function bridgeDataChannelToGateway(
       dcClosed = true;
       try {
         dc.close();
-      } catch {
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
         // 忽略关闭错误
       }
     }
@@ -180,7 +182,8 @@ export async function bridgeDataChannelToGateway(
       gwClosed = true;
       try {
         gatewayWs.close();
-      } catch {
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
         // 忽略关闭错误
       }
     }

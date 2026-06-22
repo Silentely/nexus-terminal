@@ -1,9 +1,9 @@
+import crypto from 'crypto';
 /**
  * Telnet WebSocket 消息处理器
  * 处理 telnet:connect、telnet:input、telnet:resize、telnet:disconnect 消息
  */
 
-import { v4 as uuidv4 } from 'uuid';
 import { findFullConnectionById } from '../connections/connection.repository';
 import { logger } from '../utils/logger';
 import { AuditLogService } from '../audit/audit.service';
@@ -47,7 +47,7 @@ interface TelnetDisconnectPayload {
 export async function handleTelnetConnect(
   ws: AuthenticatedWebSocket,
   payload: TelnetConnectPayload,
-  request?: { clientIpAddress?: string }
+  request?: { clientIpAddress?: string },
 ): Promise<void> {
   const { connectionId } = payload;
   const userId = ws.userId;
@@ -72,7 +72,7 @@ export async function handleTelnetConnect(
         JSON.stringify({
           type: 'telnet:error',
           payload: { message: '连接配置不存在' },
-        })
+        }),
       );
       return;
     }
@@ -93,7 +93,7 @@ export async function handleTelnetConnect(
       const errorMessage = connectResult.error || '连接失败';
       logger.error(
         { connectionId, host: fullConnection.host, error: errorMessage },
-        'Telnet 连接失败'
+        'Telnet 连接失败',
       );
 
       // 记录审计日志
@@ -108,7 +108,7 @@ export async function handleTelnetConnect(
           ip: clientIp,
           reason: errorMessage,
         },
-        userId
+        userId,
       );
 
       // 发送事件
@@ -126,13 +126,13 @@ export async function handleTelnetConnect(
         JSON.stringify({
           type: 'telnet:error',
           payload: { message: errorMessage },
-        })
+        }),
       );
       return;
     }
 
     // 生成会话 ID
-    const sessionId = uuidv4();
+    const sessionId = crypto.randomUUID();
 
     // 创建输出批处理器
     const outputBatcher = getOrCreateBatcher(ws, sessionId, (encoded: string) => {
@@ -142,7 +142,7 @@ export async function handleTelnetConnect(
           JSON.stringify({
             type: 'telnet:output',
             payload: encoded,
-          })
+          }),
         );
       }
     });
@@ -187,7 +187,7 @@ export async function handleTelnetConnect(
         JSON.stringify({
           type: 'telnet:error',
           payload: { sessionId, message: err.message },
-        })
+        }),
       );
     });
 
@@ -196,7 +196,7 @@ export async function handleTelnetConnect(
       JSON.stringify({
         type: 'telnet:connected',
         payload: { sessionId, connectionId },
-      })
+      }),
     );
 
     // 记录审计日志
@@ -211,7 +211,7 @@ export async function handleTelnetConnect(
         sessionId,
         ip: clientIp,
       },
-      userId
+      userId,
     );
 
     // 发送事件
@@ -232,7 +232,7 @@ export async function handleTelnetConnect(
         host: fullConnection.host,
         port: fullConnection.port,
       },
-      'Telnet 连接成功'
+      'Telnet 连接成功',
     );
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
@@ -242,7 +242,7 @@ export async function handleTelnetConnect(
       JSON.stringify({
         type: 'telnet:error',
         payload: { message: error.message },
-      })
+      }),
     );
   }
 }
@@ -312,7 +312,7 @@ export function handleTelnetResize(ws: AuthenticatedWebSocket, payload: TelnetRe
  */
 export async function handleTelnetDisconnect(
   _ws: AuthenticatedWebSocket,
-  payload: TelnetDisconnectPayload
+  payload: TelnetDisconnectPayload,
 ): Promise<void> {
   const { sessionId } = payload;
 
@@ -345,7 +345,7 @@ export async function handleTelnetDisconnect(
       ip: clientState.ipAddress,
       durationSeconds,
     },
-    clientState.ws.userId
+    clientState.ws.userId,
   );
 
   // 发送事件

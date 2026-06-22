@@ -200,10 +200,18 @@ describe('AuditLogRepository', () => {
 
   describe('deleteAllLogs', () => {
     it('应删除所有日志并返回删除条数', async () => {
-      (runDb as any).mockResolvedValueOnce({ changes: 42 });
+      // 事务包装：BEGIN + DELETE audit_logs + DELETE ip_geo_cache + COMMIT
+      (runDb as any)
+        .mockResolvedValueOnce(undefined) // BEGIN
+        .mockResolvedValueOnce({ changes: 42 }) // DELETE audit_logs
+        .mockResolvedValueOnce(undefined) // DELETE ip_geo_cache
+        .mockResolvedValueOnce(undefined); // COMMIT
       const deleted = await repository.deleteAllLogs();
       expect(getDbInstance).toHaveBeenCalled();
+      expect(runDb).toHaveBeenCalledWith(expect.anything(), 'BEGIN TRANSACTION');
       expect(runDb).toHaveBeenCalledWith(expect.anything(), 'DELETE FROM audit_logs', []);
+      expect(runDb).toHaveBeenCalledWith(expect.anything(), 'DELETE FROM ip_geo_cache', []);
+      expect(runDb).toHaveBeenCalledWith(expect.anything(), 'COMMIT');
       expect(deleted).toBe(42);
     });
 
@@ -220,7 +228,7 @@ describe('AuditLogRepository', () => {
       expect(getDbInstance).toHaveBeenCalled();
       expect(getDb).toHaveBeenCalledWith(
         expect.anything(),
-        'SELECT COUNT(*) as total FROM audit_logs'
+        'SELECT COUNT(*) as total FROM audit_logs',
       );
       expect(count).toBe(7);
     });

@@ -110,7 +110,7 @@ export function useFileManagerContextMenu(options: UseFileManagerContextMenuOpti
       selectedItems.value.add(targetItem.filename);
       // 使用传入的 fileList ref
       const index = fileList.value.findIndex(
-        (f: FileListItem) => f.filename === targetItem.filename
+        (f: FileListItem) => f.filename === targetItem.filename,
       ); // 添加类型
       lastClickedIndex.value = index;
     } else if (!targetItem) {
@@ -196,7 +196,7 @@ export function useFileManagerContextMenu(options: UseFileManagerContextMenuOpti
           label: t('fileManager.actions.refresh'),
           action: onRefresh,
           disabled: !(isConnected.value && isSftpReady.value),
-        }
+        },
       );
     } else if (targetItem && targetItem.filename !== '..') {
       // Single item (not '..') menu
@@ -437,7 +437,7 @@ export function useFileManagerContextMenu(options: UseFileManagerContextMenuOpti
         // Update the position state if adjustments were made
         if (finalX !== contextMenuPosition.value.x || finalY !== contextMenuPosition.value.y) {
           log.info(
-            `[useFileManagerContextMenu] Adjusting context menu position: (${contextMenuPosition.value.x}, ${contextMenuPosition.value.y}) -> (${finalX}, ${finalY})`
+            `[useFileManagerContextMenu] Adjusting context menu position: (${contextMenuPosition.value.x}, ${contextMenuPosition.value.y}) -> (${finalX}, ${finalY})`,
           );
           contextMenuPosition.value = { x: finalX, y: finalY };
         }

@@ -18,7 +18,7 @@ export class AuditLogService {
   async logAction(
     actionType: AuditLogActionType,
     details?: Record<string, unknown> | string | null,
-    userId?: number | null
+    userId?: number | null,
   ): Promise<void> {
     // 在这里可以添加额外的逻辑，例如：
     // - 检查是否需要记录此类型的日志 (基于配置)
@@ -48,7 +48,7 @@ export class AuditLogService {
     actionType?: AuditLogActionType,
     startDate?: number,
     endDate?: number,
-    searchTerm?: string // 添加 searchTerm 参数
+    searchTerm?: string, // 添加 searchTerm 参数
   ): Promise<{ logs: AuditLogEntry[]; total: number }> {
     // 将 searchTerm 传递给 repository
     return this.repository.getLogs(limit, offset, actionType, startDate, endDate, searchTerm);

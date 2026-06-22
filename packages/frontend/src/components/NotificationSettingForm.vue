@@ -657,10 +657,10 @@ watch(
     testingNotification.value = false; // Reset testing state
     log.info(
       '[NotificationSettingForm] Form data initialized/updated from initialData. Current channel_type:',
-      formData.channel_type
+      formData.channel_type,
     ); // Log after init/update
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // Watch channel type change to reset specific config
@@ -692,7 +692,7 @@ watch(
     testError.value = null;
     testResult.value = null;
     testingNotification.value = false;
-  }
+  },
 );
 
 // Watch header string to validate JSON
@@ -718,7 +718,7 @@ watch(
     testResult.value = null;
     testError.value = null;
   },
-  { deep: true }
+  { deep: true },
 );
 
 const getEventDisplayName = (event: NotificationEvent): string => {
@@ -832,7 +832,7 @@ const handleTestNotification = async () => {
         t(
           result.success
             ? 'settings.notifications.form.testSuccess'
-            : 'settings.notifications.form.testFailed'
+            : 'settings.notifications.form.testFailed',
         ),
     };
   } catch (error: unknown) {

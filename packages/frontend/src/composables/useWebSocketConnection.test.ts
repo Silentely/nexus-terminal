@@ -194,7 +194,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
         JSON.stringify({
           type: 'ssh:connect',
           payload: { connectionId: 1 },
-        })
+        }),
       );
     });
 
@@ -337,7 +337,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
       expect(handler).toHaveBeenCalledWith(
         { output: '/home/test\n' },
-        expect.objectContaining({ requestId: 'req-1' })
+        expect.objectContaining({ requestId: 'req-1' }),
       );
     });
 
@@ -371,7 +371,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
       expect(handler).toHaveBeenCalledWith(
         { uploadId: 'upload-1' },
-        expect.objectContaining({ type: 'sftp:upload:ready' })
+        expect.objectContaining({ type: 'sftp:upload:ready' }),
       );
     });
 
@@ -391,7 +391,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
       expect(handler).toHaveBeenCalledWith(
         { uploadId: 'upload-blank' },
-        expect.objectContaining({ type: 'sftp:upload:ready' })
+        expect.objectContaining({ type: 'sftp:upload:ready' }),
       );
     });
 
@@ -419,7 +419,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
           newFrontendSessionId: 'f-1',
           success: true,
         },
-        expect.objectContaining({ type: 'SSH_SUSPEND_RESUMED' })
+        expect.objectContaining({ type: 'SSH_SUSPEND_RESUMED' }),
       );
     });
 
@@ -439,7 +439,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
       expect(handler).toHaveBeenCalledWith(
         {},
-        expect.objectContaining({ type: 'request_docker_status_update' })
+        expect.objectContaining({ type: 'request_docker_status_update' }),
       );
     });
   });
@@ -460,7 +460,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
       expect(handler).toHaveBeenCalledWith(
         { connectionId: 1, sessionId: 'session-1' },
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 
@@ -538,7 +538,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
       manager.sendMessage({ type: 'test:message', payload: { data: 'test' } });
 
       expect(ws.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'test:message', payload: { data: 'test' } })
+        JSON.stringify({ type: 'test:message', payload: { data: 'test' } }),
       );
     });
 
@@ -706,7 +706,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
 
       expect(handler).toHaveBeenCalledWith(
         { code: 1000, reason: 'Normal closure' },
-        expect.any(Object)
+        expect.any(Object),
       );
     });
 

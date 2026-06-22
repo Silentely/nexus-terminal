@@ -83,7 +83,7 @@ const isActionDisabled = computed(() => !props.isConnected || !props.isSftpReady
 
 // --- 文件夹上传按钮禁用条件（额外检查浏览器能力） ---
 const isFolderUploadDisabled = computed(
-  () => isActionDisabled.value || !isFolderUploadSupported.value
+  () => isActionDisabled.value || !isFolderUploadSupported.value,
 );
 
 // --- DOM 引用 ---
@@ -110,7 +110,7 @@ watch(
         searchInputRef.value?.focus();
       });
     }
-  }
+  },
 );
 
 // --- 收藏路径模态框 ---

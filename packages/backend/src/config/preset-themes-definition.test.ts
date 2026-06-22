@@ -127,7 +127,7 @@ describe('预设终端主题定义', () => {
     const themesWithDifferentBright = presetTerminalThemes.filter(
       (t) =>
         (t.themeData as Record<string, string>).black !==
-        (t.themeData as Record<string, string>).brightBlack
+        (t.themeData as Record<string, string>).brightBlack,
     );
     expect(themesWithDifferentBright.length).toBeGreaterThan(0);
   });

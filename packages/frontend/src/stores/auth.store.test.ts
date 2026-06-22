@@ -297,7 +297,7 @@ describe('auth.store', () => {
       store.isAuthenticated = false;
 
       await expect(store.changePassword('old', 'new')).rejects.toThrow(
-        '用户未登录，无法修改密码。'
+        '用户未登录，无法修改密码。',
       );
     });
 

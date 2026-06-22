@@ -245,7 +245,7 @@ test.describe('认证边缘场景测试', () => {
       // 在第一个页面登出
       await authenticatedPage.locator('button:has-text("登出")').click();
       const confirmButton = authenticatedPage.locator(
-        '.el-message-box__btns button:has-text("确定")'
+        '.el-message-box__btns button:has-text("确定")',
       );
       if (await confirmButton.isVisible()) {
         await confirmButton.click();
@@ -405,7 +405,7 @@ test.describe('认证边缘场景测试', () => {
           get: async () => {
             throw new DOMException(
               'The operation either timed out or was not allowed.',
-              'NotAllowedError'
+              'NotAllowedError',
             );
           },
         };
@@ -476,7 +476,7 @@ test.describe('认证边缘场景测试', () => {
 
       // 应该显示速率限制错误
       await expect(
-        loginPage.locator('text=/请稍后再试|Too many attempts|Rate limit/i')
+        loginPage.locator('text=/请稍后再试|Too many attempts|Rate limit/i'),
       ).toBeVisible({
         timeout: 5000,
       });

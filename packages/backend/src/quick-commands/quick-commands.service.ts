@@ -19,7 +19,7 @@ export const addQuickCommand = async (
   name: string | null,
   command: string,
   tagIds?: number[],
-  variables?: Record<string, string>
+  variables?: Record<string, string>,
 ): Promise<number> => {
   if (!command || command.trim().length === 0) {
     throw new Error('指令内容不能为空');
@@ -29,7 +29,7 @@ export const addQuickCommand = async (
   const commandId = await QuickCommandsRepository.addQuickCommand(
     finalName,
     command.trim(),
-    variables
+    variables,
   );
 
   // 添加成功后，设置标签关联
@@ -40,7 +40,7 @@ export const addQuickCommand = async (
       // 如果标签关联失败，可以选择记录警告或回滚（但通常不回滚主记录）
       logger.warn(
         `[Service] 添加快捷指令 ${commandId} 成功，但设置标签关联失败:`,
-        getErrorMessage(tagError)
+        getErrorMessage(tagError),
       );
       // 可以考虑是否需要通知用户部分操作失败
     }
@@ -62,7 +62,7 @@ export const updateQuickCommand = async (
   name: string | null,
   command: string,
   tagIds?: number[],
-  variables?: Record<string, string>
+  variables?: Record<string, string>,
 ): Promise<boolean> => {
   if (!command || command.trim().length === 0) {
     throw new Error('指令内容不能为空');
@@ -72,7 +72,7 @@ export const updateQuickCommand = async (
     id,
     finalName,
     command.trim(),
-    variables
+    variables,
   );
 
   // 如果指令更新成功，并且提供了 tagIds (即使是空数组也表示要更新)，则更新标签关联
@@ -82,7 +82,7 @@ export const updateQuickCommand = async (
     } catch (tagError: unknown) {
       logger.warn(
         `[Service] 更新快捷指令 ${id} 成功，但更新标签关联失败:`,
-        getErrorMessage(tagError)
+        getErrorMessage(tagError),
       );
       // 即使标签更新失败，主记录已更新，通常返回 true
     }
@@ -107,7 +107,7 @@ export const deleteQuickCommand = async (id: number): Promise<boolean> => {
  * @returns 返回排序后的快捷指令数组 (包含 tagIds)
  */
 export const getAllQuickCommands = async (
-  sortBy: QuickCommandSortBy = 'name'
+  sortBy: QuickCommandSortBy = 'name',
 ): Promise<QuickCommandWithTags[]> => {
   // Repository 已返回带 tagIds 的数据
   return QuickCommandsRepository.getAllQuickCommands(sortBy);
@@ -129,7 +129,7 @@ export const incrementUsageCount = async (id: number): Promise<boolean> => {
  * @returns 返回找到的快捷指令 (包含 tagIds)，或 undefined
  */
 export const getQuickCommandById = async (
-  id: number
+  id: number,
 ): Promise<QuickCommandWithTags | undefined> => {
   // Repository 已返回带 tagIds 的数据
   return QuickCommandsRepository.findQuickCommandById(id);
@@ -157,7 +157,7 @@ export const assignTagToCommands = async (commandIds: number[], tagId: number): 
     // 调用 Repository 函数执行批量关联
     // 注意：这里需要导入 QuickCommandTagRepository
     logger.info(
-      `[Service] assignTagToCommands: Calling repo with commandIds: ${JSON.stringify(commandIds)}, tagId: ${tagId}`
+      `[Service] assignTagToCommands: Calling repo with commandIds: ${JSON.stringify(commandIds)}, tagId: ${tagId}`,
     );
     await QuickCommandTagRepository.addTagToCommands(commandIds, tagId);
     logger.info(`[Service] assignTagToCommands: Repo call finished for tag ${tagId}.`);
@@ -165,7 +165,7 @@ export const assignTagToCommands = async (commandIds: number[], tagId: number): 
   } catch (error: unknown) {
     logger.error(
       `[Service] assignTagToCommands: 批量关联标签 ${tagId} 到指令时出错:`,
-      getErrorMessage(error)
+      getErrorMessage(error),
     );
     // 向上抛出错误，让 Controller 处理 HTTP 响应
     throw error;

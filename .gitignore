@@ -205,3 +205,4 @@ dev-debug.log
 .taskmaster
 tasks.json
 tasks/
+.full-review/

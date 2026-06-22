@@ -43,7 +43,7 @@ const filteredPaths = computed(() => {
   return favoritePathsStore.favoritePaths.filter(
     (p) =>
       p.path.toLowerCase().includes(lowerSearchTerm) ||
-      (p.name && p.name.toLowerCase().includes(lowerSearchTerm))
+      (p.name && p.name.toLowerCase().includes(lowerSearchTerm)),
   );
 });
 
@@ -106,7 +106,7 @@ const handleSendToTerminal = (pathItem: FavoritePathItem) => {
     }
   } else {
     log.warn(
-      '[FavoritePathsModal] No active session with a terminal manager found to send path to.'
+      '[FavoritePathsModal] No active session with a terminal manager found to send path to.',
     );
   }
   closeModal();
@@ -202,7 +202,7 @@ watch(
       document.removeEventListener('mousedown', handleClickOutside);
       window.removeEventListener('resize', updatePosition); // Clean up resize listener
     }
-  }
+  },
 );
 
 onMounted(() => {

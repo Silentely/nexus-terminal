@@ -17,7 +17,7 @@ export const resolveNotificationTimeoutMs = (raw: string | undefined): number =>
 export const pruneExpiredNotificationKeys = (
   cache: Map<string, number>,
   now: number,
-  expireMs: number
+  expireMs: number,
 ): number => {
   let removed = 0;
   for (const [key, shownAt] of cache) {
@@ -41,7 +41,7 @@ export const useUiNotificationsStore = defineStore('uiNotifications', () => {
   const notifications = ref<UINotification[]>([]);
   let nextId = 0;
   const notificationTimeoutMs = resolveNotificationTimeoutMs(
-    import.meta.env?.VITE_NOTIFICATION_TIMEOUT_MS
+    import.meta.env?.VITE_NOTIFICATION_TIMEOUT_MS,
   );
   const lastNotificationAt = new Map<string, number>();
   let lastCleanupAt = Date.now();

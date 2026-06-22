@@ -95,13 +95,13 @@ describe('useTouchGestures', () => {
       createTouchEvent('touchstart', [
         { clientX: 20, clientY: 120 },
         { clientX: 80, clientY: 120 },
-      ])
+      ]),
     );
     element.dispatchEvent(
       createTouchEvent('touchmove', [
         { clientX: 20, clientY: 80 },
         { clientX: 100, clientY: 120 },
-      ])
+      ]),
     );
     vi.advanceTimersByTime(500);
 

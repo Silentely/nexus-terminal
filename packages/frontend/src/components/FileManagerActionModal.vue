@@ -51,7 +51,7 @@ watch(
     } else {
       document.removeEventListener('keydown', handleGlobalKeydown);
     }
-  }
+  },
 );
 
 const modalTitle = computed(() => {
@@ -264,7 +264,7 @@ onUnmounted(() => {
             {{
               t(
                 'fileManager.errors.invalidPermissionsFormat',
-                'Invalid octal format (e.g., 755 or 0755).'
+                'Invalid octal format (e.g., 755 or 0755).',
               )
             }}
           </p>
@@ -272,7 +272,7 @@ onUnmounted(() => {
             {{
               t(
                 'fileManager.modals.chmodHelp',
-                'Enter permissions in octal format (e.g., 755 or 0755).'
+                'Enter permissions in octal format (e.g., 755 or 0755).',
               )
             }}
           </p>
