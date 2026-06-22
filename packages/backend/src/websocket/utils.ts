@@ -33,6 +33,30 @@ export function sendWsMessage(
   ws.send(JSON.stringify(message));
 }
 
+/**
+ * 安全发送 WebSocket 消息（自动检查连接状态）
+ * 消除各处重复的 readyState 检查
+ */
+export function safeSend(
+  ws: AuthenticatedWebSocket,
+  type: string,
+  payload: unknown,
+  sessionId?: string,
+): boolean {
+  if (ws.readyState !== WebSocket.OPEN) {
+    return false;
+  }
+  try {
+    const message: Record<string, unknown> = { type, payload };
+    if (sessionId) message.sid = sessionId;
+    ws.send(JSON.stringify(message));
+    return true;
+  } catch {
+    // 发送失败（连接已关闭等），静默处理
+    return false;
+  }
+}
+
 // H-19: 会话级清理回调注册表，避免模块间循环依赖
 type SessionCleanupCallback = (sessionId: string) => void;
 const sessionCleanupCallbacks = new Set<SessionCleanupCallback>();

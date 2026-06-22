@@ -12,7 +12,7 @@ import {
   registerChannel,
 } from '../state';
 import * as SshService from '../../services/ssh.service';
-import { cleanupClientConnection, registerSessionCleanup, sendWsMessage } from '../utils';
+import { cleanupClientConnection, registerSessionCleanup, sendWsMessage, safeSend } from '../utils';
 import { isMultiplexEnabled } from '../multiplex';
 import { temporaryLogStorageService } from '../../ssh-suspend/temporary-log-storage.service';
 import { startDockerStatusPolling } from './docker.handler';
@@ -98,17 +98,18 @@ const extractAbsolutePathFromSilentLine = (line: string): string | null => {
   return isAbsolutePath(pathCandidate) ? pathCandidate : null;
 };
 
+// Shell 提示符检测正则（模块级常量，避免重复编译）
+const UNIX_PROMPT_CORE_PATTERN = '[^@\\s]+@[^:\\s]+:[^#$>\\n]*[#$>]';
+const WINDOWS_PROMPT_CORE_PATTERN = '[A-Za-z]:\\\\[^>\\n]*>';
+const UNIX_PROMPT_PATTERN = new RegExp(`^(?:${UNIX_PROMPT_CORE_PATTERN}\\s*)+$`);
+const WINDOWS_PROMPT_PATTERN = new RegExp(`^(?:${WINDOWS_PROMPT_CORE_PATTERN}\\s*)+$`);
+
 const isLikelyShellPromptLine = (line: string): boolean => {
   const sanitizedLine = stripTerminalControlSequences(line).trim();
   if (!sanitizedLine) {
     return false;
   }
-
-  const unixPromptCorePattern = '[^@\\s]+@[^:\\s]+:[^#$>\\n]*[#$>]';
-  const windowsPromptCorePattern = '[A-Za-z]:\\\\[^>\\n]*>';
-  const unixPromptPattern = new RegExp(`^(?:${unixPromptCorePattern}\\s*)+$`);
-  const windowsPromptPattern = new RegExp(`^(?:${windowsPromptCorePattern}\\s*)+$`);
-  return unixPromptPattern.test(sanitizedLine) || windowsPromptPattern.test(sanitizedLine);
+  return UNIX_PROMPT_PATTERN.test(sanitizedLine) || WINDOWS_PROMPT_PATTERN.test(sanitizedLine);
 };
 
 const consumeSuppressedPromptChunk = (
@@ -498,7 +499,11 @@ const sendSilentExecResponse = (
   if (ws.readyState !== WebSocket.OPEN) {
     return;
   }
-  ws.send(JSON.stringify({ type, requestId, payload, sid: sessionId ?? ws.sessionId }));
+  try {
+    ws.send(JSON.stringify({ type, requestId, payload, sid: sessionId ?? ws.sessionId }));
+  } catch {
+    // 发送失败时静默处理
+  }
 };
 
 export function handleSshExecSilent(
@@ -606,21 +611,13 @@ export async function handleSshConnect(
     logger.warn(
       `WebSocket: 用户 ${ws.username} (会话: ${sessionId}) 已有活动连接，忽略新的连接请求。`,
     );
-    if (ws.readyState === WebSocket.OPEN)
-      ws.send(
-        JSON.stringify({
-          type: 'ssh:error',
-          payload: '已存在活动的 SSH 连接。',
-          sid: ws.sessionId,
-        }),
-      );
+    safeSend(ws, 'ssh:error', '已存在活动的 SSH 连接。', ws.sessionId);
     return;
   }
 
   const dbConnectionId = payload?.connectionId;
   if (!dbConnectionId) {
-    if (ws.readyState === WebSocket.OPEN)
-      sendWsMessage(ws, 'ssh:error', '缺少 connectionId。', clientSid ?? ws.sessionId);
+    safeSend(ws, 'ssh:error', '缺少 connectionId。', clientSid ?? ws.sessionId);
     return;
   }
 
@@ -634,8 +631,7 @@ export async function handleSshConnect(
   if (Number.isNaN(dbConnectionIdAsNumber)) {
     sshConnectTimer({ status: 'failure' });
     logger.error(`WebSocket: 无效的 dbConnectionId '${dbConnectionId}' (非数字)，无法建立连接。`);
-    if (ws.readyState === WebSocket.OPEN)
-      sendWsMessage(ws, 'ssh:error', '无效的连接 ID。', clientSid ?? ws.sessionId);
+    safeSend(ws, 'ssh:error', '无效的连接 ID。', clientSid ?? ws.sessionId);
     ws.close(1008, 'Invalid Connection ID');
     return;
   }

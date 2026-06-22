@@ -70,6 +70,26 @@ vi.mock('../utils', () => ({
       }
     },
   ),
+  safeSend: vi.fn(
+    (
+      ws: { readyState: number; send: (data: string) => void },
+      type: string,
+      payload: Record<string, unknown>,
+      sessionId?: string,
+    ): boolean => {
+      if (ws.readyState !== 1) {
+        return false;
+      }
+      try {
+        const message: Record<string, unknown> = { type, payload };
+        if (sessionId) message.sid = sessionId;
+        ws.send(JSON.stringify(message));
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  ),
 }));
 
 // Mock temporaryLogStorageService

@@ -91,7 +91,28 @@ export const resolveLoginPendingAuthValidation = (payload: {
   const { req, tempToken, now = Date.now() } = payload;
   const pendingAuth = req.session.pendingAuth as PendingAuth | undefined;
 
-  if (!pendingAuth || !tempToken || pendingAuth.tempToken !== tempToken) {
+  // 类型守卫：tempToken 必须为字符串，拒绝非字符串输入（防止类型放宽）
+  if (!pendingAuth || typeof tempToken !== 'string' || !tempToken) {
+    return {
+      ok: false,
+      reason: 'invalid_state',
+      failure: INVALID_PENDING_STATE_RESPONSE,
+    };
+  }
+
+  // 使用 timingSafeEqual 防止时序攻击侧信道泄露
+  const isValidToken = (() => {
+    try {
+      if (Buffer.byteLength(pendingAuth.tempToken) !== Buffer.byteLength(tempToken)) {
+        return false;
+      }
+      return crypto.timingSafeEqual(Buffer.from(pendingAuth.tempToken), Buffer.from(tempToken));
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!isValidToken) {
     return {
       ok: false,
       reason: 'invalid_state',

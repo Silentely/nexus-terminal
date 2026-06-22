@@ -29,11 +29,15 @@ vi.mock('bcrypt', () => ({
   },
 }));
 
-vi.mock('crypto', () => ({
-  default: {
-    randomBytes: vi.fn(),
-  },
-}));
+vi.mock('crypto', async () => {
+  const actual = await vi.importActual<typeof import('crypto')>('crypto');
+  return {
+    default: {
+      ...actual,
+      randomBytes: vi.fn(),
+    },
+  };
+});
 
 vi.mock('speakeasy', () => ({
   default: {
