@@ -204,7 +204,11 @@ export const destroySessionAndRespondLogout = (
       return;
     }
 
-    logger.info(`用户 ${userId} (${username}) 已成功登出。`);
+    if (userId != null && username) {
+      logger.info(`用户 ${userId} (${username}) 已成功登出。`);
+    } else {
+      logger.debug('登出请求处理完成（无有效会话，可能为过期 session 清理）。');
+    }
     res.clearCookie('connect.sid');
     if (userId) {
       onLogoutSuccess?.(resolveRequestClientIp(req));
