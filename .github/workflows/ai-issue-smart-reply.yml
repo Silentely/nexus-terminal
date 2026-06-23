@@ -49,11 +49,11 @@ jobs:
       AI_MAX_DUP_CANDIDATES: ${{ vars.AI_MAX_DUP_CANDIDATES || '80' }}
       AI_MAX_PR_CANDIDATES: ${{ vars.AI_MAX_PR_CANDIDATES || '20' }}
       AI_MAX_COMMIT_CANDIDATES: ${{ vars.AI_MAX_COMMIT_CANDIDATES || '20' }}
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 已升级 action 版本，此变量可保留作为兼容保障
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 100
 
@@ -145,7 +145,7 @@ jobs:
 
       - name: React to /ai-analyze comment
         if: github.event_name == 'issue_comment' && steps.issue.outputs.re_analyze == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           ISSUE_NUMBER: ${{ steps.issue.outputs.issue_number }}
           COMMENT_ID: ${{ github.event.comment.id }}
@@ -1213,7 +1213,7 @@ jobs:
           echo "json=$(cat .ai_runtime/triage.json | jq -c .)" >> "$GITHUB_OUTPUT"
 
       - name: Create or update AI comment and labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           AI_AUTO_LABEL: ${{ env.AI_AUTO_LABEL }}
           RESULT_JSON: ${{ steps.triage_norm.outputs.json }}

@@ -23,13 +23,13 @@ jobs:
 
     steps:
       - name: 拉取仓库代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           fetch-tags: true
 
       - name: 缓存 Git 对象数据库
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .git/objects
           key: git-objects-${{ github.repository }}-${{ github.sha }}
