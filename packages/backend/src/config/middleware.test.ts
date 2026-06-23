@@ -287,6 +287,32 @@ describe('config/middleware', () => {
       expect(helmetConfig.contentSecurityPolicy.directives.defaultSrc).toContain("'self'");
       expect(helmetConfig.contentSecurityPolicy.directives.scriptSrc).toContain("'self'");
       expect(helmetConfig.crossOriginEmbedderPolicy).toBe(false);
+
+      // CSP 指令完整性验证
+      const directives = helmetConfig.contentSecurityPolicy.directives;
+      // CAPTCHA 脚本域名
+      expect(directives.scriptSrc).toContain('https://www.google.com');
+      expect(directives.scriptSrc).toContain('https://www.gstatic.com');
+      expect(directives.scriptSrc).toContain('https://hcaptcha.com');
+      expect(directives.scriptSrc).toContain('https://js.hcaptcha.com');
+      expect(directives.scriptSrc).toContain('https://newassets.hcaptcha.com');
+      // Google Fonts
+      expect(directives.styleSrc).toContain('https://fonts.googleapis.com');
+      expect(directives.fontSrc).toContain('https://fonts.googleapis.com');
+      expect(directives.fontSrc).toContain('https://fonts.gstatic.com');
+      // CAPTCHA connect 通信
+      expect(directives.connectSrc).toContain('https://www.google.com');
+      expect(directives.connectSrc).toContain('https://hcaptcha.com');
+      expect(directives.connectSrc).toContain('https://js.hcaptcha.com');
+      // CAPTCHA iframe（frameSrc）
+      expect(directives.frameSrc).toBeDefined();
+      expect(directives.frameSrc).toContain('https://www.google.com');
+      expect(directives.frameSrc).toContain('https://hcaptcha.com');
+      expect(directives.frameSrc).toContain('https://js.hcaptcha.com');
+      // Cloudflare Access manifest
+      expect(directives.manifestSrc).toContain("'self'");
+      expect(directives.manifestSrc).toContain('https://*.cloudflareaccess.com');
+
       // 补充安全头由 Express 手动设置
       expect(response.headers['permissions-policy']).toBe(
         'camera=(), microphone=(), geolocation=()',
