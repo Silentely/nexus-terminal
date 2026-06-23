@@ -270,6 +270,48 @@ describe('sshSuspendActions', () => {
         }),
       );
     });
+
+    it('终端缓冲区超过 1MB 时应截断最早的输出', async () => {
+      // 模拟一个超大缓冲区：每行约 50KB，25 行 ≈ 1.25MB
+      const largeLine = 'A'.repeat(50000);
+      const lineCount = 25;
+      mockTerminalInstance.value = {
+        buffer: {
+          active: {
+            length: lineCount,
+            getLine: (index: number) => ({
+              translateToString: (_trim: boolean) => (index < lineCount ? largeLine : ''),
+            }),
+          },
+        },
+        write: mockTerminalWrite,
+      };
+
+      sessionsMap.set('sess-large', {
+        wsManager: { isConnected: mockIsConnectedRaw, sendMessage: mockSendMessage },
+        terminalManager: { terminalInstance: mockTerminalInstance },
+      });
+
+      const { requestStartSshSuspend } = await import('./sshSuspendActions');
+      requestStartSshSuspend('sess-large');
+
+      const sentMessage = mockSendMessage.mock.calls[0][0] as {
+        payload: { initialBuffer?: string };
+      };
+      const sentBuffer = sentMessage.payload.initialBuffer!;
+
+      // 验证：缓冲区大小应小于 1MB
+      expect(new TextEncoder().encode(sentBuffer).length).toBeLessThan(1048576);
+
+      // 验证：应保留了最新内容（末尾的行）
+      const sentLines = sentBuffer.split('\n');
+      expect(sentLines.length).toBeGreaterThan(0);
+      expect(sentLines.length).toBeLessThan(lineCount); // 应该被截断了
+
+      // 验证：保留的行都是最新的（最后几行）
+      // 最后一行应该是完整的大行
+      expect(sentLines[sentLines.length - 1]).toBe(largeLine);
+    });
   });
 
   describe('requestUnmarkSshSuspend', () => {

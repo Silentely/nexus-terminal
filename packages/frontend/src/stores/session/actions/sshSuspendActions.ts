@@ -55,6 +55,10 @@ export const requestStartSshSuspend = (sessionId: string): void => {
       const term = session.terminalManager.terminalInstance.value;
       const buffer = term.buffer.active;
 
+      // 与后端 Zod 校验保持一致：initialBuffer 最大 1MB
+      // 预留 1KB 余量，避免边界情况
+      const MAX_BUFFER_BYTES = 1048576 - 1024;
+
       let lastNonEmptyLineIndex = -1;
       // 从下往上找到最后一个非空行
       for (let i = buffer.length - 1; i >= 0; i--) {
@@ -67,15 +71,37 @@ export const requestStartSshSuspend = (sessionId: string): void => {
       }
 
       if (lastNonEmptyLineIndex !== -1) {
-        const lines = [];
-        for (let i = 0; i <= lastNonEmptyLineIndex; i++) {
-          // 获取行内容，translateToString(true) 会移除行尾空白
-          lines.push(buffer.getLine(i)?.translateToString(true) || '');
+        // 从末尾（最新内容）开始收集，累计大小接近限制时停止
+        // 保留最新内容，丢弃最早的终端输出
+        const lines: string[] = [];
+        let totalBytes = 0;
+        let truncatedFromHead = false;
+
+        for (let i = lastNonEmptyLineIndex; i >= 0; i--) {
+          const lineText = buffer.getLine(i)?.translateToString(true) || '';
+          // 每行大小 = 行内容 UTF-8 字节长度 + 换行符 1 字节
+          const lineBytes = new TextEncoder().encode(lineText).length + 1;
+
+          if (totalBytes + lineBytes > MAX_BUFFER_BYTES && lines.length > 0) {
+            // 超出限制，停止收集更早的行
+            truncatedFromHead = true;
+            break;
+          }
+
+          lines.push(lineText);
+          totalBytes += lineBytes;
         }
+
+        // lines 是从末尾往前收集的，需要反转为正确顺序
+        lines.reverse();
         initialBuffer = lines.join('\n');
+
+        if (truncatedFromHead) {
+          log.warn(
+            `[${t('term.sshSuspend')}] 终端缓冲区超过 1MB 限制，已截断最早的输出内容 (会话: ${sessionId})。`,
+          );
+        }
       }
-      // join('\n') 会在行间添加换行符，如果最后一行是空字符串，末尾不会有多余的 \n
-      // 如果最后一行非空，则自然以该行结束。
     } else {
       log.warn(`[${t('term.sshSuspend')}] 未能获取会话 ${sessionId} 的终端实例以提取初始缓冲区。`);
     }
