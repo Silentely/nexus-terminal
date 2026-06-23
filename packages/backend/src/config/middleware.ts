@@ -149,7 +149,7 @@ export const registerSecurityMiddleware = (app: express.Application) => {
   app.use((_req, res, next) => {
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss:; img-src 'self' data: blob:; font-src 'self' data:",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss: https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com; img-src 'self' data: blob:; font-src 'self' data:",
     );
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');

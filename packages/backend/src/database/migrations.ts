@@ -549,6 +549,7 @@ const definedMigrations: Migration[] = [
             );
 
             -- 步骤 3: 复制数据（显式列清单，避免旧表列顺序不匹配）
+            -- 注意：旧表可能缺少 sort_order、is_monitored 列（初始 schema 未包含），使用字面量 0 作为默认值
             INSERT INTO connections (
                 id, name, type, host, port, username, auth_method,
                 encrypted_password, encrypted_private_key, encrypted_passphrase,
@@ -561,11 +562,11 @@ const definedMigrations: Migration[] = [
                 encrypted_password, encrypted_private_key, encrypted_passphrase,
                 proxy_id, ssh_key_id, notes,
                 created_at, updated_at, last_connected_at,
-                COALESCE(sort_order, 0),
+                0,
                 proxy_type,
                 jump_chain,
                 COALESCE(force_keyboard_interactive, 0),
-                COALESCE(is_monitored, 0)
+                0
             FROM connections_old_for_telnet_fix;
 
             -- 步骤 4: 重建 connection_tags 表
