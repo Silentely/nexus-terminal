@@ -78,14 +78,22 @@ async function getOrResolveHost(
  * 可被其他模块复用（如 nl2cmd、bridge）
  */
 export function createPinnedLookup(allowedAddresses: string[]) {
+  if (!Array.isArray(allowedAddresses) || allowedAddresses.length === 0) {
+    throw new Error('DNS 绑定失败：未解析到任何有效 IP 地址，无法创建安全连接');
+  }
+
+  const pinnedAddress = allowedAddresses[0];
+  if (typeof pinnedAddress !== 'string' || pinnedAddress.length === 0) {
+    throw new Error(`DNS 绑定失败：解析到的 IP 地址无效 (${String(pinnedAddress)})`);
+  }
+
   return (
     _hostname: string,
     _options: unknown,
     callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void,
   ): void => {
-    const address = allowedAddresses[0];
-    const family = address.includes(':') ? 6 : 4;
-    callback(null, address, family);
+    const family = pinnedAddress.includes(':') ? 6 : 4;
+    callback(null, pinnedAddress, family);
   };
 }
 

@@ -25,7 +25,7 @@ vi.mock('axios', () => ({
 
 import dns from 'dns/promises';
 import axios from 'axios';
-import { safeHttpGet, safeHttpPost, cleanupDnsCache } from './ssrf-guard';
+import { safeHttpGet, safeHttpPost, cleanupDnsCache, createPinnedLookup } from './ssrf-guard';
 
 describe('ssrf-guard', () => {
   beforeEach(() => {
@@ -133,6 +133,32 @@ describe('ssrf-guard', () => {
         text: 'test',
       });
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe('createPinnedLookup', () => {
+    it('空地址数组应抛出明确错误', () => {
+      expect(() => createPinnedLookup([])).toThrow('DNS 绑定失败：未解析到任何有效 IP 地址');
+    });
+
+    it('undefined 地址数组应抛出明确错误', () => {
+      expect(() => createPinnedLookup(undefined as unknown as string[])).toThrow(
+        'DNS 绑定失败：未解析到任何有效 IP 地址',
+      );
+    });
+
+    it('有效 IPv4 地址应返回正确的 lookup 回调', () => {
+      const lookup = createPinnedLookup(['142.250.80.46']);
+      const callback = vi.fn();
+      lookup('example.com', {}, callback);
+      expect(callback).toHaveBeenCalledWith(null, '142.250.80.46', 4);
+    });
+
+    it('有效 IPv6 地址应返回 family 6', () => {
+      const lookup = createPinnedLookup(['2607:f8b0:4004:800::200e']);
+      const callback = vi.fn();
+      lookup('example.com', {}, callback);
+      expect(callback).toHaveBeenCalledWith(null, '2607:f8b0:4004:800::200e', 6);
     });
   });
 
