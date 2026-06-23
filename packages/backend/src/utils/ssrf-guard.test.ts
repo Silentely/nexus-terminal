@@ -151,14 +151,17 @@ describe('ssrf-guard', () => {
       const lookup = createPinnedLookup(['142.250.80.46']);
       const callback = vi.fn();
       lookup('example.com', {}, callback);
-      expect(callback).toHaveBeenCalledWith(null, '142.250.80.46', 4);
+      // Node.js v22+ 使用 [{ address, family }] 数组格式
+      expect(callback).toHaveBeenCalledWith(null, [{ address: '142.250.80.46', family: 4 }]);
     });
 
     it('有效 IPv6 地址应返回 family 6', () => {
       const lookup = createPinnedLookup(['2607:f8b0:4004:800::200e']);
       const callback = vi.fn();
       lookup('example.com', {}, callback);
-      expect(callback).toHaveBeenCalledWith(null, '2607:f8b0:4004:800::200e', 6);
+      expect(callback).toHaveBeenCalledWith(null, [
+        { address: '2607:f8b0:4004:800::200e', family: 6 },
+      ]);
     });
   });
 

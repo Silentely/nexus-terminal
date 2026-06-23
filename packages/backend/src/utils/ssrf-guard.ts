@@ -11,6 +11,7 @@
  *   const response = await safeHttpGet(url, { timeout: 5000 });
  */
 
+import dns from 'dns';
 import http from 'http';
 import https from 'https';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
@@ -87,13 +88,28 @@ export function createPinnedLookup(allowedAddresses: string[]) {
     throw new Error(`DNS 绑定失败：解析到的 IP 地址无效 (${String(pinnedAddress)})`);
   }
 
+  // Node.js v22+ 改变了 net 模块的 lookup 回调签名：
+  // 旧版 (≤21): callback(err, address: string, family: number)
+  // 新版 (≥22): callback(err, addresses: [{ address, family }])
+  // 两者 callback.length 均为 2 (err, addresses|address)，无法通过参数数量区分，
+  // 因此通过 Node.js 主版本号选择正确的调用格式。
+  const isLegacyFormat = Number(process.versions.node.split('.')[0]) < 22;
+
   return (
     _hostname: string,
     _options: unknown,
-    callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void,
+    callback: (
+      err: NodeJS.ErrnoException | null,
+      address: string | dns.LookupAddress[],
+      family?: number,
+    ) => void,
   ): void => {
     const family = pinnedAddress.includes(':') ? 6 : 4;
-    callback(null, pinnedAddress, family);
+    if (isLegacyFormat) {
+      callback(null, pinnedAddress, family);
+    } else {
+      callback(null, [{ address: pinnedAddress, family }]);
+    }
   };
 }
 
