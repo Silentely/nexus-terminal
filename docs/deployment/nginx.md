@@ -139,61 +139,94 @@ server {
 
 ### Docker Compose 内部 Nginx 配置
 
-适用于 `docker-compose.yml` 默认部署：
+适用于 `docker-compose.yml` 默认部署（即 `packages/frontend/nginx.conf`）：
 
 ```nginx
-upstream nexus_backend {
-    server backend:3001;
-    keepalive 32;
+# WebSocket 连接头映射：仅在客户端请求升级时发送 upgrade，否则使用 close
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
 }
 
 server {
     listen 8080;
     server_name localhost;
 
-    client_max_body_size 100m;
+    client_max_body_size 10m;
 
     # 前端静态资源
     root /usr/share/nginx/html;
-    index index.html;
+    index index.html index.htm;
 
     # SPA 路由支持
     location / {
+        access_log off;
         try_files $uri $uri/ /index.html;
     }
 
-    # 后端 API 代理
-    location ^~ /api/ {
-        proxy_pass http://nexus_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Connection "";
-
-        # 超时设置
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
+    # 静态资源缓存
+    location ~* \.(?:css|js|woff|woff2|ttf|eot|ico|svg|png|jpg|jpeg|gif)$ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+        gzip_static on;
     }
 
-    # SSH 终端 WebSocket
+    # 后端 API 代理（普通 HTTP 请求）
+    location ^~ /api/ {
+        access_log off;
+        proxy_pass http://backend:3001;
+
+        # 标准代理头
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+
+        # 使用 map 变量：WebSocket 请求自动 upgrade，普通请求使用 close 避免连接池异常
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        # 显式超时：快速失败让前端重试逻辑生效
+        proxy_connect_timeout 10s;
+        proxy_read_timeout 30s;
+        proxy_send_timeout 30s;
+
+        # 上游失败时自动重试
+        proxy_next_upstream error timeout http_502 http_503;
+        proxy_next_upstream_tries 2;
+    }
+
+    # SSH 终端 WebSocket（长连接场景）
     location /ws/ {
-        proxy_pass http://nexus_backend;
+        access_log off;
+        proxy_pass http://backend:3001;
+
+        # WebSocket 必需头
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
-        proxy_set_header Host $http_host;
+
+        # 标准代理头
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
 
-        # 长连接超时
+        # WebSocket 长连接超时
         proxy_read_timeout 86400s;
         proxy_send_timeout 86400s;
     }
 }
 ```
+
+::: tip 关键配置说明
+- **`map $http_upgrade $connection_upgrade`**：WebSocket 请求自动 `upgrade`，普通 HTTP 请求使用 `close`，避免连接池中的连接进入异常状态
+- **`proxy_next_upstream`**：上游返回 502/503 时自动重试，提升启动阶段的容错能力
+- **`proxy_connect_timeout 10s`**：快速失败让前端 JavaScript 重试逻辑及时生效，而非等待 60 秒默认超时
+:::
 
 ---
 

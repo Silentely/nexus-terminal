@@ -9,8 +9,10 @@ services:
     ports:
       - "18111:8080"
     depends_on:
-      - backend
-      - remote-gateway
+      backend:
+        condition: service_healthy
+      remote-gateway:
+        condition: service_healthy
     networks:
       - nexus-terminal-network
     restart: unless-stopped
@@ -44,9 +46,10 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
     logging:
       driver: json-file
       options:
@@ -82,7 +85,8 @@ services:
     networks:
       - nexus-terminal-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:9090/health > /dev/null 2>&1 || exit 1"]

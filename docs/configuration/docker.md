@@ -286,11 +286,18 @@ services:
     ports:
       - '18111:8080'
     depends_on:
-      - backend
-      - remote-gateway
+      backend:
+        condition: service_healthy
+      remote-gateway:
+        condition: service_healthy
     networks:
       - nexus-terminal-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   backend:
     image: ghcr.io/silentely/nexus-terminal-backend:latest
@@ -305,6 +312,12 @@ services:
     networks:
       - nexus-terminal-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # Remote Gateway：内嵌 guacd，guacd 进程与 Node.js 共享同一容器
   # RDP/VNC 连接由 backend 通过 /rdp-proxy WebSocket 内部代理，无需暴露端口
@@ -329,13 +342,25 @@ services:
     networks:
       - nexus-terminal-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/health > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 networks:
   nexus-terminal-network:
     driver: bridge
 ```
+
+::: tip 启动顺序保障
+`depends_on` 配合 `condition: service_healthy` 确保 Docker 等待后端健康检查通过后再启动前端容器，避免启动竞态条件导致 API 请求返回 503。
+
+backend 的 `start_period: 30s` 给予后端足够的初始化时间（数据库迁移、会话存储创建等），在此期间健康检查失败不会计入重试次数。
+:::
 
 ### 前端构建时变量（可选）
 

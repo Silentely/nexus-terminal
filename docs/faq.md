@@ -2,6 +2,45 @@
 
 ## 部署相关
 
+### 启动后 API 返回 503 Service Unavailable？
+
+**原因**：Docker 容器启动竞态条件。`depends_on` 默认只等待容器进程启动，不等待服务就绪。前端容器的 Nginx 在后端尚未完成初始化时就尝试代理请求，导致 503。
+
+**解决方案**：在 `docker-compose.yml` 中使用健康检查条件：
+
+```yaml
+frontend:
+  depends_on:
+    backend:
+      condition: service_healthy
+    remote-gateway:
+        condition: service_healthy
+
+backend:
+  healthcheck:
+    test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 30s  # 给予后端初始化时间
+```
+
+同时确保前端容器的 `nginx.conf` 中 `/api/` 使用正确的连接头映射：
+
+```nginx
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+location ^~ /api/ {
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;  # 不要硬编码 "upgrade"
+    proxy_next_upstream error timeout http_502 http_503;
+}
+```
+
 ### 为什么选择 Docker 部署？
 
 - **一键部署** — 无需手动安装依赖

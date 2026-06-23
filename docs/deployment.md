@@ -96,11 +96,18 @@ services:
     ports:
       - '127.0.0.1:18111:8080'
     depends_on:
-      - backend
-      - remote-gateway
+      backend:
+        condition: service_healthy
+      remote-gateway:
+        condition: service_healthy
     networks:
       - nexus-terminal-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     image: ghcr.io/silentely/nexus-terminal-frontend:latest
 
   backend:
@@ -116,6 +123,12 @@ services:
     networks:
       - nexus-terminal-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     image: ghcr.io/silentely/nexus-terminal-backend:latest
 
   remote-gateway:
@@ -134,14 +147,27 @@ services:
     networks:
       - nexus-terminal-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/health > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     image: ghcr.io/silentely/nexus-terminal-remote-gateway:latest
 
 networks:
   nexus-terminal-network:
     driver: bridge
 ```
+
+::: tip 启动顺序说明
+`depends_on` 配合 `condition: service_healthy` 确保：
+1. **backend** 先启动，等待健康检查通过（`start_period: 30s` 给予初始化时间）
+2. **remote-gateway** 等待 backend 健康后启动
+3. **frontend** 最后启动，此时后端已完全就绪，API 请求不会返回 503
+:::
 
 ### 第三步：创建 .env 文件
 
