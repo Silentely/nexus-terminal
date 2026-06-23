@@ -686,10 +686,8 @@ export const useLayoutStore = defineStore('layout', () => {
   // watch(layoutTree, ...); // REMOVE THIS
   // watch(sidebarPanes, ...); // REMOVE THIS
   // --- 初始化 ---
-  // Store 创建时自动初始化布局和侧栏
-  initializeLayout();
-  // 单独加载 Header 可见性（如果需要与布局初始化分开）
-  loadHeaderVisibility();
+  // 移除自动初始化，改为在用户认证完成后由 App.vue 显式调用
+  // 避免未登录时触发 401 错误（受保护的 settings API 在未认证时不可访问）
 
   // --- 返回 ---
   return {

@@ -111,17 +111,52 @@ export const registerSecurityMiddleware = (app: express.Application) => {
               "'unsafe-inline'",
               'https://static.cloudflareinsights.com',
               'https://cdn-cgi.cloudflare.com',
+              // Google reCAPTCHA（LoginView vue3-recaptcha2 组件动态注入）
+              'https://www.google.com',
+              'https://www.gstatic.com',
+              // hCaptcha（LoginView @hcaptcha/vue3-hcaptcha 组件动态注入）
+              'https://hcaptcha.com',
+              'https://newassets.hcaptcha.com',
             ],
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              // Google Fonts CSS（index.html 预加载）
+              'https://fonts.googleapis.com',
+            ],
             connectSrc: [
               "'self'",
               'ws:',
               'wss:',
               'https://static.cloudflareinsights.com',
               'https://cdn-cgi.cloudflare.com',
+              // reCAPTCHA API 通信
+              'https://www.google.com',
+              'https://www.gstatic.com',
+              // hCaptcha API 通信
+              'https://hcaptcha.com',
+              'https://newassets.hcaptcha.com',
             ],
-            imgSrc: ["'self'", 'data:', 'blob:'],
-            fontSrc: ["'self'", 'data:'],
+            imgSrc: [
+              "'self'",
+              'data:',
+              'blob:',
+              // reCAPTCHA 验证图片
+              'https://www.gstatic.com',
+              'https://*.google.com',
+              // hCaptcha 验证图片
+              'https://hcaptcha.com',
+              'https://newassets.hcaptcha.com',
+            ],
+            fontSrc: [
+              "'self'",
+              'data:',
+              // Google Fonts 字体文件（index.html 预加载）
+              'https://fonts.googleapis.com',
+              'https://fonts.gstatic.com',
+            ],
+            // Cloudflare Access 受保护域名的 manifest 加载（PWA manifest.json 可能被 Access 拦截）
+            manifestSrc: ["'self'", 'https://*.cloudflareaccess.com'],
           },
         },
         crossOriginEmbedderPolicy: false,

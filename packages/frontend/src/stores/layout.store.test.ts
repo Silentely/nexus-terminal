@@ -13,18 +13,11 @@ vi.mock('../utils/apiClient', () => ({
 const mockGet = vi.mocked(apiClient.get);
 const mockPut = vi.mocked(apiClient.put);
 
-// 等待 store 创建时 fire-and-forget 的 initializeLayout 完成
-// initializeLayout 内部有多个 await，需要多轮微任务才能全部完成
-// 使用 vi.waitFor 轮询直到布局初始化完成（layoutTree 或 mockGet 被调用）
+// 等待 store 初始化完成
+// 移除自动初始化后，需显式调用 initializeLayout()
 async function waitForInit() {
-  const _store = useLayoutStore();
-  await vi.waitFor(
-    () => {
-      // initializeLayout 完成后 layoutTree 会被赋值，或 mockGet 被调用
-      expect(mockGet).toHaveBeenCalled();
-    },
-    { timeout: 2000 },
-  );
+  const store = useLayoutStore();
+  await store.initializeLayout();
   // 额外等待微任务队列清空
   await new Promise((resolve) => Promise.resolve().then(resolve));
 }

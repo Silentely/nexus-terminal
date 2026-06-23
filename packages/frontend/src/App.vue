@@ -92,16 +92,20 @@ onMounted(() => {
   // PWA Install Prompt
   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   window.addEventListener('appinstalled', handleAppInstalled);
-
-  // +++ 加载 Header 可见性状态 +++
-  layoutStore.loadHeaderVisibility();
 });
 
-// +++ 监听用户认证状态，登录后初始化收藏路径 +++
+// +++ 监听用户认证状态，登录后初始化布局和收藏路径 +++
+let layoutInitialized = false;
 watch(
   isAuthenticated,
   (loggedIn) => {
     if (loggedIn) {
+      // 用户认证完成后才初始化布局，避免未登录时触发 401 错误
+      if (!layoutInitialized) {
+        layoutInitialized = true;
+        layoutStore.initializeLayout();
+        layoutStore.loadHeaderVisibility();
+      }
       favoritePathsStore.initializeFavoritePaths(t);
     }
   },
