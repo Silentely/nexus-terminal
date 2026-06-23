@@ -26,6 +26,9 @@ const LOCAL_IPS = [
   'localhost', // 本地主机名
 ];
 
+// 高频低价值端点：本地 IP 放行时不输出日志，避免 Docker healthcheck 刷屏
+const LOCAL_ALLOW_LOG_SKIP_PREFIXES = ['/api/v1/health', '/api/v1/metrics'];
+
 /**
  * IP 白名单中间件
  * 检查请求来源 IP 是否在设置中定义的白名单内。
@@ -47,7 +50,15 @@ export const ipWhitelistMiddleware = async (req: Request, res: Response, next: N
 
     // 检查是否是本地开发环境的 IP
     if (LOCAL_IPS.includes(requestIpString)) {
-      logger.info(`允许来自本地开发环境 (${requestIpString}) 的访问。`);
+      // 高频低价值端点（health/metrics）不输出日志，避免 Docker healthcheck 刷屏
+      const isSkippablePath = LOCAL_ALLOW_LOG_SKIP_PREFIXES.some((prefix) =>
+        req.path.startsWith(prefix),
+      );
+
+      if (!isSkippablePath) {
+        logger.debug(`允许来自本地开发环境 (${requestIpString}) 的访问。`);
+      }
+
       return next();
     }
 

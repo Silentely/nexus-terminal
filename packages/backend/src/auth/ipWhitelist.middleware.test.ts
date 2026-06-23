@@ -7,6 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import { ipWhitelistMiddleware, clearWhitelistCache } from './ipWhitelist.middleware';
 import { settingsService } from '../settings/settings.service';
+import { logger } from '../utils/logger';
 
 // Mock settings.service
 vi.mock('../settings/settings.service', () => ({
@@ -15,10 +16,21 @@ vi.mock('../settings/settings.service', () => ({
   },
 }));
 
+// Mock logger
+vi.mock('../utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 // 创建 mock Request
-function createMockRequest(ip: string | undefined): Partial<Request> {
+function createMockRequest(ip: string | undefined, path?: string): Partial<Request> {
   return {
     ip,
+    path: path || '/',
     socket: ip ? undefined : { remoteAddress: undefined },
   } as Partial<Request>;
 }
@@ -104,6 +116,35 @@ describe('IP Whitelist Middleware', () => {
         await ipWhitelistMiddleware(mockReq as Request, mockRes as Response, mockNext);
 
         expect(mockNext).toHaveBeenCalledTimes(1);
+      });
+
+      it('本地 IP 访问非 health 路径应输出 debug 日志', async () => {
+        const mockReq = createMockRequest('::1', '/api/v1/connections');
+
+        await ipWhitelistMiddleware(mockReq as Request, mockRes as Response, mockNext);
+
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining('允许来自本地开发环境'));
+      });
+
+      it('本地 IP 访问 health 路径不应输出日志', async () => {
+        const mockReq = createMockRequest('::1', '/api/v1/health');
+
+        await ipWhitelistMiddleware(mockReq as Request, mockRes as Response, mockNext);
+
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        expect(logger.debug).not.toHaveBeenCalled();
+        expect(logger.info).not.toHaveBeenCalled();
+      });
+
+      it('本地 IP 访问 metrics 路径不应输出日志', async () => {
+        const mockReq = createMockRequest('127.0.0.1', '/api/v1/metrics');
+
+        await ipWhitelistMiddleware(mockReq as Request, mockRes as Response, mockNext);
+
+        expect(mockNext).toHaveBeenCalledTimes(1);
+        expect(logger.debug).not.toHaveBeenCalled();
+        expect(logger.info).not.toHaveBeenCalled();
       });
     });
 

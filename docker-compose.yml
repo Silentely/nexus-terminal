@@ -45,10 +45,10 @@ services:
       - nexus-terminal-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
-      interval: 10s
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 30s
     logging:
       driver: json-file
