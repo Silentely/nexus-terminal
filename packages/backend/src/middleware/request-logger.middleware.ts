@@ -27,6 +27,10 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
   const requestId = crypto.randomBytes(8).toString('hex');
   req.requestId = requestId;
 
+  // 将 requestId 写入响应头，帮助区分 503 来自源站还是代理层
+  // 如果浏览器收到 503 但响应中没有此头，说明 503 由 Cloudflare/反向代理生成
+  res.setHeader('X-Request-Id', requestId);
+
   // 将 requestId 注入 AsyncLocalStorage，后续所有日志自动携带
   withLogContext({ requestId, protocol: 'http' }, () => {
     // 未启用请求日志时仅注入 requestId，不输出日志

@@ -5,7 +5,10 @@ import { log } from '@/utils/log';
 export const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 export const AI_REQUEST_TIMEOUT_MS = 60_000;
 const TRANSIENT_UPSTREAM_STATUS_CODES = [502, 503, 504] as const;
-const ONE_SHOT_RETRY_DELAY_MS = 350;
+
+// 瞬时错误重试配置：最多重试 2 次，指数退避（350ms → 700ms → 1400ms）
+const MAX_TRANSIENT_RETRIES = 2;
+const BASE_RETRY_DELAY_MS = 350;
 
 interface RetriableRequestConfig {
   method?: string;
@@ -57,13 +60,23 @@ apiClient.interceptors.response.use(
         status as (typeof TRANSIENT_UPSTREAM_STATUS_CODES)[number],
       );
 
-      // 对 GET 请求的瞬时上游错误做一次短延迟重试，减少偶发 502/503/504 带来的页面噪声
+      // 对 GET 请求的瞬时上游错误做指数退避重试，减少偶发 502/503/504 带来的页面噪声
+      // Cloudflare 代理场景下首屏并发请求偶尔触发 503，重试可有效恢复
       const requestConfig = error.config as RetriableRequestConfig | undefined;
       const retryCount = Number(requestConfig?.__retryCount ?? 0);
       const isGetRequest = rawRequestMethod?.toLowerCase?.() === 'get';
-      if (requestConfig && isGetRequest && isUpstreamUnavailableStatus && retryCount < 1) {
+      if (
+        requestConfig &&
+        isGetRequest &&
+        isUpstreamUnavailableStatus &&
+        retryCount < MAX_TRANSIENT_RETRIES
+      ) {
         requestConfig.__retryCount = retryCount + 1;
-        await new Promise((resolve) => setTimeout(resolve, ONE_SHOT_RETRY_DELAY_MS));
+        const delay = BASE_RETRY_DELAY_MS * Math.pow(2, retryCount);
+        log.warn(
+          `[apiClient] 瞬时错误 ${status}，第 ${retryCount + 1}/${MAX_TRANSIENT_RETRIES} 次重试，延迟 ${delay}ms: ${requestMethod} ${requestUrl}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
         return apiClient.request(requestConfig);
       }
 
