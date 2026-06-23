@@ -88,16 +88,12 @@ export function createPinnedLookup(allowedAddresses: string[]) {
     throw new Error(`DNS 绑定失败：解析到的 IP 地址无效 (${String(pinnedAddress)})`);
   }
 
-  // Node.js v22+ 改变了 net 模块的 lookup 回调签名：
-  // 旧版 (≤21): callback(err, address: string, family: number)
-  // 新版 (≥22): callback(err, addresses: [{ address, family }])
-  // 两者 callback.length 均为 2 (err, addresses|address)，无法通过参数数量区分，
-  // 因此通过 Node.js 主版本号选择正确的调用格式。
-  const isLegacyFormat = Number(process.versions.node.split('.')[0]) < 22;
-
+  // http.Agent / https.Agent 内部调用 net.connect 时传入 { all: true }，
+  // 要求 lookup 回调返回 [{ address, family }] 数组格式（Node.js ≥10.6）。
+  // 直接检测 options.all 来决定回调格式，比 Node 版本号更准确可靠。
   return (
     _hostname: string,
-    _options: unknown,
+    options: { all?: boolean },
     callback: (
       err: NodeJS.ErrnoException | null,
       address: string | dns.LookupAddress[],
@@ -105,10 +101,10 @@ export function createPinnedLookup(allowedAddresses: string[]) {
     ) => void,
   ): void => {
     const family = pinnedAddress.includes(':') ? 6 : 4;
-    if (isLegacyFormat) {
-      callback(null, pinnedAddress, family);
-    } else {
+    if (options?.all) {
       callback(null, [{ address: pinnedAddress, family }]);
+    } else {
+      callback(null, pinnedAddress, family);
     }
   };
 }

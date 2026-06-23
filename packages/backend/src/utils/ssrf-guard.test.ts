@@ -147,21 +147,27 @@ describe('ssrf-guard', () => {
       );
     });
 
-    it('有效 IPv4 地址应返回正确的 lookup 回调', () => {
+    it('all:true 时 IPv4 应返回数组格式（http.Agent 实际行为）', () => {
       const lookup = createPinnedLookup(['142.250.80.46']);
       const callback = vi.fn();
-      lookup('example.com', {}, callback);
-      // Node.js v22+ 使用 [{ address, family }] 数组格式
+      lookup('example.com', { all: true }, callback);
       expect(callback).toHaveBeenCalledWith(null, [{ address: '142.250.80.46', family: 4 }]);
     });
 
-    it('有效 IPv6 地址应返回 family 6', () => {
+    it('all:true 时 IPv6 应返回数组格式且 family 6', () => {
       const lookup = createPinnedLookup(['2607:f8b0:4004:800::200e']);
       const callback = vi.fn();
-      lookup('example.com', {}, callback);
+      lookup('example.com', { all: true }, callback);
       expect(callback).toHaveBeenCalledWith(null, [
         { address: '2607:f8b0:4004:800::200e', family: 6 },
       ]);
+    });
+
+    it('all:false 时应返回旧格式 (address, family)', () => {
+      const lookup = createPinnedLookup(['142.250.80.46']);
+      const callback = vi.fn();
+      lookup('example.com', { all: false }, callback);
+      expect(callback).toHaveBeenCalledWith(null, '142.250.80.46', 4);
     });
   });
 
