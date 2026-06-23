@@ -89,10 +89,30 @@ export const configureTrustProxy = (app: express.Application) => {
  * 注册安全中间件（Helmet、CORS、IP 白名单、JSON 解析、指标采集、安全响应头）
  */
 export const registerSecurityMiddleware = (app: express.Application) => {
-  // 1. Helmet - HTTP 安全头
+  // 1. Helmet - HTTP 安全头（CSP 策略统一由 Helmet 管理）
   app.use(
     helmet({
-      contentSecurityPolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            'https://static.cloudflareinsights.com',
+            'https://cdn-cgi.cloudflare.com',
+          ],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          connectSrc: [
+            "'self'",
+            'ws:',
+            'wss:',
+            'https://static.cloudflareinsights.com',
+            'https://cdn-cgi.cloudflare.com',
+          ],
+          imgSrc: ["'self'", 'data:', 'blob:'],
+          fontSrc: ["'self'", 'data:'],
+        },
+      },
       crossOriginEmbedderPolicy: false,
     }),
   );
@@ -143,14 +163,10 @@ export const registerSecurityMiddleware = (app: express.Application) => {
   app.use(express.json({ limit: '1mb' }));
   app.use(metricsMiddleware as RequestHandler);
 
-  // 4. 安全响应头
+  // 4. 安全响应头（CSP 已由 Helmet 统一管理，此处仅设置 Helmet 未覆盖的头）
   const enableHsts = process.env.ENABLE_HSTS === 'true';
 
   app.use((_req, res, next) => {
-    res.setHeader(
-      'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' ws: wss: https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com; img-src 'self' data: blob:; font-src 'self' data:",
-    );
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');

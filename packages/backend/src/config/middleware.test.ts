@@ -283,7 +283,12 @@ describe('config/middleware', () => {
       expect(response.headers['x-content-type-options']).toBe('nosniff');
       expect(response.headers['x-frame-options']).toBe('SAMEORIGIN');
       expect(response.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
-      expect(response.headers['content-security-policy']).toContain("default-src 'self'");
+      // CSP 由 Helmet 统一管理，验证 Helmet 被调用并传入正确的 CSP 配置
+      expect(mockHelmetFn).toHaveBeenCalled();
+      const helmetConfig = mockHelmetFn.mock.calls[0][0];
+      expect(helmetConfig.contentSecurityPolicy.directives.defaultSrc).toContain("'self'");
+      expect(helmetConfig.contentSecurityPolicy.directives.scriptSrc).toContain("'self'");
+      expect(helmetConfig.crossOriginEmbedderPolicy).toBe(false);
     });
 
     it('生产环境未设置 ALLOWED_ORIGINS 应发出警告', () => {

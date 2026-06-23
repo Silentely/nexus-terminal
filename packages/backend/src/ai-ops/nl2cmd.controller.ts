@@ -159,6 +159,34 @@ export const saveAISettings = async (req: Request, res: Response): Promise<void>
     return;
   }
 
+  // URL 格式校验：必须是合法的 http/https URL
+  try {
+    const parsedUrl = new URL(baseUrl);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      res.status(400).json({
+        success: false,
+        error: 'baseUrl 必须使用 http 或 https 协议',
+        code: 'VALIDATION_ERROR',
+      });
+      return;
+    }
+  } catch {
+    res.status(400).json({ success: false, error: 'baseUrl 格式无效', code: 'VALIDATION_ERROR' });
+    return;
+  }
+
+  // openaiEndpoint 路径安全校验：禁止协议注入和路径遍历
+  if (openaiEndpoint && typeof openaiEndpoint === 'string') {
+    if (openaiEndpoint.includes('://') || openaiEndpoint.includes('..')) {
+      res.status(400).json({
+        success: false,
+        error: 'openaiEndpoint 包含非法字符',
+        code: 'VALIDATION_ERROR',
+      });
+      return;
+    }
+  }
+
   if (!model || typeof model !== 'string') {
     res.status(400).json({ success: false, error: 'model 不能为空', code: 'VALIDATION_ERROR' });
     return;
@@ -312,6 +340,22 @@ export const testAIConnection = async (req: Request, res: Response): Promise<voi
 
   if (!baseUrl || typeof baseUrl !== 'string') {
     res.status(400).json({ success: false, error: 'baseUrl 不能为空', code: 'VALIDATION_ERROR' });
+    return;
+  }
+
+  // URL 格式校验：必须是合法的 http/https URL
+  try {
+    const parsedUrl = new URL(baseUrl);
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      res.status(400).json({
+        success: false,
+        error: 'baseUrl 必须使用 http 或 https 协议',
+        code: 'VALIDATION_ERROR',
+      });
+      return;
+    }
+  } catch {
+    res.status(400).json({ success: false, error: 'baseUrl 格式无效', code: 'VALIDATION_ERROR' });
     return;
   }
 

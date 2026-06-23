@@ -81,6 +81,13 @@ export const resolveAndValidatePublicHost = async (
   sourceTag = 'URL',
 ): Promise<SsrfValidationResult> => {
   const urlObj = new URL(targetUrl);
+
+  // 协议白名单：仅允许 http/https，阻止 file:/gopher:/data: 等危险协议
+  if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+    logger.warn(`[SSRF] ${sourceTag} 阻止：不允许的协议 ${urlObj.protocol}`);
+    throw new Error('仅支持 http/https 协议，请求已阻止。');
+  }
+
   // IPv6 地址在 URL.hostname 中带方括号，ipaddr.parse 需要去除
   const hostname = urlObj.hostname.replace(/^\[(.*)\]$/, '$1');
 

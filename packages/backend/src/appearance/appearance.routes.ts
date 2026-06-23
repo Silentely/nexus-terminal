@@ -1,6 +1,7 @@
 import express from 'express';
 import * as appearanceController from './appearance.controller';
 import { isAuthenticated } from '../auth/auth.middleware';
+import { apiLimiter } from '../config/rate-limit.config';
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.put('/', appearanceController.updateAppearanceSettingsController);
 // POST /api/v1/appearance/background/page - 上传页面背景图片
 router.post(
   '/background/page',
+  apiLimiter,
   appearanceController.uploadPageBackgroundMiddleware,
   appearanceController.uploadPageBackgroundController,
 );
@@ -23,6 +25,7 @@ router.post(
 // POST /api/v1/appearance/background/terminal - 上传终端背景图片
 router.post(
   '/background/terminal',
+  apiLimiter,
   appearanceController.uploadTerminalBackgroundMiddleware,
   appearanceController.uploadTerminalBackgroundController,
 );

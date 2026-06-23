@@ -1,6 +1,7 @@
 import express from 'express';
 import * as themeController from './terminal-theme.controller';
 import { isAuthenticated } from '../auth/auth.middleware';
+import { apiLimiter } from '../config/rate-limit.config';
 
 const router = express.Router();
 
@@ -25,6 +26,7 @@ router.delete('/:id', themeController.deleteThemeController);
 // POST /api/v1/terminal-themes/import - 导入主题 (使用 multer 中间件处理文件)
 router.post(
   '/import',
+  apiLimiter,
   themeController.uploadMiddleware.single('themeFile'),
   themeController.importThemeController,
 );
