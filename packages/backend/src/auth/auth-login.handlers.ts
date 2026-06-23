@@ -11,6 +11,7 @@ import { AuditLogService } from '../audit/audit.service';
 import { ipBlacklistService } from './ip-blacklist.service';
 import { captchaService } from './captcha.service';
 import { settingsService } from '../settings/settings.service';
+import { isMultiplexEnabled } from '../websocket/multiplex';
 import { SECURITY_CONFIG } from '../config/security.config';
 import { ErrorCode } from '../types/error.types';
 import {
@@ -653,6 +654,7 @@ export const getInitData = async (
         needsSetup: requiresSetup,
         authState,
         captchaConfig,
+        multiplexEnabled: isMultiplexEnabled(),
       }),
     );
 

@@ -70,6 +70,9 @@ const router = Router();
  *                     recaptchaSiteKey:
  *                       type: string
  *                       nullable: true
+ *                 multiplexEnabled:
+ *                   type: boolean
+ *                   description: 后端是否启用了 WebSocket 多路复用（前端自动跟随，无需额外配置）
  */
 router.get('/init', getInitData);
 

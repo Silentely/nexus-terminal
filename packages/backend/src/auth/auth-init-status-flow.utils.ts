@@ -31,6 +31,7 @@ export interface InitDataBaseResponse {
   isAuthenticated: boolean;
   user: InitAuthenticatedUser | null;
   captchaConfig: PublicCaptchaConfig;
+  multiplexEnabled: boolean;
 }
 
 export const isAuthenticatedSessionSnapshot = (session: SessionAuthSnapshot): boolean => {
@@ -58,13 +59,15 @@ export const buildInitDataBaseResponse = (params: {
   needsSetup: boolean;
   authState: InitAuthState;
   captchaConfig: PublicCaptchaConfig;
+  multiplexEnabled?: boolean;
 }): InitDataBaseResponse => {
-  const { needsSetup, authState, captchaConfig } = params;
+  const { needsSetup, authState, captchaConfig, multiplexEnabled = false } = params;
 
   return {
     needsSetup,
     isAuthenticated: authState.isAuthenticated,
     user: authState.user,
     captchaConfig,
+    multiplexEnabled,
   };
 };

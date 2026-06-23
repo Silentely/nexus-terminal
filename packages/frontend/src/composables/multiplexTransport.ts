@@ -14,13 +14,18 @@ import type { ConnectionStatus, WebSocketMessage, MessagePayload } from '../type
 import { parseWebSocketMessage } from './useWebSocketConnection/messageParser';
 import { createReconnectManager } from './useWebSocketConnection/reconnect';
 import { log } from '@/utils/log';
+import { useAuthStore } from '../stores/auth.store';
 
 /**
  * 检查前端多路复用是否启用
- * 通过 VITE_ENABLE_MULTIPLEX 环境变量控制，默认关闭
+ * 从后端 /auth/init 接口读取配置（后端 ENABLE_MULTIPLEX 环境变量控制），无需前端构建时变量
  */
 export function isMultiplexEnabled(): boolean {
-  return import.meta.env.VITE_ENABLE_MULTIPLEX === 'true';
+  try {
+    return useAuthStore().multiplexEnabled;
+  } catch {
+    return false;
+  }
 }
 
 /** 逻辑通道状态（使用 Ref 实现响应式） */

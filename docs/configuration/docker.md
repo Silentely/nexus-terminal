@@ -102,6 +102,12 @@
 | `LOG_TZ`                     | -        | 日志时间戳时区（优先级高于 `TZ`）                                                              |
 | `ENABLE_REQUEST_LOG`         | `true`   | 启用请求访问日志。设为 `false` 可关闭"请求开始/完成"日志，减少容器日志量                       |
 | `ENABLE_HSTS`                | `false`  | 启用 HSTS 安全头（Strict-Transport-Security）。仅生产 HTTPS 环境开启，开发环境勿启用           |
+| `BEHIND_REVERSE_PROXY`       | `false`  | 设为 `true` 跳过 Express 安全头设置，由 Nginx/Cloudflare 等反向代理统一管理                    |
+| `ENABLE_METRICS`             | `false`  | 设为 `true` 启用 Prometheus 指标端点 `/api/v1/metrics`，配合 `METRICS_TOKEN` 保护访问          |
+| `API_RATE_LIMIT_WINDOW_MS`   | `900000` | API 通用限流窗口时间（毫秒），默认 15 分钟                                                     |
+| `API_RATE_LIMIT_MAX`         | `300`    | API 通用限流窗口内最大请求数                                                                   |
+| `SETTINGS_RATE_LIMIT_WINDOW_MS` | `900000` | Settings API 限流窗口时间（毫秒），默认 15 分钟                                              |
+| `SETTINGS_RATE_LIMIT_MAX`    | `500`    | Settings API 限流窗口内最大请求数                                                              |
 | `TZ`                         | `UTC`    | 后端进程默认时区                                                                               |
 
 ### NL2CMD 调试配置
@@ -398,18 +404,36 @@ backend 的 `start_period: 30s` 给予后端足够的初始化时间（数据库
 
 ### 前端构建时变量（可选）
 
-| 变量名                         | 默认值 | 描述                                                                  |
-| ------------------------------ | ------ | --------------------------------------------------------------------- |
-| `VITE_NOTIFICATION_TIMEOUT_MS` | `3000` | 前端通知自动关闭时间（毫秒）。仅支持正整数，缺省/非法值会回退默认值。 |
-| `VITE_API_BASE_URL`            | -      | 前端拼接后端静态资源地址的基础 URL（如背景图 URL）。                  |
-
-> 重要说明：
+> **⚠️ 与后端变量的区别**：后端变量在进程启动时实时读取，改 `.env` 重启即生效。前端 `VITE_*` 变量是 **Vite 构建时**固化到 JS 产物中的，运行时无法更改。
 >
-> - 该变量是 **Vite 构建时变量**，通过 `import.meta.env` 读取。
-> - 使用 `ghcr.io/silentely/nexus-terminal-frontend:latest` 预构建镜像时，运行时注入此变量不会生效。
-> - 如需自定义，请改为自行构建 frontend 镜像，并在构建阶段传入。
+> - 使用 `ghcr.io/silentely/nexus-terminal-frontend:latest` **预构建镜像**时，这些变量已内置默认值，无法覆盖。
+> - 如需自定义，必须**自行构建** frontend 镜像，在构建阶段通过 `build.args` 传入。
+> - 变量通过 `import.meta.env.VITE_*` 在前端代码中读取。
 
-示例（改为 build 模式）：
+| 变量名                         | 默认值 | 描述                                                                                |
+| ------------------------------ | ------ | ----------------------------------------------------------------------------------- |
+| `VITE_NOTIFICATION_TIMEOUT_MS` | `3000` | 通知自动关闭时间（毫秒），仅支持正整数，缺省或非法值回退默认值                      |
+| `VITE_API_BASE_URL`            | -      | 拼接后端静态资源地址的基础 URL（如背景图），留空则使用当前页面 origin               |
+
+#### WebSocket 多路复用（前后端协同）
+
+多路复用将多个 SSH 会话共享在**一条物理 WebSocket 连接**上，减少连接数和资源消耗。只需在后端设置 `ENABLE_MULTIPLEX=true`，前端启动时自动从 `/auth/init` 接口读取该配置，无需额外操作。
+
+| | 关闭（默认） | 开启 |
+|--|-------------|------|
+| **前端行为** | 每个 SSH 会话独立建立一条 WebSocket | 全局共享 1 条 WebSocket，每个会话创建逻辑通道（按 `sid` 路由）|
+| **后端行为** | 每条 WebSocket 绑定单个 SSH 会话 | 在 1 条 WebSocket 上管理多个逻辑通道，按消息中的 `sid` 字段分发 |
+| **连接数** | N 个会话 = N 条 WebSocket | N 个会话 = 1 条 WebSocket |
+
+```yaml
+# 开启示例：只需设置后端环境变量，前端自动跟随
+services:
+  backend:
+    environment:
+      ENABLE_MULTIPLEX: 'true'
+```
+
+#### 构建参数示例
 
 ```yaml
 services:

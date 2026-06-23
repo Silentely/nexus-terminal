@@ -72,6 +72,7 @@ export const useAuthStore = defineStore(
     const passkeysLoading = ref(false);
     const hasPasskeysAvailable = ref(false);
     const isInitCompleted = ref(false);
+    const multiplexEnabled = ref(false);
 
     // --- Getters ---
     const loggedInUser = computed(() => user.value?.username);
@@ -598,6 +599,8 @@ export const useAuthStore = defineStore(
      */
     async function loadInitData() {
       isLoading.value = true;
+      // 重置为默认值，避免 localStorage 中的陈旧值在 /auth/init 失败时被沿用
+      multiplexEnabled.value = false;
       try {
         const response = await apiClient.get<{
           needsSetup: boolean;
@@ -609,6 +612,7 @@ export const useAuthStore = defineStore(
             hcaptchaSiteKey: string | null;
             recaptchaSiteKey: string | null;
           };
+          multiplexEnabled: boolean;
         }>('/auth/init');
 
         const provider = response.data.captchaConfig.provider;
@@ -626,6 +630,7 @@ export const useAuthStore = defineStore(
           hcaptchaSiteKey: response.data.captchaConfig.hcaptchaSiteKey ?? undefined,
           recaptchaSiteKey: response.data.captchaConfig.recaptchaSiteKey ?? undefined,
         };
+        multiplexEnabled.value = response.data.multiplexEnabled ?? false;
 
         if (user.value?.language) {
           setLocale(user.value.language);
@@ -669,6 +674,7 @@ export const useAuthStore = defineStore(
       passkeysLoading,
       hasPasskeysAvailable,
       isInitCompleted,
+      multiplexEnabled,
       loggedInUser,
       clearError,
       setError,

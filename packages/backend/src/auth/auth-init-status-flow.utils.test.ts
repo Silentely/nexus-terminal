@@ -100,6 +100,7 @@ describe('auth-init-status-flow.utils', () => {
           hcaptchaSiteKey: 'site-key',
           recaptchaSiteKey: undefined,
         },
+        multiplexEnabled: false,
       });
     });
   });

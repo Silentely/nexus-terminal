@@ -116,6 +116,7 @@ export const registerSecurityMiddleware = (app: express.Application) => {
               'https://www.gstatic.com',
               // hCaptcha（LoginView @hcaptcha/vue3-hcaptcha 组件动态注入）
               'https://hcaptcha.com',
+              'https://js.hcaptcha.com',
               'https://newassets.hcaptcha.com',
             ],
             styleSrc: [
@@ -135,6 +136,7 @@ export const registerSecurityMiddleware = (app: express.Application) => {
               'https://www.gstatic.com',
               // hCaptcha API 通信
               'https://hcaptcha.com',
+              'https://js.hcaptcha.com',
               'https://newassets.hcaptcha.com',
             ],
             imgSrc: [
@@ -146,7 +148,18 @@ export const registerSecurityMiddleware = (app: express.Application) => {
               'https://*.google.com',
               // hCaptcha 验证图片
               'https://hcaptcha.com',
+              'https://js.hcaptcha.com',
               'https://newassets.hcaptcha.com',
+            ],
+            // CAPTCHA iframe（reCAPTCHA/hCaptcha v2 widget 弹窗）
+            frameSrc: [
+              "'self'",
+              'https://www.google.com',
+              'https://www.gstatic.com',
+              'https://hcaptcha.com',
+              'https://js.hcaptcha.com',
+              'https://newassets.hcaptcha.com',
+              'https://*.hcaptcha.com',
             ],
             fontSrc: [
               "'self'",

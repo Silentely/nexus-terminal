@@ -50,7 +50,9 @@ const activeSessions = new Map<string, ActiveWebRTCSession>();
 
 /** 获取 ICE 配置 */
 export function getICEConfig(): WebRTCConfig {
-  const stunUrls = process.env.WEBRTC_STUN_URLS?.split(',').filter(Boolean) || [
+  const stunUrls = process.env.WEBRTC_STUN_URLS?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean) || [
     // 国际 — Google
     'stun:stun.l.google.com:19302',
     'stun:stun1.l.google.com:19302',
@@ -65,7 +67,9 @@ export function getICEConfig(): WebRTCConfig {
   const iceServers: WebRTCConfig['iceServers'] = [{ urls: stunUrls }];
 
   // 可选 TURN 服务器
-  const turnUrls = process.env.WEBRTC_TURN_URLS?.split(',').filter(Boolean);
+  const turnUrls = process.env.WEBRTC_TURN_URLS?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (turnUrls && turnUrls.length > 0) {
     iceServers.push({
       urls: turnUrls,
