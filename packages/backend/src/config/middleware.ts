@@ -87,35 +87,70 @@ export const configureTrustProxy = (app: express.Application) => {
 
 /**
  * 注册安全中间件（Helmet、CORS、IP 白名单、JSON 解析、指标采集、安全响应头）
+ *
+ * 安全响应头策略：
+ * - 默认由 Express（Helmet + 补充头）设置，适用于直连场景（无反向代理）
+ * - 当 BEHIND_REVERSE_PROXY=true 时，跳过 Express 端安全头，由反向代理（Nginx/Cloudflare）统一管理
+ *   避免重复头导致 CSP 交叉限制（浏览器对多个 CSP 头取交集，可能破坏功能）
  */
 export const registerSecurityMiddleware = (app: express.Application) => {
-  // 1. Helmet - HTTP 安全头（CSP 策略统一由 Helmet 管理）
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: [
-            "'self'",
-            "'unsafe-inline'",
-            'https://static.cloudflareinsights.com',
-            'https://cdn-cgi.cloudflare.com',
-          ],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          connectSrc: [
-            "'self'",
-            'ws:',
-            'wss:',
-            'https://static.cloudflareinsights.com',
-            'https://cdn-cgi.cloudflare.com',
-          ],
-          imgSrc: ["'self'", 'data:', 'blob:'],
-          fontSrc: ["'self'", 'data:'],
+  // 1. 安全响应头控制
+  // BEHIND_REVERSE_PROXY=true 表示前端有 Nginx/Cloudflare 等反向代理负责设置安全头
+  // 此时 Express 跳过安全头设置，避免重复
+  const behindReverseProxy = process.env.BEHIND_REVERSE_PROXY === 'true';
+
+  if (!behindReverseProxy) {
+    // Helmet - HTTP 安全头（CSP、X-Content-Type-Options、X-Frame-Options、Referrer-Policy 等）
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              'https://static.cloudflareinsights.com',
+              'https://cdn-cgi.cloudflare.com',
+            ],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            connectSrc: [
+              "'self'",
+              'ws:',
+              'wss:',
+              'https://static.cloudflareinsights.com',
+              'https://cdn-cgi.cloudflare.com',
+            ],
+            imgSrc: ["'self'", 'data:', 'blob:'],
+            fontSrc: ["'self'", 'data:'],
+          },
         },
-      },
-      crossOriginEmbedderPolicy: false,
-    }),
-  );
+        crossOriginEmbedderPolicy: false,
+      }),
+    );
+
+    // Helmet 未覆盖的补充安全头
+    const enableHsts = process.env.ENABLE_HSTS === 'true';
+
+    app.use((_req, res, next) => {
+      // HSTS — 仅在 ENABLE_HSTS=true 时启用，避免开发环境强制跳转 HTTPS
+      if (enableHsts) {
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+      }
+      // 限制浏览器特性访问
+      res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+      // 跨域隔离策略 — 防止跨域窗口引用
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      // 跨域资源策略 — 同源部署用 same-origin，跨域部署需要 cross-origin
+      // 默认 cross-origin 以兼容前后端分离部署场景（ALLOWED_ORIGINS 配置）
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+      next();
+    });
+
+    logger.info('[安全头] 由 Express 设置（直连模式）');
+  } else {
+    logger.info('[安全头] 已跳过（BEHIND_REVERSE_PROXY=true，由反向代理管理）');
+  }
 
   // 2. CORS - 跨域资源共享
   const baseAllowedOrigins = process.env.ALLOWED_ORIGINS
@@ -162,28 +197,4 @@ export const registerSecurityMiddleware = (app: express.Application) => {
   app.use(ipWhitelistMiddleware as RequestHandler);
   app.use(express.json({ limit: '1mb' }));
   app.use(metricsMiddleware as RequestHandler);
-
-  // 4. 安全响应头（CSP 已由 Helmet 统一管理，此处仅设置 Helmet 未覆盖的头）
-  const enableHsts = process.env.ENABLE_HSTS === 'true';
-
-  app.use((_req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-    // P1-3: 补齐安全头
-    // HSTS — 仅在 ENABLE_HSTS=true 时启用，避免开发环境强制跳转 HTTPS
-    if (enableHsts) {
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    }
-    // 限制浏览器特性访问
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-    // 跨域隔离策略 — 防止跨域窗口引用
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    // 跨域资源策略 — 同源部署用 same-origin，跨域部署需要 cross-origin
-    // 默认 cross-origin 以兼容前后端分离部署场景（ALLOWED_ORIGINS 配置）
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-
-    next();
-  });
 };

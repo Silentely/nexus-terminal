@@ -247,7 +247,8 @@ describe('config/middleware', () => {
       expect(() => registerSecurityMiddleware(app as ReturnType<typeof express>)).not.toThrow();
     });
 
-    it('应设置安全响应头', async () => {
+    it('默认模式应由 Express 设置安全响应头', async () => {
+      delete process.env.BEHIND_REVERSE_PROXY;
       const app = express();
       registerSecurityMiddleware(app);
 
@@ -280,15 +281,99 @@ describe('config/middleware', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.headers['x-content-type-options']).toBe('nosniff');
-      expect(response.headers['x-frame-options']).toBe('SAMEORIGIN');
-      expect(response.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
-      // CSP 由 Helmet 统一管理，验证 Helmet 被调用并传入正确的 CSP 配置
+      // Helmet 被调用（X-Content-Type-Options、X-Frame-Options、Referrer-Policy、CSP 由 Helmet 统一管理）
       expect(mockHelmetFn).toHaveBeenCalled();
       const helmetConfig = mockHelmetFn.mock.calls[0][0];
       expect(helmetConfig.contentSecurityPolicy.directives.defaultSrc).toContain("'self'");
       expect(helmetConfig.contentSecurityPolicy.directives.scriptSrc).toContain("'self'");
       expect(helmetConfig.crossOriginEmbedderPolicy).toBe(false);
+      // 补充安全头由 Express 手动设置
+      expect(response.headers['permissions-policy']).toBe(
+        'camera=(), microphone=(), geolocation=()',
+      );
+      expect(response.headers['cross-origin-opener-policy']).toBe('same-origin');
+      expect(response.headers['cross-origin-resource-policy']).toBe('cross-origin');
+      // 验证日志提示直连模式
+      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('直连模式'));
+    });
+
+    it('BEHIND_REVERSE_PROXY=true 时应跳过安全头设置', async () => {
+      process.env.BEHIND_REVERSE_PROXY = 'true';
+      const app = express();
+      registerSecurityMiddleware(app);
+
+      app.get('/test-headers', (_req, res) => {
+        res.json({ done: true });
+      });
+
+      const response = await new Promise<{
+        status: number;
+        headers: Record<string, string>;
+        body: string;
+      }>((resolve) => {
+        const http = require('http');
+        const server = app.listen(0, () => {
+          const addr = server.address() as AddressInfo;
+          http.get(`http://127.0.0.1:${addr.port}/test-headers`, (res: IncomingMessage) => {
+            let body = '';
+            res.on('data', (chunk: Buffer) => (body += chunk));
+            res.on('end', () => {
+              server.close();
+              resolve({
+                status: res.statusCode ?? 0,
+                headers: res.headers as Record<string, string>,
+                body,
+              });
+            });
+          });
+        });
+      });
+
+      expect(response.status).toBe(200);
+      // Helmet 不应被调用
+      expect(mockHelmetFn).not.toHaveBeenCalled();
+      // Express 不应设置这些安全头（由反向代理负责）
+      expect(response.headers['x-content-type-options']).toBeUndefined();
+      expect(response.headers['x-frame-options']).toBeUndefined();
+      expect(response.headers['referrer-policy']).toBeUndefined();
+      // 验证日志提示反向代理模式
+      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('BEHIND_REVERSE_PROXY'));
+    });
+
+    it('ENABLE_HSTS=true 时应设置 HSTS 头', async () => {
+      delete process.env.BEHIND_REVERSE_PROXY;
+      process.env.ENABLE_HSTS = 'true';
+      const app = express();
+      registerSecurityMiddleware(app);
+
+      app.get('/test-hsts', (_req, res) => {
+        res.json({ done: true });
+      });
+
+      const response = await new Promise<{
+        status: number;
+        headers: Record<string, string>;
+      }>((resolve) => {
+        const http = require('http');
+        const server = app.listen(0, () => {
+          const addr = server.address() as AddressInfo;
+          http.get(`http://127.0.0.1:${addr.port}/test-hsts`, (res: IncomingMessage) => {
+            let body = '';
+            res.on('data', (chunk: Buffer) => (body += chunk));
+            res.on('end', () => {
+              server.close();
+              resolve({
+                status: res.statusCode ?? 0,
+                headers: res.headers as Record<string, string>,
+              });
+            });
+          });
+        });
+      });
+
+      expect(response.headers['strict-transport-security']).toBe(
+        'max-age=31536000; includeSubDomains',
+      );
     });
 
     it('生产环境未设置 ALLOWED_ORIGINS 应发出警告', () => {

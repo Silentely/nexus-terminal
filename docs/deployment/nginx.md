@@ -449,11 +449,21 @@ upstream nexus_backend_cluster {
 
 ### 安全头配置
 
+::: warning 避免重复安全头
+当使用 Nginx 反向代理时，Express 后端和 Nginx 会同时设置安全响应头（CSP、X-Frame-Options 等），导致重复。
+
+**推荐方案**：在 `.env` 中设置 `BEHIND_REVERSE_PROXY=true`，让 Express 跳过安全头设置，由 Nginx 统一管理。
+
+**备选方案**：使用 `proxy_hide_header` 指令清除上游响应中的安全头，由 Nginx 重新设置（见下方"清除上游头"章节）。
+
+**注意**：重复的 `Content-Security-Policy` 头会被浏览器取交集（AND），可能导致合法资源被阻止加载。
+:::
+
 ```nginx
 server {
     # ... SSL 配置 ...
 
-    # 安全响应头
+    # 安全响应头（当 BEHIND_REVERSE_PROXY=true 时由 Nginx 独立管理）
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
@@ -463,11 +473,40 @@ server {
     # HSTS（仅 HTTPS）
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
+    # 限制浏览器特性访问
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
+    add_header Cross-Origin-Resource-Policy "cross-origin" always;
+
     # 隐藏 Nginx 版本
     server_tokens off;
 
     # ... 其他配置 ...
 }
+```
+
+### 清除上游安全头（备选方案）
+
+如果不想修改 Express 配置（不设置 `BEHIND_REVERSE_PROXY`），可以在 Nginx 中使用 `proxy_hide_header` 清除上游响应的安全头，然后由 Nginx 重新设置：
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:18111;
+
+    # 清除上游（Express）设置的安全头，由 Nginx 统一管理
+    proxy_hide_header Content-Security-Policy;
+    proxy_hide_header X-Frame-Options;
+    proxy_hide_header X-Content-Type-Options;
+    proxy_hide_header Referrer-Policy;
+    proxy_hide_header Strict-Transport-Security;
+    proxy_hide_header Permissions-Policy;
+    proxy_hide_header Cross-Origin-Opener-Policy;
+    proxy_hide_header Cross-Origin-Resource-Policy;
+
+    # Nginx 重新设置安全头（在 server 块中用 add_header）
+    # ...
+}
+```
 ```
 
 ### 访问限制
