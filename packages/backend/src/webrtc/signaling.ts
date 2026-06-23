@@ -51,8 +51,15 @@ const activeSessions = new Map<string, ActiveWebRTCSession>();
 /** 获取 ICE 配置 */
 export function getICEConfig(): WebRTCConfig {
   const stunUrls = process.env.WEBRTC_STUN_URLS?.split(',').filter(Boolean) || [
+    // 国际 — Google
     'stun:stun.l.google.com:19302',
     'stun:stun1.l.google.com:19302',
+    // 国际 — Cloudflare（高可用，支持 TCP/UDP）
+    'stun:stun.cloudflare.com:3478',
+    // 国内 — Bilibili（阿里云，国内 WebRTC 场景常用）
+    'stun:stun.chat.bilibili.com:3478',
+    // 国内 — 小米路由器（中国联通北京，NAT 测试工具默认服务器）
+    'stun:stun.miwifi.com:3478',
   ];
 
   const iceServers: WebRTCConfig['iceServers'] = [{ urls: stunUrls }];

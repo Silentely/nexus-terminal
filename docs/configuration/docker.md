@@ -26,6 +26,7 @@
 - [2. Remote Gateway 服务变量](#2-remote-gateway-服务变量)
 - [3. 端口配置](#3-端口配置)
 - [4. 完整配置示例](#4-完整配置示例)
+- [WebRTC / STUN / TURN 配置](#webrtc--stun--turn-配置)
 
 ---
 
@@ -112,6 +113,39 @@
 | `NL2CMD_REQUEST_TIMEOUT_MS` | `30000` | 1000-300000 | NL2CMD 上游 HTTP 请求超时（毫秒）    |
 
 > ⚠️ **注意**: NL2CMD 的 AI 配置（API Key、Provider、Model 等）存储在**数据库**中，通过前端设置页面 (`/settings/ai`) 或 API 配置。
+
+### WebRTC / STUN / TURN 配置
+
+> WebRTC 用于 RDP/VNC 远程桌面的 P2P 数据通道。STUN 服务器帮助 NAT 穿透发现公网地址，TURN 服务器在 P2P 失败时提供中继兜底。
+
+| 变量名                   | 默认值      | 描述                                                                                       |
+| ------------------------ | ----------- | ------------------------------------------------------------------------------------------ |
+| `WEBRTC_STUN_URLS`       | 见下方表格  | STUN 服务器地址（逗号分隔）。用于 NAT 穿透发现公网 IP，多服务器提高成功率。                |
+| `WEBRTC_TURN_URLS`       | -           | TURN 中继服务器地址（逗号分隔）。NAT 穿透失败时的流量中继兜底，通常需要自建或购买商业服务。 |
+| `WEBRTC_TURN_USERNAME`   | -           | TURN 服务器认证用户名                                                                      |
+| `WEBRTC_TURN_CREDENTIAL` | -           | TURN 服务器认证凭据                                                                        |
+
+**默认 STUN 服务器说明**：
+
+| 服务器                           | 运营方   | 区域  | 说明                                      |
+| -------------------------------- | -------- | ----- | ----------------------------------------- |
+| `stun.l.google.com:19302`        | Google   | 国际  | WebRTC 最常用的公共 STUN                  |
+| `stun1.l.google.com:19302`       | Google   | 国际  | Google 备用节点                           |
+| `stun.cloudflare.com:3478`       | Cloudflare | 国际 | 全球 CDN 高可用，支持 TCP/UDP             |
+| `stun.chat.bilibili.com:3478`    | Bilibili | 国内  | 阿里云部署，国内网络环境优选              |
+| `stun.miwifi.com:3478`           | 小米     | 国内  | 中国联通北京，NAT 测试工具常用默认服务器  |
+
+**自定义示例**：
+
+```dotenv
+# 覆盖默认 STUN（仅使用 Cloudflare + 国内）
+WEBRTC_STUN_URLS=stun:stun.cloudflare.com:3478,stun:stun.chat.bilibili.com:3478
+
+# 配置 TURN 中继（需自建 coturn 或使用 Twilio/Cloudflare 等商业服务）
+WEBRTC_TURN_URLS=turn:turn.your-server.com:3478
+WEBRTC_TURN_USERNAME=your-username
+WEBRTC_TURN_CREDENTIAL=your-credential
+```
 
 ---
 

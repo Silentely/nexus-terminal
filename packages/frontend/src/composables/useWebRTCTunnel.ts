@@ -80,7 +80,12 @@ export class WebRTCTunnel {
     this.config = {
       signalingUrl: config.signalingUrl,
       tunnelUrl: config.tunnelUrl,
-      iceServers: config.iceServers || [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: config.iceServers || [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' },
+        { urls: 'stun:stun.chat.bilibili.com:3478' },
+        { urls: 'stun:stun.miwifi.com:3478' },
+      ],
       connectTimeout: config.connectTimeout || 10000,
     };
   }
@@ -532,7 +537,13 @@ export function useWebRTCTunnel() {
    * 获取 ICE 配置（从后端环境变量读取）
    */
   function getDefaultICEConfig(): WebRTCTunnelConfig['iceServers'] {
-    return [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
+    return [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      { urls: 'stun:stun.chat.bilibili.com:3478' },
+      { urls: 'stun:stun.miwifi.com:3478' },
+    ];
   }
 
   return {
