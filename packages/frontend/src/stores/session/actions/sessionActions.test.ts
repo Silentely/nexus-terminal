@@ -54,18 +54,37 @@ vi.mock('../sshSuspendActions', () => ({
   registerSshSuspendHandlers: vi.fn(),
 }));
 
-const { mockSessions, mockActiveSessionId } = vi.hoisted(() => {
+vi.mock('../../../utils/apiClient', () => ({
+  default: {
+    get: vi.fn().mockResolvedValue({ data: [] }),
+    post: vi.fn().mockResolvedValue({ data: {} }),
+    put: vi.fn().mockResolvedValue({ data: {} }),
+    delete: vi.fn().mockResolvedValue({ data: {} }),
+  },
+  AI_REQUEST_TIMEOUT_MS: 30000,
+}));
+
+const {
+  mockSessions,
+  mockActiveSessionId,
+  mockSuspendedSshSessions,
+  mockIsLoadingSuspendedSessions,
+} = vi.hoisted(() => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const vue = require('vue') as typeof import('vue');
   return {
     mockSessions: vue.shallowRef<Map<string, ReturnType<typeof createMockSession>>>(new Map()),
     mockActiveSessionId: vue.ref<string | null>(null),
+    mockSuspendedSshSessions: vue.ref([]),
+    mockIsLoadingSuspendedSessions: vue.ref(false),
   };
 });
 
 vi.mock('../state', () => ({
   sessions: mockSessions,
   activeSessionId: mockActiveSessionId,
+  suspendedSshSessions: mockSuspendedSshSessions,
+  isLoadingSuspendedSessions: mockIsLoadingSuspendedSessions,
 }));
 
 import {

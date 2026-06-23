@@ -23,6 +23,15 @@ vi.mock('../composables/workspaceEvents', () => ({
   useWorkspaceEventEmitter: () => mockEmitWorkspaceEvent,
 }));
 
+// Mock NL2CMD composable（避免触发 useAISettingsStore.ensureLoaded() 的真实 API 请求）
+vi.mock('../composables/terminal/useNL2CMD', () => ({
+  useNL2CMD: () => ({
+    isAIEnabled: { value: false },
+    isProcessing: { value: false },
+    processCommand: vi.fn(),
+  }),
+}));
+
 // Mock child components
 vi.mock('./QuickCommandsModal.vue', () => ({
   default: {
