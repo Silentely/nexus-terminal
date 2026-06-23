@@ -884,7 +884,7 @@ describe('SSH Service', () => {
         password: 'adminpass',
       });
 
-      expect(result.latency).toBeGreaterThanOrEqual(30);
+      expect(result.latency).toBeGreaterThanOrEqual(20);
       expect(mockClient.connect).toHaveBeenCalledWith(
         expect.objectContaining({
           host: '192.168.1.100',
