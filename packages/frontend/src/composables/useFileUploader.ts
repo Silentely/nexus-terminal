@@ -1,4 +1,4 @@
-import { reactive, onUnmounted, type Ref, watchEffect } from 'vue';
+import { reactive, onScopeDispose, getCurrentScope, type Ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { FileListItem } from '../types/sftp.types';
 import type { UploadItem } from '../types/upload.types';
@@ -351,16 +351,15 @@ export function useFileUploader(
     });
   });
 
-  // --- 清理 (onUnmounted 仍然用于组件生命周期结束时的清理) ---
-  onUnmounted(() => {
-    // 注意：消息监听器的注销现在主要由 watchEffect 的 onCleanup 处理。
-    // onUnmounted 仍然负责取消正在进行的上传。
-
-    // 当使用此 composable 的组件卸载时，取消任何正在进行的上传
-    Object.keys(uploads).forEach((uploadId) => {
-      cancelUpload(uploadId, true); // 卸载时通知后端
+  // --- 清理 (onScopeDispose 用于 reactivity scope 销毁时的清理) ---
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      // 当使用此 composable 的 scope 销毁时（通常是组件卸载），取消任何正在进行的上传
+      Object.keys(uploads).forEach((uploadId) => {
+        cancelUpload(uploadId, true); // 卸载时通知后端
+      });
     });
-  });
+  }
 
   return {
     uploads,

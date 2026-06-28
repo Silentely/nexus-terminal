@@ -1,4 +1,4 @@
-import { ref, computed, readonly, watch, nextTick, onUnmounted } from 'vue';
+import { ref, computed, readonly, watch, nextTick, onScopeDispose, getCurrentScope } from 'vue';
 import { defineStore } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import * as iconv from '@vscode/iconv-lite-umd';
@@ -196,9 +196,11 @@ export const useFileEditorStore = defineStore('fileEditor', () => {
   };
 
   workspaceEmitter.on('session:remapped', _onSessionRemapped);
-  onUnmounted(() => {
-    workspaceEmitter.off('session:remapped', _onSessionRemapped);
-  });
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      workspaceEmitter.off('session:remapped', _onSessionRemapped);
+    });
+  }
 
   // --- 计算属性 ---
   const orderedTabs = computed(() => Array.from(tabs.value.values())); // 获取标签页数组，用于渲染
