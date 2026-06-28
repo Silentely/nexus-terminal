@@ -472,7 +472,10 @@ export const editSshSessionName = async (
     } else {
       // 如果会话在前端列表中找不到了（理论上不应该发生，因为是先找到再编辑的）
       // 也可以选择重新获取列表
-      fetchSuspendedSshSessions();
+      // 加 catch 兜底，避免 fire-and-forget 产生 unhandled rejection
+      fetchSuspendedSshSessions().catch((error: unknown) => {
+        log.error(`[${t('term.sshSuspend')}] 编辑名称后回退获取挂起列表失败:`, error);
+      });
     }
   } catch (error: unknown) {
     const errorMessage = extractErrorMessage(error, t('term.unknownError'));
@@ -909,12 +912,11 @@ export const registerSshSuspendHandlers = (wsManager: WsManagerInstance): void =
     `[${t('term.sshSuspend')}] SSH 挂起模式的 WebSocket 消息处理器已注册 (移除了名称编辑相关的处理器)。`,
   );
 
-  // 连接建立后，主动获取一次挂起列表
-  // 考虑：是否应该在这里做，或者在应用启动时做一次？
-  // 如果 wsManager 是针对某个具体会话的，那么每个会话连接时都获取列表可能不是最优。
-  // 更好的地方可能是在 App.vue 或主会话 store 初始化时，通过一个"全局"的 wsManager (如果存在) 或其中一个 wsManager 获取。
-  // 但如果挂起列表只通过当前连接的 ws 通道获取，那这里是合适的。
-  // 假设 getActiveWsManager 能取到这个 wsManager 实例，那 actions.ts 里的 fetchSuspendedSshSessions() 会用它
-  // 这里直接调用 fetchSuspendedSshSessions() 也可以
-  fetchSuspendedSshSessions();
+  // 连接建立后，主动获取一次挂起列表。
+  // 此处为 fire-and-forget 调用：必须捕获 rejection，避免在测试环境 teardown
+  // （Pinia 已销毁、useUiNotificationsStore 抛错）或组件卸载后产生 unhandled rejection，
+  // 导致 CI 间歇性报 "caught after test environment was torn down"。
+  fetchSuspendedSshSessions().catch((error: unknown) => {
+    log.error(`[${t('term.sshSuspend')}] 注册处理器后初始化获取挂起列表失败:`, error);
+  });
 };

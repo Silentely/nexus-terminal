@@ -2,7 +2,7 @@
  * SSH 挂起 Actions 单元测试
  * 测试 HTTP API 调用和 WebSocket 消息处理器
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ref } from 'vue';
 
 // 使用 vi.hoisted 确保变量在 vi.mock 之前可用
@@ -152,6 +152,14 @@ describe('sshSuspendActions', () => {
       },
       write: mockTerminalWrite,
     };
+  });
+
+  afterEach(async () => {
+    // registerSshSuspendHandlers 内部会 fire-and-forget 调用 fetchSuspendedSshSessions，
+    // 产生一个 pending 的 Promise。必须在测试结束前让其 settle，
+    // 否则在慢速 CI 上该 Promise 可能在测试环境 teardown 后才 resolve/reject，
+    // 触发 "caught after test environment was torn down" 报错。
+    await vi.waitFor(() => Promise.resolve(), { timeout: 500 }).catch(() => undefined);
   });
 
   describe('fetchSuspendedSshSessions', () => {

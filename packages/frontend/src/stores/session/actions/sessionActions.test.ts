@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ref } from 'vue';
 
 vi.mock('@/utils/log', () => ({
@@ -134,6 +134,15 @@ describe('session/actions/sessionActions', () => {
     vi.clearAllMocks();
     mockSessions.value.clear();
     mockActiveSessionId.value = null;
+  });
+
+  afterEach(async () => {
+    // openNewSession 对 SSH 连接会 fire-and-forget 执行
+    // `void import('./sshSuspendActions').then(registerSshSuspendHandlers)`。
+    // 该 Promise 必须在测试结束前 settle，否则在慢速 CI 上可能于测试环境
+    // teardown 后才执行回调，触发 "caught after test environment was torn down" 报错。
+    await Promise.resolve();
+    await Promise.resolve();
   });
 
   describe('activateSession', () => {

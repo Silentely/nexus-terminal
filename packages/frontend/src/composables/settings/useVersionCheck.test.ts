@@ -22,6 +22,18 @@ vi.mock('@/utils/log', () => ({
   log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
+// useVersionCheck 内部注册了 onMounted 生命周期钩子。单元测试直接调用 composable
+// 时不存在活跃组件实例，会触发 "[Vue warn]: onMounted is called when there is no
+// active component instance" 警告。这里将 onMounted 替换为 no-op，仅保留 ref/computed
+// 等真实实现，使测试聚焦于 composable 返回值与 checkLatestVersion 行为本身。
+vi.mock('vue', async () => {
+  const actual = await vi.importActual<typeof import('vue')>('vue');
+  return {
+    ...actual,
+    onMounted: () => {},
+  };
+});
+
 describe('useVersionCheck', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
