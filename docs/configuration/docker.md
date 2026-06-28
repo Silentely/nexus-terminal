@@ -103,6 +103,7 @@
 | `ENABLE_REQUEST_LOG`         | `true`   | 启用请求访问日志。设为 `false` 可关闭"请求开始/完成"日志，减少容器日志量                       |
 | `ENABLE_HSTS`                | `false`  | 启用 HSTS 安全头（Strict-Transport-Security）。仅生产 HTTPS 环境开启，开发环境勿启用           |
 | `BEHIND_REVERSE_PROXY`       | `false`  | 设为 `true` 跳过 Express 安全头设置，由 Nginx/Cloudflare 等反向代理统一管理                    |
+| `SESSION_COOKIE_SECURE`      | `auto`   | 会话 Cookie Secure 策略：`auto` 根据请求协议自动设置，`true` 强制 HTTPS Cookie，`false` 强制非 Secure Cookie |
 | `ENABLE_METRICS`             | `false`  | 设为 `true` 启用 Prometheus 指标端点 `/api/v1/metrics`，配合 `METRICS_TOKEN` 保护访问          |
 | `API_RATE_LIMIT_WINDOW_MS`   | `900000` | API 通用限流窗口时间（毫秒），默认 15 分钟                                                     |
 | `API_RATE_LIMIT_MAX`         | `300`    | API 通用限流窗口内最大请求数                                                                   |
@@ -219,6 +220,10 @@ WEBRTC_TURN_CREDENTIAL=your-credential
 | ------- | -------- | ---- |
 | `18111` | frontend | HTTP |
 
+::: warning 安全提示
+`18111` 是明文 HTTP 入口，仅适合内网学习、测试或首次验证。公网生产环境不要直接暴露该端口；请通过 HTTPS 反向代理访问，或将会话策略设置为 `SESSION_COOKIE_SECURE=true` 强制只允许 HTTPS 会话。
+:::
+
 ---
 
 ## 4. 完整配置示例
@@ -254,6 +259,11 @@ REMOTE_GATEWAY_API_TOKEN=
 # ===== 代理配置（反向代理/Cloudflare 场景）=====
 # TRUST_PROXY=true
 # TRUST_PROXY_HOPS=1
+
+# ===== Session Cookie =====
+# 默认 auto：HTTP 直连可登录，HTTPS 反代时自动使用 Secure Cookie
+# HTTP 直连仅适合内网学习、测试或首次验证；公网生产请使用 HTTPS 反代或设为 true
+# SESSION_COOKIE_SECURE=auto
 
 # ===== IP 地理位置查询 =====
 # ENABLE_GEO_LOOKUP=true
@@ -396,6 +406,10 @@ networks:
     driver: bridge
 ```
 
+::: warning 公网部署
+上面的端口映射会开放 HTTP 入口。若服务器在公网，请优先使用宿主机 Nginx/Caddy/Cloudflare Tunnel 等 HTTPS 反向代理；不需要直接公网访问 `18111` 时，可改为 `127.0.0.1:18111:8080`，仅允许本机反代访问。
+:::
+
 ::: tip 启动顺序保障
 `depends_on` 配合 `condition: service_healthy` 确保 Docker 等待后端健康检查通过后再启动前端容器，避免启动竞态条件导致 API 请求返回 503。
 
@@ -461,7 +475,8 @@ services:
 2. ✅ 若希望”一个 Passkey 跨多域名”，使用单一 `RP_ID` + 多个 `RP_ORIGIN`
 3. ✅ 确保 RP_ID 域名可访问 `/.well-known/webauthn`
 4. ✅ 确保 `ALLOWED_ORIGINS` / 反向代理 CORS 配置包含所有前端域名
-5. ✅ 启动服务：`docker compose up -d`
+5. ✅ 公网访问使用 HTTPS 反向代理；如需强制只允许 HTTPS 会话，设置 `SESSION_COOKIE_SECURE=true`
+6. ✅ 启动服务：`docker compose up -d`
 
 ---
 

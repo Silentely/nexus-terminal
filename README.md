@@ -174,6 +174,8 @@ location / {
 }
 ```
 
+> `SESSION_COOKIE_SECURE` 默认使用 `auto`：HTTP 直连可用于内网学习和首次验证，HTTPS 反向代理会自动下发 Secure Cookie。公网生产环境不要直接暴露明文 HTTP 入口；请通过 HTTPS 反向代理访问，或在 `.env` 中设置 `SESSION_COOKIE_SECURE=true` 强制只允许 HTTPS 会话。
+
 为 docker 配置IPv6（可选，如果你不使用ipv6连接服务器可以不配置）
 
 在`/etc/docker/daemon.json`加入以下内容

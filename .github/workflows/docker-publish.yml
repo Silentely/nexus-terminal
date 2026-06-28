@@ -16,6 +16,13 @@ permissions:
 env:
   REGISTRY: ghcr.io
 
+# 并发控制：同组新构建启动时取消进行中的旧构建
+# 分组按「事件类型 + ref」隔离——main 连续 push 会被新提交取消旧构建；
+# tag 推送与 repository_dispatch 触发的 release 构建因 event_name 不同，与 main push 天然隔离，不会被取消
+concurrency:
+  group: docker-publish-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # 检测文件变更（仅 main 分支普通推送时执行）
   detect-changes:

@@ -58,6 +58,8 @@ docker compose up -d
 # 访问 http://localhost:18111
 ```
 
+HTTP 直连适合内网学习和本地测试；公网生产环境建议通过 HTTPS 反向代理访问，HTTPS 下会话 Cookie 会自动启用 Secure。
+
 ## 技术栈
 
 | 类别         | 技术                                                        |

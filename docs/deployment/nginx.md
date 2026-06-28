@@ -9,7 +9,7 @@
 - [基础配置](#基础配置)
   - [最小化配置](#最小化配置)（本地开发）
   - [Docker 宿主机 Nginx 配置](#docker-宿主机-nginx-配置)（推荐）
-  - [Docker Compose 内部 Nginx 配置](#docker-compose-内部-nginx-配置)
+  - [Docker Compose 内部 Nginx 说明](#docker-compose-内部-nginx-说明)
 - [HTTPS/SSL 配置](#httpsssl-配置)
 - [WebSocket 代理](#websocket-代理)
 - [负载均衡](#负载均衡)
@@ -61,6 +61,8 @@ server {
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 86400s;  # 24小时，保持长连接
         proxy_send_timeout 86400s;
     }
@@ -72,7 +74,19 @@ server {
 
 适用于 Docker Compose 部署 + 宿主机 Nginx 反向代理的场景（最常见）。
 
-::: warning 架构说明此模式下前端容器监听 `127.0.0.1:18111:8080`，宿主机 Nginx 统一入口代理到 `18111`。前端容器内部的 nginx 代理 `/api/` 和 `/ws/` 到 backend，RDP/VNC 连接由 backend 通过内部 WebSocket 代理到 remote-gateway，无需单独配置远程桌面路径。:::
+::: warning 架构说明仓库默认 `docker-compose.yml` 使用 `18111:8080`，便于首次通过 HTTP 直连验证服务。公网生产环境使用宿主机 Nginx 时，建议将前端端口改为 `127.0.0.1:18111:8080`，由宿主机 Nginx 作为唯一公网入口代理到 `18111`。前端容器内部的 nginx 代理 `/api/` 和 `/ws/` 到 backend，RDP/VNC 连接由 backend 通过内部 WebSocket 代理到 remote-gateway，无需单独配置远程桌面路径。:::
+
+::: warning 代理头信任边界
+宿主机 Nginx 必须用 `$scheme` 覆盖 `X-Forwarded-Proto`，前端容器只应接收来自宿主机或可信外层代理的流量。不要在公网直接暴露前端容器 HTTP 端口后再信任客户端传入的 `X-Forwarded-Proto`。
+:::
+
+```yaml
+# docker-compose.yml（公网生产推荐）
+services:
+  frontend:
+    ports:
+      - '127.0.0.1:18111:8080'
+```
 
 ```nginx
 # WebSocket 连接映射（建议放在 http 块中）
@@ -135,97 +149,21 @@ server {
 }
 ```
 
-::: tip 端口对照 | 路径 | 代理目标 | 说明 | | --- | --- | --- | | `/`、`/api/`、`/ws/` | `127.0.0.1:18111` | 通过前端容器，由其内部分流 | :::
+### Docker Compose 内部 Nginx 说明
 
-### Docker Compose 内部 Nginx 配置
+Docker 镜像已经内置前端 nginx 配置，对应源码为 `packages/frontend/nginx.conf`。普通 Docker Compose 部署不需要把这段配置复制到宿主机 Nginx；宿主机只需要按上一节代理到 `18111`。
 
-适用于 `docker-compose.yml` 默认部署（即 `packages/frontend/nginx.conf`）：
+内置 nginx 的当前行为：
 
-```nginx
-# WebSocket 连接头映射：仅在客户端请求升级时发送 upgrade，否则使用 close
-map $http_upgrade $connection_upgrade {
-    default upgrade;
-    ''      close;
-}
+- 监听容器内 `8080`，由 `docker-compose.yml` 映射到宿主机 `18111`。
+- `location /` 提供前端静态资源，并通过 `try_files $uri $uri/ /index.html` 支持 SPA 路由。
+- 静态资源设置 `Cache-Control: public, max-age=31536000, immutable`，并启用 `gzip_static`。
+- `location ^~ /api/` 代理到 `http://backend:3001`，并把可信外层代理传入的 `X-Forwarded-Proto` 继续转发给 backend。
+- `location /ws/` 代理到 `http://backend:3001`，用于 SSH 终端等 WebSocket 长连接。
+- `/api/` 启用 `proxy_next_upstream error timeout http_502 http_503` 和 10 秒连接超时，用于缓解启动阶段 backend 尚未就绪的短暂 502/503。
 
-server {
-    listen 8080;
-    server_name localhost;
-
-    client_max_body_size 10m;
-
-    # 前端静态资源
-    root /usr/share/nginx/html;
-    index index.html index.htm;
-
-    # SPA 路由支持
-    location / {
-        access_log off;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # 静态资源缓存
-    location ~* \.(?:css|js|woff|woff2|ttf|eot|ico|svg|png|jpg|jpeg|gif)$ {
-        expires 1y;
-        add_header Cache-Control "public, max-age=31536000, immutable";
-        access_log off;
-        gzip_static on;
-    }
-
-    # 后端 API 代理（普通 HTTP 请求）
-    location ^~ /api/ {
-        access_log off;
-        proxy_pass http://backend:3001;
-
-        # 标准代理头
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
-
-        # 使用 map 变量：WebSocket 请求自动 upgrade，普通请求使用 close 避免连接池异常
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-
-        # 显式超时：快速失败让前端重试逻辑生效
-        proxy_connect_timeout 10s;
-        proxy_read_timeout 30s;
-        proxy_send_timeout 30s;
-
-        # 上游失败时自动重试
-        proxy_next_upstream error timeout http_502 http_503;
-        proxy_next_upstream_tries 2;
-    }
-
-    # SSH 终端 WebSocket（长连接场景）
-    location /ws/ {
-        access_log off;
-        proxy_pass http://backend:3001;
-
-        # WebSocket 必需头
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-
-        # 标准代理头
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
-
-        # WebSocket 长连接超时
-        proxy_read_timeout 86400s;
-        proxy_send_timeout 86400s;
-    }
-}
-```
-
-::: tip 关键配置说明
-- **`map $http_upgrade $connection_upgrade`**：WebSocket 请求自动 `upgrade`，普通 HTTP 请求使用 `close`，避免连接池中的连接进入异常状态
-- **`proxy_next_upstream`**：上游返回 502/503 时自动重试，提升启动阶段的容错能力
-- **`proxy_connect_timeout 10s`**：快速失败让前端 JavaScript 重试逻辑及时生效，而非等待 60 秒默认超时
+::: warning 维护提示
+如需自定义前端镜像内的 nginx，请以 `packages/frontend/nginx.conf` 为准。文档不再完整复制该文件，避免实际镜像配置更新后示例漂移。
 :::
 
 ---

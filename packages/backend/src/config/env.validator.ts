@@ -3,6 +3,7 @@
  * 在应用启动前验证所有必需的环境变量，并提供类型安全的访问接口
  */
 import { logger } from '../utils/logger';
+import { SESSION_COOKIE_SECURE_VALUES, type SessionCookieSecureEnv } from './session.config';
 
 export interface EnvironmentConfig {
   // 核心配置
@@ -13,6 +14,7 @@ export interface EnvironmentConfig {
   // 加密与会话
   ENCRYPTION_KEY: string;
   SESSION_SECRET: string;
+  SESSION_COOKIE_SECURE?: SessionCookieSecureEnv;
 
   // 部署模式
   DEPLOYMENT_MODE: 'local' | 'docker';
@@ -134,6 +136,12 @@ const ENV_SCHEMA: Record<keyof EnvironmentConfig, EnvVarSchema> = {
       return /^[0-9a-f]{128}$/i.test(value);
     },
     errorMessage: 'SESSION_SECRET 必须是 128 字符的十六进制字符串（64 字节）',
+  },
+  SESSION_COOKIE_SECURE: {
+    required: false,
+    type: 'enum',
+    enum: SESSION_COOKIE_SECURE_VALUES,
+    default: 'auto',
   },
 
   // 部署模式

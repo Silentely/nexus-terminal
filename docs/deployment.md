@@ -63,6 +63,12 @@ docker compose up -d
 默认端口为 `18111`，可在 `.env` 文件中修改。
 :::
 
+::: warning 安全提示
+`http://your-server-ip:18111` 仅适合内网学习、测试或首次验证服务是否启动。不要把明文 HTTP 登录入口直接暴露到公网；公网生产环境应配置 HTTPS 反向代理（Nginx/Caddy/Cloudflare Tunnel 等）。
+
+默认会话 Cookie 使用 `SESSION_COOKIE_SECURE=auto`：HTTP 直连时允许登录，HTTPS 反代时自动设置 Secure Cookie。如需强制只允许 HTTPS 会话，可在 `.env` 中设置 `SESSION_COOKIE_SECURE=true`。
+:::
+
 ## 架构说明
 
 Docker 部署包含三个容器，职责如下：
@@ -240,6 +246,11 @@ SESSION_SECRET=
 # HSTS 安全头（仅生产 HTTPS 环境开启）
 # 开启后浏览器会强制使用 HTTPS 访问，开发环境勿启用
 ENABLE_HSTS=false
+
+# 会话 Cookie Secure 策略
+# auto：HTTP 直连可登录，HTTPS 反代时自动使用 Secure Cookie
+# 公网生产如需强制只允许 HTTPS 会话，可设置为 true
+SESSION_COOKIE_SECURE=auto
 ```
 
 ### Passkey 认证（可选）
