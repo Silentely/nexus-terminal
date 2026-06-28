@@ -298,11 +298,11 @@ describe('sshSuspendActions', () => {
       const sentMessage = mockSendMessage.mock.calls[0][0] as {
         payload: { initialBuffer?: string };
       };
-      const sentBuffer = sentMessage.payload.initialBuffer;
+      const sentBuffer = sentMessage.payload.initialBuffer as string;
       expect(sentBuffer).toBeDefined();
 
       // 验证：缓冲区大小应小于 1MB
-      expect(new TextEncoder().encode(sentBuffer as string).length).toBeLessThan(1048576);
+      expect(new TextEncoder().encode(sentBuffer).length).toBeLessThan(1048576);
 
       // 验证：应保留了最新内容（末尾的行）
       const sentLines = sentBuffer.split('\n');
