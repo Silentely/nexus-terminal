@@ -74,7 +74,7 @@ jobs:
 
           # 输出 high/critical 直连依赖清单，便于追踪修复进度
           printf '%s' "$AUDIT_RESULT" > /tmp/runtime-audit.json
-          node -e "
+          node <<'NODE' >> "$GITHUB_STEP_SUMMARY"
             const fs = require('fs');
             const p = '/tmp/runtime-audit.json';
             const raw = fs.readFileSync(p, 'utf8');
@@ -96,7 +96,7 @@ jobs:
                 console.log('- ' + r.sev + ': ' + r.name + (r.range ? ' (`' + r.range + '`)' : ''));
               }
             }
-          " >> "$GITHUB_STEP_SUMMARY"
+          NODE
 
           if [ "$CRITICAL" -gt 0 ]; then
             echo "::error::Found $CRITICAL critical vulnerabilities in production dependencies"
