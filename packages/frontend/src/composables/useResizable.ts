@@ -75,7 +75,7 @@ export function useResizable(
   };
 
   const handleMouseDown = (event: MouseEvent) => {
-    if (!elementRef.value) return;
+    if (!elementRef.value || !(elementRef.value instanceof HTMLElement)) return;
     const edge = getEdge(event, elementRef.value);
 
     if (!edge) return;

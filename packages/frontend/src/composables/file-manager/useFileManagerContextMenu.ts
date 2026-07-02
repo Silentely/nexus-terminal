@@ -4,6 +4,21 @@ import type { FileListItem } from '../../types/sftp.types';
 import type FileManagerContextMenu from '../../components/FileManagerContextMenu.vue';
 import { log } from '@/utils/log';
 
+/**
+ * 从 Vue ref 中安全获取 DOM 元素
+ * 兼容两种场景：模板 ref 直接绑定 DOM 元素，或绑定到 Vue 组件实例
+ * @param rawRef contextMenuRef.value 的原始值
+ * @returns HTMLElement 或 null
+ */
+export function resolveMenuElement(rawRef: unknown): HTMLElement | null {
+  if (rawRef instanceof HTMLElement) return rawRef;
+  if (rawRef != null && typeof rawRef === 'object' && '$el' in rawRef) {
+    const el = (rawRef as { $el: unknown }).$el;
+    return el instanceof HTMLElement ? el : null;
+  }
+  return null;
+}
+
 // 定义菜单项类型 (可以根据需要扩展)
 export interface ContextMenuItem {
   label: string;
@@ -409,11 +424,9 @@ export function useFileManagerContextMenu(options: UseFileManagerContextMenuOpti
 
     // Use nextTick to allow the DOM to update and the menu to render
     nextTick(() => {
-      // Access the DOM element via $el from the component instance ref
-      const menuElement = contextMenuRef.value?.$el as HTMLDivElement | undefined;
-      if (menuElement && contextMenuVisible.value) {
-        // const menuElement = contextMenuRef.value; // Old way
-        const menuRect = menuElement.getBoundingClientRect(); // Now should work
+      const menuElement = resolveMenuElement(contextMenuRef.value);
+      if (menuElement instanceof HTMLElement && contextMenuVisible.value) {
+        const menuRect = menuElement.getBoundingClientRect();
         const menuWidth = menuRect.width;
         const menuHeight = menuRect.height;
 

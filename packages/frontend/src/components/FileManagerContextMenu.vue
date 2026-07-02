@@ -72,7 +72,7 @@ watch(
         computedRenderPosition.value = { ...newPosition }; // 设置初始位置为当前点击位置
 
         nextTick(() => {
-          if (contextMenuRef.value) {
+          if (contextMenuRef.value && contextMenuRef.value instanceof HTMLElement) {
             const menuElement = contextMenuRef.value;
             const menuRect = menuElement.getBoundingClientRect();
 
