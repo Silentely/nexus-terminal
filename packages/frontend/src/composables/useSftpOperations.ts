@@ -9,25 +9,12 @@ import type {
   FileListItem,
   SftpReadFileSuccessPayload,
   SftpReadFileRequestPayload,
+  ArchiveProgressState,
 } from '../types/sftp.types';
 import type { WebSocketMessage, MessagePayload, MessageHandler } from '../types/websocket.types';
 import type { useUiNotificationsStore } from '../stores/uiNotifications.store';
 import type { TranslateFn } from '../types/i18n.types';
 import { log } from '@/utils/log';
-
-/** 压缩/解压操作进度状态 */
-interface ArchiveProgressState {
-  /** 是否正在执行 */
-  active: boolean;
-  /** 操作类型 */
-  operation: 'compress' | 'decompress' | null;
-  /** 当前已处理的文件数量 */
-  fileCount: number;
-  /** 最近处理的文件名 */
-  currentFile: string | null;
-  /** 关联的归档文件名（用于展示） */
-  archiveName: string | null;
-}
 
 /** 文件操作模块的依赖注入接口 */
 export interface SftpOperationsDeps {

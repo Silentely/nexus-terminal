@@ -1,15 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-/** 压缩/解压进度状态 */
-interface ArchiveProgressState {
-  active: boolean;
-  operation: 'compress' | 'decompress' | null;
-  fileCount: number;
-  currentFile: string | null;
-  archiveName: string | null;
-}
+import type { ArchiveProgressState } from '../types/sftp.types';
 
 const props = defineProps<{
   progress: ArchiveProgressState;
@@ -25,9 +17,9 @@ const operationLabel = computed(() => {
 
 const displayFileName = computed(() => {
   if (!props.progress.currentFile) return null;
-  // 文件名过长时截断显示
+  // 文件名过长时截断显示，保留开头（含目录路径和文件名前缀）
   const name = props.progress.currentFile;
-  return name.length > 40 ? '...' + name.slice(-37) : name;
+  return name.length > 40 ? name.slice(0, 37) + '...' : name;
 });
 </script>
 

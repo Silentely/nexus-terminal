@@ -38,3 +38,17 @@ export interface SftpReadFileSuccessPayload {
   rawContentBase64: string; // Base64 编码的原始文件内容
   encodingUsed: string; // 后端自动检测或用户请求时实际使用的编码
 }
+
+// 类型定义：压缩/解压操作进度状态
+export interface ArchiveProgressState {
+  /** 是否正在执行 */
+  active: boolean;
+  /** 操作类型 */
+  operation: 'compress' | 'decompress' | null;
+  /** 当前已处理的文件数量 */
+  fileCount: number;
+  /** 最近处理的文件名 */
+  currentFile: string | null;
+  /** 关联的归档文件名（用于展示） */
+  archiveName: string | null;
+}
