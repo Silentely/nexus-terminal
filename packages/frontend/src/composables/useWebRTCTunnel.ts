@@ -75,6 +75,10 @@ export class WebRTCTunnel {
   /** 已发送/接收消息计数 */
   private msgsSent = 0;
   private msgsReceived = 0;
+  /** 待处理的远端 ICE 候选队列（answer 到达前缓存） */
+  private pendingIceCandidates: RTCIceCandidateInit[] = [];
+  /** 待发送的本地 ICE 候选队列（sessionId 到达前缓存） */
+  private pendingLocalIceCandidates: RTCIceCandidateInit[] = [];
 
   constructor(config: WebRTCTunnelConfig) {
     this.config = {
@@ -127,13 +131,24 @@ export class WebRTCTunnel {
 
       // 3. 设置 ICE candidate 回调
       this.pc.onicecandidate = (event) => {
-        if (event.candidate && this.signalingWs?.readyState === WebSocket.OPEN) {
-          this.sendSignaling({
-            type: 'ice-candidate',
-            payload: event.candidate.toJSON(),
-            sessionId: this.sessionId || undefined,
-          });
+        if (!event.candidate || this.signalingWs?.readyState !== WebSocket.OPEN) return;
+
+        const candidate = event.candidate.toJSON();
+
+        // answer 到达前还没有 sessionId，缓存本地候选
+        if (!this.sessionId) {
+          this.pendingLocalIceCandidates.push(candidate);
+          log.debug(
+            `[WebRTCTunnel] 本地 ICE 候选已缓存 (等待 sessionId), 队列长度=${this.pendingLocalIceCandidates.length}`,
+          );
+          return;
         }
+
+        this.sendSignaling({
+          type: 'ice-candidate',
+          payload: candidate,
+          sessionId: this.sessionId,
+        });
       };
 
       // 4. 监控连接状态
@@ -230,6 +245,8 @@ export class WebRTCTunnel {
     this.pc = null;
     this.signalingWs = null;
     this.sessionId = null;
+    this.pendingIceCandidates = [];
+    this.pendingLocalIceCandidates = [];
     this.onstatechange?.(2); // 2 = Guacamole.Tunnel.State.CLOSED
   }
 
@@ -446,6 +463,7 @@ export class WebRTCTunnel {
 
   /**
    * 处理 SDP Answer
+   * 设置 remote description 后，flush 缓存的本地和远端 ICE candidates
    */
   private async handleAnswer(message: SignalingMessage): Promise<void> {
     if (!this.pc || !message.payload) return;
@@ -454,19 +472,73 @@ export class WebRTCTunnel {
       this.sessionId = message.sessionId || null;
       await this.pc.setRemoteDescription(message.payload as RTCSessionDescriptionInit);
       console.debug(`[WebRTCTunnel] SDP Answer 已设置, sessionId=${this.sessionId}`);
+
+      // flush 缓存的本地 ICE 候选（answer 前 onicecandidate 产生的）
+      this.flushPendingLocalIceCandidates();
+      // flush 缓存的远端 ICE 候选（answer 前后端转发的）
+      await this.flushPendingRemoteIceCandidates();
     } catch (error) {
       this.handleError(`设置 SDP Answer 失败: ${error}`);
     }
   }
 
   /**
+   * flush 缓存的本地 ICE 候选（answer 前 onicecandidate 产生的）
+   * 此时 sessionId 已可用，可安全发送给后端
+   */
+  private flushPendingLocalIceCandidates(): void {
+    if (!this.sessionId || this.pendingLocalIceCandidates.length === 0) return;
+
+    const candidates = this.pendingLocalIceCandidates.splice(0);
+    log.debug(`[WebRTCTunnel] flush ${candidates.length} 个缓存的本地 ICE 候选`);
+    for (const candidate of candidates) {
+      this.sendSignaling({
+        type: 'ice-candidate',
+        payload: candidate,
+        sessionId: this.sessionId,
+      });
+    }
+  }
+
+  /**
+   * flush 缓存的远端 ICE 候选（answer 前后端转发的）
+   * 此时 remote description 已设置，可安全添加到 PeerConnection
+   */
+  private async flushPendingRemoteIceCandidates(): Promise<void> {
+    if (!this.pc || this.pendingIceCandidates.length === 0) return;
+
+    const candidates = this.pendingIceCandidates.splice(0);
+    log.debug(`[WebRTCTunnel] flush ${candidates.length} 个缓存的远端 ICE 候选`);
+    for (const candidate of candidates) {
+      try {
+        await this.pc.addIceCandidate(candidate);
+      } catch (err) {
+        log.warn('[WebRTCTunnel] flush 缓存远端 ICE 候选失败:', err);
+      }
+    }
+  }
+
+  /**
    * 处理远程 ICE Candidate
+   * ICE candidates 可能在 SDP answer 之前到达（WebRTC 信令竞态），
+   * 此时缓存到队列，待 answer 设置 remote description 后统一 flush
    */
   private async handleRemoteIceCandidate(message: SignalingMessage): Promise<void> {
     if (!this.pc || !message.payload) return;
 
+    const candidate = message.payload as RTCIceCandidateInit;
+
+    // remote description 未设置时缓存候选
+    if (!this.pc.remoteDescription) {
+      this.pendingIceCandidates.push(candidate);
+      log.debug(
+        `[WebRTCTunnel] ICE 候选已缓存 (等待 answer), 队列长度=${this.pendingIceCandidates.length}`,
+      );
+      return;
+    }
+
     try {
-      await this.pc.addIceCandidate(message.payload as RTCIceCandidateInit);
+      await this.pc.addIceCandidate(candidate);
     } catch (error) {
       log.warn('[WebRTCTunnel] 添加远程 ICE Candidate 失败:', error);
     }
