@@ -221,6 +221,7 @@ export function createSftpActionsManager(
     moveItems: operations.moveItems,
     compressItems: operations.compressItems,
     decompressItem: operations.decompressItem,
+    archiveProgress: operations.archiveProgress,
     joinPath: operations.joinPath,
     currentPath: currentPathRef,
     setInitialLoadDone: (value: boolean) => {
