@@ -299,11 +299,11 @@ export function useFileUploader(
     if (upload && upload.status === 'uploading') {
       // payload 现在应该包含 bytesWritten 和 totalSize
       if (typeof payloadObj.bytesWritten === 'number' && typeof payloadObj.totalSize === 'number') {
-        // 后端确认进度
-        const backendProgress = Math.min(
-          100,
-          Math.round((payloadObj.bytesWritten / payloadObj.totalSize) * 100),
-        );
+        // 后端确认进度（totalSize 为 0 时直接视为完成，避免 NaN）
+        const backendProgress =
+          payloadObj.totalSize > 0
+            ? Math.min(100, Math.round((payloadObj.bytesWritten / payloadObj.totalSize) * 100))
+            : 100;
         // 乐观进度（基于前端已发送字节数）
         const optimisticProgress =
           upload.file.size > 0
