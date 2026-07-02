@@ -50,6 +50,7 @@ export function useFileManagerKeyboardNavigation(options: UseFileManagerKeyboard
 
     // Fallback: 使用 DOM 滚动 (旧逻辑, 仅当 scrollTo 未提供时)
     const container = fileListContainerRef.value;
+    if (!container) return; // nextTick 后 ref 可能已被卸载，需重新检查
     // 使用更通用的选择器获取所有数据行
     const rows = container.querySelectorAll('.file-row'); // Changed selector
     if (selectedIndex.value >= rows.length) return; // 索引超出范围
