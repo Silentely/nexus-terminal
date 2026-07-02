@@ -41,6 +41,7 @@ import { useFileManagerActionModal } from '../composables/file-manager/useFileMa
 import { useFileManagerClipboard } from '../composables/file-manager/useFileManagerClipboard';
 import { useFileManagerDownload } from '../composables/file-manager/useFileManagerDownload';
 import FileUploadPopup from './FileUploadPopup.vue';
+import ArchiveProgressPopup from './ArchiveProgressPopup.vue';
 import FileManagerContextMenu from './FileManagerContextMenu.vue';
 import FileManagerActionModal from './FileManagerActionModal.vue';
 import FileManagerToolbar from './FileManagerToolbar.vue';
@@ -122,6 +123,18 @@ const initializeSftpManager = (sessionId: string, instanceId: string, initialPat
 
 // 初始加载管理器
 initializeSftpManager(props.sessionId, props.instanceId);
+
+// --- 压缩/解压进度状态（供 ArchiveProgressPopup 使用）---
+const defaultArchiveProgress = {
+  active: false,
+  operation: null as 'compress' | 'decompress' | null,
+  fileCount: 0,
+  currentFile: null as string | null,
+  archiveName: null as string | null,
+};
+const archiveProgress = computed(
+  () => currentSftpManager.value?.archiveProgress ?? defaultArchiveProgress,
+);
 
 // --- 监听 session:remapped 事件，处理 session ID 重映射 ---
 const subscribeToWorkspaceEvents = useWorkspaceEventSubscriber();
@@ -1076,6 +1089,9 @@ const handleNavigateToPathFromFavorites = (path: string) => {
 
     <!-- 使用 FileUploadPopup 组件 -->
     <FileUploadPopup :uploads="uploads" @cancel-upload="cancelUpload" />
+
+    <!-- 压缩/解压进度弹窗 -->
+    <ArchiveProgressPopup :progress="archiveProgress" />
 
     <FileManagerContextMenu
       ref="contextMenuRef"
