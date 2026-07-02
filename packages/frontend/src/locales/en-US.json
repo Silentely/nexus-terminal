@@ -562,6 +562,10 @@
     "changeEncodingTooltip": "Change file encoding",
     "loadingEncoding": "Loading...",
     "noSearchResults": "No search results found",
+    "archiveProgress": {
+      "filesProcessed": "{count} file(s) processed",
+      "starting": "Preparing..."
+    },
     "modals": {
       "titles": {
         "delete": "Delete \"{name}\"",

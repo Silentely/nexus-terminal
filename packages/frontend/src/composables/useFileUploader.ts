@@ -89,6 +89,7 @@ export function useFileUploader(
       file,
       filename: file.name,
       progress: 0,
+      sentBytes: 0,
       status: 'pending', // 初始状态
     };
 
@@ -253,6 +254,7 @@ export function useFileUploader(
     if (upload && upload.status === 'paused') {
       log.info(`[FileUploader ${sessionIdForLog.value}] Resuming upload ${uploadId}`);
       upload.status = 'uploading';
+      upload.sentBytes = 0; // 暂停恢复时归零，避免乐观进度累积跳到 100%
       sendFileChunks(chunkDeps, uploadId, upload.file);
     }
   };
@@ -298,10 +300,18 @@ export function useFileUploader(
     if (upload && upload.status === 'uploading') {
       // payload 现在应该包含 bytesWritten 和 totalSize
       if (typeof payloadObj.bytesWritten === 'number' && typeof payloadObj.totalSize === 'number') {
-        upload.progress = Math.min(
-          100,
-          Math.round((payloadObj.bytesWritten / payloadObj.totalSize) * 100),
-        );
+        // 后端确认进度（totalSize 为 0 时直接视为完成，避免 NaN）
+        const backendProgress =
+          payloadObj.totalSize > 0
+            ? Math.min(100, Math.round((payloadObj.bytesWritten / payloadObj.totalSize) * 100))
+            : 100;
+        // 乐观进度（基于前端已发送字节数）
+        const optimisticProgress =
+          upload.file.size > 0
+            ? Math.min(100, Math.round((upload.sentBytes / upload.file.size) * 100))
+            : 100;
+        // 取较大值：乐观进度提供即时反馈，后端确认进度保证准确性
+        upload.progress = Math.max(backendProgress, optimisticProgress);
       } else {
         log.warn(
           `[FileUploader ${sessionIdForLog.value}] Received upload:progress with incorrect payload format:`,

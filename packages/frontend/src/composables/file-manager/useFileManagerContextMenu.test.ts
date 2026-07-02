@@ -77,7 +77,7 @@ describe('useFileManagerContextMenu - resolveMenuElement 防御性守卫', () =>
 
       const element = resolveMenuElement(div);
       expect(element).toBeInstanceOf(HTMLElement);
-      expect(() => element!.getBoundingClientRect()).not.toThrow();
+      expect(() => element?.getBoundingClientRect()).not.toThrow();
 
       document.body.removeChild(div);
     });

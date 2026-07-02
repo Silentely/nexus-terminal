@@ -562,6 +562,10 @@
     "changeEncodingTooltip": "ファイルエンコーディングを変更",
     "loadingEncoding": "読み込み中...",
     "noSearchResults": "検索結果が見つかりませんでした",
+    "archiveProgress": {
+      "filesProcessed": "{count} 件のファイルを処理しました",
+      "starting": "準備中..."
+    },
     "modals": {
       "titles": {
         "delete": "\"{name}\" を削除",

@@ -505,6 +505,73 @@ describe('useFileUploader', () => {
       expect(uploads[uploadId].progress).toBe(50);
     });
 
+    it('onUploadProgress 应取乐观进度与后端确认进度的较大值', () => {
+      const sessionId = ref('s1');
+      const currentPath = ref('/home');
+      const fileList = ref([]) as any;
+      const wsDeps = makeWsDeps();
+
+      const messageHandlers: Record<string, Function> = {};
+      wsDeps.value.onMessage = vi.fn().mockImplementation((type: string, handler: Function) => {
+        messageHandlers[type] = handler;
+        return vi.fn();
+      });
+
+      const { uploads, startFileUpload } = useFileUploader(
+        sessionId,
+        currentPath,
+        fileList,
+        wsDeps,
+      );
+
+      // 创建 10KB 文件
+      startFileUpload(makeFile('big.bin', 10240));
+      const uploadId = Object.keys(uploads)[0];
+      uploads[uploadId].status = 'uploading';
+
+      // 模拟前端已发送 8KB（乐观进度 80%）
+      uploads[uploadId].sentBytes = 8192;
+
+      // 后端确认进度仅 50%（5KB/10KB）
+      messageHandlers['sftp:upload:progress'](
+        { bytesWritten: 5120, totalSize: 10240 },
+        { uploadId },
+      );
+
+      // 应取较大值 80%
+      expect(uploads[uploadId].progress).toBe(80);
+    });
+
+    it('totalSize 为 0 时进度应为 100 而非 NaN', () => {
+      const sessionId = ref('s1');
+      const currentPath = ref('/home');
+      const fileList = ref([]) as any;
+      const wsDeps = makeWsDeps();
+
+      const messageHandlers: Record<string, Function> = {};
+      wsDeps.value.onMessage = vi.fn().mockImplementation((type: string, handler: Function) => {
+        messageHandlers[type] = handler;
+        return vi.fn();
+      });
+
+      const { uploads, startFileUpload } = useFileUploader(
+        sessionId,
+        currentPath,
+        fileList,
+        wsDeps,
+      );
+
+      startFileUpload(makeFile());
+      const uploadId = Object.keys(uploads)[0];
+      uploads[uploadId].status = 'uploading';
+
+      // 后端发送 totalSize=0 的进度消息（空文件场景）
+      messageHandlers['sftp:upload:progress']({ bytesWritten: 0, totalSize: 0 }, { uploadId });
+
+      expect(uploads[uploadId].progress).toBe(100);
+      expect(Number.isNaN(uploads[uploadId].progress)).toBe(false);
+    });
+
     it('缺少 uploadId 的消息应被忽略', () => {
       const sessionId = ref('s1');
       const currentPath = ref('/home');

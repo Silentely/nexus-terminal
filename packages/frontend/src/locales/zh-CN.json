@@ -562,6 +562,10 @@
     "changeEncodingTooltip": "更改文件编码",
     "loadingEncoding": "加载中...",
     "noSearchResults": "未找到匹配的搜索结果",
+    "archiveProgress": {
+      "filesProcessed": "已处理 {count} 个文件",
+      "starting": "正在准备..."
+    },
     "modals": {
       "titles": {
         "delete": "删除 \"{name}\"",
