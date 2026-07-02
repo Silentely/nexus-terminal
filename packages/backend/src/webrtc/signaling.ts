@@ -115,15 +115,21 @@ function handleSignalingConnection(clientWs: WebSocket): void {
   });
 
   clientWs.on('close', () => {
-    if (session) {
+    // 信令 WebSocket 关闭时，仅在 DataChannel 未建立的情况下清理会话
+    // DataChannel 建立后信令通道不再需要，其关闭属于正常行为
+    // Nginx 默认 proxy_read_timeout (60s) 会关闭空闲信令连接，不应因此中断正在进行的远程桌面会话
+    if (session && !session.dc) {
       cleanupSession(session);
+    } else if (session?.dc) {
+      logger.debug(`[WebRTC Signaling] 信令通道关闭，DataChannel 保持活跃: ${sessionId}`);
     }
     logger.debug(`[WebRTC Signaling] 客户端断开: ${sessionId}`);
   });
 
   clientWs.on('error', (error) => {
     logger.error(`[WebRTC Signaling] WebSocket 错误: ${sessionId}`, error);
-    if (session) {
+    // 同上：仅在 DataChannel 未建立时清理
+    if (session && !session.dc) {
       cleanupSession(session);
     }
   });
@@ -199,8 +205,17 @@ async function handleOffer(
     logger.info(`[WebRTC Signaling] DataChannel 已建立: ${sessionId}`);
 
     // 导入桥接模块处理 DataChannel ↔ WebSocket 转发
+    // 通过 onClosed 回调确保桥接清理时同步清理 session/pc，防止内存泄漏
     import('./bridge.js').then(({ bridgeDataChannelToGateway }) => {
-      bridgeDataChannelToGateway(dc, session.remoteGatewayUrl, sessionId);
+      bridgeDataChannelToGateway(dc, session.remoteGatewayUrl, sessionId, () => {
+        logger.debug(`[WebRTC Signaling] 桥接关闭，清理会话: ${sessionId}`);
+        try {
+          pc.close();
+        } catch (err: unknown) {
+          logger.debug({ err }, '操作失败，已忽略');
+        }
+        activeSessions.delete(sessionId);
+      });
     });
   };
 

@@ -159,20 +159,60 @@ wget https://raw.githubusercontent.com/Silentely/nexus-terminal/refs/heads/main/
 配置 nginx
 
 ```nginx
-location / {
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header Range $http_range;
-    proxy_set_header If-Range $http_if_range;
-    proxy_redirect off;
-    proxy_pass http://127.0.0.1:18111;
+# WebSocket 连接头映射（放在 http 块中）
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    # SSL 证书配置（略）
+
+    client_max_body_size 100m;
+
+    # API 请求（不含 WebSocket 升级头，避免干扰普通 HTTP）
+    location /api/ {
+        proxy_pass http://127.0.0.1:18111;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # WebSocket（SSH 终端、RDP/VNC 信令等长连接）
+    location /ws/ {
+        proxy_pass http://127.0.0.1:18111;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+        proxy_buffering off;
+    }
+
+    # 前端静态资源 + 兜底
+    location / {
+        proxy_pass http://127.0.0.1:18111;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 }
 ```
+
+> **Docker 部署说明**：`remote-gateway` 容器仅由 `backend` 内部访问（`ws://remote-gateway:8081`），外层 Nginx **无需**单独转发 remote-gateway。RDP/VNC 连接路径为：浏览器 → 外层 Nginx → 前端容器(18111) → 内置 nginx(`/ws/`) → backend(3001) → remote-gateway(8081)。
+>
+> **HTTPS 部署注意**：WebSocket 信令端点 `/ws/webrtc-signaling` 需要 Origin 校验。如果通过域名访问，请在 `.env` 中设置 `RP_ORIGIN=https://your-domain.com`（代码会自动将其加入 WebSocket Origin 白名单），或显式设置 `ALLOWED_WS_ORIGINS=https://your-domain.com`。
 
 > `SESSION_COOKIE_SECURE` 默认使用 `auto`：HTTP 直连可用于内网学习和首次验证，HTTPS 反向代理会自动下发 Secure Cookie。公网生产环境不要直接暴露明文 HTTP 入口；请通过 HTTPS 反向代理访问，或在 `.env` 中设置 `SESSION_COOKIE_SECURE=true` 强制只允许 HTTPS 会话。
 

@@ -96,6 +96,14 @@ export class WebRTCTunnel {
    * @param data 连接数据（Guacamole 的初始指令，通常为空字符串）
    */
   connect(data?: string): void {
+    // 已连接状态：DataChannel 已 open，Guacamole.Client 调用 connect('') 时直接发送
+    if (this.state === 'connected') {
+      if (data && this.dc?.readyState === 'open') {
+        this.dc.send(data);
+      }
+      return;
+    }
+
     if (this.state !== 'idle') {
       this.handleError('连接已存在或正在连接中');
       return;
@@ -131,16 +139,13 @@ export class WebRTCTunnel {
       // 4. 监控连接状态
       this.pc.onconnectionstatechange = () => {
         const connectionState = this.pc?.connectionState;
-        if (connectionState === 'connected') {
-          this.clearConnectTimer();
-          this.setState('connected');
-          // 通知 Guacamole Client 连接已建立
-          this.onstatechange?.(3); // 3 = CONNECTED
-        } else if (connectionState === 'failed' || connectionState === 'disconnected') {
+        if (connectionState === 'failed' || connectionState === 'disconnected') {
           this.clearConnectTimer();
           this.handleError(`WebRTC 连接 ${connectionState}`);
-          this.onstatechange?.(5); // 5 = DISCONNECTED
+          this.onstatechange?.(2); // 2 = Guacamole.Tunnel.State.CLOSED
         }
+        // 'connected' 状态不在这里处理，改由 dc.onopen 触发
+        // 确保 DataChannel 真正可用后才通知 tunnel OPEN
       };
 
       // 5. 打开信令 WebSocket
@@ -151,12 +156,47 @@ export class WebRTCTunnel {
   }
 
   /**
+   * 启动 WebRTC 连接并等待连接结果
+   * 返回 Promise：连接成功 resolve，失败/超时 reject
+   * 用于实现 WebRTC → WebSocket 的异步降级
+   */
+  connectWithResult(data?: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const originalOnError = this.onerror;
+      const originalOnStateChange = this.onstatechange;
+
+      // 连接成功：PeerConnection connected → tunnel OPEN
+      this.onstatechange = (state: number) => {
+        originalOnStateChange?.(state);
+        if (state === 1) {
+          // OPEN
+          this.onerror = originalOnError;
+          this.onstatechange = originalOnStateChange;
+          resolve();
+        }
+      };
+
+      // 连接失败：信令错误、超时等
+      this.onerror = (status) => {
+        originalOnError?.(status);
+        this.onerror = originalOnError;
+        this.onstatechange = originalOnStateChange;
+        reject(new Error(status.message || 'WebRTC 连接失败'));
+      };
+
+      this.connect(data);
+    });
+  }
+
+  /**
    * 通过 DataChannel 发送 Guacamole 消息
    * Guacamole 协议格式: len.value,len.value,...;
    */
   sendMessage(...elements: string[]): void {
+    // 与上游 Guacamole.WebSocketTunnel 行为一致：未就绪时静默忽略
+    // Guacamole.Client.connect() 后会立即调度 keepalive (nop)，
+    // 此时 DataChannel 可能尚未 open，这是正常时序而非错误
     if (!this.dc || this.dc.readyState !== 'open') {
-      this.handleError('DataChannel 未就绪');
       return;
     }
 
@@ -190,7 +230,7 @@ export class WebRTCTunnel {
     this.pc = null;
     this.signalingWs = null;
     this.sessionId = null;
-    this.onstatechange?.(5); // 5 = DISCONNECTED
+    this.onstatechange?.(2); // 2 = Guacamole.Tunnel.State.CLOSED
   }
 
   /**
@@ -218,6 +258,10 @@ export class WebRTCTunnel {
 
     this.dc.onopen = () => {
       log.info(`[WebRTCTunnel] DataChannel 已打开, sessionId=${this.sessionId}`);
+      // DataChannel 真正可用后才通知 tunnel OPEN
+      this.clearConnectTimer();
+      this.setState('connected');
+      this.onstatechange?.(1); // 1 = Guacamole.Tunnel.State.OPEN
     };
 
     this.dc.onmessage = (event) => {
@@ -499,22 +543,28 @@ export function useWebRTCTunnel() {
   ): Promise<{ tunnel: GuacamoleTunnel; transport: 'webrtc' | 'websocket' }> {
     // WebRTC 优先
     if (preferWebRTC && typeof window !== 'undefined' && 'RTCPeerConnection' in window) {
+      const webrtcTunnel = new WebRTCTunnel({
+        signalingUrl,
+        tunnelUrl,
+        iceServers: rtcConfig?.iceServers,
+        connectTimeout: 8000,
+      });
+
       try {
         log.info('[useWebRTCTunnel] 尝试 WebRTC 连接...');
-        const webrtcTunnel = new WebRTCTunnel({
-          signalingUrl,
-          tunnelUrl,
-          iceServers: rtcConfig?.iceServers,
-          connectTimeout: 8000,
-        });
 
-        // 返回 tunnel 和标识，由调用方决定是否尝试 WebRTC
+        // 等待 WebRTC 连接实际建立（信令 + DataChannel open）
+        await webrtcTunnel.connectWithResult();
+
+        log.info('[useWebRTCTunnel] WebRTC 连接成功');
         return {
           tunnel: webrtcTunnel as unknown as GuacamoleTunnel,
           transport: 'webrtc',
         };
       } catch (error) {
-        log.warn('[useWebRTCTunnel] WebRTC 初始化失败，降级到 WebSocket:', error);
+        // 释放失败的 WebRTC 资源（RTCPeerConnection、DataChannel、signaling WebSocket）
+        webrtcTunnel.disconnect();
+        log.warn('[useWebRTCTunnel] WebRTC 连接失败，降级到 WebSocket:', error);
       }
     }
 

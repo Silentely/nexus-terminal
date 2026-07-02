@@ -42,11 +42,13 @@ const CLIENT_HANDSHAKE_FILTER = /^(connect|select|size|audio|video|image|timezon
  * @param dc WebRTC DataChannel（浏览器侧）
  * @param remoteGatewayUrl remote-gateway WebSocket URL
  * @param sessionId 会话 ID（用于日志）
+ * @param onClosed 可选回调：桥接清理时通知调用方（如 signaling.ts 清理 session/pc）
  */
 export async function bridgeDataChannelToGateway(
   dc: RTCDataChannel,
   remoteGatewayUrl: string,
   sessionId: string,
+  onClosed?: () => void,
 ): Promise<void> {
   if (!remoteGatewayUrl) {
     logger.error(`[WebRTC Bridge] remoteGatewayUrl 为空: ${sessionId}`);
@@ -159,8 +161,10 @@ export async function bridgeDataChannelToGateway(
   });
 
   // 清理函数
+  let cleanedUp = false;
   function cleanup(reason: string): void {
-    if (dcClosed && gwClosed) return;
+    if (cleanedUp) return;
+    cleanedUp = true;
 
     logger.info(
       `[WebRTC Bridge] 清理连接: ${sessionId}, 原因=${reason}, C→G=${msgCountClientToGateway}, G→C=${msgCountGatewayToClient}`,
@@ -174,7 +178,6 @@ export async function bridgeDataChannelToGateway(
         dc.close();
       } catch (err: unknown) {
         logger.debug({ err }, '操作失败，已忽略');
-        // 忽略关闭错误
       }
     }
 
@@ -184,9 +187,11 @@ export async function bridgeDataChannelToGateway(
         gatewayWs.close();
       } catch (err: unknown) {
         logger.debug({ err }, '操作失败，已忽略');
-        // 忽略关闭错误
       }
     }
+
+    // 通知调用方（signaling.ts）清理 session/pc
+    onClosed?.();
   }
 
   // DataChannel 关闭

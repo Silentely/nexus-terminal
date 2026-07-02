@@ -93,7 +93,11 @@ frontend:
 
 原因：Remote Gateway WebSocket 端口从 `8080` 改为 `8081`
 
-解决：更新宿主机 Nginx 配置中 `/guacamole/` 的代理目标：
+> **Docker Compose 部署注意**：Docker 版本中 `remote-gateway` 仅由 `backend` 容器内部访问（`ws://remote-gateway:8081`），外层 Nginx **无需**单独转发 remote-gateway。RDP/VNC 的完整路径为：浏览器 → 外层 Nginx(`/ws/`) → 前端容器(18111) → 内置 nginx → backend(3001) → remote-gateway(8081)。只需确保外层 Nginx 正确代理 `/ws/` 到 `18111` 即可。
+>
+> 如果通过 HTTPS 域名访问且遇到 WebSocket 信令连接失败，请在 `.env` 中设置 `RP_ORIGIN=https://your-domain.com` 或 `ALLOWED_WS_ORIGINS=https://your-domain.com`。
+
+解决（非 Docker 或自定义 Nginx 代理到 remote-gateway 的场景）：更新宿主机 Nginx 配置中 `/guacamole/` 的代理目标：
 
 ```nginx
 # 旧配置
