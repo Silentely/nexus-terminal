@@ -254,6 +254,7 @@ export function useFileUploader(
     if (upload && upload.status === 'paused') {
       log.info(`[FileUploader ${sessionIdForLog.value}] Resuming upload ${uploadId}`);
       upload.status = 'uploading';
+      upload.sentBytes = 0; // 暂停恢复时归零，避免乐观进度累积跳到 100%
       sendFileChunks(chunkDeps, uploadId, upload.file);
     }
   };
