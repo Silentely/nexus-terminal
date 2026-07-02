@@ -77,6 +77,15 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
     archiveName: null,
   });
 
+  /** 重置压缩/解压进度状态 */
+  const resetArchiveProgress = () => {
+    archiveProgress.active = false;
+    archiveProgress.operation = null;
+    archiveProgress.fileCount = 0;
+    archiveProgress.currentFile = null;
+    archiveProgress.archiveName = null;
+  };
+
   // --- 简单文件操作（发送消息即返回） ---
 
   /** 创建目录 */
@@ -368,6 +377,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
           unregisterSuccess?.();
           unregisterError?.();
           unregisterProgress?.();
+          resetArchiveProgress();
           const errMsg = t('fileManager.errors.compressTimeout');
           uiNotificationsStore.showError(errMsg);
           reject(new Error(errMsg));
@@ -383,11 +393,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
-            archiveProgress.active = false;
-            archiveProgress.operation = null;
-            archiveProgress.fileCount = 0;
-            archiveProgress.currentFile = null;
-            archiveProgress.archiveName = null;
+            resetArchiveProgress();
             uiNotificationsStore.showSuccess(
               t('fileManager.notifications.compressSuccess', { name: archiveName }),
             );
@@ -406,11 +412,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
-            archiveProgress.active = false;
-            archiveProgress.operation = null;
-            archiveProgress.fileCount = 0;
-            archiveProgress.currentFile = null;
-            archiveProgress.archiveName = null;
+            resetArchiveProgress();
             const errorMsg =
               errorPayload.details || errorPayload.error || t('fileManager.errors.compressFailed');
             uiNotificationsStore.showError(
@@ -484,6 +486,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
           unregisterSuccess?.();
           unregisterError?.();
           unregisterProgress?.();
+          resetArchiveProgress();
           const errMsg = t('fileManager.errors.decompressTimeout');
           uiNotificationsStore.showError(errMsg);
           reject(new Error(errMsg));
@@ -499,11 +502,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
-            archiveProgress.active = false;
-            archiveProgress.operation = null;
-            archiveProgress.fileCount = 0;
-            archiveProgress.currentFile = null;
-            archiveProgress.archiveName = null;
+            resetArchiveProgress();
             uiNotificationsStore.showSuccess(
               t('fileManager.notifications.decompressSuccess', { name: item.filename }),
             );
@@ -522,11 +521,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
-            archiveProgress.active = false;
-            archiveProgress.operation = null;
-            archiveProgress.fileCount = 0;
-            archiveProgress.currentFile = null;
-            archiveProgress.archiveName = null;
+            resetArchiveProgress();
             const errorMsg =
               errorPayload.details ||
               errorPayload.error ||
