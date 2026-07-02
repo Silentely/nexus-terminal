@@ -141,6 +141,24 @@ export class SftpArchiveManager {
           }
         });
 
+        // zip -r 的文件列表输出到 stdout（tar -v 输出到 stderr）
+        stream.on('data', (data: Buffer) => {
+          const chunk = data.toString();
+          const lines = chunk.split('\n').filter((l) => l.trim());
+          for (const line of lines) {
+            const fileName = this.parseArchiveFileName(line, format);
+            if (fileName) {
+              fileCount++;
+              lastSeenFileName = fileName;
+            }
+          }
+          const now = Date.now();
+          if (lastSeenFileName && now - lastProgressTime >= 3000) {
+            lastProgressTime = now;
+            this.sendProgress(state.ws, 'compress', requestId, fileCount, lastSeenFileName);
+          }
+        });
+
         stream.on('close', (exitCode: number | null) => {
           clearInterval(heartbeatInterval);
           code = exitCode;

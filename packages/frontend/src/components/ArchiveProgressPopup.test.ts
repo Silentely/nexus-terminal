@@ -49,7 +49,7 @@ describe('ArchiveProgressPopup', () => {
     });
 
     expect(wrapper.find('.fixed').exists()).toBe(true);
-    expect(wrapper.text()).toContain('fileManager.actions.compress');
+    expect(wrapper.text()).toContain('fileManager.contextMenu.compress');
     expect(wrapper.text()).toContain('data.tar.gz');
   });
 
@@ -64,7 +64,7 @@ describe('ArchiveProgressPopup', () => {
       },
     });
 
-    expect(wrapper.text()).toContain('fileManager.actions.decompress');
+    expect(wrapper.text()).toContain('fileManager.contextMenu.decompress');
     expect(wrapper.text()).toContain('backup.zip');
   });
 

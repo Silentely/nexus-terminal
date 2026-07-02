@@ -10,8 +10,8 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const operationLabel = computed(() => {
-  if (props.progress.operation === 'compress') return t('fileManager.actions.compress');
-  if (props.progress.operation === 'decompress') return t('fileManager.actions.decompress');
+  if (props.progress.operation === 'compress') return t('fileManager.contextMenu.compress');
+  if (props.progress.operation === 'decompress') return t('fileManager.contextMenu.decompress');
   return '';
 });
 
