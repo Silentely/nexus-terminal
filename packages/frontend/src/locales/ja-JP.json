@@ -563,8 +563,8 @@
     "loadingEncoding": "読み込み中...",
     "noSearchResults": "検索結果が見つかりませんでした",
     "archiveProgress": {
-      "filesProcessed": "已处理 {count} 个文件",
-      "starting": "正在准备..."
+      "filesProcessed": "{count} 件のファイルを処理しました",
+      "starting": "準備中..."
     },
     "modals": {
       "titles": {
