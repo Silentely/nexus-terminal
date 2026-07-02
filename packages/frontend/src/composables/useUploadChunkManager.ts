@@ -97,6 +97,11 @@ export function sendFileChunks(
           type: 'sftp:upload:chunk',
           payload: { uploadId, chunkIndex, data: chunkBase64, isLast },
         });
+
+        // 乐观进度：发送后立即更新已发送字节数，提供即时进度反馈
+        if (currentUpload) {
+          currentUpload.sentBytes = Math.min(currentUpload.sentBytes + currentChunkSize, file.size);
+        }
       } else {
         log.error(
           `[FileUploader ${sessionIdForLog.value}] FileReader returned unexpected result for ${uploadId}:`,

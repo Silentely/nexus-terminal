@@ -4,6 +4,8 @@ export interface UploadItem {
   file: File; // 要上传的文件对象
   filename: string; // 文件名
   progress: number; // 上传进度 (0-100)
+  /** 前端已发送到后端的字节数（乐观进度，用于即时反馈） */
+  sentBytes: number;
   error?: string; // 错误信息
   status: 'pending' | 'uploading' | 'paused' | 'success' | 'error' | 'cancelled'; // 上传状态
 }
