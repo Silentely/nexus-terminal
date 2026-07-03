@@ -39,7 +39,7 @@ const createMockStats = (kind: 'file' | 'directory' = 'file'): MockStats => ({
 
 const createState = (): MockState => {
   return {
-    ws: { send: vi.fn() },
+    ws: { send: vi.fn(), readyState: 1, readyState: 1 },
     sftp: {
       lstat: vi.fn(),
       mkdir: vi.fn(),
@@ -68,7 +68,7 @@ describe('sftp-move-operations', () => {
   });
 
   it('SFTP 未就绪时返回 move:error', async () => {
-    const state = { ws: { send: vi.fn() } } as unknown as MockState;
+    const state = { ws: { send: vi.fn(), readyState: 1, readyState: 1 } } as unknown as MockState;
     await executeMoveOperation(state, sessionId, ['/tmp/src/a.txt'], '/tmp/dest', requestId);
 
     const payload = parseLastPayload(state.ws.send);

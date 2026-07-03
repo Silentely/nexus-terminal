@@ -1,8 +1,13 @@
 import type { Stats } from 'ssh2';
+
 import type { ClientState } from '../websocket/types';
+
 import { getErrorMessage } from '../utils/AppError';
+
 import WebSocket from 'ws';
+
 import { logger } from '../utils/logger';
+import { sendWsMessage } from '../websocket/utils';
 
 interface ReaddirEntry {
   filename: string;
@@ -11,6 +16,7 @@ interface ReaddirEntry {
 }
 
 /** 出站消息大小上限（3MB，为 WebSocket 帧头留出余量） */
+
 const MAX_OUTBOUND_PAYLOAD_BYTES = 3 * 1024 * 1024;
 
 export const executeReaddirSftpOperation = async (
@@ -21,31 +27,28 @@ export const executeReaddirSftpOperation = async (
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 readdir (ID: ${requestId})`);
-    state?.ws.send(
-      JSON.stringify({
-        type: 'sftp:readdir:error',
-        path,
-        payload: 'SFTP 会话未就绪',
-        requestId,
-      }),
-    );
+
+    sendWsMessage(state?.ws, 'sftp:readdir:error', 'SFTP 会话未就绪', sessionId, {
+      path,
+      requestId,
+    });
+
     return;
   }
 
   logger.debug(`[SFTP ${sessionId}] Received readdir request for ${path} (ID: ${requestId})`);
+
   try {
     state.sftp.readdir(path, (err, list: ReaddirEntry[]) => {
       if (err) {
         logger.error(`[SFTP ${sessionId}] readdir ${path} failed (ID: ${requestId}):`, err);
+
         if (state.ws.readyState !== WebSocket.OPEN) return;
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:readdir:error',
-            path,
-            payload: `读取目录失败: ${err.message}`,
-            requestId,
-          }),
-        );
+        sendWsMessage(state.ws, 'sftp:readdir:error', `读取目录失败: ${err.message}`, sessionId, {
+          path,
+          requestId,
+        });
+
         return;
       }
 
@@ -66,6 +69,7 @@ export const executeReaddirSftpOperation = async (
       }));
 
       const fullMessage = JSON.stringify({
+        sid: sessionId,
         type: 'sftp:readdir:success',
         path,
         payload: files,
@@ -77,6 +81,7 @@ export const executeReaddirSftpOperation = async (
         if (state.ws.readyState === WebSocket.OPEN) {
           state.ws.send(fullMessage);
         }
+
         return;
       }
 
@@ -84,28 +89,35 @@ export const executeReaddirSftpOperation = async (
       logger.warn(
         `[SFTP ${sessionId}] readdir ${path} 结果过大 (${Math.round(Buffer.byteLength(fullMessage, 'utf8') / 1024)}KB, ${files.length} 项)，分批发送。`,
       );
+
       let byteOffset = 0;
       let chunkIndex = 0;
       let startItemIndex = 0;
-
       for (let i = 0; i <= files.length; i++) {
         const isLast = i === files.length;
         if (!isLast) {
           const itemJson = JSON.stringify(files[i]);
+
           const itemBytes = Buffer.byteLength(itemJson, 'utf8') + 1; // +1 为逗号分隔符
           if (byteOffset + itemBytes > MAX_OUTBOUND_PAYLOAD_BYTES && i > startItemIndex) {
             // 发送当前批次
+
             const chunk = files.slice(startItemIndex, i);
-            sendReaddirChunk(state, path, chunk, requestId, chunkIndex, false);
+
+            sendReaddirChunk(state, path, chunk, requestId, chunkIndex, false, sessionId);
+
             chunkIndex++;
             startItemIndex = i;
             byteOffset = 0;
           }
+
           byteOffset += itemBytes;
         }
+
         if (isLast) {
           const chunk = files.slice(startItemIndex);
-          sendReaddirChunk(state, path, chunk, requestId, chunkIndex, true);
+
+          sendReaddirChunk(state, path, chunk, requestId, chunkIndex, true, sessionId);
         }
       }
     });
@@ -114,21 +126,21 @@ export const executeReaddirSftpOperation = async (
       `[SFTP ${sessionId}] readdir ${path} caught unexpected error (ID: ${requestId}):`,
       error,
     );
+
     if (state.ws.readyState !== WebSocket.OPEN) return;
-    state.ws.send(
-      JSON.stringify({
-        type: 'sftp:readdir:error',
-        path,
-        payload: `读取目录时发生意外错误: ${getErrorMessage(error)}`,
-        requestId,
-      }),
+    sendWsMessage(
+      state.ws,
+      'sftp:readdir:error',
+      `读取目录时发生意外错误: ${getErrorMessage(error)}`,
+      sessionId,
+      { path, requestId },
     );
   }
 };
-
 /**
  * 发送 readdir 的一个分批结果
  */
+
 function sendReaddirChunk(
   state: ClientState,
   path: string,
@@ -136,17 +148,7 @@ function sendReaddirChunk(
   requestId: string,
   chunkIndex: number,
   isLast: boolean,
+  sessionId: string,
 ): void {
-  if (state.ws.readyState !== WebSocket.OPEN) return;
-
-  state.ws.send(
-    JSON.stringify({
-      type: 'sftp:readdir:success',
-      path,
-      payload: files,
-      requestId,
-      chunkIndex,
-      isLast,
-    }),
-  );
+  sendWsMessage(state.ws, 'sftp:readdir:success', files, sessionId, { path, requestId });
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { EventEmitter } from 'events';
+import WebSocket from 'ws';
 import type { ClientState } from '../websocket/types';
 import {
   executeMkdirPathOperation,
@@ -18,6 +19,7 @@ type MockSftp = {
 type MockState = ClientState & {
   ws: {
     send: ReturnType<typeof vi.fn>;
+    readyState: number;
   };
   sftp: MockSftp;
   sshClient: {
@@ -44,7 +46,7 @@ const createMockStats = () => ({
 
 const createState = (): MockState => {
   return {
-    ws: { send: vi.fn() },
+    ws: { send: vi.fn(), readyState: 1 },
     sftp: {
       mkdir: vi.fn(),
       lstat: vi.fn(),
@@ -71,7 +73,7 @@ describe('sftp-path-operations', () => {
 
   describe('executeMkdirPathOperation', () => {
     it('SFTP 未就绪时返回错误消息', async () => {
-      const state = { ws: { send: vi.fn() } } as unknown as MockState;
+      const state = { ws: { send: vi.fn(), readyState: 1 } } as unknown as MockState;
       await executeMkdirPathOperation(state, sessionId, '/tmp/dir', requestId);
 
       const payload = decodeWsPayload(state.ws.send);
@@ -138,7 +140,7 @@ describe('sftp-path-operations', () => {
 
   describe('executeRmdirPathOperation', () => {
     it('SSH 客户端未就绪时返回错误消息', async () => {
-      const state = { ws: { send: vi.fn() } } as unknown as MockState;
+      const state = { ws: { send: vi.fn(), readyState: 1 } } as unknown as MockState;
       await executeRmdirPathOperation(state, sessionId, '/tmp/dir', requestId);
 
       const payload = decodeWsPayload(state.ws.send);
@@ -207,7 +209,7 @@ describe('sftp-path-operations', () => {
 
   describe('executeUnlinkPathOperation', () => {
     it('SFTP 未就绪时返回错误消息', async () => {
-      const state = { ws: { send: vi.fn() } } as unknown as MockState;
+      const state = { ws: { send: vi.fn(), readyState: 1 } } as unknown as MockState;
       await executeUnlinkPathOperation(state, sessionId, '/tmp/a.txt', requestId);
 
       const payload = decodeWsPayload(state.ws.send);
@@ -244,7 +246,7 @@ describe('sftp-path-operations', () => {
 
   describe('executeRenamePathOperation', () => {
     it('SFTP 未就绪时返回错误消息', async () => {
-      const state = { ws: { send: vi.fn() } } as unknown as MockState;
+      const state = { ws: { send: vi.fn(), readyState: 1 } } as unknown as MockState;
       await executeRenamePathOperation(state, sessionId, '/tmp/a.txt', '/tmp/b.txt', requestId);
 
       const payload = decodeWsPayload(state.ws.send);

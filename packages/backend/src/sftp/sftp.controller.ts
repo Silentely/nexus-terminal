@@ -19,6 +19,7 @@ import {
 import { getErrorCode } from './sftp-error.utils';
 import { validateSafePath } from './sftp-path.utils';
 import { logger } from '../utils/logger';
+import { sendWsMessage } from '../websocket/utils';
 
 interface SftpDirectoryEntry {
   filename: string;
@@ -323,14 +324,9 @@ const sendWebSocketError = (
   message: string,
   requestId: string,
   details?: unknown,
+  sessionId?: string,
 ) => {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type, payload: { error: message, details, requestId } }));
-  } else {
-    logger.warn(
-      `WebSocket closed or invalid, cannot send error for request ${requestId}. Type: ${type}, Message: ${message}`,
-    );
-  }
+  sendWsMessage(ws, type, { error: message, details, requestId }, sessionId, { requestId });
 };
 
 /**
@@ -341,10 +337,11 @@ const sendCompressError = (
   error: string,
   requestId: string,
   details?: string,
+  sessionId?: string,
 ) => {
   const payload: SftpCompressErrorPayload = { error, requestId };
   if (details) payload.details = details;
-  sendWebSocketError(ws, 'sftp:compress:error', error, requestId, payload);
+  sendWebSocketError(ws, 'sftp:compress:error', error, requestId, payload, sessionId);
 };
 
 /**
@@ -355,10 +352,11 @@ const sendDecompressError = (
   error: string,
   requestId: string,
   details?: string,
+  sessionId?: string,
 ) => {
   const payload: SftpDecompressErrorPayload = { error, requestId };
   if (details) payload.details = details;
-  sendWebSocketError(ws, 'sftp:decompress:error', error, requestId, payload);
+  sendWebSocketError(ws, 'sftp:decompress:error', error, requestId, payload, sessionId);
 };
 
 /**
@@ -414,7 +412,7 @@ export const handleCompressRequest = async (
     logger.error(
       `[WS SFTP Compress] Missing sessionId on WebSocket for request (ID: ${requestId}).`,
     );
-    sendCompressError(ws, '内部错误：缺少会话 ID', requestId);
+    sendCompressError(ws, '内部错误：缺少会话 ID', requestId, undefined, sessionId);
     return;
   }
 
@@ -424,7 +422,7 @@ export const handleCompressRequest = async (
 
   if (!state || !state.sshClient) {
     logger.warn(`[WS SFTP Compress ${sessionId}] SSH client not ready (ID: ${requestId})`);
-    sendCompressError(ws, 'SSH 会话未就绪', requestId);
+    sendCompressError(ws, 'SSH 会话未就绪', requestId, undefined, sessionId);
     return;
   }
 
@@ -434,16 +432,16 @@ export const handleCompressRequest = async (
 
   // --- 路径安全验证：防止 Shell 注入 ---
   if (!validateSafePath(targetDirectory)) {
-    sendCompressError(ws, '目标目录路径包含非法字符', requestId);
+    sendCompressError(ws, '目标目录路径包含非法字符', requestId, undefined, sessionId);
     return;
   }
   if (!validateSafePath(destinationArchiveName)) {
-    sendCompressError(ws, '归档文件名包含非法字符', requestId);
+    sendCompressError(ws, '归档文件名包含非法字符', requestId, undefined, sessionId);
     return;
   }
   for (const source of sources) {
     if (!validateSafePath(source)) {
-      sendCompressError(ws, `源路径包含非法字符: ${source}`, requestId);
+      sendCompressError(ws, `源路径包含非法字符: ${source}`, requestId, undefined, sessionId);
       return;
     }
   }
@@ -471,7 +469,7 @@ export const handleCompressRequest = async (
       command = `${cdCommand} && tar -cjf ${quotedDestName} -- ${quotedSources}`;
       break;
     default:
-      sendCompressError(ws, `不支持的压缩格式: ${format}`, requestId);
+      sendCompressError(ws, `不支持的压缩格式: ${format}`, requestId, undefined, sessionId);
       return;
   }
 
@@ -485,7 +483,7 @@ export const handleCompressRequest = async (
           `[WS SFTP Compress ${sessionId}] Failed to start exec (ID: ${requestId}):`,
           err,
         );
-        sendCompressError(ws, `执行压缩命令失败: ${err.message}`, requestId);
+        sendCompressError(ws, `执行压缩命令失败: ${err.message}`, requestId, undefined, sessionId);
         return;
       }
 
@@ -516,14 +514,14 @@ export const handleCompressRequest = async (
             // archivePath: destinationArchivePath
           };
           if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'sftp:compress:success', payload: successPayload }));
+            sendWsMessage(ws, 'sftp:compress:success', successPayload, sessionId);
           }
         } else {
           const errorDetails = stderrData.trim() || `压缩命令退出，代码: ${exitCode ?? 'N/A'}`;
           logger.error(
             `[WS SFTP Compress ${sessionId}] Compression failed (ID: ${requestId}): ${errorDetails}`,
           );
-          sendCompressError(ws, '压缩失败', requestId, errorDetails);
+          sendCompressError(ws, '压缩失败', requestId, errorDetails, sessionId);
         }
       });
 
@@ -534,7 +532,7 @@ export const handleCompressRequest = async (
         );
         // Avoid sending duplicate errors if 'close' already indicated failure
         if (exitCode === null) {
-          sendCompressError(ws, '压缩命令流错误', requestId, streamErr.message);
+          sendCompressError(ws, '压缩命令流错误', requestId, streamErr.message, sessionId);
         }
       });
     });
@@ -543,7 +541,13 @@ export const handleCompressRequest = async (
       `[WS SFTP Compress ${sessionId}] Unexpected error setting up exec (ID: ${requestId}):`,
       execError,
     );
-    sendCompressError(ws, `执行压缩时发生意外错误: ${getErrorMessage(execError)}`, requestId);
+    sendCompressError(
+      ws,
+      `执行压缩时发生意外错误: ${getErrorMessage(execError)}`,
+      requestId,
+      undefined,
+      sessionId,
+    );
   }
 };
 
@@ -563,7 +567,7 @@ export const handleDecompressRequest = async (
     logger.error(
       `[WS SFTP Decompress] Missing sessionId on WebSocket for request (ID: ${requestId}).`,
     );
-    sendDecompressError(ws, '内部错误：缺少会话 ID', requestId);
+    sendDecompressError(ws, '内部错误：缺少会话 ID', requestId, undefined, sessionId);
     return;
   }
 
@@ -575,7 +579,7 @@ export const handleDecompressRequest = async (
 
   if (!state || !state.sshClient) {
     logger.warn(`[WS SFTP Decompress ${sessionId}] SSH client not ready (ID: ${requestId})`);
-    sendDecompressError(ws, 'SSH 会话未就绪', requestId);
+    sendDecompressError(ws, 'SSH 会话未就绪', requestId, undefined, sessionId);
     return;
   }
 
@@ -585,7 +589,7 @@ export const handleDecompressRequest = async (
 
   // --- 路径安全验证：防止 Shell 注入 ---
   if (!validateSafePath(archivePath)) {
-    sendDecompressError(ws, '压缩包路径包含非法字符', requestId);
+    sendDecompressError(ws, '压缩包路径包含非法字符', requestId, undefined, sessionId);
     return;
   }
 
@@ -612,7 +616,13 @@ export const handleDecompressRequest = async (
     // tar -xjf -- [压缩包名]
     command = `${cdCommand} && tar -xjf -- ${quotedArchiveBasename}`;
   } else {
-    sendDecompressError(ws, `不支持的压缩文件格式: ${archivePath}`, requestId);
+    sendDecompressError(
+      ws,
+      `不支持的压缩文件格式: ${archivePath}`,
+      requestId,
+      undefined,
+      sessionId,
+    );
     return;
   }
 
@@ -628,7 +638,13 @@ export const handleDecompressRequest = async (
           `[WS SFTP Decompress ${sessionId}] Failed to start exec (ID: ${requestId}):`,
           err,
         );
-        sendDecompressError(ws, `执行解压命令失败: ${err.message}`, requestId);
+        sendDecompressError(
+          ws,
+          `执行解压命令失败: ${err.message}`,
+          requestId,
+          undefined,
+          sessionId,
+        );
         return;
       }
 
@@ -661,14 +677,14 @@ export const handleDecompressRequest = async (
             // targetDirectory: extractDir
           };
           if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'sftp:decompress:success', payload: successPayload }));
+            sendWsMessage(ws, 'sftp:decompress:success', successPayload, sessionId);
           }
         } else {
           const errorDetails = stderrData.trim() || `解压命令退出，代码: ${exitCode ?? 'N/A'}`;
           logger.error(
             `[WS SFTP Decompress ${sessionId}] Decompression failed (ID: ${requestId}): ${errorDetails}`,
           );
-          sendDecompressError(ws, '解压失败', requestId, errorDetails);
+          sendDecompressError(ws, '解压失败', requestId, errorDetails, sessionId);
         }
       });
 
@@ -678,7 +694,7 @@ export const handleDecompressRequest = async (
           streamErr,
         );
         if (exitCode === null) {
-          sendDecompressError(ws, '解压命令流错误', requestId, streamErr.message);
+          sendDecompressError(ws, '解压命令流错误', requestId, streamErr.message, sessionId);
         }
       });
     });
@@ -687,6 +703,12 @@ export const handleDecompressRequest = async (
       `[WS SFTP Decompress ${sessionId}] Unexpected error setting up exec (ID: ${requestId}):`,
       execError,
     );
-    sendDecompressError(ws, `执行解压时发生意外错误: ${getErrorMessage(execError)}`, requestId);
+    sendDecompressError(
+      ws,
+      `执行解压时发生意外错误: ${getErrorMessage(execError)}`,
+      requestId,
+      undefined,
+      sessionId,
+    );
   }
 };

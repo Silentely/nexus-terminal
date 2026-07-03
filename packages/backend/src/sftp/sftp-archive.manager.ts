@@ -19,6 +19,7 @@ import {
 import { getErrorMessage } from '../utils/AppError';
 import { shellEscape } from '../utils/shell-escape';
 import { logger } from '../utils/logger';
+import { sendWsMessage } from '../websocket/utils';
 
 export class SftpArchiveManager {
   private clientStates: Map<string, ClientState>;
@@ -38,7 +39,7 @@ export class SftpArchiveManager {
       logger.warn(
         `[SFTP Compress] SSH 客户端未准备好，无法在 ${sessionId} 上执行 compress (ID: ${requestId})`,
       );
-      this.sendCompressError(state?.ws, 'SSH 会话未就绪', requestId);
+      this.sendCompressError(state?.ws, 'SSH 会话未就绪', requestId, undefined, sessionId);
       return;
     }
 
@@ -93,7 +94,13 @@ export class SftpArchiveManager {
         command = `${cdCommand} && tar -cjvf ${quotedDestName} ${quotedRelativeSources}`;
         break;
       default:
-        this.sendCompressError(state.ws, `不支持的压缩格式: ${format}`, requestId);
+        this.sendCompressError(
+          state.ws,
+          `不支持的压缩格式: ${format}`,
+          requestId,
+          undefined,
+          sessionId,
+        );
         return;
     }
 
@@ -103,7 +110,13 @@ export class SftpArchiveManager {
       state.sshClient.exec(command, (err, stream) => {
         if (err) {
           logger.error(`[SFTP Compress ${sessionId}] Exec failed (ID: ${requestId}):`, err);
-          this.sendCompressError(state.ws, `执行压缩命令失败: ${err.message}`, requestId);
+          this.sendCompressError(
+            state.ws,
+            `执行压缩命令失败: ${err.message}`,
+            requestId,
+            undefined,
+            sessionId,
+          );
           return;
         }
 
@@ -116,7 +129,14 @@ export class SftpArchiveManager {
         // 心跳定时器：即使 stderr 长时间无输出（如压缩单个大文件），也每 10 秒发心跳，避免前端误超时
         const heartbeatInterval = setInterval(() => {
           if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-            this.sendProgress(state.ws, 'compress', requestId, fileCount, lastSeenFileName);
+            this.sendProgress(
+              state.ws,
+              'compress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
           }
         }, 10_000);
 
@@ -137,7 +157,14 @@ export class SftpArchiveManager {
           const now = Date.now();
           if (lastSeenFileName && now - lastProgressTime >= 3000) {
             lastProgressTime = now;
-            this.sendProgress(state.ws, 'compress', requestId, fileCount, lastSeenFileName);
+            this.sendProgress(
+              state.ws,
+              'compress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
           }
         });
 
@@ -155,7 +182,14 @@ export class SftpArchiveManager {
           const now = Date.now();
           if (lastSeenFileName && now - lastProgressTime >= 3000) {
             lastProgressTime = now;
-            this.sendProgress(state.ws, 'compress', requestId, fileCount, lastSeenFileName);
+            this.sendProgress(
+              state.ws,
+              'compress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
           }
         });
 
@@ -164,7 +198,14 @@ export class SftpArchiveManager {
           code = exitCode;
           // 关闭时发送最终进度，确保前端拿到准确文件总数（包含被节流吞掉的尾部）
           if (fileCount > 0) {
-            this.sendProgress(state.ws, 'compress', requestId, fileCount, lastSeenFileName);
+            this.sendProgress(
+              state.ws,
+              'compress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
           }
           logger.info(`[SFTP Compress ${sessionId}] Finished with code ${code} (ID: ${requestId})`);
           if (code === 0 && !this.isErrorInStdErr(stderrData)) {
@@ -173,18 +214,14 @@ export class SftpArchiveManager {
               requestId,
             };
             if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-              state.ws.send(
-                JSON.stringify({
-                  type: 'sftp:compress:success',
-                  requestId,
-                  payload: successPayload,
-                }),
-              );
+              sendWsMessage(state.ws, 'sftp:compress:success', successPayload, sessionId, {
+                requestId: requestId,
+              });
             }
           } else {
             const errorDetails = stderrData.trim() || `压缩命令退出，代码: ${code ?? 'N/A'}`;
             logger.error(`[SFTP Compress ${sessionId}] Failed (ID: ${requestId}): ${errorDetails}`);
-            this.sendCompressError(state.ws, '压缩失败', requestId, errorDetails);
+            this.sendCompressError(state.ws, '压缩失败', requestId, errorDetails, sessionId);
           }
         });
 
@@ -192,7 +229,13 @@ export class SftpArchiveManager {
           clearInterval(heartbeatInterval);
           logger.error(`[SFTP Compress ${sessionId}] Stream error (ID: ${requestId}):`, streamErr);
           if (!stderrData && code === null) {
-            this.sendCompressError(state.ws, '压缩命令流错误', requestId, streamErr.message);
+            this.sendCompressError(
+              state.ws,
+              '压缩命令流错误',
+              requestId,
+              streamErr.message,
+              sessionId,
+            );
           }
         });
       });
@@ -217,7 +260,7 @@ export class SftpArchiveManager {
       logger.warn(
         `[SFTP Decompress] SSH 客户端未准备好，无法在 ${sessionId} 上执行 decompress (ID: ${requestId})`,
       );
-      this.sendDecompressError(state?.ws, 'SSH 会话未就绪', requestId);
+      this.sendDecompressError(state?.ws, 'SSH 会话未就绪', requestId, undefined, sessionId);
       return;
     }
 
@@ -234,7 +277,13 @@ export class SftpArchiveManager {
     ) {
       requiredCommand = 'tar';
     } else {
-      this.sendDecompressError(state.ws, `不支持的压缩文件格式: ${archivePath}`, requestId);
+      this.sendDecompressError(
+        state.ws,
+        `不支持的压缩文件格式: ${archivePath}`,
+        requestId,
+        undefined,
+        sessionId,
+      );
       return;
     }
 
@@ -275,7 +324,13 @@ export class SftpArchiveManager {
     } else if (lowerArchivePath.endsWith('.tar.bz2') || lowerArchivePath.endsWith('.tbz2')) {
       command = `${cdCommand} && tar -xjvf ${quotedArchiveBasename}`;
     } else {
-      this.sendDecompressError(state.ws, `不支持的压缩文件格式: ${archivePath}`, requestId);
+      this.sendDecompressError(
+        state.ws,
+        `不支持的压缩文件格式: ${archivePath}`,
+        requestId,
+        undefined,
+        sessionId,
+      );
       return;
     }
 
@@ -285,7 +340,13 @@ export class SftpArchiveManager {
       state.sshClient.exec(command, (err, stream) => {
         if (err) {
           logger.error(`[SFTP Decompress ${sessionId}] Exec failed (ID: ${requestId}):`, err);
-          this.sendDecompressError(state.ws, `执行解压命令失败: ${err.message}`, requestId);
+          this.sendDecompressError(
+            state.ws,
+            `执行解压命令失败: ${err.message}`,
+            requestId,
+            undefined,
+            sessionId,
+          );
           return;
         }
 
@@ -298,7 +359,14 @@ export class SftpArchiveManager {
         // 心跳定时器：即使 stderr 长时间无输出，也每 10 秒发心跳，避免前端误超时
         const heartbeatInterval = setInterval(() => {
           if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-            this.sendProgress(state.ws, 'decompress', requestId, fileCount, lastSeenFileName);
+            this.sendProgress(
+              state.ws,
+              'decompress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
           }
         }, 10_000);
 
@@ -319,7 +387,14 @@ export class SftpArchiveManager {
           const now = Date.now();
           if (lastSeenFileName && now - lastProgressTime >= 3000) {
             lastProgressTime = now;
-            this.sendProgress(state.ws, 'decompress', requestId, fileCount, lastSeenFileName);
+            this.sendProgress(
+              state.ws,
+              'decompress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
           }
         });
 
@@ -328,7 +403,14 @@ export class SftpArchiveManager {
           code = exitCode;
           // 关闭时发送最终进度
           if (fileCount > 0) {
-            this.sendProgress(state.ws, 'decompress', requestId, fileCount, lastSeenFileName);
+            this.sendProgress(
+              state.ws,
+              'decompress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
           }
           logger.info(
             `[SFTP Decompress ${sessionId}] Finished with code ${code} (ID: ${requestId})`,
@@ -339,20 +421,16 @@ export class SftpArchiveManager {
               requestId,
             };
             if (state.ws && state.ws.readyState === WebSocket.OPEN) {
-              state.ws.send(
-                JSON.stringify({
-                  type: 'sftp:decompress:success',
-                  requestId,
-                  payload: successPayload,
-                }),
-              );
+              sendWsMessage(state.ws, 'sftp:decompress:success', successPayload, sessionId, {
+                requestId: requestId,
+              });
             }
           } else {
             const errorDetails = stderrData.trim() || `解压命令退出，代码: ${code ?? 'N/A'}`;
             logger.error(
               `[SFTP Decompress ${sessionId}] Failed (ID: ${requestId}): ${errorDetails}`,
             );
-            this.sendDecompressError(state.ws, '解压失败', requestId, errorDetails);
+            this.sendDecompressError(state.ws, '解压失败', requestId, errorDetails, sessionId);
           }
         });
 
@@ -363,7 +441,13 @@ export class SftpArchiveManager {
             streamErr,
           );
           if (!stderrData && code === null) {
-            this.sendDecompressError(state.ws, '解压命令流错误', requestId, streamErr.message);
+            this.sendDecompressError(
+              state.ws,
+              '解压命令流错误',
+              requestId,
+              streamErr.message,
+              sessionId,
+            );
           }
         });
       });
@@ -433,25 +517,24 @@ export class SftpArchiveManager {
     error: string,
     requestId: string,
     details?: string,
+    sessionId?: string,
   ): void {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      const payload: SftpCompressErrorPayload = { error, requestId };
-      if (details) payload.details = details;
-      if (error.includes('在服务器上未找到')) {
-        ws.send(
-          JSON.stringify({
-            type: 'sftp:command_not_found',
-            payload: {
-              operation: 'compress',
-              command: error.match(/'([^']+)'/)?.[1] || 'unknown',
-              message: details || error,
-            },
-            requestId,
-          }),
-        );
-      } else {
-        ws.send(JSON.stringify({ type: 'sftp:compress:error', payload }));
-      }
+    const payload: SftpCompressErrorPayload = { error, requestId };
+    if (details) payload.details = details;
+    if (error.includes('在服务器上未找到')) {
+      sendWsMessage(
+        ws,
+        'sftp:command_not_found',
+        {
+          operation: 'compress',
+          command: error.match(/'([^']+)'/)?.[1] || 'unknown',
+          message: details || error,
+        },
+        sessionId,
+        { requestId },
+      );
+    } else {
+      sendWsMessage(ws, 'sftp:compress:error', payload, sessionId, { requestId });
     }
   }
 
@@ -461,25 +544,24 @@ export class SftpArchiveManager {
     error: string,
     requestId: string,
     details?: string,
+    sessionId?: string,
   ): void {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      const payload: SftpDecompressErrorPayload = { error, requestId };
-      if (details) payload.details = details;
-      if (error.includes('在服务器上未找到')) {
-        ws.send(
-          JSON.stringify({
-            type: 'sftp:command_not_found',
-            payload: {
-              operation: 'decompress',
-              command: error.match(/'([^']+)'/)?.[1] || 'unknown',
-              message: details || error,
-            },
-            requestId,
-          }),
-        );
-      } else {
-        ws.send(JSON.stringify({ type: 'sftp:decompress:error', payload }));
-      }
+    const payload: SftpDecompressErrorPayload = { error, requestId };
+    if (details) payload.details = details;
+    if (error.includes('在服务器上未找到')) {
+      sendWsMessage(
+        ws,
+        'sftp:command_not_found',
+        {
+          operation: 'decompress',
+          command: error.match(/'([^']+)'/)?.[1] || 'unknown',
+          message: details || error,
+        },
+        sessionId,
+        { requestId },
+      );
+    } else {
+      sendWsMessage(ws, 'sftp:decompress:error', payload, sessionId, { requestId });
     }
   }
 
@@ -539,21 +621,14 @@ export class SftpArchiveManager {
     requestId: string,
     fileCount: number,
     currentFile?: string,
+    sessionId?: string,
   ): void {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      const progressPayload: SftpArchiveProgressPayload = {
-        requestId,
-        fileCount,
-        currentFile,
-      };
-      ws.send(
-        JSON.stringify({
-          type: `sftp:${operation}:progress`,
-          requestId,
-          payload: progressPayload,
-        }),
-      );
-    }
+    const progressPayload: SftpArchiveProgressPayload = {
+      requestId,
+      fileCount,
+      currentFile,
+    };
+    sendWsMessage(ws, `sftp:${operation}:progress`, progressPayload, sessionId, { requestId });
   }
 
   /** 检查 stderr 是否包含错误 */

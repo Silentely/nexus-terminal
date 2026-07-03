@@ -109,6 +109,7 @@ describe('RDP WebSocket Handler', () => {
         JSON.stringify({
           type: 'rdp:error',
           payload: 'Missing RDP connection parameters (token, width, height).',
+          sid: 'test-session-123',
         }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Missing RDP parameters');
@@ -123,6 +124,7 @@ describe('RDP WebSocket Handler', () => {
         JSON.stringify({
           type: 'rdp:error',
           payload: 'Missing RDP connection parameters (token, width, height).',
+          sid: 'test-session-123',
         }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Missing RDP parameters');
@@ -137,6 +139,7 @@ describe('RDP WebSocket Handler', () => {
         JSON.stringify({
           type: 'rdp:error',
           payload: 'Missing RDP connection parameters (token, width, height).',
+          sid: 'test-session-123',
         }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Missing RDP parameters');
@@ -148,7 +151,11 @@ describe('RDP WebSocket Handler', () => {
       handleRdpProxyConnection(mockWs, mockRequest);
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' }),
+        JSON.stringify({
+          type: 'rdp:error',
+          payload: 'Invalid width or height parameters.',
+          sid: 'test-session-123',
+        }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Invalid RDP dimensions');
     });
@@ -159,7 +166,11 @@ describe('RDP WebSocket Handler', () => {
       handleRdpProxyConnection(mockWs, mockRequest);
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' }),
+        JSON.stringify({
+          type: 'rdp:error',
+          payload: 'Invalid width or height parameters.',
+          sid: 'test-session-123',
+        }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Invalid RDP dimensions');
     });
@@ -170,7 +181,11 @@ describe('RDP WebSocket Handler', () => {
       handleRdpProxyConnection(mockWs, mockRequest);
 
       expect(mockWs.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' }),
+        JSON.stringify({
+          type: 'rdp:error',
+          payload: 'Invalid width or height parameters.',
+          sid: 'test-session-123',
+        }),
       );
       expect(mockWs.close).toHaveBeenCalledWith(1008, 'Invalid RDP dimensions');
     });

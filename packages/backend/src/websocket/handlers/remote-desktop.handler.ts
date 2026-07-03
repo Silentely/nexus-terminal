@@ -3,6 +3,7 @@ import { Request } from 'express';
 import { AuthenticatedWebSocket } from '../types';
 import { resetHeartbeat } from '../heartbeat'; // 导入新的心跳重置函数
 import { logger } from '../../utils/logger';
+import { sendWsMessage } from '../utils';
 
 interface RdpProxyRequest extends Request {
   clientIpAddress?: string;
@@ -34,11 +35,11 @@ export function handleRdpProxyConnection(ws: AuthenticatedWebSocket, request: Re
     logger.error(
       `WebSocket: RDP Proxy connection for ${ws.username} missing required parameters (token, width, height).`,
     );
-    ws.send(
-      JSON.stringify({
-        type: 'rdp:error',
-        payload: 'Missing RDP connection parameters (token, width, height).',
-      }),
+    sendWsMessage(
+      ws,
+      'rdp:error',
+      'Missing RDP connection parameters (token, width, height).',
+      ws.sessionId,
     );
     ws.close(1008, 'Missing RDP parameters');
     return;
@@ -51,7 +52,7 @@ export function handleRdpProxyConnection(ws: AuthenticatedWebSocket, request: Re
     logger.error(
       `WebSocket: RDP Proxy connection for ${ws.username} has invalid width or height parameters.`,
     );
-    ws.send(JSON.stringify({ type: 'rdp:error', payload: 'Invalid width or height parameters.' }));
+    sendWsMessage(ws, 'rdp:error', 'Invalid width or height parameters.', ws.sessionId);
     ws.close(1008, 'Invalid RDP dimensions');
     return;
   }
@@ -107,12 +108,7 @@ export function handleRdpProxyConnection(ws: AuthenticatedWebSocket, request: Re
       );
       rdpWs.terminate();
       if (ws.readyState === WebSocket.OPEN) {
-        ws.send(
-          JSON.stringify({
-            type: 'rdp:error',
-            payload: 'RDP 连接超时，请检查远程桌面服务是否可达。',
-          }),
-        );
+        sendWsMessage(ws, 'rdp:error', 'RDP 连接超时，请检查远程桌面服务是否可达。', ws.sessionId);
         ws.close(1008, 'RDP connect timeout');
       }
       clientWsClosed = true;

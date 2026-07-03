@@ -132,6 +132,8 @@ export function createWebSocketConnectionManager(
       transport.onMessage('ssh:connected', () => {
         connectionStatus.value = 'connected';
         statusMessage.value = getStatusText('connected');
+        // 重置 SFTP 就绪状态：新会话的 SFTP 尚未初始化，需等待 sftp_ready 消息
+        isSftpReady.value = false;
       });
       transport.onMessage('ssh:disconnected', (payload) => {
         connectionStatus.value = 'disconnected';
@@ -229,6 +231,8 @@ export function createWebSocketConnectionManager(
             connectionStatus.value = 'connected';
             statusMessage.value = getStatusText('connected');
           }
+          // 重置 SFTP 就绪状态：新会话的 SFTP 尚未初始化，需等待 sftp_ready 消息
+          isSftpReady.value = false;
         } else if (message.type === 'ssh:disconnected') {
           if (connectionStatus.value !== 'disconnected') {
             connectionStatus.value = 'disconnected';

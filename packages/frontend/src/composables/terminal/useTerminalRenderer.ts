@@ -376,11 +376,17 @@ export function useTerminalRenderer(terminal: Ref<Terminal | null>, sessionId: s
   /**
    * 清理所有资源
    * 在组件卸载或 terminal 销毁时调用
+   * 如果 terminal 已被外部 dispose（如 Terminal.vue 的 onBeforeUnmount），
+   * addon 已随 terminal.dispose() 一并清理，此处跳过重复 dispose 避免控制台报错
    */
   function cleanup(): void {
     stopMonitoring();
-    disposeWebglAddon();
-    disposeWebGPU();
+    if (terminal.value) {
+      disposeWebglAddon();
+      disposeWebGPU();
+    } else {
+      webglAddonInstance = null;
+    }
     contextState.value = 'unavailable';
   }
 

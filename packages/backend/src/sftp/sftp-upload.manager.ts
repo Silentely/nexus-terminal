@@ -10,6 +10,7 @@ import { ClientState } from '../websocket/types';
 import { getErrorMessage } from '../utils/AppError';
 import { SftpUtils } from './sftp-utils';
 import { logger } from '../utils/logger';
+import { sendWsMessage } from '../websocket/utils';
 
 /** 活动上传状态 */
 interface ActiveUpload {
@@ -76,22 +77,24 @@ export class SftpUploadManager {
     const state = this.clientStates.get(sessionId);
     if (!state || !state.sftp) {
       logger.warn(`[SFTP Upload ${uploadId}] SFTP not ready for session ${sessionId}.`);
-      state?.ws.send(
-        JSON.stringify({
-          type: 'sftp:upload:error',
-          payload: { uploadId, message: 'SFTP 会话未就绪' },
-        }),
-      );
+      if (state?.ws) {
+        sendWsMessage(
+          state.ws,
+          'sftp:upload:error',
+          { uploadId, message: 'SFTP 会话未就绪' },
+          sessionId,
+        );
+      }
       return;
     }
     const sftp = state.sftp;
     if (this.activeUploads.has(uploadId)) {
       logger.warn(`[SFTP Upload ${uploadId}] Upload already in progress for session ${sessionId}.`);
-      state.ws.send(
-        JSON.stringify({
-          type: 'sftp:upload:error',
-          payload: { uploadId, message: 'Upload already started' },
-        }),
+      sendWsMessage(
+        state.ws,
+        'sftp:upload:error',
+        { uploadId, message: 'Upload already started' },
+        sessionId,
       );
       return;
     }
@@ -109,11 +112,11 @@ export class SftpUploadManager {
             `[SFTP Upload ${uploadId}] Failed to create directory ${targetDirectory}:`,
             dirError,
           );
-          state.ws.send(
-            JSON.stringify({
-              type: 'sftp:upload:error',
-              payload: { uploadId, message: `创建目录失败: ${dirErrMsg}` },
-            }),
+          sendWsMessage(
+            state.ws,
+            'sftp:upload:error',
+            { uploadId, message: `创建目录失败: ${dirErrMsg}` },
+            sessionId,
           );
           return;
         }
@@ -136,11 +139,11 @@ export class SftpUploadManager {
           `[SFTP Upload ${uploadId}] Writability pre-check failed for ${remotePath}:`,
           preCheckError,
         );
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:upload:error',
-            payload: { uploadId, message: `文件不可写或创建失败: ${preCheckErrMsg}` },
-          }),
+        sendWsMessage(
+          state.ws,
+          'sftp:upload:error',
+          { uploadId, message: `文件不可写或创建失败: ${preCheckErrMsg}` },
+          sessionId,
         );
         return;
       }
@@ -191,11 +194,11 @@ export class SftpUploadManager {
           clearTimeout(errUploadState.closeTimeoutFallback);
           errUploadState.closeTimeoutFallback = null;
         }
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:upload:error',
-            payload: { uploadId, message: `写入流错误: ${err.message}` },
-          }),
+        sendWsMessage(
+          state.ws,
+          'sftp:upload:error',
+          { uploadId, message: `写入流错误: ${err.message}` },
+          uploadState.sessionId,
         );
         this.activeUploads.delete(uploadId);
       });
@@ -213,37 +216,35 @@ export class SftpUploadManager {
             sftp.lstat(finalState.remotePath, (statErr, stats) => {
               if (statErr) {
                 logger.error(`[SFTP Upload ${uploadId}] lstat after close failed:`, statErr);
-                state.ws.send(
-                  JSON.stringify({
-                    type: 'sftp:upload:error',
-                    payload: { uploadId, message: `获取最终文件状态失败: ${statErr.message}` },
-                  }),
+                sendWsMessage(
+                  state.ws,
+                  'sftp:upload:error',
+                  { uploadId, message: `获取最终文件状态失败: ${statErr.message}` },
+                  uploadState.sessionId,
                 );
               } else if (stats.size < finalState.totalSize) {
                 logger.error(
                   `[SFTP Upload ${uploadId}] Final size (${stats.size}) < expected (${finalState.totalSize})`,
                 );
-                state.ws.send(
-                  JSON.stringify({
-                    type: 'sftp:upload:error',
-                    payload: {
-                      uploadId,
-                      message: `最终文件大小 (${stats.size}) 小于预期 (${finalState.totalSize})`,
-                    },
-                  }),
+                sendWsMessage(
+                  state.ws,
+                  'sftp:upload:error',
+                  {
+                    uploadId,
+                    message: `最终文件大小 (${stats.size}) 小于预期 (${finalState.totalSize})`,
+                  },
+                  uploadState.sessionId,
                 );
               } else {
                 const finalStatsPayload = SftpUtils.formatStatsToFileListItem(
                   finalState.remotePath,
                   stats,
                 );
-                state.ws.send(
-                  JSON.stringify({
-                    type: 'sftp:upload:success',
-                    payload: finalStatsPayload,
-                    uploadId,
-                    path: finalState.remotePath,
-                  }),
+                sendWsMessage(
+                  state.ws,
+                  'sftp:upload:success',
+                  { ...finalStatsPayload, uploadId, path: finalState.remotePath },
+                  uploadState.sessionId,
                 );
               }
               this.activeUploads.delete(uploadId);
@@ -254,14 +255,14 @@ export class SftpUploadManager {
         }
       });
 
-      state.ws.send(JSON.stringify({ type: 'sftp:upload:ready', payload: { uploadId } }));
+      sendWsMessage(state.ws, 'sftp:upload:ready', { uploadId }, sessionId);
     } catch (error: unknown) {
       logger.error(`[SFTP Upload ${uploadId}] Error starting upload for ${remotePath}:`, error);
-      state.ws.send(
-        JSON.stringify({
-          type: 'sftp:upload:error',
-          payload: { uploadId, message: `开始上传时出错: ${getErrorMessage(error)}` },
-        }),
+      sendWsMessage(
+        state.ws,
+        'sftp:upload:error',
+        { uploadId, message: `开始上传时出错: ${getErrorMessage(error)}` },
+        sessionId,
       );
       this.activeUploads.delete(uploadId);
     }
@@ -296,14 +297,14 @@ export class SftpUploadManager {
       logger.warn(
         `[SFTP Upload ${uploadId}] Window full (${uploadState.inFlightChunks}/${UPLOAD_WINDOW_SIZE}), rejecting chunk ${chunkIndex}.`,
       );
-      state.ws.send(
-        JSON.stringify({
-          type: 'sftp:upload:error',
-          payload: {
-            uploadId,
-            message: `滑动窗口已满（${uploadState.inFlightChunks}/${UPLOAD_WINDOW_SIZE}），请等待确认后再发送`,
-          },
-        }),
+      sendWsMessage(
+        state.ws,
+        'sftp:upload:error',
+        {
+          uploadId,
+          message: `滑动窗口已满（${uploadState.inFlightChunks}/${UPLOAD_WINDOW_SIZE}），请等待确认后再发送`,
+        },
+        uploadState.sessionId,
       );
       return;
     }
@@ -315,14 +316,14 @@ export class SftpUploadManager {
         logger.warn(
           `[SFTP Upload ${uploadId}] Global buffer memory limit reached (${Math.round(globalBufferedBytes / 1024 / 1024)}MB/${Math.round(GLOBAL_UPLOAD_MEMORY_LIMIT / 1024 / 1024)}MB), rejecting chunk ${chunkIndex}.`,
         );
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:upload:error',
-            payload: {
-              uploadId,
-              message: `服务器缓冲内存已满（${Math.round(globalBufferedBytes / 1024 / 1024)}MB），请等待上传完成后再继续`,
-            },
-          }),
+        sendWsMessage(
+          state.ws,
+          'sftp:upload:error',
+          {
+            uploadId,
+            message: `服务器缓冲内存已满（${Math.round(globalBufferedBytes / 1024 / 1024)}MB），请等待上传完成后再继续`,
+          },
+          uploadState.sessionId,
         );
         return;
       }
@@ -348,11 +349,11 @@ export class SftpUploadManager {
       await this.flushPendingChunks(uploadId);
     } catch (error: unknown) {
       logger.error(`[SFTP Upload ${uploadId}] Error handling chunk ${chunkIndex}:`, error);
-      state.ws.send(
-        JSON.stringify({
-          type: 'sftp:upload:error',
-          payload: { uploadId, message: `处理块 ${chunkIndex} 时出错: ${getErrorMessage(error)}` },
-        }),
+      sendWsMessage(
+        state.ws,
+        'sftp:upload:error',
+        { uploadId, message: `处理块 ${chunkIndex} 时出错: ${getErrorMessage(error)}` },
+        sessionId,
       );
       this.cancelUploadInternal(uploadId, `Error handling chunk ${chunkIndex}`);
     }
@@ -418,26 +419,24 @@ export class SftpUploadManager {
             uploadState.totalSize === 0
               ? 100
               : Math.round((uploadState.bytesWritten / uploadState.totalSize) * 100);
-          state.ws.send(
-            JSON.stringify({
-              type: 'sftp:upload:progress',
-              uploadId,
-              payload: {
-                bytesWritten: uploadState.bytesWritten,
-                totalSize: uploadState.totalSize,
-                progress: Math.min(100, progressPercent),
-              },
-            }),
+          sendWsMessage(
+            state.ws,
+            'sftp:upload:progress',
+            {
+              bytesWritten: uploadState.bytesWritten,
+              totalSize: uploadState.totalSize,
+              progress: Math.min(100, progressPercent),
+            },
+            uploadState.sessionId,
           );
 
           // 发送滑动窗口 ack，告知前端剩余窗口槽位
           const windowSlots = Math.max(0, UPLOAD_WINDOW_SIZE - uploadState.inFlightChunks);
-          state.ws.send(
-            JSON.stringify({
-              type: 'sftp:upload:chunk:ack',
-              uploadId,
-              payload: { chunkIndex: currentIndex, windowSlots },
-            }),
+          sendWsMessage(
+            state.ws,
+            'sftp:upload:chunk:ack',
+            { chunkIndex: currentIndex, windowSlots },
+            uploadState.sessionId,
           );
         }
 
@@ -472,11 +471,11 @@ export class SftpUploadManager {
                   );
                 } else {
                   logger.error(`[SFTP Upload ${uploadId}] Error from stream.end():`, endErr);
-                  state.ws.send(
-                    JSON.stringify({
-                      type: 'sftp:upload:error',
-                      payload: { uploadId, message: `结束写入流时出错: ${endErr.message}` },
-                    }),
+                  sendWsMessage(
+                    state.ws,
+                    'sftp:upload:error',
+                    { uploadId, message: `结束写入流时出错: ${endErr.message}` },
+                    uploadState.sessionId,
                   );
                   this.cancelUploadInternal(uploadId, `Stream end error: ${endErr.message}`);
                 }
@@ -490,11 +489,11 @@ export class SftpUploadManager {
       logger.error(`[SFTP Upload ${uploadId}] _doFlushPendingChunks 异常:`, error);
       const clientState = this.clientStates.get(uploadState.sessionId);
       if (clientState?.ws && clientState.ws.readyState === WebSocket.OPEN) {
-        clientState.ws.send(
-          JSON.stringify({
-            type: 'sftp:upload:error',
-            payload: { uploadId, message: `刷写缓冲区时出错: ${getErrorMessage(error)}` },
-          }),
+        sendWsMessage(
+          clientState.ws,
+          'sftp:upload:error',
+          { uploadId, message: `刷写缓冲区时出错: ${getErrorMessage(error)}` },
+          uploadState.sessionId,
         );
       }
       this.cancelUploadInternal(uploadId, `Flush error: ${getErrorMessage(error)}`);
@@ -525,11 +524,11 @@ export class SftpUploadManager {
       const writeSuccess = uploadState.stream.write(chunkBuffer, (err) => {
         if (err) {
           logger.error(`[SFTP Upload ${uploadId}] Write callback error:`, err);
-          state.ws.send(
-            JSON.stringify({
-              type: 'sftp:upload:error',
-              payload: { uploadId, message: `写入块失败: ${(err as Error).message}` },
-            }),
+          sendWsMessage(
+            state.ws,
+            'sftp:upload:error',
+            { uploadId, message: `写入块失败: ${(err as Error).message}` },
+            uploadState.sessionId,
           );
           this.cancelUploadInternal(uploadId, `Write error`);
           settle('reject', err as Error);
@@ -581,18 +580,18 @@ export class SftpUploadManager {
     }
     if (!uploadState) {
       logger.warn(`[SFTP Upload ${uploadId}] Cancel requested but no active upload.`);
-      state.ws.send(
-        JSON.stringify({
-          type: 'sftp:upload:error',
-          payload: { uploadId, message: '无效的上传 ID 或上传已取消/完成' },
-        }),
+      sendWsMessage(
+        state.ws,
+        'sftp:upload:error',
+        { uploadId, message: '无效的上传 ID 或上传已取消/完成' },
+        sessionId,
       );
       return;
     }
 
     logger.info(`[SFTP Upload ${uploadId}] Cancelling upload for ${uploadState.remotePath}`);
     this.cancelUploadInternal(uploadId, 'User cancelled');
-    state.ws.send(JSON.stringify({ type: 'sftp:upload:cancelled', payload: { uploadId } }));
+    sendWsMessage(state.ws, 'sftp:upload:cancelled', { uploadId }, sessionId);
   }
 
   /**

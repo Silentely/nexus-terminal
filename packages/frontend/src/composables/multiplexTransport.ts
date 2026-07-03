@@ -111,6 +111,8 @@ function dispatchToChannel(message: WebSocketMessage): void {
   if (message.type === 'ssh:connected') {
     channel.connectionStatus.value = 'connected';
     channel.statusMessage.value = '已连接';
+    // 重置 SFTP 就绪状态：新会话的 SFTP 尚未初始化，需等待 sftp_ready 消息
+    channel.isSftpReady.value = false;
     // 多路复用握手：后端返回 backendSessionId，需要重映射通道 key
     const payload = message.payload as Record<string, unknown> | undefined;
     const backendSessionId = payload?.backendSessionId as string | undefined;

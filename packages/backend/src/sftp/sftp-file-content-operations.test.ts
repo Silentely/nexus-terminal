@@ -1,3 +1,4 @@
+import WebSocket from 'ws';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { EventEmitter } from 'events';
 import * as iconv from 'iconv-lite';
@@ -43,7 +44,7 @@ class MockWriteStream extends EventEmitter {
 
 const createState = (): MockState => {
   return {
-    ws: { send: vi.fn() },
+    ws: { send: vi.fn(), readyState: 1, readyState: 1 },
     sftp: {
       createReadStream: vi.fn(),
       createWriteStream: vi.fn(),
@@ -83,7 +84,7 @@ describe('sftp-file-content-operations', () => {
 
   describe('executeReadFileContentOperation', () => {
     it('SFTP 未就绪时返回错误消息', async () => {
-      const state = { ws: { send: vi.fn() } } as unknown as MockState;
+      const state = { ws: { send: vi.fn(), readyState: 1, readyState: 1 } } as unknown as MockState;
       await executeReadFileContentOperation(state, sessionId, '/tmp/a.txt', requestId);
 
       const payload = parseLastPayload(state.ws.send);
@@ -143,7 +144,7 @@ describe('sftp-file-content-operations', () => {
 
   describe('executeWriteFileContentOperation', () => {
     it('SFTP 未就绪时返回错误消息', async () => {
-      const state = { ws: { send: vi.fn() } } as unknown as MockState;
+      const state = { ws: { send: vi.fn(), readyState: 1, readyState: 1 } } as unknown as MockState;
       await executeWriteFileContentOperation(state, sessionId, '/tmp/a.txt', 'x', requestId);
 
       const payload = parseLastPayload(state.ws.send);

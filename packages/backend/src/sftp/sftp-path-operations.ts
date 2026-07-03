@@ -3,6 +3,7 @@ import type { ClientState } from '../websocket/types';
 import { getErrorMessage } from '../utils/AppError';
 import { shellEscape } from '../utils/shell-escape';
 import { logger } from '../utils/logger';
+import { sendWsMessage } from '../websocket/utils';
 
 interface PathItemPayload {
   filename: string;
@@ -50,14 +51,10 @@ export const executeMkdirPathOperation = async (
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 mkdir (ID: ${requestId})`);
-    state?.ws.send(
-      JSON.stringify({
-        type: 'sftp:mkdir:error',
-        path,
-        payload: 'SFTP 会话未就绪',
-        requestId,
-      }),
-    );
+    sendWsMessage(state?.ws, 'sftp:mkdir:error', 'SFTP 会话未就绪', sessionId, {
+      path: path,
+      requestId: requestId,
+    });
     return;
   }
 
@@ -67,14 +64,10 @@ export const executeMkdirPathOperation = async (
     sftp.mkdir(path, (err) => {
       if (err) {
         logger.error(`[SFTP ${sessionId}] mkdir ${path} failed (ID: ${requestId}):`, err);
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:mkdir:error',
-            path,
-            payload: `创建目录失败: ${err.message}`,
-            requestId,
-          }),
-        );
+        sendWsMessage(state.ws, 'sftp:mkdir:error', `创建目录失败: ${err.message}`, sessionId, {
+          path: path,
+          requestId: requestId,
+        });
         return;
       }
 
@@ -87,25 +80,17 @@ export const executeMkdirPathOperation = async (
             `[SFTP ${sessionId}] lstat after mkdir ${path} failed (ID: ${requestId}):`,
             statErr,
           );
-          state.ws.send(
-            JSON.stringify({
-              type: 'sftp:mkdir:success',
-              path,
-              payload: null,
-              requestId,
-            }),
-          );
+          sendWsMessage(state.ws, 'sftp:mkdir:success', null, sessionId, {
+            path: path,
+            requestId: requestId,
+          });
           return;
         }
 
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:mkdir:success',
-            path,
-            payload: toPathItemPayload(path, stats),
-            requestId,
-          }),
-        );
+        sendWsMessage(state.ws, 'sftp:mkdir:success', toPathItemPayload(path, stats), sessionId, {
+          path,
+          requestId,
+        });
       });
     });
   } catch (error: unknown) {
@@ -113,13 +98,12 @@ export const executeMkdirPathOperation = async (
       `[SFTP ${sessionId}] mkdir ${path} caught unexpected error (ID: ${requestId}):`,
       error,
     );
-    state.ws.send(
-      JSON.stringify({
-        type: 'sftp:mkdir:error',
-        path,
-        payload: `创建目录时发生意外错误: ${getErrorMessage(error)}`,
-        requestId,
-      }),
+    sendWsMessage(
+      state.ws,
+      'sftp:mkdir:error',
+      `创建目录时发生意外错误: ${getErrorMessage(error)}`,
+      sessionId,
+      { path: path, requestId: requestId },
     );
   }
 };
@@ -134,14 +118,10 @@ export const executeRmdirPathOperation = async (
     logger.warn(
       `[SSH Exec] SSH 客户端未准备好，无法在 ${sessionId} 上执行 rmdir (ID: ${requestId})`,
     );
-    state?.ws.send(
-      JSON.stringify({
-        type: 'sftp:rmdir:error',
-        path,
-        payload: 'SSH 会话未就绪',
-        requestId,
-      }),
-    );
+    sendWsMessage(state?.ws, 'sftp:rmdir:error', 'SSH 会话未就绪', sessionId, {
+      path: path,
+      requestId: requestId,
+    });
     return;
   }
 
@@ -158,13 +138,12 @@ export const executeRmdirPathOperation = async (
           `[SSH Exec ${sessionId}] Failed to start exec for rm -rf ${path} (ID: ${requestId}):`,
           err,
         );
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:rmdir:error',
-            path,
-            payload: `删除目录失败: rm -rf 命令执行失败: ${err.message}`,
-            requestId,
-          }),
+        sendWsMessage(
+          state.ws,
+          'sftp:rmdir:error',
+          `删除目录失败: rm -rf 命令执行失败: ${err.message}`,
+          sessionId,
+          { path: path, requestId: requestId },
         );
         return;
       }
@@ -179,7 +158,7 @@ export const executeRmdirPathOperation = async (
           logger.debug(
             `[SSH Exec ${sessionId}] rm -rf ${path} command executed successfully (ID: ${requestId})`,
           );
-          state.ws.send(JSON.stringify({ type: 'sftp:rmdir:success', path, requestId }));
+          sendWsMessage(state.ws, 'sftp:rmdir:success', undefined, sessionId, { path: path });
           return;
         }
 
@@ -189,14 +168,10 @@ export const executeRmdirPathOperation = async (
         logger.error(
           `[SSH Exec ${sessionId}] rm -rf ${path} command failed (ID: ${requestId}). Code: ${code}, Signal: ${signal}, Stderr: ${errorMessage}`,
         );
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:rmdir:error',
-            path,
-            payload: `删除目录失败: ${errorMessage}`,
-            requestId,
-          }),
-        );
+        sendWsMessage(state.ws, 'sftp:rmdir:error', `删除目录失败: ${errorMessage}`, sessionId, {
+          path: path,
+          requestId: requestId,
+        });
       });
 
       stream.on('data', (data: Buffer) => {
@@ -210,13 +185,12 @@ export const executeRmdirPathOperation = async (
       `[SSH Exec ${sessionId}] rm -rf ${path} caught unexpected error during exec setup (ID: ${requestId}):`,
       error,
     );
-    state.ws.send(
-      JSON.stringify({
-        type: 'sftp:rmdir:error',
-        path,
-        payload: `删除目录失败: rm -rf 执行时发生意外错误: ${getErrorMessage(error)}`,
-        requestId,
-      }),
+    sendWsMessage(
+      state.ws,
+      'sftp:rmdir:error',
+      `删除目录失败: rm -rf 执行时发生意外错误: ${getErrorMessage(error)}`,
+      sessionId,
+      { path: path, requestId: requestId },
     );
   }
 };
@@ -229,14 +203,10 @@ export const executeUnlinkPathOperation = async (
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 unlink (ID: ${requestId})`);
-    state?.ws.send(
-      JSON.stringify({
-        type: 'sftp:unlink:error',
-        path,
-        payload: 'SFTP 会话未就绪',
-        requestId,
-      }),
-    );
+    sendWsMessage(state?.ws, 'sftp:unlink:error', 'SFTP 会话未就绪', sessionId, {
+      path: path,
+      requestId: requestId,
+    });
     return;
   }
 
@@ -245,32 +215,27 @@ export const executeUnlinkPathOperation = async (
     state.sftp.unlink(path, (err) => {
       if (err) {
         logger.error(`[SFTP ${sessionId}] unlink ${path} failed (ID: ${requestId}):`, err);
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:unlink:error',
-            path,
-            payload: `删除文件失败: ${err.message}`,
-            requestId,
-          }),
-        );
+        sendWsMessage(state.ws, 'sftp:unlink:error', `删除文件失败: ${err.message}`, sessionId, {
+          path: path,
+          requestId: requestId,
+        });
         return;
       }
 
       logger.debug(`[SFTP ${sessionId}] unlink ${path} success (ID: ${requestId})`);
-      state.ws.send(JSON.stringify({ type: 'sftp:unlink:success', path, requestId }));
+      sendWsMessage(state.ws, 'sftp:unlink:success', undefined, sessionId, { path: path });
     });
   } catch (error: unknown) {
     logger.error(
       `[SFTP ${sessionId}] unlink ${path} caught unexpected error (ID: ${requestId}):`,
       error,
     );
-    state.ws.send(
-      JSON.stringify({
-        type: 'sftp:unlink:error',
-        path,
-        payload: `删除文件时发生意外错误: ${getErrorMessage(error)}`,
-        requestId,
-      }),
+    sendWsMessage(
+      state.ws,
+      'sftp:unlink:error',
+      `删除文件时发生意外错误: ${getErrorMessage(error)}`,
+      sessionId,
+      { path: path, requestId: requestId },
     );
   }
 };
@@ -284,15 +249,11 @@ export const executeRenamePathOperation = async (
 ): Promise<void> => {
   if (!state || !state.sftp) {
     logger.warn(`[SFTP] SFTP 未准备好，无法在 ${sessionId} 上执行 rename (ID: ${requestId})`);
-    state?.ws.send(
-      JSON.stringify({
-        type: 'sftp:rename:error',
-        oldPath,
-        newPath,
-        payload: 'SFTP 会话未就绪',
-        requestId,
-      }),
-    );
+    sendWsMessage(state?.ws, 'sftp:rename:error', 'SFTP 会话未就绪', sessionId, {
+      requestId: requestId,
+      oldPath: oldPath,
+      newPath: newPath,
+    });
     return;
   }
 
@@ -307,15 +268,11 @@ export const executeRenamePathOperation = async (
           `[SFTP ${sessionId}] rename ${oldPath} -> ${newPath} failed (ID: ${requestId}):`,
           err,
         );
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:rename:error',
-            oldPath,
-            newPath,
-            payload: `重命名/移动失败: ${err.message}`,
-            requestId,
-          }),
-        );
+        sendWsMessage(state.ws, 'sftp:rename:error', `重命名/移动失败: ${err.message}`, sessionId, {
+          requestId: requestId,
+          oldPath: oldPath,
+          newPath: newPath,
+        });
         return;
       }
 
@@ -328,22 +285,22 @@ export const executeRenamePathOperation = async (
             `[SFTP ${sessionId}] lstat after rename ${newPath} failed (ID: ${requestId}):`,
             statErr,
           );
-          state.ws.send(
-            JSON.stringify({
-              type: 'sftp:rename:success',
-              payload: { oldPath, newPath, newItem: null },
-              requestId,
-            }),
+          sendWsMessage(
+            state.ws,
+            'sftp:rename:success',
+            { oldPath, newPath, newItem: null },
+            sessionId,
+            { requestId: requestId },
           );
           return;
         }
 
-        state.ws.send(
-          JSON.stringify({
-            type: 'sftp:rename:success',
-            payload: { oldPath, newPath, newItem: toPathItemPayload(newPath, stats) },
-            requestId,
-          }),
+        sendWsMessage(
+          state.ws,
+          'sftp:rename:success',
+          { oldPath, newPath, newItem: toPathItemPayload(newPath, stats) },
+          sessionId,
+          { requestId: requestId },
         );
       });
     });
@@ -352,14 +309,12 @@ export const executeRenamePathOperation = async (
       `[SFTP ${sessionId}] rename ${oldPath} -> ${newPath} caught unexpected error (ID: ${requestId}):`,
       error,
     );
-    state.ws.send(
-      JSON.stringify({
-        type: 'sftp:rename:error',
-        oldPath,
-        newPath,
-        payload: `重命名/移动时发生意外错误: ${getErrorMessage(error)}`,
-        requestId,
-      }),
+    sendWsMessage(
+      state.ws,
+      'sftp:rename:error',
+      `重命名/移动时发生意外错误: ${getErrorMessage(error)}`,
+      sessionId,
+      { requestId: requestId, oldPath: oldPath, newPath: newPath },
     );
   }
 };

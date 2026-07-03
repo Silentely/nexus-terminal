@@ -20,15 +20,17 @@ import eventService, { AppEventType } from '../services/event.service';
  * @param type 消息类型
  * @param payload 消息负载
  * @param sessionId 会话 ID（作为顶层 sid）
+ * @param extra 额外的顶层字段（如 path、requestId 等），合并到消息对象中
  */
 export function sendWsMessage(
-  ws: AuthenticatedWebSocket,
+  ws: AuthenticatedWebSocket | undefined,
   type: string,
   payload: unknown,
   sessionId?: string,
+  extra?: Record<string, unknown>,
 ): void {
-  if (ws.readyState !== WebSocket.OPEN) return;
-  const message: Record<string, unknown> = { type, payload };
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  const message: Record<string, unknown> = { ...extra, type, payload };
   if (sessionId) message.sid = sessionId;
   ws.send(JSON.stringify(message));
 }
@@ -42,12 +44,13 @@ export function safeSend(
   type: string,
   payload: unknown,
   sessionId?: string,
+  extra?: Record<string, unknown>,
 ): boolean {
   if (ws.readyState !== WebSocket.OPEN) {
     return false;
   }
   try {
-    const message: Record<string, unknown> = { type, payload };
+    const message: Record<string, unknown> = { ...extra, type, payload };
     if (sessionId) message.sid = sessionId;
     ws.send(JSON.stringify(message));
     return true;
