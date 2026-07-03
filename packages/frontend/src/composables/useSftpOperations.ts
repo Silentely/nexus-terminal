@@ -34,8 +34,16 @@ const generateRequestId = (): string =>
 
 /** 拼接路径 */
 const joinPath = (base: string, name: string): string => {
-  if (base === '/') return `/${name}`;
+  if (!base || base === '/') return `/${name}`;
   return base.endsWith('/') ? `${base}${name}` : `${base}/${name}`;
+};
+
+const getArchiveBaseName = (filename: string): string => {
+  const lastDotIndex = filename.lastIndexOf('.');
+  if (lastDotIndex <= 0) {
+    return filename || 'archive';
+  }
+  return filename.slice(0, lastDotIndex) || filename;
 };
 
 /**
@@ -335,7 +343,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
       const parentDir = currentPathRef.value;
       let archiveBaseName = 'archive';
       if (items.length === 1) {
-        archiveBaseName = items[0].filename.split('.')[0];
+        archiveBaseName = getArchiveBaseName(items[0].filename);
       } else if (items.length > 1) {
         const parentFolderName = parentDir.split('/').pop();
         if (parentFolderName && parentFolderName !== 'root' && parentFolderName !== '') {
