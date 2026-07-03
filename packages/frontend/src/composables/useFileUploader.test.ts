@@ -174,6 +174,42 @@ describe('useFileUploader', () => {
         }),
       );
     });
+
+    it('文件夹多文件上传应排队启动，完成后自动补位', async () => {
+      const sessionId = ref('s1');
+      const currentPath = ref('/home');
+      const fileList = ref([]) as any;
+      const handlers = new Map<string, Function>();
+      const wsDeps = makeWsDeps({
+        onMessage: vi.fn((type: string, handler: Function) => {
+          handlers.set(type, handler);
+          return vi.fn();
+        }),
+      });
+
+      const { uploads, startFileUpload } = useFileUploader(
+        sessionId,
+        currentPath,
+        fileList,
+        wsDeps,
+      );
+
+      for (let i = 0; i < 10; i++) {
+        startFileUpload(makeFile(`file-${i}.txt`));
+      }
+
+      expect(Object.keys(uploads)).toHaveLength(10);
+      expect(wsDeps.value.sendMessage).toHaveBeenCalledTimes(8);
+
+      const firstUploadId = Object.keys(uploads)[0];
+      handlers.get('sftp:upload:success')?.(
+        { uploadId: firstUploadId },
+        { type: 'sftp:upload:success' },
+      );
+      await Promise.resolve();
+
+      expect(wsDeps.value.sendMessage).toHaveBeenCalledTimes(9);
+    });
   });
 
   describe('cancelUpload', () => {

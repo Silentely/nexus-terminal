@@ -18,6 +18,14 @@ const joinPath = (base: string, name: string): string => {
   return `${base}/${name}`;
 };
 
+const MAX_ACTIVE_UPLOAD_STARTS = 8;
+
+type QueuedUploadItem = UploadItem & {
+  remotePath: string;
+  relativePath?: string;
+  startRequested?: boolean;
+};
+
 export function useFileUploader(
   sessionIdForLog: Ref<string>,
   currentPathRef: Ref<string>,
@@ -36,6 +44,50 @@ export function useFileUploader(
     wsDeps,
     sessionIdForLog,
     t,
+  };
+
+  const activeUploadStartCount = (): number =>
+    Object.values(uploads).filter(
+      (upload) =>
+        (upload as QueuedUploadItem).startRequested &&
+        ['pending', 'uploading', 'paused'].includes(upload.status),
+    ).length;
+
+  const sendUploadStart = (uploadId: string, upload: QueuedUploadItem): void => {
+    const queuedUpload = uploads[uploadId] as QueuedUploadItem | undefined;
+    if (!queuedUpload) return;
+    queuedUpload.startRequested = true;
+    log.info(
+      `[FileUploader ${sessionIdForLog.value}] Starting upload ${uploadId} to ${upload.remotePath}`,
+    );
+    wsDeps.value.sendMessage({
+      type: 'sftp:upload:start',
+      payload: {
+        uploadId,
+        remotePath: upload.remotePath,
+        size: upload.file.size,
+        relativePath: upload.relativePath,
+      },
+    });
+  };
+
+  const pumpUploadStartQueue = (): void => {
+    if (!wsDeps.value.isConnected.value) return;
+
+    let availableSlots = Math.max(0, MAX_ACTIVE_UPLOAD_STARTS - activeUploadStartCount());
+    if (availableSlots === 0) return;
+
+    for (const [uploadId, upload] of Object.entries(uploads) as Array<[string, QueuedUploadItem]>) {
+      if (availableSlots <= 0) break;
+      if (upload.status === 'pending' && !upload.startRequested) {
+        sendUploadStart(uploadId, upload);
+        availableSlots--;
+      }
+    }
+  };
+
+  const releaseUploadStartSlot = (): void => {
+    queueMicrotask(pumpUploadStartQueue);
   };
 
   const startFileUpload = (file: File, relativePath?: string) => {
@@ -91,20 +143,12 @@ export function useFileUploader(
       progress: 0,
       sentBytes: 0,
       status: 'pending', // 初始状态
-    };
+      remotePath: finalRemotePath,
+      relativePath: relativePath || undefined,
+      startRequested: false,
+    } as QueuedUploadItem;
 
-    log.info(
-      `[FileUploader ${sessionIdForLog.value}] Starting upload ${uploadId} to ${finalRemotePath}`,
-    );
-    wsDeps.value.sendMessage({
-      type: 'sftp:upload:start',
-      payload: {
-        uploadId,
-        remotePath: finalRemotePath,
-        size: file.size,
-        relativePath: relativePath || undefined,
-      },
-    });
+    pumpUploadStartQueue();
     // 后端应该响应 sftp:upload:ready
   };
 
@@ -121,9 +165,12 @@ export function useFileUploader(
         uploadWithAck._unregisterAck = undefined;
       }
 
-      if (notifyBackend && wsDeps.value.isConnected.value) {
+      const uploadWithQueue = upload as QueuedUploadItem;
+      if (notifyBackend && uploadWithQueue.startRequested && wsDeps.value.isConnected.value) {
         wsDeps.value.sendMessage({ type: 'sftp:upload:cancel', payload: { uploadId } });
       }
+
+      releaseUploadStartSlot();
 
       // 短暂延迟后从列表中移除，以显示取消状态
       setTimeout(() => {
@@ -179,6 +226,7 @@ export function useFileUploader(
       if (uploads[uploadId]) {
         delete uploads[uploadId];
       }
+      releaseUploadStartSlot();
     } else {
       log.warn(
         `[FileUploader ${sessionIdForLog.value}] Received upload:success for unknown upload ID: ${uploadId}`,
@@ -221,6 +269,7 @@ export function useFileUploader(
       }
 
       // 让错误消息可见时间长一些
+      releaseUploadStartSlot();
       setTimeout(() => {
         if (uploads[uploadId]?.status === 'error') {
           delete uploads[uploadId];
@@ -279,6 +328,7 @@ export function useFileUploader(
       }
 
       // 确保它会被移除（如果尚未计划移除）
+      releaseUploadStartSlot();
       setTimeout(() => {
         if (uploads[uploadId]?.status === 'cancelled') {
           delete uploads[uploadId];

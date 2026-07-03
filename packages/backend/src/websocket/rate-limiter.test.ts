@@ -98,6 +98,24 @@ describe('WebSocket 速率限制器', () => {
       }
       expect(checkRateLimit('session-1', 'batch:create')).toBe(false);
     });
+
+    it('多文件上传启动仍保留普通消息限流并在窗口重置后恢复', () => {
+      for (let i = 0; i < 100; i++) {
+        expect(checkRateLimit('session-1', 'sftp:upload:start')).toBe(true);
+      }
+      expect(checkRateLimit('session-1', 'sftp:upload:start')).toBe(false);
+
+      vi.advanceTimersByTime(1001);
+      expect(checkRateLimit('session-1', 'sftp:upload:start')).toBe(true);
+    });
+
+    it('上传分块交给 SFTP 上传管理器控制，不受普通消息频率误伤', () => {
+      for (let i = 0; i < 5000; i++) {
+        expect(checkRateLimit('session-1', 'sftp:upload:chunk')).toBe(true);
+      }
+
+      expect(getRateLimitStatus('session-1')['sftp:upload:chunk']).toBeUndefined();
+    });
   });
 
   describe('cleanupRateLimit', () => {

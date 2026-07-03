@@ -381,17 +381,22 @@ export function useTerminalRenderer(terminal: Ref<Terminal | null>, sessionId: s
    */
   function cleanup(): void {
     stopMonitoring();
-    if (terminal.value) {
-      disposeWebglAddon();
-      disposeWebGPU();
-    } else {
-      webglAddonInstance = null;
-    }
+    disposeWebglAddon();
+    disposeWebGPU();
+    contextState.value = 'unavailable';
+  }
+
+  function cleanupBeforeTerminalDispose(): void {
+    stopMonitoring();
+    disposeWebGPU();
+    webglAddonInstance = null;
     contextState.value = 'unavailable';
   }
 
   onBeforeUnmount(() => {
-    cleanup();
+    // Terminal.vue disposes the xterm instance on unmount. xterm will dispose loaded addons;
+    // do not manually dispose WebglAddon here or xterm may attempt to dispose it twice.
+    cleanupBeforeTerminalDispose();
   });
 
   return {

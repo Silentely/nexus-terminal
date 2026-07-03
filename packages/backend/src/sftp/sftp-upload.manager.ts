@@ -310,9 +310,12 @@ export class SftpUploadManager {
     }
 
     try {
-      // 全局内存上限检查：拒绝超出总缓冲内存上限的新分块
+      // 全局内存上限检查：拒绝超出总缓冲内存上限的新分块。
+      // 重复块会覆盖 pending buffer，预算只计算净增量，避免重复计数。
       const estimatedChunkBytes = Math.ceil((dataBase64.length * 3) / 4); // base64 解码后大致字节数
-      if (globalBufferedBytes + estimatedChunkBytes > GLOBAL_UPLOAD_MEMORY_LIMIT) {
+      const previousPendingChunk = uploadState.pendingChunks.get(chunkIndex);
+      const additionalBufferedBytes = estimatedChunkBytes - (previousPendingChunk?.length ?? 0);
+      if (globalBufferedBytes + additionalBufferedBytes > GLOBAL_UPLOAD_MEMORY_LIMIT) {
         logger.warn(
           `[SFTP Upload ${uploadId}] Global buffer memory limit reached (${Math.round(globalBufferedBytes / 1024 / 1024)}MB/${Math.round(GLOBAL_UPLOAD_MEMORY_LIMIT / 1024 / 1024)}MB), rejecting chunk ${chunkIndex}.`,
         );
@@ -329,7 +332,7 @@ export class SftpUploadManager {
       }
 
       // 仅在块未重复时才计入在途计数，防止重复块耗尽滑动窗口
-      const isDuplicate = uploadState.pendingChunks.has(chunkIndex);
+      const isDuplicate = previousPendingChunk !== undefined;
       if (!isDuplicate) {
         uploadState.inFlightChunks++;
       } else {
@@ -339,7 +342,10 @@ export class SftpUploadManager {
       }
       const chunkBuffer = Buffer.from(dataBase64, 'base64');
 
-      // 跟踪全局缓冲内存
+      // 跟踪全局缓冲内存；重复块覆盖时先释放旧 buffer 的预算。
+      if (previousPendingChunk) {
+        globalBufferedBytes = Math.max(0, globalBufferedBytes - previousPendingChunk.length);
+      }
       globalBufferedBytes += chunkBuffer.length;
 
       // 将块存入排序缓冲区（不直接写入流）
@@ -423,6 +429,7 @@ export class SftpUploadManager {
             state.ws,
             'sftp:upload:progress',
             {
+              uploadId,
               bytesWritten: uploadState.bytesWritten,
               totalSize: uploadState.totalSize,
               progress: Math.min(100, progressPercent),
@@ -435,7 +442,7 @@ export class SftpUploadManager {
           sendWsMessage(
             state.ws,
             'sftp:upload:chunk:ack',
-            { chunkIndex: currentIndex, windowSlots },
+            { uploadId, chunkIndex: currentIndex, windowSlots },
             uploadState.sessionId,
           );
         }
@@ -514,11 +521,18 @@ export class SftpUploadManager {
 
     return new Promise<void>((resolveWrite, reject) => {
       let settled = false;
+      let writeCallbackResolved = false;
+      let drainResolved = false;
       const settle = (action: 'resolve' | 'reject', err?: Error) => {
         if (settled) return;
         settled = true;
         if (action === 'resolve') resolveWrite();
         else reject(err);
+      };
+      const settleIfReady = () => {
+        if (writeCallbackResolved && drainResolved) {
+          settle('resolve');
+        }
       };
 
       const writeSuccess = uploadState.stream.write(chunkBuffer, (err) => {
@@ -536,6 +550,7 @@ export class SftpUploadManager {
         }
 
         uploadState.bytesWritten += chunkBuffer.length;
+        writeCallbackResolved = true;
         // SFTP 上传字节指标（延迟导入避免循环依赖）
         try {
           const { sftpTransferredBytes } = require('../metrics/metrics.service');
@@ -544,15 +559,12 @@ export class SftpUploadManager {
           logger.warn('[SFTP Upload] 指标模块加载失败，上传字节未记录:', metricsErr);
         }
 
-        if (writeSuccess) {
-          // 内核缓冲区尚有余量，回调即表示数据已入队
-          settle('resolve');
-        }
-        // writeSuccess === false 时不在此 resolve，等 drain
+        // write callback 表示远端确认写入；write() 返回 false 时还需确认 drain 已释放背压。
+        queueMicrotask(settleIfReady);
       });
 
-      if (!writeSuccess) {
-        // 背压：等 drain 事件后再 resolve（回调中 bytesWritten 已更新）
+      if (writeSuccess === false) {
+        // 背压：drain 和 write callback 都到达后再 resolve，避免任意事件先到导致挂起。
         if (!uploadState.drainPromise) {
           uploadState.drainPromise = new Promise<void>((drainResolve) => {
             uploadState.stream.once('drain', () => {
@@ -561,7 +573,13 @@ export class SftpUploadManager {
             });
           });
         }
-        uploadState.drainPromise.then(() => settle('resolve'));
+        uploadState.drainPromise.then(() => {
+          drainResolved = true;
+          settleIfReady();
+        });
+      } else {
+        drainResolved = true;
+        queueMicrotask(settleIfReady);
       }
     });
   }

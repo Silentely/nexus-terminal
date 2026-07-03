@@ -8,6 +8,13 @@
 
 import { logger } from '../utils/logger';
 
+/**
+ * 上传分块是数据流量，不适合用普通 WebSocket 消息频率限流。
+ * 真正的上传压力由 SftpUploadManager 的每上传滑动窗口、chunk 大小校验、
+ * pending buffer 与全局内存预算控制；这里豁免可避免目录/多文件上传被误伤。
+ */
+const PROTOCOL_MANAGED_MESSAGE_TYPES = new Set(['sftp:upload:chunk']);
+
 /** 速率限制配置 */
 interface RateLimitConfig {
   /** 窗口内最大消息数 */
@@ -42,10 +49,9 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   'sftp:rmdir': { maxMessages: 10, windowMs: 1000 },
   'sftp:unlink': { maxMessages: 10, windowMs: 1000 },
   'sftp:rename': { maxMessages: 10, windowMs: 1000 },
-  // 大文件分块上传：前端可能高频发送分块，阈值较高
-  'sftp:upload:chunk': { maxMessages: 200, windowMs: 1000 },
-  // 上传启动：管理类操作，限制严格
-  'sftp:upload:start': { maxMessages: 10, windowMs: 1000 },
+  // 多文件/目录上传会瞬间启动多个文件任务，需避免误伤正常批量上传。
+  // 真正的分块吞吐压力由 SftpUploadManager 的 per-upload sliding window 和全局缓冲上限控制。
+  'sftp:upload:start': { maxMessages: 100, windowMs: 1000 },
   'sftp:upload:cancel': { maxMessages: 10, windowMs: 1000 },
 
   // Docker 操作：轮询 Docker API，限制严格
@@ -105,6 +111,11 @@ if (cleanupTimer.unref) {
  * @returns true = 允许，false = 超过限制
  */
 export function checkRateLimit(sessionId: string, messageType: string): boolean {
+  if (PROTOCOL_MANAGED_MESSAGE_TYPES.has(messageType)) {
+    sessionLastActivity.set(sessionId, Date.now());
+    return true;
+  }
+
   const config = RATE_LIMITS[messageType] || RATE_LIMITS._default;
   const now = Date.now();
 

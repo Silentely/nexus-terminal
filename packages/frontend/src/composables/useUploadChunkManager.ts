@@ -101,6 +101,10 @@ export function sendFileChunks(
         // 乐观进度：发送后立即更新已发送字节数，提供即时进度反馈
         if (currentUpload) {
           currentUpload.sentBytes = Math.min(currentUpload.sentBytes + currentChunkSize, file.size);
+          currentUpload.progress =
+            file.size > 0
+              ? Math.min(100, Math.round((currentUpload.sentBytes / file.size) * 100))
+              : 100;
         }
       } else {
         log.error(

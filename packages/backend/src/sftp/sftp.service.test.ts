@@ -1094,6 +1094,131 @@ describe('SftpService', () => {
       expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('sftp:upload:ready'));
     });
 
+    it('上传分块确认和进度消息应包含 uploadId', async () => {
+      const mockWriteStream = new MockWriteStream();
+      const openHandle = {};
+
+      mockSftp.open.mockImplementation((path: string, flags: string, callback: unknown) => {
+        callback(null, openHandle);
+      });
+      mockSftp.close.mockImplementation((handle: unknown, callback: unknown) => {
+        callback(null);
+      });
+      mockSftp.stat.mockImplementation((path: string, callback: unknown) => {
+        callback(null, { mode: 0o100755 });
+      });
+      mockSftp.createWriteStream.mockReturnValue(mockWriteStream);
+      mockWriteStream.write.mockImplementation(
+        (_chunk: Buffer, callback: (err?: Error) => void) => {
+          callback();
+          return true;
+        },
+      );
+
+      await service.startUpload(sessionId, uploadId, remotePath, totalSize);
+      mockWs.send.mockClear();
+
+      await service.handleUploadChunk(
+        sessionId,
+        uploadId,
+        0,
+        Buffer.from('hello').toString('base64'),
+      );
+
+      const sentMessages = mockWs.send.mock.calls.map(([raw]) => JSON.parse(raw as string));
+      expect(sentMessages).toContainEqual(
+        expect.objectContaining({
+          type: 'sftp:upload:progress',
+          payload: expect.objectContaining({ uploadId }),
+        }),
+      );
+      expect(sentMessages).toContainEqual(
+        expect.objectContaining({
+          type: 'sftp:upload:chunk:ack',
+          payload: expect.objectContaining({ uploadId, chunkIndex: 0 }),
+        }),
+      );
+    });
+
+    it('背压 drain 先于 write callback 时上传分块不应挂起', async () => {
+      const mockWriteStream = new MockWriteStream();
+      const openHandle = {};
+      let writeCallback: ((err?: Error) => void) | undefined;
+
+      mockSftp.open.mockImplementation((path: string, flags: string, callback: unknown) => {
+        callback(null, openHandle);
+      });
+      mockSftp.close.mockImplementation((handle: unknown, callback: unknown) => {
+        callback(null);
+      });
+      mockSftp.stat.mockImplementation((path: string, callback: unknown) => {
+        callback(null, { mode: 0o100755 });
+      });
+      mockSftp.createWriteStream.mockReturnValue(mockWriteStream);
+      mockWriteStream.write.mockImplementation(
+        (_chunk: Buffer, callback: (err?: Error) => void) => {
+          writeCallback = callback;
+          return false;
+        },
+      );
+
+      await service.startUpload(sessionId, uploadId, remotePath, totalSize);
+      mockWs.send.mockClear();
+
+      const uploadPromise = service.handleUploadChunk(
+        sessionId,
+        uploadId,
+        0,
+        Buffer.from('hello').toString('base64'),
+      );
+
+      mockWriteStream.emit('drain');
+      const beforeCallback = await Promise.race([
+        uploadPromise.then(() => 'resolved'),
+        new Promise((resolve) => setTimeout(() => resolve('pending'), 10)),
+      ]);
+      expect(beforeCallback).toBe('pending');
+
+      writeCallback?.();
+      await expect(uploadPromise).resolves.toBeUndefined();
+      expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('sftp:upload:chunk:ack'));
+    });
+
+    it('写入失败时应发送错误并拒绝分块处理', async () => {
+      const mockWriteStream = new MockWriteStream();
+      const openHandle = {};
+
+      mockSftp.open.mockImplementation((path: string, flags: string, callback: unknown) => {
+        callback(null, openHandle);
+      });
+      mockSftp.close.mockImplementation((handle: unknown, callback: unknown) => {
+        callback(null);
+      });
+      mockSftp.stat.mockImplementation((path: string, callback: unknown) => {
+        callback(null, { mode: 0o100755 });
+      });
+      mockSftp.createWriteStream.mockReturnValue(mockWriteStream);
+      mockWriteStream.write.mockImplementation(
+        (_chunk: Buffer, callback: (err?: Error) => void) => {
+          callback(new Error('Write failed'));
+          return false;
+        },
+      );
+
+      await service.startUpload(sessionId, uploadId, remotePath, totalSize);
+      mockWs.send.mockClear();
+
+      await service.handleUploadChunk(
+        sessionId,
+        uploadId,
+        0,
+        Buffer.from('fail').toString('base64'),
+      );
+
+      expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('sftp:upload:error'));
+      expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('Write failed'));
+    });
+
     it('SFTP 未就绪时应发送错误', async () => {
       clientStates.set(sessionId, {
         sshClient: mockSshClient,

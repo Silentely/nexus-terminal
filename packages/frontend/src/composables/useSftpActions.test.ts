@@ -768,6 +768,28 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       expect(mockShowSuccess).toHaveBeenCalled();
     });
 
+    it('压缩点号开头的单文件时应保留完整文件名作为归档名', async () => {
+      const manager = createSftpActionsManager('session-1', currentPathRef, createWsDeps(), mockT);
+
+      const compressPromise = manager.compressItems([createFileItem('.env')], 'zip');
+
+      expect(mockSendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'sftp:compress',
+          payload: expect.objectContaining({
+            sources: ['/home/user/.env'],
+            destination: '/home/user/.env.zip',
+            format: 'zip',
+          }),
+        }),
+      );
+
+      const requestId = (mockSendMessage.mock.calls[0][0] as any).requestId;
+      triggerMessage('sftp:compress:success', {}, { requestId });
+
+      await compressPromise;
+    });
+
     it('SFTP 未就绪时应拒绝 Promise', async () => {
       mockIsSftpReady.value = false;
       const manager = createSftpActionsManager('session-1', currentPathRef, createWsDeps(), mockT);
