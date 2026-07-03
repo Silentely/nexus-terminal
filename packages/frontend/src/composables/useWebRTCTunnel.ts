@@ -623,7 +623,7 @@ export function useWebRTCTunnel() {
         signalingUrl,
         tunnelUrl,
         iceServers: rtcConfig?.iceServers,
-        connectTimeout: 8000,
+        connectTimeout: DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS,
       });
 
       try {
