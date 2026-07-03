@@ -41,6 +41,10 @@ export interface WebRTCTunnelConfig {
   connectTimeout?: number;
 }
 
+// 前端超时不应短于后端 bridge.ts 中 remote-gateway 的 15s 连接窗口。
+// 否则 RDP/guacd 握手稍慢时，前端会先行超时并过早回退到 WebSocket。
+export const DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS = 16_000;
+
 /** 连接状态 */
 type TunnelState = 'idle' | 'signaling' | 'connected' | 'failed' | 'disconnected';
 
@@ -91,7 +95,7 @@ export class WebRTCTunnel {
         { urls: 'stun:stun.chat.bilibili.com:3478' },
         { urls: 'stun:stun.miwifi.com:3478' },
       ],
-      connectTimeout: config.connectTimeout || 10000,
+      connectTimeout: config.connectTimeout || DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS,
     };
   }
 

@@ -45,6 +45,12 @@ interface ActiveWebRTCSession {
   createdAt: number;
 }
 
+type WeriftIceServer = {
+  urls: string;
+  username?: string;
+  credential?: string;
+};
+
 /** 活跃会话映射 (sessionId -> session) */
 const activeSessions = new Map<string, ActiveWebRTCSession>();
 
@@ -79,6 +85,18 @@ export function getICEConfig(): WebRTCConfig {
   }
 
   return { iceServers };
+}
+
+export function getWeriftICEConfig(): WeriftIceServer[] {
+  return getICEConfig().iceServers.flatMap((server) => {
+    const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+
+    return urls.map((url) => ({
+      urls: url,
+      username: server.username,
+      credential: server.credential,
+    }));
+  });
 }
 
 /**
@@ -158,17 +176,10 @@ async function handleOffer(
   }
 
   const sessionId = `webrtc-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
-  const iceConfig = getICEConfig();
+  const iceServers = getWeriftICEConfig();
 
   // 创建 RTCPeerConnection
-  const pc = new RTCPeerConnection({
-    iceServers: iceConfig.iceServers.map((server) => ({
-      // werift 类型定义仅接受 string，数组需转为逗号分隔
-      urls: Array.isArray(server.urls) ? server.urls.join(',') : server.urls,
-      username: server.username,
-      credential: server.credential,
-    })),
-  });
+  const pc = new RTCPeerConnection({ iceServers });
 
   const session: ActiveWebRTCSession = {
     pc,

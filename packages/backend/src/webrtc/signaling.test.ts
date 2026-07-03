@@ -2,7 +2,7 @@
  * WebRTC 信令 — getICEConfig 单元测试
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getICEConfig } from './signaling';
+import { getICEConfig, getWeriftICEConfig } from './signaling';
 
 describe('getICEConfig', () => {
   const originalEnv = process.env;
@@ -112,5 +112,23 @@ describe('getICEConfig', () => {
     const config = getICEConfig();
 
     expect(config.iceServers).toHaveLength(1);
+  });
+
+  it('应将多个 ICE URL 展开为 werift 支持的单 URL 条目', () => {
+    process.env.WEBRTC_STUN_URLS = 'stun:a.example.com:3478,stun:b.example.com:3478';
+    process.env.WEBRTC_TURN_URLS = 'turn:turn.example.com:3478';
+    process.env.WEBRTC_TURN_USERNAME = 'user';
+    process.env.WEBRTC_TURN_CREDENTIAL = 'pass';
+
+    const config = getWeriftICEConfig();
+
+    expect(config).toEqual([
+      { urls: 'stun:a.example.com:3478', username: undefined, credential: undefined },
+      { urls: 'stun:b.example.com:3478', username: undefined, credential: undefined },
+      { urls: 'turn:turn.example.com:3478', username: 'user', credential: 'pass' },
+    ]);
+    expect(config.map((server) => server.urls)).not.toContain(
+      'stun:a.example.com:3478,stun:b.example.com:3478',
+    );
   });
 });
