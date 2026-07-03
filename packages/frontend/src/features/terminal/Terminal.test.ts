@@ -65,13 +65,31 @@ vi.mock('@xterm/addon-webgl', () => ({
   })),
 }));
 
+const { mockOutputEnhancerActivate, mockOutputEnhancerDispose, mockLogWarn, mockLogDebug } =
+  vi.hoisted(() => ({
+    mockOutputEnhancerActivate: vi.fn(),
+    mockOutputEnhancerDispose: vi.fn(),
+    mockLogWarn: vi.fn(),
+    mockLogDebug: vi.fn(),
+  }));
+
 vi.mock('./addons/output-enhancer', () => ({
   OutputEnhancerAddon: vi.fn(() => ({
+    activate: mockOutputEnhancerActivate,
     isEnabled: vi.fn(() => true),
     setEnabled: vi.fn(),
     expandLastFold: vi.fn(() => true),
-    dispose: vi.fn(),
+    dispose: mockOutputEnhancerDispose,
   })),
+}));
+
+vi.mock('@/utils/log', () => ({
+  log: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: mockLogWarn,
+    debug: mockLogDebug,
+  },
 }));
 
 // Mock vue-i18n
@@ -292,8 +310,28 @@ describe('Terminal.vue', () => {
 
       await nextTick();
 
-      // loadAddon should be called multiple times for different addons
+      // loadAddon should be called multiple times for xterm-managed addons.
       expect(mockTerminalLoadAddon).toHaveBeenCalled();
+      expect(mockOutputEnhancerActivate).toHaveBeenCalledWith(mockTerminalInstance);
+      expect(
+        mockTerminalLoadAddon.mock.calls.some(
+          ([addon]) => addon?.activate === mockOutputEnhancerActivate,
+        ),
+      ).toBe(false);
+    });
+
+    it('应先 open 终端 DOM 再加载插件', async () => {
+      mount(Terminal, {
+        props: { sessionId: 'session-1' },
+      });
+
+      await nextTick();
+
+      expect(mockTerminalOpen).toHaveBeenCalled();
+      expect(mockTerminalLoadAddon).toHaveBeenCalled();
+      expect(mockTerminalOpen.mock.invocationCallOrder[0]).toBeLessThan(
+        mockTerminalLoadAddon.mock.invocationCallOrder[0],
+      );
     });
 
     it('应调用 open 方法挂载终端', async () => {
@@ -410,7 +448,7 @@ describe('Terminal.vue', () => {
   });
 
   describe('卸载清理', () => {
-    it('卸载时应销毁终端实例', async () => {
+    it('卸载时应销毁终端实例并释放手动管理的输出增强插件', async () => {
       const wrapper = mount(Terminal, {
         props: { sessionId: 'session-1' },
       });
@@ -418,7 +456,30 @@ describe('Terminal.vue', () => {
       await nextTick();
       wrapper.unmount();
 
+      expect(mockOutputEnhancerDispose).toHaveBeenCalled();
       expect(mockTerminalDispose).toHaveBeenCalled();
+    });
+
+    it('xterm dispose 抛 addon 清理错误时不应中断卸载或打印 warn', async () => {
+      mockTerminalDispose.mockImplementationOnce(() => {
+        throw new Error('Could not dispose an addon that has not been loaded');
+      });
+
+      const wrapper = mount(Terminal, {
+        props: { sessionId: 'session-1' },
+      });
+
+      await nextTick();
+
+      expect(() => wrapper.unmount()).not.toThrow();
+      expect(mockTerminalDispose).toHaveBeenCalled();
+      expect(mockLogWarn).not.toHaveBeenCalledWith(
+        expect.stringContaining('xterm dispose 失败'),
+        expect.anything(),
+      );
+      expect(mockLogDebug).toHaveBeenCalledWith(
+        expect.stringContaining('忽略 xterm addon 重复清理错误'),
+      );
     });
   });
 

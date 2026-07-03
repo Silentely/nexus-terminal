@@ -382,6 +382,13 @@ onMounted(() => {
 
     terminalInstance.value = term;
 
+    // 先挂载终端 DOM，再加载依赖渲染尺寸的 addon。
+    // xterm 的 Fit/WebGL/Unicode 等 addon 可能读取 renderService.dimensions，
+    // 在 open() 前加载会导致连接时出现 dimensions undefined。
+    term.open(terminalRef.value);
+    isTerminalDomReady.value = true;
+    log.info(`[Terminal ${props.sessionId}] Xterm open() called.`);
+
     // Load Addons
     term.loadAddon(fitAddon);
     term.loadAddon(new WebLinksAddon());
@@ -398,7 +405,9 @@ onMounted(() => {
         enableLinkDetection: true,
         foldThreshold: 500,
       });
-      term.loadAddon(outputEnhancerAddon);
+      // OutputEnhancerAddon 只 monkey-patch terminal.write，不依赖 xterm AddonManager。
+      // 手动 activate/dispose 可避免 xterm 在整体 dispose 时遇到 addon 管理状态错乱。
+      outputEnhancerAddon.activate(term);
       log.info(
         `[Terminal ${props.sessionId}] OutputEnhancerAddon 加载成功 (enabled: ${terminalOutputEnhancerEnabledBoolean.value})`,
       );
@@ -413,13 +422,10 @@ onMounted(() => {
     // 使用 composable 初始化渲染器（自动选择 WebGL/Canvas/DOM）
     initRenderer();
 
-    term.open(terminalRef.value);
-    isTerminalDomReady.value = true;
     // 仅在用户启用 FPS 显示时启动采样，避免无用 RAF 循环
     if (isFpsEnabled.value) {
       startMonitoring();
     }
-    log.info(`[Terminal ${props.sessionId}] Xterm open() called.`);
 
     applyTerminalWrapMode();
 
@@ -623,8 +629,7 @@ onBeforeUnmount(() => {
     textareaKeydownHandler.value = null;
   }
 
-  // OutputEnhancerAddon 会替换 terminal.write，需在 terminal 仍存活时先恢复原始方法。
-  // terminal.dispose() 也会清理已加载 addon，但此处提前 dispose 可避免 monkey-patch 残留。
+  // OutputEnhancerAddon 未交给 xterm AddonManager，需在 terminal.dispose() 前手动恢复 write。
   if (outputEnhancerAddon) {
     try {
       outputEnhancerAddon.dispose();
@@ -635,13 +640,34 @@ onBeforeUnmount(() => {
     }
   }
 
-  if (terminalInstance.value) {
-    terminalInstance.value.dispose();
-    terminalInstance.value = null;
+  if (selectionListenerDisposable) {
+    try {
+      selectionListenerDisposable.dispose();
+    } catch (error: unknown) {
+      log.warn(`[Terminal ${props.sessionId}] Selection listener dispose 失败:`, error);
+    } finally {
+      selectionListenerDisposable = null;
+    }
   }
 
-  if (selectionListenerDisposable) {
-    selectionListenerDisposable.dispose();
+  if (terminalInstance.value) {
+    try {
+      terminalInstance.value.dispose();
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Could not dispose an addon that has not been loaded')) {
+        log.debug(`[Terminal ${props.sessionId}] 忽略 xterm addon 重复清理错误: ${errorMessage}`);
+      } else {
+        log.warn(
+          `[Terminal ${props.sessionId}] xterm dispose 失败，已忽略以避免关闭会话中断:`,
+          error,
+        );
+      }
+    } finally {
+      terminalInstance.value = null;
+      outputEnhancerAddon = null;
+      searchAddon = null;
+    }
   }
 
   removeContextMenuListener();
