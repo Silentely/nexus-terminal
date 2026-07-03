@@ -423,6 +423,7 @@ export class SftpUploadManager {
             state.ws,
             'sftp:upload:progress',
             {
+              uploadId,
               bytesWritten: uploadState.bytesWritten,
               totalSize: uploadState.totalSize,
               progress: Math.min(100, progressPercent),
@@ -435,7 +436,7 @@ export class SftpUploadManager {
           sendWsMessage(
             state.ws,
             'sftp:upload:chunk:ack',
-            { chunkIndex: currentIndex, windowSlots },
+            { uploadId, chunkIndex: currentIndex, windowSlots },
             uploadState.sessionId,
           );
         }
@@ -514,6 +515,8 @@ export class SftpUploadManager {
 
     return new Promise<void>((resolveWrite, reject) => {
       let settled = false;
+      let writeCallbackResolved = false;
+      let writeSuccess: boolean | undefined;
       const settle = (action: 'resolve' | 'reject', err?: Error) => {
         if (settled) return;
         settled = true;
@@ -521,7 +524,7 @@ export class SftpUploadManager {
         else reject(err);
       };
 
-      const writeSuccess = uploadState.stream.write(chunkBuffer, (err) => {
+      writeSuccess = uploadState.stream.write(chunkBuffer, (err) => {
         if (err) {
           logger.error(`[SFTP Upload ${uploadId}] Write callback error:`, err);
           sendWsMessage(
@@ -536,6 +539,7 @@ export class SftpUploadManager {
         }
 
         uploadState.bytesWritten += chunkBuffer.length;
+        writeCallbackResolved = true;
         // SFTP 上传字节指标（延迟导入避免循环依赖）
         try {
           const { sftpTransferredBytes } = require('../metrics/metrics.service');
@@ -544,14 +548,15 @@ export class SftpUploadManager {
           logger.warn('[SFTP Upload] 指标模块加载失败，上传字节未记录:', metricsErr);
         }
 
-        if (writeSuccess) {
-          // 内核缓冲区尚有余量，回调即表示数据已入队
-          settle('resolve');
-        }
-        // writeSuccess === false 时不在此 resolve，等 drain
+        // 回调表示写入已完成；如果 write() 返回 false，仍需等待 drain 再 resolve。
+        queueMicrotask(() => {
+          if (writeSuccess !== false) {
+            settle('resolve');
+          }
+        });
       });
 
-      if (!writeSuccess) {
+      if (writeSuccess === false) {
         // 背压：等 drain 事件后再 resolve（回调中 bytesWritten 已更新）
         if (!uploadState.drainPromise) {
           uploadState.drainPromise = new Promise<void>((drainResolve) => {
@@ -561,7 +566,9 @@ export class SftpUploadManager {
             });
           });
         }
-        uploadState.drainPromise.then(() => settle('resolve'));
+        uploadState.drainPromise.then(() => {
+          if (writeCallbackResolved) settle('resolve');
+        });
       }
     });
   }

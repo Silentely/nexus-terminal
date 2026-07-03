@@ -42,10 +42,11 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   'sftp:rmdir': { maxMessages: 10, windowMs: 1000 },
   'sftp:unlink': { maxMessages: 10, windowMs: 1000 },
   'sftp:rename': { maxMessages: 10, windowMs: 1000 },
-  // 大文件分块上传：前端可能高频发送分块，阈值较高
-  'sftp:upload:chunk': { maxMessages: 200, windowMs: 1000 },
-  // 上传启动：管理类操作，限制严格
-  'sftp:upload:start': { maxMessages: 10, windowMs: 1000 },
+  // 大文件/多文件分块上传：真实批量上传会按每文件滑动窗口并发发送，
+  // 安全性主要由 SftpUploadManager 的每上传窗口和全局缓冲上限控制。
+  'sftp:upload:chunk': { maxMessages: 1000, windowMs: 1000 },
+  // 多文件/目录上传会瞬间启动多个文件任务，需避免误伤正常批量上传。
+  'sftp:upload:start': { maxMessages: 100, windowMs: 1000 },
   'sftp:upload:cancel': { maxMessages: 10, windowMs: 1000 },
 
   // Docker 操作：轮询 Docker API，限制严格

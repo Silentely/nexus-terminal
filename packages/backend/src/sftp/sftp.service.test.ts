@@ -1094,6 +1094,52 @@ describe('SftpService', () => {
       expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('sftp:upload:ready'));
     });
 
+    it('上传分块确认和进度消息应包含 uploadId', async () => {
+      const mockWriteStream = new MockWriteStream();
+      const openHandle = {};
+
+      mockSftp.open.mockImplementation((path: string, flags: string, callback: unknown) => {
+        callback(null, openHandle);
+      });
+      mockSftp.close.mockImplementation((handle: unknown, callback: unknown) => {
+        callback(null);
+      });
+      mockSftp.stat.mockImplementation((path: string, callback: unknown) => {
+        callback(null, { mode: 0o100755 });
+      });
+      mockSftp.createWriteStream.mockReturnValue(mockWriteStream);
+      mockWriteStream.write.mockImplementation(
+        (_chunk: Buffer, callback: (err?: Error) => void) => {
+          callback();
+          return true;
+        },
+      );
+
+      await service.startUpload(sessionId, uploadId, remotePath, totalSize);
+      mockWs.send.mockClear();
+
+      await service.handleUploadChunk(
+        sessionId,
+        uploadId,
+        0,
+        Buffer.from('hello').toString('base64'),
+      );
+
+      const sentMessages = mockWs.send.mock.calls.map(([raw]) => JSON.parse(raw as string));
+      expect(sentMessages).toContainEqual(
+        expect.objectContaining({
+          type: 'sftp:upload:progress',
+          payload: expect.objectContaining({ uploadId }),
+        }),
+      );
+      expect(sentMessages).toContainEqual(
+        expect.objectContaining({
+          type: 'sftp:upload:chunk:ack',
+          payload: expect.objectContaining({ uploadId, chunkIndex: 0 }),
+        }),
+      );
+    });
+
     it('SFTP 未就绪时应发送错误', async () => {
       clientStates.set(sessionId, {
         sshClient: mockSshClient,

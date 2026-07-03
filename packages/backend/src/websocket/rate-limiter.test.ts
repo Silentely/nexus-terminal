@@ -98,6 +98,20 @@ describe('WebSocket 速率限制器', () => {
       }
       expect(checkRateLimit('session-1', 'batch:create')).toBe(false);
     });
+
+    it('多文件上传启动允许 100 条/秒', () => {
+      for (let i = 0; i < 100; i++) {
+        expect(checkRateLimit('session-1', 'sftp:upload:start')).toBe(true);
+      }
+      expect(checkRateLimit('session-1', 'sftp:upload:start')).toBe(false);
+    });
+
+    it('上传分块允许 1000 条/秒以支持批量上传滑动窗口', () => {
+      for (let i = 0; i < 1000; i++) {
+        expect(checkRateLimit('session-1', 'sftp:upload:chunk')).toBe(true);
+      }
+      expect(checkRateLimit('session-1', 'sftp:upload:chunk')).toBe(false);
+    });
   });
 
   describe('cleanupRateLimit', () => {
