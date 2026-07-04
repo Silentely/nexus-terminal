@@ -59,6 +59,8 @@
 | `REMOTE_GATEWAY_WS_URL_LOCAL`    | `ws://localhost:8081`        | 本地开发时远程网关 WebSocket 地址    |
 | `REMOTE_GATEWAY_WS_URL_DOCKER`   | `ws://remote-gateway:8081`   | Docker 部署时远程网关 WebSocket 地址 |
 
+`REMOTE_GATEWAY_WS_URL_*` 可包含反向代理路径；WebRTC 远程桌面桥接会保留该路径并追加连接参数。
+
 ### Remote Gateway API 鉴权（推荐）
 
 > ✅ 建议为远程网关 API 配置共享令牌，避免 token 生成接口在端口被误暴露时可被滥用。
@@ -490,7 +492,7 @@ services:
 
 - **外观模块** — HTML 主题远程加载
 - **AI 智能运维** — NL2CMD 的 URL 抓取功能
-- **WebRTC 远程桌面桥接** — 验证 `remoteGatewayUrl` 不指向私有/内部地址，阻止恶意网关 URL 建立 WebSocket 连接
+- **WebRTC 远程桌面桥接** — 使用服务端配置的 remote-gateway WebSocket 地址建立连接，并在外部地址场景下进行 SSRF 校验与 DNS 绑定
 - **SSRF DNS 缓存** — 使用 `ipaddr.js` 检测 IP 地址格式，避免直接 IP 被误缓存为域名
 
 无需配置，自动生效。

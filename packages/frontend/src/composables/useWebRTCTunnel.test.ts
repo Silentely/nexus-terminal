@@ -8,6 +8,7 @@ import {
 describe('useWebRTCTunnel', () => {
   it('默认连接超时应长于后端 remote-gateway 连接窗口', () => {
     expect(DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS).toBeGreaterThan(15_000);
+    expect(DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS).toBeGreaterThanOrEqual(18_000);
   });
 
   it('WebRTCTunnel 默认配置应使用共享连接超时常量', () => {
@@ -17,6 +18,16 @@ describe('useWebRTCTunnel', () => {
     }) as unknown as { config: { connectTimeout: number } };
 
     expect(tunnel.config.connectTimeout).toBe(DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS);
+  });
+
+  it('WebRTCTunnel 应保留调用方显式传入的 0 超时', () => {
+    const tunnel = new WebRTCTunnel({
+      signalingUrl: 'ws://backend/ws/webrtc-signaling',
+      tunnelUrl: 'ws://backend/ws/rdp-proxy?token=test',
+      connectTimeout: 0,
+    }) as unknown as { config: { connectTimeout: number } };
+
+    expect(tunnel.config.connectTimeout).toBe(0);
   });
 
   it('应导出 WebRTC tunnel 工厂函数', () => {

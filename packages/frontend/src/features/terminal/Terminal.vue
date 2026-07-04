@@ -651,6 +651,7 @@ onBeforeUnmount(() => {
   }
 
   if (terminalInstance.value) {
+    let shouldClearTerminalRefs = true;
     try {
       terminalInstance.value.dispose();
     } catch (error: unknown) {
@@ -658,15 +659,15 @@ onBeforeUnmount(() => {
       if (errorMessage.includes('Could not dispose an addon that has not been loaded')) {
         log.debug(`[Terminal ${props.sessionId}] 忽略 xterm addon 重复清理错误: ${errorMessage}`);
       } else {
-        log.warn(
-          `[Terminal ${props.sessionId}] xterm dispose 失败，已忽略以避免关闭会话中断:`,
-          error,
-        );
+        shouldClearTerminalRefs = false;
+        log.warn(`[Terminal ${props.sessionId}] xterm dispose 失败，保留引用以便后续清理:`, error);
       }
     } finally {
-      terminalInstance.value = null;
-      outputEnhancerAddon = null;
-      searchAddon = null;
+      if (shouldClearTerminalRefs) {
+        terminalInstance.value = null;
+        outputEnhancerAddon = null;
+        searchAddon = null;
+      }
     }
   }
 

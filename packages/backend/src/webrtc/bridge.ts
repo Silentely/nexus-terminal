@@ -48,15 +48,39 @@ function getRemoteGatewayWsBaseUrl(): string {
   return 'ws://localhost:8081';
 }
 
+function getSafeErrorDetails(error: unknown): { name: string; code?: string } {
+  if (error instanceof Error) {
+    const code = (error as Error & { code?: unknown }).code;
+    return {
+      name: error.name || 'Error',
+      ...(typeof code === 'string' ? { code } : {}),
+    };
+  }
+
+  return { name: typeof error };
+}
+
 function resolveRemoteGatewayUrl(remoteGatewayUrl: string): string {
   const incomingUrl = new URL(remoteGatewayUrl);
   const gatewayBaseUrl = new URL(getRemoteGatewayWsBaseUrl());
 
   gatewayBaseUrl.search = incomingUrl.search;
   gatewayBaseUrl.hash = '';
-  gatewayBaseUrl.pathname = '/';
 
   return gatewayBaseUrl.toString();
+}
+
+function toHttpValidationUrl(gatewayUrl: string): string {
+  const validationUrl = new URL(gatewayUrl);
+  if (validationUrl.protocol === 'ws:') {
+    validationUrl.protocol = 'http:';
+  } else if (validationUrl.protocol === 'wss:') {
+    validationUrl.protocol = 'https:';
+  } else {
+    throw new Error('remote-gateway WebSocket URL 必须使用 ws/wss 协议');
+  }
+  validationUrl.hash = '';
+  return validationUrl.toString();
 }
 
 /**
@@ -82,11 +106,13 @@ export async function bridgeDataChannelToGateway(
   try {
     gatewayUrl = resolveRemoteGatewayUrl(remoteGatewayUrl);
   } catch (error) {
-    logger.error(`[WebRTC Bridge] remoteGatewayUrl 无效: ${sessionId}`, error);
+    logger.error(`[WebRTC Bridge] remoteGatewayUrl 无效: ${sessionId}`, {
+      error: getSafeErrorDetails(error),
+    });
     dc.send(
       JSON.stringify({
         type: 'error',
-        payload: `remote-gateway URL 无效: ${error instanceof Error ? error.message : '未知错误'}`,
+        payload: 'remote-gateway URL 无效，请检查服务端网关配置',
       }),
     );
     return;
@@ -96,19 +122,22 @@ export async function bridgeDataChannelToGateway(
   let agent: http.Agent | undefined;
   if (!isInternalGatewayUrl(gatewayUrl)) {
     try {
+      const validationUrl = toHttpValidationUrl(gatewayUrl);
       const { addresses } = await resolveAndValidatePublicHost(
-        gatewayUrl,
+        validationUrl,
         `WebRTC-Bridge-${sessionId}`,
       );
       const lookup = createPinnedLookup(addresses);
       const urlObj = new URL(gatewayUrl);
       agent = urlObj.protocol === 'wss:' ? new https.Agent({ lookup }) : new http.Agent({ lookup });
     } catch (error) {
-      logger.error(`[WebRTC Bridge] SSRF 验证失败: ${sessionId}`, error);
+      logger.error(`[WebRTC Bridge] SSRF 验证失败: ${sessionId}`, {
+        error: getSafeErrorDetails(error),
+      });
       dc.send(
         JSON.stringify({
           type: 'error',
-          payload: `remote-gateway URL 验证失败: ${error instanceof Error ? error.message : '未知错误'}`,
+          payload: 'remote-gateway URL 验证失败，请检查服务端网关配置',
         }),
       );
       return;
