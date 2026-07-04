@@ -41,7 +41,7 @@ export function createWebSocketConnectionManager(
     getIsMarkedForSuspend?: () => boolean;
     transport?: {
       sid: string;
-      sendMessage: (message: WebSocketMessage) => boolean | void;
+      sendMessage: (message: WebSocketMessage) => boolean;
       onMessage: (type: string, handler: MessageHandler) => () => void;
       connect: () => void;
       disconnect: () => void;
@@ -340,7 +340,13 @@ export function createWebSocketConnectionManager(
     // 多路复用模式：委托给 transport
     if (transport) {
       try {
-        return transport.sendMessage(message) !== false;
+        const sent = transport.sendMessage(message);
+        if (!sent) {
+          log.warn(
+            `[WebSocket ${instanceSessionId}] 多路复用发送消息失败，transport 未确认发送成功`,
+          );
+        }
+        return sent === true;
       } catch (error: unknown) {
         log.error(`[WebSocket ${instanceSessionId}] 多路复用发送消息失败:`, error, message);
         return false;

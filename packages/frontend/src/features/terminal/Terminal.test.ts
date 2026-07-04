@@ -482,7 +482,7 @@ describe('Terminal.vue', () => {
       );
     });
 
-    it('xterm dispose 抛未知错误时应保留终端引用以便后续清理', async () => {
+    it('xterm dispose 抛未知错误时也应清理终端引用', async () => {
       mockTerminalDispose.mockImplementationOnce(() => {
         throw new Error('renderer cleanup failed');
       });
@@ -501,7 +501,7 @@ describe('Terminal.vue', () => {
 
       mockTerminalWrite.mockClear();
       exposed.write('retry-cleanup-visible');
-      expect(mockTerminalWrite).toHaveBeenCalledWith('retry-cleanup-visible');
+      expect(mockTerminalWrite).not.toHaveBeenCalled();
     });
   });
 

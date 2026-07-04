@@ -58,7 +58,7 @@ function createDataChannel(): MockDataChannel {
   };
 }
 
-describe('bridgeDataChannelToGateway', () => {
+describe('WebRTC 数据通道到 remote-gateway WebSocket 桥接', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -75,7 +75,7 @@ describe('bridgeDataChannelToGateway', () => {
     process.env = originalEnv;
   });
 
-  it('validates external WebSocket gateway URLs through an HTTP-equivalent URL and keeps the configured path', async () => {
+  it('外部 wss 网关应通过 HTTP 等价 URL 校验并保留配置路径', async () => {
     process.env.REMOTE_GATEWAY_WS_URL_LOCAL = 'wss://gateway.example.com/remote/bridge';
     const dc = createDataChannel();
 
@@ -96,7 +96,7 @@ describe('bridgeDataChannelToGateway', () => {
     expect(capturedGatewayWs).not.toBeNull();
   });
 
-  it('validates external ws gateway URLs through an http URL', async () => {
+  it('外部 ws 网关应通过 http URL 校验', async () => {
     process.env.REMOTE_GATEWAY_WS_URL_LOCAL = 'ws://gateway.example.com/plain-ws';
     const dc = createDataChannel();
 
@@ -116,7 +116,24 @@ describe('bridgeDataChannelToGateway', () => {
     );
   });
 
-  it('does not log raw configured gateway URLs that may contain sensitive query values', async () => {
+  it('内部网关地址应跳过 SSRF 校验并继续创建 WebSocket', async () => {
+    process.env.REMOTE_GATEWAY_WS_URL_LOCAL = 'ws://localhost:8081/remote/bridge';
+    const dc = createDataChannel();
+
+    await bridgeDataChannelToGateway(
+      dc as unknown as Parameters<typeof bridgeDataChannelToGateway>[0],
+      'ws://client.example.net/ignored?token=secret-token',
+      'session-internal',
+    );
+
+    expect(resolveAndValidatePublicHost).not.toHaveBeenCalled();
+    expect(WebSocket).toHaveBeenCalledWith('ws://localhost:8081/remote/bridge?token=secret-token', {
+      agent: undefined,
+    });
+    expect(capturedGatewayWs).not.toBeNull();
+  });
+
+  it('配置网关 URL 无效时不应记录敏感查询值', async () => {
     process.env.REMOTE_GATEWAY_WS_URL_LOCAL = 'not a url?token=secret-token';
     const dc = createDataChannel();
 
@@ -133,7 +150,7 @@ describe('bridgeDataChannelToGateway', () => {
     expect(serializedClientMessages).not.toContain('secret-token');
   });
 
-  it('does not log raw invalid gateway URLs that may contain sensitive query values', async () => {
+  it('客户端传入网关 URL 无效时不应记录敏感查询值', async () => {
     const dc = createDataChannel();
 
     await bridgeDataChannelToGateway(
@@ -149,7 +166,7 @@ describe('bridgeDataChannelToGateway', () => {
     expect(serializedClientMessages).not.toContain('secret-token');
   });
 
-  it('does not expose raw SSRF validation errors that may contain gateway query values', async () => {
+  it('SSRF 校验失败时不应暴露原始网关查询值', async () => {
     process.env.REMOTE_GATEWAY_WS_URL_LOCAL = 'wss://gateway.example.com/remote';
     vi.mocked(resolveAndValidatePublicHost).mockRejectedValueOnce(
       Object.assign(new Error('blocked token=secret-token'), {

@@ -109,7 +109,7 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
     getIsMarkedForSuspend?: () => boolean;
     transport?: {
       sid: string;
-      sendMessage: (message: WebSocketMessage) => boolean | void;
+      sendMessage: (message: WebSocketMessage) => boolean;
       onMessage: (type: string, handler: MessageHandler) => () => void;
       connect: () => void;
       disconnect: () => void;
@@ -584,10 +584,10 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
       });
     });
 
-    it('多路复用 transport 未返回 false 时应视为发送成功', () => {
+    it('多路复用 transport 返回 true 时应视为发送成功', () => {
       const transport = {
         sid: 'mux-1',
-        sendMessage: vi.fn(),
+        sendMessage: vi.fn().mockReturnValue(true),
         onMessage: vi.fn().mockReturnValue(vi.fn()),
         connect: vi.fn(),
         disconnect: vi.fn(),
@@ -597,6 +597,21 @@ describe('useWebSocketConnection (createWebSocketConnectionManager)', () => {
       const sent = manager.sendMessage({ type: 'test:message', payload: {} });
 
       expect(sent).toBe(true);
+    });
+
+    it('多路复用 transport 未返回发送结果时应视为失败', () => {
+      const transport = {
+        sid: 'mux-1',
+        sendMessage: vi.fn(),
+        onMessage: vi.fn().mockReturnValue(vi.fn()),
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+      };
+      const manager = createManager({ transport: transport as any });
+
+      const sent = manager.sendMessage({ type: 'test:message', payload: {} });
+
+      expect(sent).toBe(false);
     });
   });
 

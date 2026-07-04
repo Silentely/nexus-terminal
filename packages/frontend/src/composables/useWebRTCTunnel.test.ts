@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS,
   WebRTCTunnel,
@@ -6,6 +6,10 @@ import {
 } from './useWebRTCTunnel';
 
 describe('useWebRTCTunnel', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('默认连接超时应长于后端 remote-gateway 连接窗口', () => {
     expect(DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS).toBeGreaterThan(15_000);
     expect(DEFAULT_WEBRTC_CONNECT_TIMEOUT_MS).toBeGreaterThanOrEqual(18_000);
@@ -28,6 +32,19 @@ describe('useWebRTCTunnel', () => {
     }) as unknown as { config: { connectTimeout: number } };
 
     expect(tunnel.config.connectTimeout).toBe(0);
+  });
+
+  it('connectTimeout 为 0 时不应启动连接超时定时器', () => {
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    const tunnel = new WebRTCTunnel({
+      signalingUrl: 'ws://backend/ws/webrtc-signaling',
+      tunnelUrl: 'ws://backend/ws/rdp-proxy?token=test',
+      connectTimeout: 0,
+    }) as unknown as { startConnectTimer: () => void };
+
+    tunnel.startConnectTimer();
+
+    expect(setTimeoutSpy).not.toHaveBeenCalled();
   });
 
   it('应导出 WebRTC tunnel 工厂函数', () => {

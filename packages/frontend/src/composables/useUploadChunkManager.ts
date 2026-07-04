@@ -18,6 +18,7 @@ const WINDOW_SIZE = 8;
 
 /** ACK 超时回退时间（兼容旧后端不发送 ack 的场景） */
 const ACK_TIMEOUT_MS = 3000;
+const FAILED_UPLOAD_CLEANUP_DELAY_MS = 5000;
 
 /** 分块上传管理器依赖 */
 export interface ChunkManagerDeps {
@@ -29,6 +30,8 @@ export interface ChunkManagerDeps {
   sessionIdForLog: Ref<string>;
   /** 国际化翻译函数 */
   t: TranslateFn;
+  /** 本地发送失败时通知上层释放队列槽位 */
+  onUploadFailed?: (uploadId: string) => void;
 }
 
 /**
@@ -77,9 +80,16 @@ export function sendFileChunks(
   const markUploadFailed = (errorKey: string): void => {
     const failedUpload = uploads[uploadId];
     if (!failedUpload) return;
+    if (failedUpload.status === 'error') return;
     failedUpload.status = 'error';
     failedUpload.error = t(errorKey);
     clearAckResources();
+    deps.onUploadFailed?.(uploadId);
+    setTimeout(() => {
+      if (uploads[uploadId]?.status === 'error') {
+        delete uploads[uploadId];
+      }
+    }, FAILED_UPLOAD_CLEANUP_DELAY_MS);
   };
 
   // 每个块创建独立的 FileReader，避免 InvalidStateError（FileReader 状态机限制）

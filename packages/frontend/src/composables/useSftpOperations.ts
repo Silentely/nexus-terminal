@@ -18,7 +18,7 @@ import { log } from '@/utils/log';
 
 /** 文件操作模块的依赖注入接口 */
 export interface SftpOperationsDeps {
-  sendMessage: (message: WebSocketMessage) => void;
+  sendMessage: (message: WebSocketMessage) => boolean | void;
   onMessage: (type: string, handler: MessageHandler) => () => void;
   isSftpReady: Readonly<Ref<boolean>>;
   currentPathRef: Ref<string>;

@@ -561,6 +561,10 @@ export class WebRTCTunnel {
    * 设置连接超时
    */
   private startConnectTimer(): void {
+    if (this.config.connectTimeout <= 0) {
+      return;
+    }
+
     this.connectTimer = setTimeout(() => {
       if (this.state === 'signaling') {
         this.handleError('WebRTC 连接超时');

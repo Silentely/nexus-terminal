@@ -43,11 +43,13 @@ describe('sendFileChunks', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     globalThis.FileReader = MockFileReader as unknown as typeof FileReader;
+    ControlledFileReader.readers = [];
   });
 
   afterEach(() => {
     vi.useRealTimers();
     globalThis.FileReader = OriginalFileReader;
+    ControlledFileReader.readers = [];
     vi.restoreAllMocks();
   });
 
@@ -88,7 +90,6 @@ describe('sendFileChunks', () => {
 
   it('最后一块发送前乐观进度不应提前显示为 100', () => {
     globalThis.FileReader = ControlledFileReader as unknown as typeof FileReader;
-    ControlledFileReader.readers = [];
     const firstChunkSize = 1024 * 256;
     const fileSize = Math.ceil(firstChunkSize / 0.995);
     const file = new File([new Uint8Array(fileSize)], 'almost.bin');
@@ -127,7 +128,6 @@ describe('sendFileChunks', () => {
 
   it('分块消息发送失败时不应推进乐观进度', () => {
     globalThis.FileReader = ControlledFileReader as unknown as typeof FileReader;
-    ControlledFileReader.readers = [];
     const file = new File([new Uint8Array(1024)], 'failed.bin');
     const uploads: Record<string, UploadItem> = {
       'upload-1': {
@@ -141,10 +141,12 @@ describe('sendFileChunks', () => {
     };
     const sendMessage = vi.fn().mockReturnValue(false);
     const unregisterAck = vi.fn();
+    const onUploadFailed = vi.fn();
     const deps: ChunkManagerDeps = {
       uploads,
       sessionIdForLog: ref('session-1'),
       t: (key: string) => key,
+      onUploadFailed,
       wsDeps: ref({
         isConnected: { value: true },
         isSftpReady: { value: true },
@@ -164,9 +166,13 @@ describe('sendFileChunks', () => {
     expect(uploads['upload-1'].sentBytes).toBe(0);
     expect(uploads['upload-1'].progress).toBe(0);
     expect(unregisterAck).toHaveBeenCalled();
+    expect(onUploadFailed).toHaveBeenCalledWith('upload-1');
     expect(
       (uploads['upload-1'] as UploadItem & { _unregisterAck?: () => void })._unregisterAck,
     ).toBeUndefined();
+
+    vi.advanceTimersByTime(5000);
+    expect(uploads['upload-1']).toBeUndefined();
   });
 
   it('零字节文件分块消息发送失败时应标记上传失败', () => {
@@ -183,10 +189,12 @@ describe('sendFileChunks', () => {
     };
     const sendMessage = vi.fn().mockReturnValue(false);
     const unregisterAck = vi.fn();
+    const onUploadFailed = vi.fn();
     const deps: ChunkManagerDeps = {
       uploads,
       sessionIdForLog: ref('session-1'),
       t: (key: string) => key,
+      onUploadFailed,
       wsDeps: ref({
         isConnected: { value: true },
         isSftpReady: { value: true },
@@ -203,5 +211,9 @@ describe('sendFileChunks', () => {
     expect(uploads['upload-1'].status).toBe('error');
     expect(uploads['upload-1'].progress).toBe(0);
     expect(unregisterAck).toHaveBeenCalled();
+    expect(onUploadFailed).toHaveBeenCalledWith('upload-1');
+
+    vi.advanceTimersByTime(5000);
+    expect(uploads['upload-1']).toBeUndefined();
   });
 });

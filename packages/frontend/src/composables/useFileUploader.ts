@@ -20,6 +20,7 @@ const joinPath = (base: string, name: string): string => {
 };
 
 const MAX_ACTIVE_UPLOAD_STARTS = 8;
+const FAILED_UPLOAD_CLEANUP_DELAY_MS = 5000;
 
 type QueuedUploadItem = UploadItem & {
   remotePath: string;
@@ -45,6 +46,7 @@ export function useFileUploader(
     wsDeps,
     sessionIdForLog,
     t,
+    onUploadFailed: () => releaseUploadStartSlot(),
   };
 
   const activeUploadStartCount = (): number =>
@@ -64,6 +66,12 @@ export function useFileUploader(
       `[FileUploader ${sessionIdForLog.value}] Failed to send upload start for ${uploadId}:`,
       error,
     );
+    releaseUploadStartSlot();
+    setTimeout(() => {
+      if (uploads[uploadId]?.status === 'error') {
+        delete uploads[uploadId];
+      }
+    }, FAILED_UPLOAD_CLEANUP_DELAY_MS);
   };
 
   const sendUploadStart = (uploadId: string, upload: QueuedUploadItem): boolean => {
@@ -83,7 +91,7 @@ export function useFileUploader(
           relativePath: upload.relativePath,
         },
       });
-      if (sendResult === false || !wsDeps.value.isConnected.value) {
+      if (sendResult === false) {
         markUploadStartFailed(uploadId);
         return false;
       }

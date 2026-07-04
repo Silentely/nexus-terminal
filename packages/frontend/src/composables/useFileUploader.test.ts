@@ -235,6 +235,54 @@ describe('useFileUploader', () => {
       );
       expect(failedUpload?.status).toBe('error');
     });
+
+    it('上传开始消息发送失败后应自动移除错误条目', () => {
+      const sessionId = ref('s1');
+      const currentPath = ref('/home');
+      const fileList = ref([]) as any;
+      const sendMessage = vi.fn().mockReturnValue(false);
+      const wsDeps = makeWsDeps({ sendMessage });
+
+      const { uploads, startFileUpload } = useFileUploader(
+        sessionId,
+        currentPath,
+        fileList,
+        wsDeps,
+      );
+
+      startFileUpload(makeFile('failed-start.txt'));
+      const uploadId = Object.keys(uploads)[0];
+
+      expect(uploads[uploadId].status).toBe('error');
+      vi.advanceTimersByTime(5000);
+
+      expect(uploads[uploadId]).toBeUndefined();
+    });
+
+    it('开始消息已成功写入时不应被之后的连接状态翻转标记失败', () => {
+      const sessionId = ref('s1');
+      const currentPath = ref('/home');
+      const fileList = ref([]) as any;
+      const isConnected = { value: true };
+      const sendMessage = vi.fn().mockImplementation(() => {
+        isConnected.value = false;
+        return true;
+      });
+      const wsDeps = makeWsDeps({ isConnected, sendMessage });
+
+      const { uploads, startFileUpload } = useFileUploader(
+        sessionId,
+        currentPath,
+        fileList,
+        wsDeps,
+      );
+
+      startFileUpload(makeFile('sent-before-disconnect.txt'));
+      const uploadId = Object.keys(uploads)[0];
+
+      expect(uploads[uploadId].status).toBe('pending');
+      expect((uploads[uploadId] as any).startRequested).toBe(true);
+    });
   });
 
   describe('cancelUpload', () => {
