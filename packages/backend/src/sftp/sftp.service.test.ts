@@ -1125,6 +1125,11 @@ describe('SftpService', () => {
         Buffer.from('hello').toString('base64'),
       );
 
+      expect(mockWriteStream.write).toHaveBeenCalledWith(
+        Buffer.from('hello'),
+        expect.any(Function),
+      );
+
       const sentMessages = mockWs.send.mock.calls.map(([raw]) => JSON.parse(raw as string));
       expect(sentMessages).toContainEqual(
         expect.objectContaining({

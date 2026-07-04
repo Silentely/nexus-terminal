@@ -481,6 +481,28 @@ describe('Terminal.vue', () => {
         expect.stringContaining('忽略 xterm addon 重复清理错误'),
       );
     });
+
+    it('xterm dispose 抛未知错误时应保留终端引用以便后续清理', async () => {
+      mockTerminalDispose.mockImplementationOnce(() => {
+        throw new Error('renderer cleanup failed');
+      });
+
+      const wrapper = mount(Terminal, {
+        props: { sessionId: 'session-1' },
+      });
+      await nextTick();
+      const exposed = wrapper.vm as any;
+
+      expect(() => wrapper.unmount()).not.toThrow();
+      expect(mockLogWarn).toHaveBeenCalledWith(
+        expect.stringContaining('xterm dispose 失败'),
+        expect.any(Error),
+      );
+
+      mockTerminalWrite.mockClear();
+      exposed.write('retry-cleanup-visible');
+      expect(mockTerminalWrite).toHaveBeenCalledWith('retry-cleanup-visible');
+    });
   });
 
   describe('滚动限制', () => {

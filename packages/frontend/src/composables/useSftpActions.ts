@@ -14,7 +14,7 @@ import { log } from '@/utils/log';
  * @description Defines the necessary functions and state required from a WebSocket manager instance.
  */
 export interface WebSocketDependencies {
-  sendMessage: (message: WebSocketMessage) => void;
+  sendMessage: (message: WebSocketMessage) => boolean | void;
   onMessage: (type: string, handler: MessageHandler) => () => void;
   isConnected: ComputedRef<boolean>;
   isSftpReady: Readonly<Ref<boolean>>;

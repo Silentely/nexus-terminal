@@ -210,6 +210,31 @@ describe('useFileUploader', () => {
 
       expect(wsDeps.value.sendMessage).toHaveBeenCalledTimes(9);
     });
+
+    it('上传开始消息发送失败时不应永久占用启动槽位', () => {
+      const sessionId = ref('s1');
+      const currentPath = ref('/home');
+      const fileList = ref([]) as any;
+      const sendMessage = vi.fn().mockReturnValueOnce(false).mockReturnValue(true);
+      const wsDeps = makeWsDeps({ sendMessage });
+
+      const { uploads, startFileUpload } = useFileUploader(
+        sessionId,
+        currentPath,
+        fileList,
+        wsDeps,
+      );
+
+      for (let i = 0; i < 9; i++) {
+        startFileUpload(makeFile(`file-${i}.txt`));
+      }
+
+      expect(sendMessage).toHaveBeenCalledTimes(9);
+      const failedUpload = Object.values(uploads).find(
+        (upload) => upload.filename === 'file-0.txt',
+      );
+      expect(failedUpload?.status).toBe('error');
+    });
   });
 
   describe('cancelUpload', () => {
@@ -576,6 +601,38 @@ describe('useFileUploader', () => {
 
       // 应取较大值 80%
       expect(uploads[uploadId].progress).toBe(80);
+    });
+
+    it('onUploadProgress 不应在后端成功前把乐观进度四舍五入到 100', () => {
+      const sessionId = ref('s1');
+      const currentPath = ref('/home');
+      const fileList = ref([]) as any;
+      const wsDeps = makeWsDeps();
+
+      const messageHandlers: Record<string, Function> = {};
+      wsDeps.value.onMessage = vi.fn().mockImplementation((type: string, handler: Function) => {
+        messageHandlers[type] = handler;
+        return vi.fn();
+      });
+
+      const { uploads, startFileUpload } = useFileUploader(
+        sessionId,
+        currentPath,
+        fileList,
+        wsDeps,
+      );
+
+      startFileUpload(makeFile('almost.bin', 10000));
+      const uploadId = Object.keys(uploads)[0];
+      uploads[uploadId].status = 'uploading';
+      uploads[uploadId].sentBytes = 9950;
+
+      messageHandlers['sftp:upload:progress'](
+        { bytesWritten: 5000, totalSize: 10000 },
+        { uploadId },
+      );
+
+      expect(uploads[uploadId].progress).toBe(99);
     });
 
     it('totalSize 为 0 时进度应为 100 而非 NaN', () => {

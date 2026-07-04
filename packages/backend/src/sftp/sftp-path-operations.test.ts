@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { EventEmitter } from 'events';
-import WebSocket from 'ws';
 import type { ClientState } from '../websocket/types';
 import {
   executeMkdirPathOperation,
