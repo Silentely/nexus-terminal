@@ -1,0 +1,80 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: packages/frontend/Dockerfile
+    image: nexus-terminal-frontend:local
+    container_name: nexus-terminal-frontend-local
+    ports:
+      - "18112:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+      remote-gateway:
+        condition: service_healthy
+    networks:
+      - nexus-terminal-network-local
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build:
+      context: .
+      dockerfile: packages/backend/Dockerfile
+    image: nexus-terminal-backend:local
+    container_name: nexus-terminal-backend-local
+    env_file:
+      - .env.localdocker
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+    volumes:
+      - ./data-localdocker:/app/data
+    networks:
+      - nexus-terminal-network-local
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  remote-gateway:
+    build:
+      context: .
+      dockerfile: packages/remote-gateway/Dockerfile
+    image: nexus-terminal-remote-gateway:local
+    container_name: nexus-terminal-remote-gateway-local
+    env_file:
+      - .env.localdocker
+    environment:
+      GUACD_HOST: localhost
+      GUACD_PORT: 4822
+      REMOTE_GATEWAY_API_PORT: 9090
+      REMOTE_GATEWAY_WS_PORT: 8081
+      FRONTEND_URL: http://frontend
+      MAIN_BACKEND_URL: http://backend:3001
+      NODE_ENV: production
+      REMOTE_GATEWAY_API_TOKEN: ${REMOTE_GATEWAY_API_TOKEN}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+    networks:
+      - nexus-terminal-network-local
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/health > /dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  nexus-terminal-network-local:
+    driver: bridge
+    name: nexus-terminal-network-local
