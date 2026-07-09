@@ -76,7 +76,11 @@ export const downloadFile = async (
   if (!targetState) {
     for (const [activeSessionId, state] of clientStates.entries()) {
       // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
-      if (state.ws.userId === userId && state.dbConnectionId === targetDbConnectionId && state.sftp) {
+      if (
+        state.ws.userId === userId &&
+        state.dbConnectionId === targetDbConnectionId &&
+        state.sftp
+      ) {
         targetState = state;
         logger.debug(`SFTP 下载：找到匹配的会话 (Session ID: ${activeSessionId})。`);
         break;
@@ -207,7 +211,11 @@ export const downloadDirectory = async (
   if (!targetState) {
     for (const [activeSessionId, state] of clientStates.entries()) {
       // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
-      if (state.ws.userId === userId && state.dbConnectionId === targetDbConnectionId && state.sftp) {
+      if (
+        state.ws.userId === userId &&
+        state.dbConnectionId === targetDbConnectionId &&
+        state.sftp
+      ) {
         targetState = state;
         logger.debug(`SFTP 文件夹下载：找到匹配的会话 (Session ID: ${activeSessionId})。`);
         break;
