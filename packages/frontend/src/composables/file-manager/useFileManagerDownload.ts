@@ -76,7 +76,7 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
       }
 
       const downloadPath = manager.joinPath(manager.currentPath.value, item.filename);
-      const downloadUrl = `/api/v1/sftp/download?connectionId=${dbConnectionId}&remotePath=${encodeURIComponent(downloadPath)}`;
+      const downloadUrl = `/api/v1/sftp/download?connectionId=${dbConnectionId}&sessionId=${encodeURIComponent(sessionId.value)}&remotePath=${encodeURIComponent(downloadPath)}`;
       log.info(`${logPrefix.value} Triggering download for ${item.filename}: ${downloadUrl}`);
 
       const link = document.createElement('a');
@@ -128,7 +128,7 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
     }
 
     const directoryPath = manager.joinPath(manager.currentPath.value, item.filename);
-    const downloadUrl = `/api/v1/sftp/download-directory?connectionId=${dbConnectionId}&remotePath=${encodeURIComponent(directoryPath)}`;
+    const downloadUrl = `/api/v1/sftp/download-directory?connectionId=${dbConnectionId}&sessionId=${encodeURIComponent(sessionId.value)}&remotePath=${encodeURIComponent(directoryPath)}`;
 
     log.info(
       `${logPrefix.value} Attempting directory download for ${item.filename}: ${downloadUrl}`,

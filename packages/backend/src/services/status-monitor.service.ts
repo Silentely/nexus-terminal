@@ -373,7 +373,7 @@ class HealthCheckCollector {
       if (!cpuLine) return null;
       const fields = cpuLine.trim().split(/\s+/).slice(1).map(Number);
       if (fields.length < 4 || fields.slice(0, 4).some(Number.isNaN)) return null;
-      const idle = fields[3];
+      const idle = fields[3] + (Number.isNaN(fields[4]) ? 0 : fields[4]);
       const total = fields.reduce((sum, v) => sum + (Number.isNaN(v) ? 0 : v), 0);
       if (Number.isNaN(total) || Number.isNaN(idle)) return null;
       return { total, idle };
