@@ -455,6 +455,39 @@ describe('StatusMonitorService', () => {
       expect(mockWs.send).toHaveBeenCalledTimes(2);
     });
 
+    it('应将 iowait 计入空闲时间以避免高估 CPU 使用率', async () => {
+      let callCount = 0;
+      const cpuStats = [
+        'cpu  1000 100 500 5000 100 0 10 0 0 0',
+        'cpu  1100 120 550 5100 300 0 15 0 0 0',
+      ];
+
+      mockClient.exec.mockImplementation(
+        (_cmd: string, optionsOrCallback: unknown, callback?: Function) => {
+          const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+          const idx = Math.min(callCount++, cpuStats.length - 1);
+          const output = buildBatchOutput({ PROC_STAT: cpuStats[idx] });
+          const stream = createMockStream(output);
+          cb(null, stream);
+        },
+      );
+
+      const mockWs = createMockWebSocket(1);
+      clientStates.set('session-cpu-iowait', {
+        sshClient: mockClient,
+        ws: mockWs,
+        dbConnectionId: 1,
+        statusIntervalId: undefined,
+      });
+
+      await service.startStatusPolling('session-cpu-iowait');
+      await vi.advanceTimersByTimeAsync(3000);
+      await vi.advanceTimersByTimeAsync(3000);
+
+      const secondData = JSON.parse(mockWs.send.mock.calls[1][0]);
+      expect(secondData.payload.status.cpuPercent).toBe(36.8);
+    });
+
     it('应正确解析系统负载', async () => {
       const batchOutput = buildBatchOutput({
         UPTIME: ' 14:30:01 up 10 days,  5:30,  2 users,  load average: 1.50, 2.00, 1.75',
