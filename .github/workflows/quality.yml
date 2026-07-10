@@ -1,6 +1,7 @@
 name: Quality Gate
 
 on:
+  push:
   pull_request:
     branches:
       - main

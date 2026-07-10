@@ -30,6 +30,12 @@ describe('validateSafePath', () => {
     it('应允许根路径', () => {
       expect(validateSafePath('/')).toBe(true);
     });
+
+    it('应允许包含冒号的时间戳目录路径', () => {
+      expect(
+        validateSafePath('/home/honus/product/pve/backup/data/data/vm/100/2026-07-08T05:49:42Z'),
+      ).toBe(true);
+    });
   });
 
   describe('应拒绝路径穿越', () => {

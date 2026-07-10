@@ -151,6 +151,48 @@ describe('SFTP Controller', () => {
       expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
       expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Length', '1024');
     });
+
+    it('应在多会话场景下优先使用 sessionId 精确匹配下载会话', async () => {
+      const staleSftp = {
+        lstat: vi.fn(),
+        createReadStream: vi.fn(),
+      };
+      const exactSftp = {
+        lstat: vi.fn((path, callback) => {
+          callback(undefined, {
+            isFile: () => true,
+            size: 512,
+          });
+        }),
+        createReadStream: vi.fn().mockReturnValue({
+          on: vi.fn().mockReturnThis(),
+          pipe: vi.fn(),
+        }),
+      };
+
+      clientStates.set('session-stale', {
+        ws: { userId: 1 } as AuthenticatedWebSocket,
+        dbConnectionId: 1,
+        sftp: staleSftp,
+      } as any);
+      clientStates.set('session-exact', {
+        ws: { userId: 1 } as AuthenticatedWebSocket,
+        dbConnectionId: 1,
+        sftp: exactSftp,
+      } as any);
+
+      mockReq.query = {
+        connectionId: '1',
+        sessionId: 'session-exact',
+        remotePath: '/test/exact.txt',
+      };
+
+      await downloadFile(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(exactSftp.lstat).toHaveBeenCalledWith('/test/exact.txt', expect.any(Function));
+      expect(staleSftp.lstat).not.toHaveBeenCalled();
+      expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Length', '512');
+    });
   });
 
   describe('downloadDirectory', () => {
@@ -211,6 +253,42 @@ describe('SFTP Controller', () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({ message: '指定的路径不是一个目录。' });
+    });
+
+    it('应在多会话场景下优先使用 sessionId 精确匹配目录下载会话', async () => {
+      const staleSftp = {
+        lstat: vi.fn(),
+      };
+      const exactSftp = {
+        lstat: vi.fn((path, callback) => {
+          callback(undefined, {
+            isDirectory: () => false,
+          });
+        }),
+      };
+
+      clientStates.set('session-stale', {
+        ws: { userId: 1 } as AuthenticatedWebSocket,
+        dbConnectionId: 1,
+        sftp: staleSftp,
+      } as any);
+      clientStates.set('session-exact', {
+        ws: { userId: 1 } as AuthenticatedWebSocket,
+        dbConnectionId: 1,
+        sftp: exactSftp,
+      } as any);
+
+      mockReq.query = {
+        connectionId: '1',
+        sessionId: 'session-exact',
+        remotePath: '/test/dir',
+      };
+
+      await downloadDirectory(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(exactSftp.lstat).toHaveBeenCalledWith('/test/dir', expect.any(Function));
+      expect(staleSftp.lstat).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
     });
   });
 

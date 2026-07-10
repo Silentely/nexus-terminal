@@ -36,6 +36,7 @@ export const downloadFile = async (
 ): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
+  const sessionId = req.query.sessionId as string | undefined; // 可选：优先绑定当前前端会话
   const remotePath = req.query.remotePath as string; // 从查询参数获取
 
   // 参数验证
@@ -60,12 +61,30 @@ export const downloadFile = async (
   }
 
   logger.debug(`SFTP 下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`);
-  for (const [sessionId, state] of clientStates.entries()) {
-    // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
-    if (state.ws.userId === userId && state.dbConnectionId === targetDbConnectionId && state.sftp) {
-      targetState = state;
-      logger.debug(`SFTP 下载：找到匹配的会话 (Session ID: ${sessionId})。`);
-      break;
+  if (sessionId) {
+    const exactState = clientStates.get(sessionId);
+    if (
+      exactState &&
+      exactState.ws.userId === userId &&
+      exactState.dbConnectionId === targetDbConnectionId &&
+      exactState.sftp
+    ) {
+      targetState = exactState;
+      logger.debug(`SFTP 下载：按 sessionId 精确命中会话 (${sessionId})。`);
+    }
+  }
+  if (!targetState) {
+    for (const [activeSessionId, state] of clientStates.entries()) {
+      // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
+      if (
+        state.ws.userId === userId &&
+        state.dbConnectionId === targetDbConnectionId &&
+        state.sftp
+      ) {
+        targetState = state;
+        logger.debug(`SFTP 下载：找到匹配的会话 (Session ID: ${activeSessionId})。`);
+        break;
+      }
     }
   }
 
@@ -150,6 +169,7 @@ export const downloadDirectory = async (
 ): Promise<void> => {
   const { userId } = req.session;
   const connectionId = req.query.connectionId as string; // 从查询参数获取
+  const sessionId = req.query.sessionId as string | undefined; // 可选：优先绑定当前前端会话
   const remotePath = req.query.remotePath as string; // 从查询参数获取
 
   // 参数验证
@@ -176,12 +196,30 @@ export const downloadDirectory = async (
   logger.debug(
     `SFTP 文件夹下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`,
   );
-  for (const [sessionId, state] of clientStates.entries()) {
-    // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
-    if (state.ws.userId === userId && state.dbConnectionId === targetDbConnectionId && state.sftp) {
-      targetState = state;
-      logger.debug(`SFTP 文件夹下载：找到匹配的会话 (Session ID: ${sessionId})。`);
-      break;
+  if (sessionId) {
+    const exactState = clientStates.get(sessionId);
+    if (
+      exactState &&
+      exactState.ws.userId === userId &&
+      exactState.dbConnectionId === targetDbConnectionId &&
+      exactState.sftp
+    ) {
+      targetState = exactState;
+      logger.debug(`SFTP 文件夹下载：按 sessionId 精确命中会话 (${sessionId})。`);
+    }
+  }
+  if (!targetState) {
+    for (const [activeSessionId, state] of clientStates.entries()) {
+      // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
+      if (
+        state.ws.userId === userId &&
+        state.dbConnectionId === targetDbConnectionId &&
+        state.sftp
+      ) {
+        targetState = state;
+        logger.debug(`SFTP 文件夹下载：找到匹配的会话 (Session ID: ${activeSessionId})。`);
+        break;
+      }
     }
   }
 

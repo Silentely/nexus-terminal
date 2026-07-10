@@ -371,10 +371,33 @@ class HealthCheckCollector {
     try {
       const cpuLine = output.split('\n').find((line) => line.startsWith('cpu '));
       if (!cpuLine) return null;
+
       const fields = cpuLine.trim().split(/\s+/).slice(1).map(Number);
       if (fields.length < 4 || fields.slice(0, 4).some(Number.isNaN)) return null;
-      const idle = fields[3];
-      const total = fields.reduce((sum, v) => sum + (Number.isNaN(v) ? 0 : v), 0);
+
+      const [
+        userTime,
+        niceTime,
+        systemTime,
+        idleTime,
+        ioWaitTime = 0,
+        irqTime = 0,
+        softIrqTime = 0,
+        stealTime = 0,
+      ] = fields;
+
+      const idle = idleTime + (Number.isNaN(ioWaitTime) ? 0 : ioWaitTime);
+      const total =
+        userTime +
+        niceTime +
+        systemTime +
+        idleTime +
+        (Number.isNaN(ioWaitTime) ? 0 : ioWaitTime) +
+        (Number.isNaN(irqTime) ? 0 : irqTime) +
+        (Number.isNaN(softIrqTime) ? 0 : softIrqTime) +
+        (Number.isNaN(stealTime) ? 0 : stealTime) +
+        fields.slice(8).reduce((sum, value) => sum + (Number.isNaN(value) ? 0 : value), 0);
+
       if (Number.isNaN(total) || Number.isNaN(idle)) return null;
       return { total, idle };
     } catch (error: unknown) {
