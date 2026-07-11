@@ -387,6 +387,7 @@ class HealthCheckCollector {
       ] = fields;
 
       const idle = idleTime + (Number.isNaN(ioWaitTime) ? 0 : ioWaitTime);
+      // 注意：guest/guest_nice（index 8-9）已包含在 user/nice 中，不能重复计算
       const total =
         userTime +
         niceTime +
@@ -395,8 +396,7 @@ class HealthCheckCollector {
         (Number.isNaN(ioWaitTime) ? 0 : ioWaitTime) +
         (Number.isNaN(irqTime) ? 0 : irqTime) +
         (Number.isNaN(softIrqTime) ? 0 : softIrqTime) +
-        (Number.isNaN(stealTime) ? 0 : stealTime) +
-        fields.slice(8).reduce((sum, value) => sum + (Number.isNaN(value) ? 0 : value), 0);
+        (Number.isNaN(stealTime) ? 0 : stealTime);
 
       if (Number.isNaN(total) || Number.isNaN(idle)) return null;
       return { total, idle };

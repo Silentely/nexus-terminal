@@ -193,6 +193,74 @@ describe('SFTP Controller', () => {
       expect(staleSftp.lstat).not.toHaveBeenCalled();
       expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Length', '512');
     });
+
+    it('应在 sessionId 不存在时回退到遍历匹配', async () => {
+      const fallbackSftp = {
+        lstat: vi.fn((path, callback) => {
+          callback(undefined, { isFile: () => true, size: 256 });
+        }),
+        createReadStream: vi.fn().mockReturnValue({
+          on: vi.fn().mockReturnThis(),
+          pipe: vi.fn(),
+        }),
+      };
+
+      clientStates.set('session-real', {
+        ws: { userId: 1 } as AuthenticatedWebSocket,
+        dbConnectionId: 1,
+        sftp: fallbackSftp,
+      } as any);
+
+      mockReq.query = {
+        connectionId: '1',
+        sessionId: 'nonexistent-session',
+        remotePath: '/test/fallback.txt',
+      };
+
+      await downloadFile(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(fallbackSftp.lstat).toHaveBeenCalledWith('/test/fallback.txt', expect.any(Function));
+      expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Length', '256');
+    });
+
+    it('应在 sessionId 存在但 userId 不匹配时回退到遍历匹配', async () => {
+      const wrongUserSftp = {
+        lstat: vi.fn(),
+        createReadStream: vi.fn(),
+      };
+      const correctSftp = {
+        lstat: vi.fn((path, callback) => {
+          callback(undefined, { isFile: () => true, size: 128 });
+        }),
+        createReadStream: vi.fn().mockReturnValue({
+          on: vi.fn().mockReturnThis(),
+          pipe: vi.fn(),
+        }),
+      };
+
+      clientStates.set('session-wrong-user', {
+        ws: { userId: 999 } as AuthenticatedWebSocket,
+        dbConnectionId: 1,
+        sftp: wrongUserSftp,
+      } as any);
+      clientStates.set('session-correct', {
+        ws: { userId: 1 } as AuthenticatedWebSocket,
+        dbConnectionId: 1,
+        sftp: correctSftp,
+      } as any);
+
+      mockReq.query = {
+        connectionId: '1',
+        sessionId: 'session-wrong-user',
+        remotePath: '/test/correct.txt',
+      };
+
+      await downloadFile(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(wrongUserSftp.lstat).not.toHaveBeenCalled();
+      expect(correctSftp.lstat).toHaveBeenCalledWith('/test/correct.txt', expect.any(Function));
+      expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Length', '128');
+    });
   });
 
   describe('downloadDirectory', () => {

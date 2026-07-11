@@ -27,6 +27,44 @@ interface SftpDirectoryEntry {
 }
 
 /**
+ * 查找匹配的 SFTP 会话
+ * 优先使用 sessionId 精确匹配，回退到 userId + connectionId 模糊匹配
+ * @param userId 用户ID
+ * @param targetDbConnectionId 目标数据库连接ID
+ * @param sessionId 可选的会话ID，用于精确匹配
+ * @returns 匹配的 ClientState 或 null
+ */
+const findSftpSession = (
+  userId: number,
+  targetDbConnectionId: number,
+  sessionId?: string,
+): ClientState | null => {
+  // 优先尝试精确匹配 sessionId
+  if (sessionId) {
+    const exactState = clientStates.get(sessionId);
+    if (
+      exactState &&
+      exactState.ws.userId === userId &&
+      exactState.dbConnectionId === targetDbConnectionId &&
+      exactState.sftp
+    ) {
+      logger.debug(`SFTP 会话查找：按 sessionId 精确命中会话 (${sessionId})。`);
+      return exactState;
+    }
+  }
+
+  // 回退到遍历匹配 userId + connectionId
+  for (const [activeSessionId, state] of clientStates.entries()) {
+    if (state.ws.userId === userId && state.dbConnectionId === targetDbConnectionId && state.sftp) {
+      logger.debug(`SFTP 会话查找：找到匹配的会话 (Session ID: ${activeSessionId})。`);
+      return state;
+    }
+  }
+
+  return null;
+};
+
+/**
  * 处理文件下载请求 (GET /api/v1/sftp/download)
  */
 export const downloadFile = async (
@@ -51,9 +89,8 @@ export const downloadFile = async (
 
   logger.info(`SFTP 下载请求：用户 ${userId}, 连接 ${connectionId}, 路径 ${remotePath}`);
 
-  // --- 修改：查找与 userId 和 connectionId 匹配的活动 SFTP 会话 ---
-  let targetState: ClientState | null = null;
-  const targetDbConnectionId = parseInt(connectionId, 10); // 将查询参数字符串转换为数字
+  // --- 查找与 userId 和 connectionId 匹配的活动 SFTP 会话 ---
+  const targetDbConnectionId = parseInt(connectionId, 10);
 
   if (Number.isNaN(targetDbConnectionId)) {
     res.status(400).json({ message: '无效的 connectionId。' });
@@ -61,32 +98,7 @@ export const downloadFile = async (
   }
 
   logger.debug(`SFTP 下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`);
-  if (sessionId) {
-    const exactState = clientStates.get(sessionId);
-    if (
-      exactState &&
-      exactState.ws.userId === userId &&
-      exactState.dbConnectionId === targetDbConnectionId &&
-      exactState.sftp
-    ) {
-      targetState = exactState;
-      logger.debug(`SFTP 下载：按 sessionId 精确命中会话 (${sessionId})。`);
-    }
-  }
-  if (!targetState) {
-    for (const [activeSessionId, state] of clientStates.entries()) {
-      // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
-      if (
-        state.ws.userId === userId &&
-        state.dbConnectionId === targetDbConnectionId &&
-        state.sftp
-      ) {
-        targetState = state;
-        logger.debug(`SFTP 下载：找到匹配的会话 (Session ID: ${activeSessionId})。`);
-        break;
-      }
-    }
-  }
+  const targetState = findSftpSession(userId, targetDbConnectionId, sessionId);
 
   if (!targetState || !targetState.sftp) {
     logger.warn(
@@ -184,9 +196,8 @@ export const downloadDirectory = async (
 
   logger.info(`SFTP 文件夹下载请求：用户 ${userId}, 连接 ${connectionId}, 路径 ${remotePath}`);
 
-  // --- 修改：查找与 userId 和 connectionId 匹配的活动 SFTP 会话 ---
-  let targetState: ClientState | null = null;
-  const targetDbConnectionId = parseInt(connectionId, 10); // 将查询参数字符串转换为数字
+  // --- 查找与 userId 和 connectionId 匹配的活动 SFTP 会话 ---
+  const targetDbConnectionId = parseInt(connectionId, 10);
 
   if (Number.isNaN(targetDbConnectionId)) {
     res.status(400).json({ message: '无效的 connectionId。' });
@@ -196,32 +207,7 @@ export const downloadDirectory = async (
   logger.debug(
     `SFTP 文件夹下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`,
   );
-  if (sessionId) {
-    const exactState = clientStates.get(sessionId);
-    if (
-      exactState &&
-      exactState.ws.userId === userId &&
-      exactState.dbConnectionId === targetDbConnectionId &&
-      exactState.sftp
-    ) {
-      targetState = exactState;
-      logger.debug(`SFTP 文件夹下载：按 sessionId 精确命中会话 (${sessionId})。`);
-    }
-  }
-  if (!targetState) {
-    for (const [activeSessionId, state] of clientStates.entries()) {
-      // 检查 userId 和 dbConnectionId 是否都匹配，并且 sftp 实例存在
-      if (
-        state.ws.userId === userId &&
-        state.dbConnectionId === targetDbConnectionId &&
-        state.sftp
-      ) {
-        targetState = state;
-        logger.debug(`SFTP 文件夹下载：找到匹配的会话 (Session ID: ${activeSessionId})。`);
-        break;
-      }
-    }
-  }
+  const targetState = findSftpSession(userId, targetDbConnectionId, sessionId);
 
   if (!targetState || !targetState.sftp) {
     logger.warn(

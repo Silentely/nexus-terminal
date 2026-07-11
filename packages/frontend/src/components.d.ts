@@ -23,6 +23,7 @@ declare module 'vue' {
     AISettingsSection: typeof import('./components/settings/AISettingsSection.vue')['default']
     AlertDialog: typeof import('./components/common/AlertDialog.vue')['default']
     AppearanceSection: typeof import('./components/settings/AppearanceSection.vue')['default']
+    ArchiveProgressPopup: typeof import('./components/ArchiveProgressPopup.vue')['default']
     BatchEditConnectionForm: typeof import('./components/BatchEditConnectionForm.vue')['default']
     CaptchaSettingsForm: typeof import('./components/settings/CaptchaSettingsForm.vue')['default']
     ChangePasswordForm: typeof import('./components/settings/ChangePasswordForm.vue')['default']
