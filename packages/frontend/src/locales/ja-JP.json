@@ -1107,7 +1107,10 @@
         "checkFailedShort": "確認失敗",
         "noReleases": "リリースバージョンが見つかりません",
         "rateLimit": "GitHub API レート制限。後でもう一度お試しください"
-      }
+      },
+      "multiplexOn": "WS多重化: オン",
+      "multiplexOff": "WS多重化: オフ",
+      "multiplexHint": "バックエンドの ENABLE_MULTIPLEX で制御。複数タブ時はブラウザの WebSocket 数削減のため有効化を推奨。変更後はバックエンド再起動と再ログインが必要です。"
     },
     "exportConnections": {
       "title": "导出连接数据",

@@ -1,6 +1,27 @@
 # 星枢终端 - 技术债务报告
 
-> **状态**：✅ 已修复债务全部收敛 | **测试覆盖率**：待提升 | **更新时间**：2026-05-15
+> **状态**：✅ 标记债务（TODO/any/console.log）为 0 | **测试覆盖率**：待提升 | **更新时间**：2026-07-17
+
+---
+
+## 2026-07-17 打磨迭代（10 轮）摘要
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | 刷新债务基线与热点清单 | 本表 + 覆盖率行动计划校准 |
+| R2–R3 | RDP/VNC Guacamole 共用工具层 | `frontend/src/utils/guacamoleHelpers.ts`，双 Modal 接入 |
+| R4 | transfers 纯函数拆分 | `backend/src/transfers/transfers.utils.ts` |
+| R5 | WebSocket 连接元信息拆分 | `backend/src/websocket/connection-meta.ts` |
+| R6 | 前端死代码主题表瘦身 | `iterm-themes.ts` 12k 行 → 样例 3 主题（完整预设在后端 seed） |
+| R7 | Multiplex 可观测与文档 | 设置「关于」展示状态 + FAQ |
+| R8–R9 | 单元测试补齐 | `*.utils.test.ts` / `guacamoleHelpers.test.ts` / `connection-meta.test.ts` |
+| R10 | 本地验证与文档回填 | `debt:check` + 相关 vitest |
+
+### 覆盖率行动计划校准（相对 2026-05）
+
+- `sendActions` 已不存在，会话发送相关能力拆至 `commandInputActions` / `sessionActions` 等，且已有测试文件。
+- 前端完整 iTerm 主题**运行时不依赖** `features/appearance/config/iterm-themes.ts`，主题列表来自后端 API。
+- 仍优先：`batch.service` / `transfers` / `ssh-suspend` / 大 View 与 FileManager 冒烟。
 
 ---
 
@@ -319,6 +340,8 @@ controller 属薄层委托，测试通过 service 层间接覆盖。如需直接
 
 | 日期 | 轮次 | 内容 | 提交 |
 | --- | --- | --- | --- |
+| 2026-07-17 | 打磨续轮 | batch/ssh-handler 纯函数拆分 + shellEscape 统一 + Guacamole 边界加固 + 自查 | 待提交 |
+| 2026-07-17 | 打磨10轮 | Guacamole 共用层、transfers/ws 纯函数拆分、主题死代码瘦身、Multiplex 可观测、测试补齐 | 待提交 |
 | 2026-05-09 | — | 技术债务报告重构：去除冗余，新增覆盖率分层目标与测试行动计划 | 待提交 |
 | 2026-05-06 | 第11轮 | 前端 10 项全量修复（FA-P0~P3 + FP-P1~P3） | 待提交 |
 | 2026-05-06 | 第10轮 | 后端性能与代码质量 14 项全量修复（BP-P1~P3） | `61ac728` `c14c412` |
@@ -338,4 +361,4 @@ controller 属薄层委托，测试通过 service 层间接覆盖。如需直接
 
 ---
 
-**文档维护者**：工程治理 **最后更新**：2026-05-09
+**文档维护者**：工程治理 **最后更新**：2026-07-17

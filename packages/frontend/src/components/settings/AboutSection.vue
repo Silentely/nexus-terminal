@@ -8,6 +8,22 @@
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-secondary">
         <!-- Flex container for info items, allow wrap -->
         <span class="font-medium">{{ $t('settings.about.version') }}: {{ appVersion }}</span>
+        <span class="opacity-50">|</span>
+        <span
+          class="inline-flex items-center text-xs px-2 py-0.5 rounded-full"
+          :class="
+            multiplexEnabled
+              ? 'bg-success/15 text-success border border-success/30'
+              : 'bg-muted text-text-secondary border border-border'
+          "
+          :title="$t('settings.about.multiplexHint')"
+        >
+          {{
+            multiplexEnabled
+              ? $t('settings.about.multiplexOn')
+              : $t('settings.about.multiplexOff')
+          }}
+        </span>
         <!-- Version Check Status -->
         <span
           v-if="isCheckingVersion"
@@ -103,11 +119,13 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 import { useVersionCheck } from '../../composables/settings/useVersionCheck';
+import { useAuthStore } from '../../stores/auth.store';
 import { GITHUB_REPO_URL } from '../../utils/constants';
 
-const { t } = useI18n(); // $t is available in template, but t can be used in script if needed
+const authStore = useAuthStore();
+const { multiplexEnabled } = storeToRefs(authStore);
 
 const {
   appVersion,

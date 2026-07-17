@@ -18,10 +18,10 @@ frontend:
 
 backend:
   healthcheck:
-    test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
-    interval: 10s
+    test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/api/v1/health > /dev/null 2>&1 || exit 1"]
+    interval: 30s
     timeout: 5s
-    retries: 5
+    retries: 3
     start_period: 30s  # 给予后端初始化时间
 ```
 
@@ -264,6 +264,17 @@ curl https://your-domain.com/.well-known/webauthn
 - **网络延迟** — 检查服务器到目标机器的网络
 - **服务器负载** — 检查远程服务器负载
 - **浏览器性能** — 尝试减少终端标签页数量
+
+### 多标签时 WebSocket 连接过多 / 浏览器限制？
+
+浏览器对同一域名的并发 WebSocket 数量有限制（HTTP/1.1 下约 6 个）。若同时打开大量 SSH 标签：
+
+1. 后端设置 `ENABLE_MULTIPLEX=true`（见 [Docker 配置](./configuration/docker.md#websocket-多路复用)）
+2. 重启后端，重新登录（前端通过 `/auth/init` 自动跟随）
+3. 在 **设置 → 关于** 中可查看当前「WS 多路复用」状态
+4. 协议细节见 [multiplex-protocol.md](./technical/multiplex-protocol.md)
+
+默认关闭以保证兼容；多标签密集使用时建议开启。
 
 ### 数据库锁定错误？
 

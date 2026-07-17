@@ -1107,7 +1107,10 @@
         "checkFailedShort": "检查失败",
         "noReleases": "未找到发布版本",
         "rateLimit": "GitHub API 速率限制，请稍后再试"
-      }
+      },
+      "multiplexOn": "WS 多路复用：开",
+      "multiplexOff": "WS 多路复用：关",
+      "multiplexHint": "由后端环境变量 ENABLE_MULTIPLEX 控制；多标签场景建议开启以减少浏览器 WebSocket 连接数。修改后需重启后端并重新登录。"
     },
     "exportConnections": {
       "title": "导出连接数据",

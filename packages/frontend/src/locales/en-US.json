@@ -1107,7 +1107,10 @@
         "checkFailedShort": "Check failed",
         "noReleases": "No releases found",
         "rateLimit": "GitHub API rate limit exceeded, please try again later"
-      }
+      },
+      "multiplexOn": "WS multiplex: on",
+      "multiplexOff": "WS multiplex: off",
+      "multiplexHint": "Controlled by backend ENABLE_MULTIPLEX. Enable for multi-tab sessions to reduce browser WebSocket connections. Restart backend and re-login after change."
     },
     "exportConnections": {
       "title": "Export Connection Data",
