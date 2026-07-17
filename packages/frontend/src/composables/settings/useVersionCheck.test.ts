@@ -5,10 +5,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 
 const mockAxiosGet = vi.fn();
+const mockIsAxiosError = vi.fn(
+  (error: unknown) => Boolean(error && typeof error === 'object' && 'response' in (error as object)),
+);
+
 vi.mock('axios', () => ({
   default: {
     get: (...args: unknown[]) => mockAxiosGet(...args),
-    isAxiosError: (error: unknown) => error && typeof error === 'object' && 'response' in error,
+    isAxiosError: (error: unknown) => mockIsAxiosError(error),
   },
 }));
 
@@ -22,61 +26,147 @@ vi.mock('@/utils/log', () => ({
   log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-// useVersionCheck 内部注册了 onMounted 生命周期钩子。单元测试直接调用 composable
-// 时不存在活跃组件实例，会触发 "[Vue warn]: onMounted is called when there is no
-// active component instance" 警告。这里将 onMounted 替换为 no-op，仅保留 ref/computed
-// 等真实实现，使测试聚焦于 composable 返回值与 checkLatestVersion 行为本身。
-vi.mock('vue', async () => {
-  const actual = await vi.importActual<typeof import('vue')>('vue');
-  return {
-    ...actual,
-    onMounted: () => {},
-  };
-});
-
 describe('useVersionCheck', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
+    vi.resetModules();
+    const mod = await import('./useVersionCheck');
+    mod.__resetVersionCheckStateForTests();
   });
 
   it('应初始化为空状态', async () => {
     mockAxiosGet.mockRejectedValue(new Error('not found'));
     const { useVersionCheck } = await import('./useVersionCheck');
-    const { appVersion, latestVersion, isCheckingVersion, versionCheckError } = useVersionCheck();
+    const { appVersion, latestVersion, isCheckingVersion, versionCheckError, isUpdateAvailable } =
+      useVersionCheck();
 
     expect(appVersion.value).toBe('');
     expect(latestVersion.value).toBeNull();
     expect(isCheckingVersion.value).toBe(false);
     expect(versionCheckError.value).toBeNull();
+    expect(isUpdateAvailable.value).toBe(false);
   });
 
-  it('checkLatestVersion 应获取最新版本', async () => {
+  it('checkLatestVersion 应获取最新版本并做 semver 比较', async () => {
     mockAxiosGet.mockImplementation((url: string) => {
-      if (url === '/VERSION') return Promise.resolve({ data: 'v1.0.0' });
-      if (url === '/api/v1/version/remote') return Promise.resolve({ data: { version: 'v3.0.0' } });
-      return Promise.reject(new Error('unknown url'));
+      if (url === '/VERSION') return Promise.resolve({ data: '1.0.0' });
+      if (url === '/api/v1/version/check') {
+        return Promise.resolve({
+          data: {
+            version: '1.10.0',
+            rawVersion: '1.10.0',
+            htmlUrl: 'https://github.com/Silentely/nexus-terminal/releases/tag/v1.10.0',
+            source: 'version_file',
+          },
+        });
+      }
+      return Promise.reject(new Error(`unknown url: ${url}`));
     });
+
     const { useVersionCheck } = await import('./useVersionCheck');
-    const { checkLatestVersion, latestVersion } = useVersionCheck();
+    const { checkLatestVersion, latestVersion, isUpdateAvailable, releaseUrl, appVersion } =
+      useVersionCheck();
 
     await checkLatestVersion();
 
-    expect(latestVersion.value).toBe('v3.0.0');
+    expect(appVersion.value).toBe('1.0.0');
+    expect(latestVersion.value).toBe('1.10.0');
+    expect(isUpdateAvailable.value).toBe(true);
+    expect(releaseUrl.value).toContain('releases/tag/v1.10.0');
+  });
+
+  it('远程版本不高于本地时不应提示更新', async () => {
+    mockAxiosGet.mockImplementation((url: string) => {
+      if (url === '/VERSION') return Promise.resolve({ data: '2.0.0' });
+      if (url === '/api/v1/version/check') {
+        return Promise.resolve({ data: { version: '1.9.0', rawVersion: '1.9.0' } });
+      }
+      return Promise.reject(new Error(`unknown url: ${url}`));
+    });
+
+    const { useVersionCheck } = await import('./useVersionCheck');
+    const { checkLatestVersion, isUpdateAvailable } = useVersionCheck();
+    await checkLatestVersion();
+
+    expect(isUpdateAvailable.value).toBe(false);
+  });
+
+  it('本地为 dev 时不应误报更新', async () => {
+    mockAxiosGet.mockImplementation((url: string) => {
+      if (url === '/VERSION') return Promise.resolve({ data: 'dev' });
+      if (url === '/api/v1/version/check') {
+        return Promise.resolve({ data: { version: '1.5.7', rawVersion: '1.5.7' } });
+      }
+      return Promise.reject(new Error(`unknown url: ${url}`));
+    });
+
+    const { useVersionCheck } = await import('./useVersionCheck');
+    const { checkLatestVersion, isUpdateAvailable, latestVersion } = useVersionCheck();
+    await checkLatestVersion();
+
+    expect(latestVersion.value).toBe('1.5.7');
+    expect(isUpdateAvailable.value).toBe(false);
   });
 
   it('checkLatestVersion 失败应设置错误', async () => {
     mockAxiosGet.mockImplementation((url: string) => {
-      if (url === '/VERSION') return Promise.resolve({ data: 'v1.0.0' });
-      if (url === '/api/v1/version/remote') return Promise.reject({ response: { status: 500 } });
-      return Promise.reject(new Error('unknown url'));
+      if (url === '/VERSION') return Promise.resolve({ data: '1.0.0' });
+      if (url === '/api/v1/version/check') {
+        return Promise.reject({ response: { status: 500 } });
+      }
+      return Promise.reject(new Error(`unknown url: ${url}`));
     });
+    mockIsAxiosError.mockReturnValue(true);
+
     const { useVersionCheck } = await import('./useVersionCheck');
     const { checkLatestVersion, versionCheckError } = useVersionCheck();
-
     await checkLatestVersion();
 
     expect(versionCheckError.value).toBeTruthy();
+  });
+
+  it('多次调用应共享状态并去重请求', async () => {
+    let resolveCheck: (value: unknown) => void = () => {};
+    const checkDeferred = new Promise((resolve) => {
+      resolveCheck = resolve;
+    });
+
+    mockAxiosGet.mockImplementation((url: string) => {
+      if (url === '/VERSION') return Promise.resolve({ data: '1.0.0' });
+      if (url === '/api/v1/version/check') return checkDeferred;
+      return Promise.reject(new Error(`unknown url: ${url}`));
+    });
+
+    const { useVersionCheck } = await import('./useVersionCheck');
+    const a = useVersionCheck();
+    const b = useVersionCheck();
+
+    const p1 = a.checkLatestVersion();
+    const p2 = b.checkLatestVersion();
+
+    // 等待 loadAppVersion 完成并进入 check 请求
+    await vi.waitFor(() => {
+      const checkCalls = mockAxiosGet.mock.calls.filter(
+        (c: unknown[]) => c[0] === '/api/v1/version/check',
+      );
+      expect(checkCalls.length).toBe(1);
+    });
+
+    resolveCheck({
+      data: { version: '1.1.0', rawVersion: '1.1.0', htmlUrl: null, source: 'version_file' },
+    });
+    await Promise.all([p1, p2]);
+
+    expect(a.latestVersion.value).toBe('1.1.0');
+    expect(b.latestVersion.value).toBe('1.1.0');
+    expect(a.isUpdateAvailable.value).toBe(true);
+    expect(b.isUpdateAvailable.value).toBe(true);
+
+    // 成功后再次调用不重复请求
+    mockAxiosGet.mockClear();
+    await a.checkLatestVersion();
+    expect(mockAxiosGet).not.toHaveBeenCalled();
   });
 
   it('应返回所有预期的属性', async () => {
@@ -86,6 +176,7 @@ describe('useVersionCheck', () => {
 
     expect(result).toHaveProperty('appVersion');
     expect(result).toHaveProperty('latestVersion');
+    expect(result).toHaveProperty('releaseUrl');
     expect(result).toHaveProperty('isCheckingVersion');
     expect(result).toHaveProperty('versionCheckError');
     expect(result).toHaveProperty('isUpdateAvailable');

@@ -188,7 +188,7 @@ packages/backend/
 | `/api/v1/dashboard`          | services           | 仪表盘统计、时间线、资产健康、系统资源       |
 | `/api/v1/metrics`            | metrics            | Prometheus 指标（受环境变量控制）            |
 | `/api/v1/backup`             | backup             | 数据导出/导入/验证                           |
-| `/api/v1/version`            | version            | 版本检查代理（GitHub releases/VERSION 文件） |
+| `/api/v1/version`            | version            | 版本检查代理：`/check` 统一入口（VERSION 优先 + Releases 兜底），兼容 `/latest` `/remote` |
 | `/api/v1/health`             | (内置)             | 健康检查（含 SQLite 连通性检测）             |
 
 ---

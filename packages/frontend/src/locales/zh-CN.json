@@ -1099,6 +1099,7 @@
     },
     "about": {
       "version": "版本",
+      "unknownVersion": "未知版本",
       "checkingUpdate": "正在检查更新...",
       "latestVersion": "已是最新版本",
       "updateAvailable": "发现新版本 {version}",
@@ -1106,7 +1107,7 @@
         "checkFailed": "检查更新失败",
         "checkFailedShort": "检查失败",
         "noReleases": "未找到发布版本",
-        "rateLimit": "GitHub API 速率限制，请稍后再试"
+        "rateLimit": "API 访问频率受限，请稍后再试"
       },
       "multiplexOn": "WS 多路复用：开",
       "multiplexOff": "WS 多路复用：关",

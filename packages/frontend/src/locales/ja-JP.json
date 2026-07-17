@@ -1099,6 +1099,7 @@
     },
     "about": {
       "version": "バージョン",
+      "unknownVersion": "不明なバージョン",
       "checkingUpdate": "更新を確認中...",
       "latestVersion": "最新バージョンです",
       "updateAvailable": "新しいバージョン {version} が利用可能です",
@@ -1106,7 +1107,7 @@
         "checkFailed": "更新の確認に失敗しました",
         "checkFailedShort": "確認失敗",
         "noReleases": "リリースバージョンが見つかりません",
-        "rateLimit": "GitHub API レート制限。後でもう一度お試しください"
+        "rateLimit": "API アクセス頻度制限中です。しばらくしてから再試行してください"
       },
       "multiplexOn": "WS多重化: オン",
       "multiplexOff": "WS多重化: オフ",

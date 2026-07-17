@@ -1099,6 +1099,7 @@
     },
     "about": {
       "version": "Version",
+      "unknownVersion": "Unknown version",
       "checkingUpdate": "Checking for update...",
       "latestVersion": "Up to date",
       "updateAvailable": "Update available: {version}",
@@ -1106,7 +1107,7 @@
         "checkFailed": "Failed to check for updates",
         "checkFailedShort": "Check failed",
         "noReleases": "No releases found",
-        "rateLimit": "GitHub API rate limit exceeded, please try again later"
+        "rateLimit": "API rate limited, please try again later"
       },
       "multiplexOn": "WS multiplex: on",
       "multiplexOff": "WS multiplex: off",

@@ -46,7 +46,7 @@
         </span>
         <a
           v-else-if="isUpdateAvailable && latestVersion"
-          :href="`${GITHUB_REPO_URL}/releases/tag/${latestVersion}`"
+          :href="releaseUrl"
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex items-center text-xs ml-2 px-2 py-0.5 rounded-full bg-warning text-white hover:bg-warning/80"
@@ -118,7 +118,6 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useVersionCheck } from '../../composables/settings/useVersionCheck';
 import { useAuthStore } from '../../stores/auth.store';
@@ -127,18 +126,15 @@ import { GITHUB_REPO_URL } from '../../utils/constants';
 const authStore = useAuthStore();
 const { multiplexEnabled } = storeToRefs(authStore);
 
+// 与 SettingsView 共享模块级状态；版本检查由 SettingsView 统一触发，避免重复请求
 const {
   appVersion,
   latestVersion,
+  releaseUrl,
   isCheckingVersion,
   versionCheckError,
   isUpdateAvailable,
-  checkLatestVersion,
 } = useVersionCheck();
-
-onMounted(async () => {
-  await checkLatestVersion();
-});
 </script>
 
 <style scoped>
