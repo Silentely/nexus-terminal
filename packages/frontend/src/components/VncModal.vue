@@ -4,13 +4,20 @@ import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '../stores/settings.store';
 import { useConnectionsStore } from '../stores/connections.store';
 import Guacamole from 'guacamole-common-js';
-import type { Tunnel as GuacamoleTunnel } from 'guacamole-common-js';
 import type { ConnectionInfo } from '../stores/connections.store';
 import { extractErrorMessage } from '../utils/errorExtractor';
 import { log } from '@/utils/log';
-import { useWebRTCTunnel } from '@/composables/useWebRTCTunnel';
 import { useDeviceDetection } from '@/composables/useDeviceDetection';
 import { useTouchMouseMapping } from '@/composables/useTouchMouseMapping';
+import {
+  buildRdpProxyTunnelUrl,
+  clearDisplayElement,
+  createGuacamoleTunnelWithFallback,
+  mapGuacamoleClientState,
+  normalizeGuacamoleStatus,
+  sendClipboardTextToGuacamole,
+  simulateKeyboardInput,
+} from '../utils/guacamoleHelpers';
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
@@ -42,35 +49,6 @@ const initialModalWidthForResize = ref(0);
 const initialModalHeightForResize = ref(0);
 const statusMessage = ref('');
 const vncPasteInputText = ref('');
-interface GuacamoleStatusPayload {
-  code?: number | string;
-  message?: string;
-}
-
-const normalizeGuacamoleStatus = (status: unknown): GuacamoleStatusPayload => {
-  if (status && typeof status === 'object') {
-    return status as GuacamoleStatusPayload;
-  }
-  return {};
-};
-
-// 特殊按键到 X11 keysym 的映射表
-const SPECIAL_KEYSYMS: Record<string, number> = {
-  '\n': 0xff0d, // Enter (XK_Return)
-  '\r': 0xff0d, // Enter (XK_Return)
-  '\t': 0xff09, // Tab (XK_Tab)
-  '\b': 0xff08, // Backspace (XK_BackSpace)
-  '\x1b': 0xff1b, // Escape (XK_Escape)
-  '\x7f': 0xffff, // Delete (XK_Delete)
-};
-
-/** 将字符转换为 X11 keysym */
-const charToKeysym = (char: string): number => {
-  // 优先查特殊按键表
-  if (char in SPECIAL_KEYSYMS) return SPECIAL_KEYSYMS[char];
-  // 可打印 ASCII（0x20-0x7e）和 BMP Unicode 的码点直接等于 X11 keysym
-  return char.charCodeAt(0);
-};
 
 const sendInputTextToVnc = async () => {
   if (!guacClient.value || connectionStatus.value !== 'connected') {
@@ -85,13 +63,7 @@ const sendInputTextToVnc = async () => {
 
   log.info(`[VncModal] Simulating keyboard input for: ${textToSend.substring(0, 50)}...`);
   try {
-    for (const char of textToSend) {
-      const keysym = charToKeysym(char);
-      guacClient.value.sendKeyEvent(1, keysym); // Key press
-      await new Promise((resolve) => setTimeout(resolve, 20));
-      guacClient.value.sendKeyEvent(0, keysym); // Key release
-      await new Promise((resolve) => setTimeout(resolve, 30));
-    }
+    await simulateKeyboardInput(guacClient.value, textToSend);
     log.info('[VncModal] Finished simulating keyboard input.');
   } catch (err: unknown) {
     const errorMessage = extractErrorMessage(err, t('term.unknownError'));
@@ -143,10 +115,6 @@ let dragOffsetX = 0;
 let dragOffsetY = 0;
 let hasDragged = false;
 
-// 统一使用当前页面地址构建 WebSocket URL，本地开发时 Vite 代理会转发到后端
-const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const remoteDesktopWsBaseUrl = `${wsProtocol}//${window.location.host}/ws/rdp-proxy`;
-
 const handleConnection = async () => {
   if (!props.connection || !vncDisplayRef.value) {
     statusMessage.value = t('remoteDesktopModal.errors.missingInfo');
@@ -154,9 +122,7 @@ const handleConnection = async () => {
     return;
   }
 
-  while (vncDisplayRef.value.firstChild) {
-    vncDisplayRef.value.removeChild(vncDisplayRef.value.firstChild);
-  }
+  clearDisplayElement(vncDisplayRef.value);
   disconnectGuacamole();
 
   connectionStatus.value = 'connecting';
@@ -176,32 +142,13 @@ const handleConnection = async () => {
     statusMessage.value = t('remoteDesktopModal.status.connectingWs');
     // The backend proxy (/ws/rdp-proxy) expects token, width, height, dpi.
     // For VNC, DPI is less critical but the proxy might expect it. Send a default or let backend handle.
-    // The backend's websocket.ts rdp-proxy handler now calculates DPI if not provided or uses a default.
-    // We need to ensure width and height are passed for the proxy to correctly forward.
-    const tunnelUrl = `${remoteDesktopWsBaseUrl}?token=${encodeURIComponent(token)}&width=${desiredModalWidth.value}&height=${desiredModalHeight.value}`;
+    const tunnelUrl = buildRdpProxyTunnelUrl(
+      token,
+      desiredModalWidth.value,
+      desiredModalHeight.value,
+    );
 
-    // WebRTC 优先 + WebSocket 降级
-    const { createTunnel, isWebRTCSupported } = useWebRTCTunnel();
-    const backendWsBase = `${wsProtocol}//${window.location.host}/ws`;
-    const signalingUrl = `${backendWsBase}/webrtc-signaling`;
-
-    let tunnel: GuacamoleTunnel;
-    let transportType = 'websocket';
-
-    try {
-      if (isWebRTCSupported()) {
-        const result = await createTunnel(tunnelUrl, signalingUrl, true);
-        tunnel = result.tunnel;
-        transportType = result.transport;
-        log.debug(`[VNC] 使用 ${transportType} 传输`);
-      } else {
-        tunnel = new Guacamole.WebSocketTunnel(tunnelUrl);
-      }
-    } catch {
-      log.warn('[VNC] WebRTC 连接失败，降级到 WebSocket');
-      tunnel = new Guacamole.WebSocketTunnel(tunnelUrl);
-      transportType = 'websocket';
-    }
+    const { tunnel } = await createGuacamoleTunnelWithFallback(tunnelUrl, 'VNC');
 
     tunnel.onerror = (status: unknown) => {
       const normalizedStatus = normalizeGuacamoleStatus(status);
@@ -218,68 +165,42 @@ const handleConnection = async () => {
     vncDisplayRef.value.appendChild(guacClient.value.getDisplay().getElement());
 
     guacClient.value.onstatechange = (state: number) => {
-      let currentStatus = '';
-      let i18nKeyPart = 'unknownState';
+      const { connectionStatus: nextStatus, i18nKeyPart } = mapGuacamoleClientState(
+        state,
+        'connectingVnc',
+      );
 
-      switch (state) {
-        case 0:
-          i18nKeyPart = 'idle';
-          currentStatus = 'disconnected';
-          break;
-        case 1:
-          i18nKeyPart = 'connectingVnc';
-          currentStatus = 'connecting';
-          break;
-        case 2:
-          i18nKeyPart = 'waiting';
-          currentStatus = 'connecting';
-          break;
-        case 3:
-          i18nKeyPart = 'connected';
-          currentStatus = 'connected';
-          setupInputListeners();
-          nextTick(() => {
-            const displayEl = guacClient.value?.getDisplay()?.getElement();
-            if (displayEl && typeof displayEl.focus === 'function') {
-              displayEl.focus();
+      if (state === 3) {
+        setupInputListeners();
+        nextTick(() => {
+          const displayEl = guacClient.value?.getDisplay()?.getElement();
+          if (displayEl && typeof displayEl.focus === 'function') {
+            displayEl.focus();
+          }
+          // Sync size on connect
+          if (vncDisplayRef.value && guacClient.value) {
+            const displayWidth = vncDisplayRef.value.offsetWidth;
+            const displayHeight = vncDisplayRef.value.offsetHeight;
+            if (displayWidth > 0 && displayHeight > 0) {
+              log.info(`[VncModal] Initial resize on connect: ${displayWidth}x${displayHeight}`);
+              guacClient.value.sendSize(displayWidth, displayHeight);
             }
-            // Sync size on connect
+          }
+        });
+        setTimeout(() => {
+          nextTick(() => {
             if (vncDisplayRef.value && guacClient.value) {
-              const displayWidth = vncDisplayRef.value.offsetWidth;
-              const displayHeight = vncDisplayRef.value.offsetHeight;
-              if (displayWidth > 0 && displayHeight > 0) {
-                log.info(`[VncModal] Initial resize on connect: ${displayWidth}x${displayHeight}`);
-                guacClient.value.sendSize(displayWidth, displayHeight);
-              }
+              const canvases = vncDisplayRef.value.querySelectorAll('canvas');
+              canvases.forEach((canvas) => {
+                canvas.style.zIndex = '999';
+              });
             }
           });
-          setTimeout(() => {
-            nextTick(() => {
-              if (vncDisplayRef.value && guacClient.value) {
-                const canvases = vncDisplayRef.value.querySelectorAll('canvas');
-                canvases.forEach((canvas) => {
-                  canvas.style.zIndex = '999';
-                });
-              }
-            });
-          }, 100);
-          break;
-        case 4:
-          i18nKeyPart = 'disconnecting';
-          currentStatus = 'disconnected';
-          break;
-        case 5:
-          i18nKeyPart = 'disconnected';
-          currentStatus = 'disconnected';
-          break;
+        }, 100);
       }
+
       statusMessage.value = t(`remoteDesktopModal.status.${i18nKeyPart}`, { state });
-      if (currentStatus)
-        connectionStatus.value = currentStatus as
-          | 'disconnected'
-          | 'connecting'
-          | 'connected'
-          | 'error';
+      connectionStatus.value = nextStatus;
     };
 
     guacClient.value.onerror = (status: unknown) => {
@@ -306,10 +227,7 @@ const trySyncClipboardOnDisplayFocus = async () => {
   try {
     const currentClipboardText = await navigator.clipboard.readText();
     if (currentClipboardText && guacClient.value) {
-      const stream = guacClient.value.createClipboardStream('text/plain');
-      const writer = new Guacamole.StringWriter(stream);
-      writer.sendText(currentClipboardText);
-      writer.sendEnd();
+      sendClipboardTextToGuacamole(guacClient.value, currentClipboardText);
       log.info(
         '[VncModal] Sent clipboard to VNC on display focus:',
         currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : ''),

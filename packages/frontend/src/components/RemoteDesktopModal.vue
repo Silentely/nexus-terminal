@@ -2,17 +2,24 @@
 import { ref, onMounted, onUnmounted, watch, nextTick, computed, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '../stores/settings.store';
-import { useConnectionsStore } from '../stores/connections.store';
 import Guacamole from 'guacamole-common-js';
-import type { Tunnel as GuacamoleTunnel } from 'guacamole-common-js';
 import apiClient from '../utils/apiClient';
-import { ConnectionInfo } from '../stores/connections.store';
+import type { ConnectionInfo } from '../stores/connections.store';
 import { extractErrorMessage } from '../utils/errorExtractor';
 import { log } from '@/utils/log';
-import { useWebRTCTunnel } from '@/composables/useWebRTCTunnel';
 import { useVideoDecoder } from '@/composables/useVideoDecoder';
 import { useDeviceDetection } from '@/composables/useDeviceDetection';
 import { useTouchMouseMapping } from '@/composables/useTouchMouseMapping';
+import {
+  buildRdpProxyTunnelUrl,
+  clearDisplayElement,
+  createGuacamoleTunnelWithFallback,
+  isLowEndDevice as checkIsLowEndDevice,
+  mapGuacamoleClientState,
+  normalizeGuacamoleStatus,
+  sendClipboardTextToGuacamole,
+  type GuacamoleStatusPayload,
+} from '../utils/guacamoleHelpers';
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
@@ -71,30 +78,8 @@ let hasDragged = false;
 const MIN_MODAL_WIDTH = 1024;
 const MIN_MODAL_HEIGHT = 768;
 
-interface GuacamoleStatus {
-  code?: string | number;
-  message?: string;
-}
-
-interface NavigatorWithDeviceMemory extends Navigator {
-  deviceMemory?: number;
-}
-
-// 统一使用当前页面地址构建 WebSocket URL，本地开发时 Vite 代理会转发到后端
-const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const backendBaseUrl = `${wsProtocol}//${window.location.host}/ws`;
-
-/**
- * 判断是否属于低端设备
- * 使用浏览器暴露的核心数和内存信息做保守判断，缺失信息时不误判为低端设备。
- */
-const isLowEndDevice = computed<boolean>(() => {
-  const hardwareConcurrency = navigator.hardwareConcurrency || 0;
-  const deviceMemory = (navigator as NavigatorWithDeviceMemory).deviceMemory || 0;
-  return (
-    (hardwareConcurrency > 0 && hardwareConcurrency <= 4) || (deviceMemory > 0 && deviceMemory <= 4)
-  );
-});
+/** 判断是否属于低端设备（委托共用工具，缺失信息时不误判） */
+const isLowEndDevice = computed<boolean>(() => checkIsLowEndDevice());
 
 /**
  * 在远程桌面 canvas 可用后按需初始化 WebCodecs 解码器
@@ -134,9 +119,7 @@ const handleConnection = async () => {
   }
 
   // Clear previous display and disconnect
-  while (rdpDisplayRef.value.firstChild) {
-    rdpDisplayRef.value.removeChild(rdpDisplayRef.value.firstChild);
-  }
+  clearDisplayElement(rdpDisplayRef.value);
   disconnectGuacamole(); // Renamed from disconnectRdp
 
   connectionStatus.value = 'connecting';
@@ -145,7 +128,6 @@ const handleConnection = async () => {
   try {
     let token: string | null = null;
     let tunnelUrl: string = '';
-    const connectionsStore = useConnectionsStore();
 
     if (props.connection.type === 'RDP') {
       const apiUrl = `connections/${props.connection.id}/rdp-session`;
@@ -167,38 +149,17 @@ const handleConnection = async () => {
         widthToSend = Math.max(100, widthToSend);
         heightToSend = Math.max(100, heightToSend);
       }
-      tunnelUrl = `${backendBaseUrl}/rdp-proxy?token=${encodeURIComponent(token)}&width=${widthToSend}&height=${heightToSend}&dpi=${dpiToSend}`;
+      tunnelUrl = buildRdpProxyTunnelUrl(token, widthToSend, heightToSend, dpiToSend);
     } else {
       throw new Error(`Unsupported connection type: ${props.connection.type}`);
     }
 
-    // WebRTC 优先 + WebSocket 降级
-    const { createTunnel, isWebRTCSupported } = useWebRTCTunnel();
-    const signalingUrl = `${backendBaseUrl}/webrtc-signaling`;
+    const { tunnel } = await createGuacamoleTunnelWithFallback(tunnelUrl, 'RDP');
 
-    let tunnel: GuacamoleTunnel;
-    let transportType = 'websocket';
-
-    try {
-      if (isWebRTCSupported()) {
-        const result = await createTunnel(tunnelUrl, signalingUrl, true);
-        tunnel = result.tunnel;
-        transportType = result.transport;
-        log.debug(`[RDP] 使用 ${transportType} 传输`);
-      } else {
-        // WebRTC 不可用，直接使用 WebSocket
-        tunnel = new Guacamole.WebSocketTunnel(tunnelUrl);
-      }
-    } catch {
-      // WebRTC 失败，降级到 WebSocket
-      log.warn('[RDP] WebRTC 连接失败，降级到 WebSocket');
-      tunnel = new Guacamole.WebSocketTunnel(tunnelUrl);
-      transportType = 'websocket';
-    }
-
-    tunnel.onerror = (status: GuacamoleStatus) => {
-      const errorMessage = status.message || 'Unknown tunnel error';
-      const errorCode = status.code || 'N/A';
+    tunnel.onerror = (status: GuacamoleStatusPayload) => {
+      const normalized = normalizeGuacamoleStatus(status);
+      const errorMessage = normalized.message || 'Unknown tunnel error';
+      const errorCode = normalized.code || 'N/A';
       statusMessage.value = `${t('remoteDesktopModal.errors.tunnelError')} (${errorCode}): ${errorMessage}`;
       connectionStatus.value = 'error';
       disconnectGuacamole();
@@ -210,65 +171,40 @@ const handleConnection = async () => {
     rdpDisplayRef.value.appendChild(guacClient.value.getDisplay().getElement());
 
     guacClient.value.onstatechange = (state: number) => {
-      let currentStatus = '';
-      let i18nKeyPart = 'unknownState';
+      const { connectionStatus: nextStatus, i18nKeyPart } = mapGuacamoleClientState(
+        state,
+        'connectingRdp',
+      );
 
-      switch (state) {
-        case 0: // IDLE
-          i18nKeyPart = 'idle';
-          currentStatus = 'disconnected';
-          break;
-        case 1: // CONNECTING
-          i18nKeyPart = 'connectingRdp';
-          currentStatus = 'connecting';
-          break;
-        case 2: // WAITING
-          i18nKeyPart = 'waiting';
-          currentStatus = 'connecting';
-          break;
-        case 3: // CONNECTED
-          i18nKeyPart = 'connected';
-          currentStatus = 'connected';
-          setupInputListeners();
+      if (state === 3) {
+        setupInputListeners();
+        nextTick(() => {
+          const displayEl = guacClient.value?.getDisplay()?.getElement();
+          if (displayEl && typeof displayEl.focus === 'function') {
+            displayEl.focus();
+          }
+        });
+        setTimeout(() => {
+          // z-index fix for canvas
           nextTick(() => {
-            const displayEl = guacClient.value?.getDisplay()?.getElement();
-            if (displayEl && typeof displayEl.focus === 'function') {
-              displayEl.focus();
+            if (rdpDisplayRef.value && guacClient.value) {
+              const canvases = rdpDisplayRef.value.querySelectorAll('canvas');
+              canvases.forEach((canvas) => {
+                canvas.style.zIndex = '999';
+              });
+              void initVideoDecoderIfNeeded();
             }
           });
-          setTimeout(() => {
-            // z-index fix for canvas
-            nextTick(() => {
-              if (rdpDisplayRef.value && guacClient.value) {
-                const canvases = rdpDisplayRef.value.querySelectorAll('canvas');
-                canvases.forEach((canvas) => {
-                  canvas.style.zIndex = '999';
-                });
-                void initVideoDecoderIfNeeded();
-              }
-            });
-          }, 100);
-          break;
-        case 4: // DISCONNECTING
-          i18nKeyPart = 'disconnecting';
-          currentStatus = 'disconnected'; // Or 'disconnecting'
-          break;
-        case 5: // DISCONNECTED
-          i18nKeyPart = 'disconnected';
-          currentStatus = 'disconnected';
-          break;
+        }, 100);
       }
+
       statusMessage.value = t(`remoteDesktopModal.status.${i18nKeyPart}`, { state });
-      if (currentStatus)
-        connectionStatus.value = currentStatus as
-          | 'disconnected'
-          | 'connecting'
-          | 'connected'
-          | 'error';
+      connectionStatus.value = nextStatus;
     };
 
-    guacClient.value.onerror = (status: GuacamoleStatus) => {
-      const errorMessage = status.message || 'Unknown client error';
+    guacClient.value.onerror = (status: GuacamoleStatusPayload) => {
+      const normalized = normalizeGuacamoleStatus(status);
+      const errorMessage = normalized.message || 'Unknown client error';
       statusMessage.value = `${t('remoteDesktopModal.errors.clientError')}: ${errorMessage}`;
       connectionStatus.value = 'error';
       disconnectGuacamole();
@@ -290,10 +226,7 @@ const trySyncClipboardOnDisplayFocus = async () => {
   try {
     const currentClipboardText = await navigator.clipboard.readText();
     if (currentClipboardText && guacClient.value) {
-      const stream = guacClient.value.createClipboardStream('text/plain');
-      const writer = new Guacamole.StringWriter(stream);
-      writer.sendText(currentClipboardText);
-      writer.sendEnd();
+      sendClipboardTextToGuacamole(guacClient.value, currentClipboardText);
       log.info(
         '[RemoteDesktopModal] Sent clipboard to RDP on display focus:',
         currentClipboardText.substring(0, 50) + (currentClipboardText.length > 50 ? '...' : ''),
