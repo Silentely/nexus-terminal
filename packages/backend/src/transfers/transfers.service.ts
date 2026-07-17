@@ -1,23 +1,21 @@
 import * as path from 'path';
 import * as crypto from 'crypto';
 
-import { Client, ConnectConfig, SFTPWrapper } from 'ssh2';
+import { Client, SFTPWrapper } from 'ssh2';
 import { InitiateTransferPayload, TransferTask, TransferSubTask } from './transfers.types';
 import { getConnectionWithDecryptedCredentials } from '../connections/connection.service';
-import type { ConnectionWithTags, DecryptedConnectionCredentials } from '../types/connection.types';
+import type {
+  ConnectionWithTags,
+  DecryptedConnectionCredentials,
+} from '../types/connection.types';
 import { getErrorMessage, isError } from '../utils/AppError';
 import { logger } from '../utils/logger';
-
-type SshClientWithSocketState = Client & {
-  _sock?: {
-    destroyed?: boolean;
-  };
-};
-
-function hasOpenClientSocket(client: Client): client is SshClientWithSocketState {
-  const clientWithSocket = client as SshClientWithSocketState;
-  return Boolean(clientWithSocket._sock && !clientWithSocket._sock.destroyed);
-}
+import {
+  buildSshConnectConfig,
+  buildTransferCommandString,
+  escapeShellArg,
+  hasOpenClientSocket,
+} from './transfers.utils';
 
 export class TransfersService {
   private transferTasks: Map<string, TransferTask> = new Map();
@@ -132,28 +130,6 @@ export class TransfersService {
     return false;
   }
 
-  private buildSshConnectConfig(
-    connectionInfo: ConnectionWithTags,
-    credentials: DecryptedConnectionCredentials,
-  ): ConnectConfig {
-    const config: ConnectConfig = {
-      host: connectionInfo.host,
-      port: connectionInfo.port || 22,
-      username: connectionInfo.username,
-      readyTimeout: 20000, // 20 seconds
-      keepaliveInterval: 10000, // 10 seconds
-    };
-    if (connectionInfo.auth_method === 'password' && credentials.decryptedPassword) {
-      config.password = credentials.decryptedPassword;
-    } else if (connectionInfo.auth_method === 'key' && credentials.decryptedPrivateKey) {
-      config.privateKey = credentials.decryptedPrivateKey;
-      if (credentials.decryptedPassphrase) {
-        config.passphrase = credentials.decryptedPassphrase;
-      }
-    }
-    return config;
-  }
-
   private async processTransferTask(taskId: string, signal: AbortSignal): Promise<void> {
     // +++ 接收 AbortSignal +++
     const task = this.transferTasks.get(taskId);
@@ -188,7 +164,7 @@ export class TransfersService {
 
       sourceSshClient = new Client();
       const activeSourceSshClient = sourceSshClient;
-      const sourceConnectConfig = this.buildSshConnectConfig(sourceConnection, sourceCredentials);
+      const sourceConnectConfig = buildSshConnectConfig(sourceConnection, sourceCredentials);
 
       await new Promise<void>((resolve, reject) => {
         if (signal.aborted)
@@ -514,7 +490,7 @@ export class TransfersService {
 
   private async checkCommandOnSource(client: Client, command: string): Promise<string | null> {
     return new Promise((resolve) => {
-      const checkCmd = `command -v ${this.escapeShellArg(command)} 2>/dev/null`;
+      const checkCmd = `command -v ${escapeShellArg(command)} 2>/dev/null`;
       client.exec(checkCmd, (err, stream) => {
         if (err) {
           return resolve(null);
@@ -541,7 +517,7 @@ export class TransfersService {
     command: string,
   ): Promise<string | null> {
     const targetClient = new Client();
-    const connectConfig = this.buildSshConnectConfig(targetConnection, targetCredentials);
+    const connectConfig = buildSshConnectConfig(targetConnection, targetCredentials);
     let foundCommandPath: string | null = null;
 
     try {
@@ -569,7 +545,7 @@ export class TransfersService {
       });
 
       foundCommandPath = await new Promise((resolve) => {
-        const checkCmd = `command -v ${this.escapeShellArg(command)} 2>/dev/null`;
+        const checkCmd = `command -v ${escapeShellArg(command)} 2>/dev/null`;
         targetClient.exec(checkCmd, (err, stream) => {
           if (err) {
             return resolve(null);
@@ -701,75 +677,6 @@ export class TransfersService {
         });
       });
     });
-  }
-
-  private escapeShellArg(arg: string): string {
-    // Basic escaping for paths and arguments. More robust escaping might be needed.
-    return `'${arg.replace(/'/g, "'\\''")}'`;
-  }
-
-  private buildTransferCommandString(
-    sourceItemPathOnA: string, // Absolute path on source A
-    isDir: boolean,
-    targetConnection: ConnectionWithTags, // Target B connection details
-    targetPathOnB: string, // Base remote target path on B
-    executableCommand: string, // Full path to rsync or scp
-    commandType: 'rsync' | 'scp', // To distinguish logic
-    options: {
-      // Options derived from checking source A and target B auth
-      sshPassCommand?: string; // e.g., "sshpass -p 'password'"
-      sshIdentityFileOption?: string; // e.g., "-i /tmp/key_B_XYZ"
-      targetUserAndHost: string; // e.g., "userB@hostB.com"
-      sshPortOption?: string; // e.g., "-P 2222" for scp, or part of rsync's -e 'ssh -p 2222'
-    },
-  ): string {
-    const remoteBase = targetPathOnB.endsWith('/') ? targetPathOnB : `${targetPathOnB}/`;
-    const remoteFullDest = `${options.targetUserAndHost}:${this.escapeShellArg(remoteBase)}`;
-
-    const commandParts: string[] = [];
-    if (options.sshPassCommand) {
-      commandParts.push(options.sshPassCommand);
-    }
-
-    commandParts.push(executableCommand);
-
-    if (commandType === 'rsync') {
-      commandParts.push('-avz --progress'); // rsync specific options
-      // For rsync, SSH options go into the -e argument
-      let sshArgsForRsync = `ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null`;
-      if (options.sshPortOption && options.sshPortOption.startsWith('-p')) {
-        // rsync uses -p for port in its -e "ssh -p XXX"
-        sshArgsForRsync += ` ${options.sshPortOption}`;
-      }
-      if (options.sshIdentityFileOption) {
-        // -i for identity file is an ssh option
-        sshArgsForRsync += ` ${options.sshIdentityFileOption}`;
-      }
-      commandParts.push(`-e "${sshArgsForRsync.trim()}"`);
-
-      let rsyncSourcePath = this.escapeShellArg(sourceItemPathOnA);
-      if (isDir && !rsyncSourcePath.endsWith("/'")) {
-        rsyncSourcePath = `${rsyncSourcePath.slice(0, -1)}/'`;
-      }
-      commandParts.push(rsyncSourcePath);
-      commandParts.push(remoteFullDest);
-    } else {
-      // scp
-      commandParts.push('-o StrictHostKeyChecking=no'); // For scp, pass as direct option
-      commandParts.push('-o UserKnownHostsFile=/dev/null'); // For scp, pass as direct option
-      if (isDir) commandParts.push('-r');
-      if (options.sshPortOption && options.sshPortOption.startsWith('-P')) {
-        // scp uses -P for port
-        commandParts.push(options.sshPortOption);
-      }
-      if (options.sshIdentityFileOption) {
-        // scp uses -i for identity file
-        commandParts.push(options.sshIdentityFileOption);
-      }
-      commandParts.push(this.escapeShellArg(sourceItemPathOnA));
-      commandParts.push(remoteFullDest);
-    }
-    return commandParts.join(' ');
   }
 
   private async executeRemoteTransferOnSource(
@@ -905,10 +812,10 @@ export class TransfersService {
         subTaskId,
         'transferring',
         6,
-        `Ensuring target directory ${this.escapeShellArg(remoteTargetPathOnTarget)} exists on ${targetConnection.host}.`,
+        `Ensuring target directory ${escapeShellArg(remoteTargetPathOnTarget)} exists on ${targetConnection.host}.`,
       );
       const targetClientForMkdir = new Client();
-      const targetConnectConfigForMkdir = this.buildSshConnectConfig(
+      const targetConnectConfigForMkdir = buildSshConnectConfig(
         targetConnection,
         targetCredentials,
       );
@@ -935,7 +842,7 @@ export class TransfersService {
                   new DOMException('Mkdir operation cancelled by user (on ready).', 'AbortError'),
                 );
               }
-              const mkdirCommand = `mkdir -p ${this.escapeShellArg(remoteTargetPathOnTarget)}`;
+              const mkdirCommand = `mkdir -p ${escapeShellArg(remoteTargetPathOnTarget)}`;
               targetClientForMkdir.exec(mkdirCommand, (err, stream) => {
                 if (err) {
                   signal.removeEventListener('abort', onAbortMkdir);
@@ -1043,14 +950,14 @@ export class TransfersService {
           tempTargetKeyPathOnSource,
         );
         if (signal.aborted) throw new DOMException('Transfer cancelled by user.', 'AbortError');
-        cmdOptions.sshIdentityFileOption = `-i ${this.escapeShellArg(tempTargetKeyPathOnSource)}`;
+        cmdOptions.sshIdentityFileOption = `-i ${escapeShellArg(tempTargetKeyPathOnSource)}`;
         if (targetCredentials.decryptedPassphrase && !sshpassPath) {
           throw new Error(
             `Target key has passphrase, but sshpass is not available on source for ${sourceItem.name}.`,
           );
         }
         if (targetCredentials.decryptedPassphrase && sshpassPath) {
-          cmdOptions.sshPassCommand = `${this.escapeShellArg(sshpassPath)} -p ${this.escapeShellArg(targetCredentials.decryptedPassphrase)}`;
+          cmdOptions.sshPassCommand = `${escapeShellArg(sshpassPath)} -p ${escapeShellArg(targetCredentials.decryptedPassphrase)}`;
         }
       } else if (
         targetConnection.auth_method === 'password' &&
@@ -1061,7 +968,7 @@ export class TransfersService {
             `Target uses password auth, but sshpass is not available on source for ${sourceItem.name}.`,
           );
         }
-        cmdOptions.sshPassCommand = `${this.escapeShellArg(sshpassPath)} -p ${this.escapeShellArg(targetCredentials.decryptedPassword)}`;
+        cmdOptions.sshPassCommand = `${escapeShellArg(sshpassPath)} -p ${escapeShellArg(targetCredentials.decryptedPassword)}`;
       } else if (targetConnection.auth_method === 'key' && !targetCredentials.decryptedPrivateKey) {
         throw new Error(
           `Target connection ${targetConnection.name} is key-based but no private key found.`,
@@ -1069,10 +976,9 @@ export class TransfersService {
       }
       if (signal.aborted) throw new DOMException('Transfer cancelled by user.', 'AbortError');
 
-      const commandToExecute = this.buildTransferCommandString(
+      const commandToExecute = buildTransferCommandString(
         sourceItem.path,
         sourceItem.type === 'directory',
-        targetConnection,
         remoteTargetPathOnTarget,
         executableCommandPath,
         commandTypeForLogic,

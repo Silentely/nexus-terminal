@@ -36,6 +36,12 @@ import {
 } from './multiplex'; // 导入多路复用模块
 import { destroyBatcher } from './output-batcher'; // 导入批处理器
 import { checkRateLimit, cleanupRateLimit } from './rate-limiter'; // 导入速率限制器
+import {
+  detectClientType,
+  getConnectionRequestMeta,
+  getRateLimitKey,
+  isClientType,
+} from './connection-meta';
 
 // Handlers
 import { handleRdpProxyConnection } from './handlers/remote-desktop.handler';
@@ -66,26 +72,6 @@ import {
 } from '../telnet/telnet.handler';
 import { logger } from '../utils/logger';
 import { withLogContext } from '../middleware/log-context.middleware';
-
-type ConnectionRequestMeta = {
-  clientType?: unknown;
-  isRdpProxy?: unknown;
-  isWebRTCSignaling?: unknown;
-  clientIpAddress?: unknown;
-};
-
-function getConnectionRequestMeta(request: Request): ConnectionRequestMeta {
-  return request as Request & ConnectionRequestMeta;
-}
-
-function isClientType(value: unknown): value is 'desktop' | 'mobile' {
-  return value === 'desktop' || value === 'mobile';
-}
-
-/** 统一生成速率限制 key，确保检查和清理使用相同逻辑 */
-function getRateLimitKey(ws: AuthenticatedWebSocket): string {
-  return ws.sessionId || `ws_${ws.userId || 'anon'}`;
-}
 
 export function initializeConnectionHandler(
   wss: WebSocketServer,
@@ -1155,25 +1141,4 @@ export function initializeConnectionHandler(
   );
 }
 
-/**
- * 根据 User-Agent 检测客户端类型
- * @param userAgent User-Agent 字符串
- * @returns 'mobile' 或 'desktop'
- */
-function detectClientType(userAgent: string): 'mobile' | 'desktop' {
-  const mobileKeywords = [
-    'Mobile',
-    'Android',
-    'iPhone',
-    'iPad',
-    'iPod',
-    'BlackBerry',
-    'Windows Phone',
-    'webOS',
-  ];
 
-  const lowerUA = userAgent.toLowerCase();
-  const isMobile = mobileKeywords.some((keyword) => lowerUA.includes(keyword.toLowerCase()));
-
-  return isMobile ? 'mobile' : 'desktop';
-}

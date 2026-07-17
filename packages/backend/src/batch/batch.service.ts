@@ -21,6 +21,7 @@ import * as ConnectionRepository from '../connections/connection.repository';
 import { logger } from '../utils/logger';
 import eventService, { AppEventType } from '../services/event.service';
 import { sshPoolService, type PoolKey } from '../services/ssh-pool.service';
+import { buildBatchCommand, sanitizeBatchCommand } from './batch.utils';
 
 // 默认配置
 const DEFAULT_CONCURRENCY = 5;
@@ -28,44 +29,6 @@ const DEFAULT_TIMEOUT_SECONDS = 300; // 5 分钟
 const CONNECT_TIMEOUT_MS = 20000; // 20 秒连接超时
 const MAX_OUTPUT_SIZE = 1024 * 1024; // 1MB 输出限制
 const OUTPUT_THROTTLE_MS = 100; // 输出写入节流
-
-/**
- * 校验批量执行的命令字符串，拒绝包含 shell 注入风险的输入。
- * 采用精准拦截策略：仅阻断真正的注入向量，允许合法 shell 语法。
- *
- * 拦截目标（真正危险的注入模式）：
- * - 反引号 `` ` ``       → 命令替换（`whoami`）
- * - $()                  → 命令替换（$(whoami)）
- * - ${}                  → 变量/命令展开（${IFS}、${PATH:-/bin}）
- * - 换行符 \n \r         → 注入换行执行多条命令
- * - 空字节 \x00          → 绕过字符串截断
- * - 大括号 {}            → 花括号展开（{a,b}cp）可用于绕过过滤
- *
- * 允许的合法 shell 语法：
- * - |  管道（cat file | grep x）
- * - ;  命令分隔（cd /tmp; ls）
- * - && ||  逻辑运算符
- * - $VAR  环境变量引用（echo $USER）
- * - * ?  通配符（ls *.log）
- * - > <  重定向（echo x > file）
- * - ()  子 shell / 命令分组
- * - []  glob 模式（ls [0-9]*）
- */
-const DANGEROUS_CMD_PATTERN = /`|\$\(|\$\{|\$'|\n|\r|\x00|\{[a-zA-Z]/;
-
-function sanitizeBatchCommand(command: string): string {
-  if (!command || typeof command !== 'string') {
-    return '';
-  }
-  const trimmed = command.trim();
-  if (trimmed.length === 0) {
-    return '';
-  }
-  if (DANGEROUS_CMD_PATTERN.test(trimmed)) {
-    return '';
-  }
-  return trimmed;
-}
 
 // 子任务执行结果
 type SubTaskResult = 'completed' | 'failed' | 'cancelled';
@@ -356,48 +319,6 @@ async function processTask(
 }
 
 /**
- * 构建完整的执行命令
- *
- * 命令构建顺序（由内到外）：
- * 1. 原始命令
- * 2. 环境变量（使用 env 命令包裹）
- * 3. sudo（包裹整个带环境变量的命令）
- * 4. cd 工作目录（作为最外层前缀）
- *
- * 最终格式：cd workdir && sudo -n env VAR=... cmd
- */
-function buildCommand(command: string, payload: BatchExecPayload): string {
-  let fullCommand = command;
-
-  // 1. 先处理环境变量（作为命令前缀）
-  if (payload.env && Object.keys(payload.env).length > 0) {
-    const envPrefix = Object.entries(payload.env)
-      .map(([key, value]) => `${key}=${escapeShellArg(value)}`)
-      .join(' ');
-    fullCommand = `env ${envPrefix} ${fullCommand}`;
-  }
-
-  // 2. 然后处理 sudo（包裹整个带环境变量的命令）
-  if (payload.sudo) {
-    fullCommand = `sudo -n ${fullCommand}`;
-  }
-
-  // 3. 最后处理工作目录（作为最外层）
-  if (payload.workdir) {
-    fullCommand = `cd ${escapeShellArg(payload.workdir)} && ${fullCommand}`;
-  }
-
-  return fullCommand;
-}
-
-/**
- * Shell 参数转义
- */
-function escapeShellArg(arg: string): string {
-  return `'${arg.replace(/'/g, "'\\''")}'`;
-}
-
-/**
  * 执行单个子任务
  */
 async function runSubTask(
@@ -475,7 +396,7 @@ async function runSubTask(
     sendSubTaskUpdate(userId, taskId, subTaskId, 'running', 10, '正在执行命令...');
 
     // 构建完整命令
-    const fullCommand = buildCommand(command, payload);
+    const fullCommand = buildBatchCommand(command, payload);
 
     // 获取超时配置
     const timeoutSeconds = payload.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS;

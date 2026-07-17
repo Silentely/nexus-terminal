@@ -23,9 +23,17 @@ import { withLogContext } from '../../middleware/log-context.middleware';
 import { sshConnectDuration } from '../../metrics/metrics.service';
 import eventService, { AppEventType } from '../../services/event.service';
 import { getOrCreateBatcher, destroyBatcher } from '../output-batcher';
+import {
+  consumeSuppressedPromptChunk,
+  isLikelyShellPromptLine,
+  isSilentExecOutputAccepted,
+  isValidSshResizeDims,
+  normalizeSilentExecSuccessCriteria,
+  resolveSshInputData,
+  type SilentExecSuccessCriteria,
+} from './ssh-handler.utils';
 
 type SilentExecShellFlavor = 'posix' | 'powershell' | 'cmd' | 'fish';
-type SilentExecSuccessCriteria = 'any' | 'non_empty' | 'absolute_path';
 
 interface SilentExecPayload {
   command?: string;
@@ -78,109 +86,12 @@ const pendingSilentExecRequests = new Map<string, PendingSilentExecRequest>();
 // H-17: sessionId -> requestId 反向索引，避免并发请求被覆盖
 const sessionToSilentExecRequestId = new Map<string, string>();
 const pendingPromptSuppressionSessions = new Set<string>();
-const SILENT_PWD_PREFIX = '__NX_PWD__';
-const ANSI_ESCAPE_PATTERN = /\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g;
-const OSC_ESCAPE_PATTERN = /\x1B\][^\x07]*(?:\x07|\x1B\\)/g;
-const isAbsolutePath = (value: string): boolean => /^(\/|[A-Za-z]:[\\/])/.test(value);
-
-const stripTerminalControlSequences = (value: string): string =>
-  value.replace(OSC_ESCAPE_PATTERN, '').replace(ANSI_ESCAPE_PATTERN, '');
-
-const extractAbsolutePathFromSilentLine = (line: string): string | null => {
-  const sanitizedLine = stripTerminalControlSequences(line).trim();
-  if (!sanitizedLine) {
-    return null;
-  }
-
-  const pathCandidate = sanitizedLine.startsWith(SILENT_PWD_PREFIX)
-    ? sanitizedLine.slice(SILENT_PWD_PREFIX.length).trim()
-    : sanitizedLine;
-  return isAbsolutePath(pathCandidate) ? pathCandidate : null;
-};
-
-// Shell 提示符检测正则（模块级常量，避免重复编译）
-const UNIX_PROMPT_CORE_PATTERN = '[^@\\s]+@[^:\\s]+:[^#$>\\n]*[#$>]';
-const WINDOWS_PROMPT_CORE_PATTERN = '[A-Za-z]:\\\\[^>\\n]*>';
-const UNIX_PROMPT_PATTERN = new RegExp(`^(?:${UNIX_PROMPT_CORE_PATTERN}\\s*)+$`);
-const WINDOWS_PROMPT_PATTERN = new RegExp(`^(?:${WINDOWS_PROMPT_CORE_PATTERN}\\s*)+$`);
-
-const isLikelyShellPromptLine = (line: string): boolean => {
-  const sanitizedLine = stripTerminalControlSequences(line).trim();
-  if (!sanitizedLine) {
-    return false;
-  }
-  return UNIX_PROMPT_PATTERN.test(sanitizedLine) || WINDOWS_PROMPT_PATTERN.test(sanitizedLine);
-};
-
-const consumeSuppressedPromptChunk = (
-  chunk: string,
-): { output: string; consumedPrompt: boolean; keepSuppression: boolean } => {
-  const normalizedChunk = chunk.replace(/\r/g, '');
-  if (!normalizedChunk) {
-    return { output: '', consumedPrompt: false, keepSuppression: true };
-  }
-
-  const lineBreakIndex = normalizedChunk.indexOf('\n');
-  if (lineBreakIndex === -1) {
-    if (isLikelyShellPromptLine(normalizedChunk)) {
-      return { output: '', consumedPrompt: true, keepSuppression: false };
-    }
-    const hasVisibleText = stripTerminalControlSequences(normalizedChunk).trim().length > 0;
-    return {
-      output: chunk,
-      consumedPrompt: false,
-      keepSuppression: !hasVisibleText,
-    };
-  }
-
-  const firstLine = normalizedChunk.slice(0, lineBreakIndex);
-  if (!isLikelyShellPromptLine(firstLine)) {
-    const hasVisibleText = stripTerminalControlSequences(firstLine).trim().length > 0;
-    return {
-      output: chunk,
-      consumedPrompt: false,
-      keepSuppression: !hasVisibleText,
-    };
-  }
-
-  return {
-    output: normalizedChunk.slice(lineBreakIndex + 1),
-    consumedPrompt: true,
-    keepSuppression: false,
-  };
-};
 
 const clearSilentExecTimer = (request: PendingSilentExecRequest): void => {
   if (request.timeoutId) {
     clearTimeout(request.timeoutId);
     request.timeoutId = undefined;
   }
-};
-
-const hasAbsolutePathInOutput = (output: string): boolean =>
-  output
-    .replace(/\r/g, '')
-    .split('\n')
-    .some((line) => Boolean(extractAbsolutePathFromSilentLine(line)));
-
-const normalizeSilentExecSuccessCriteria = (value: unknown): SilentExecSuccessCriteria => {
-  if (value === 'any' || value === 'non_empty' || value === 'absolute_path') {
-    return value;
-  }
-  return 'non_empty';
-};
-
-const isSilentExecOutputAccepted = (
-  criteria: SilentExecSuccessCriteria,
-  output: string,
-): boolean => {
-  if (criteria === 'any') {
-    return true;
-  }
-  if (criteria === 'absolute_path') {
-    return hasAbsolutePathInOutput(output);
-  }
-  return output.trim().length > 0;
 };
 
 const finalizeSilentExecWithError = (sessionId: string, error: string): void => {
@@ -999,10 +910,8 @@ export function handleSshInput(
     );
     return;
   }
-  // 注意：Schema 已校验 payload 为 string 类型
-  const data = typeof payload === 'string' ? payload : payload?.data;
+  const data = resolveSshInputData(payload);
   if (typeof data === 'string' && state.isShellReady) {
-    // Check isShellReady
     state.sshShellStream.write(data);
   } else if (!state.isShellReady) {
     logger.warn(`WebSocket: 会话 ${sessionId} 收到 SSH 输入，但 Shell 尚未就绪。`);
@@ -1024,14 +933,7 @@ export function handleSshResize(
   }
 
   const { cols, rows } = payload || {};
-  if (
-    typeof cols !== 'number' ||
-    typeof rows !== 'number' ||
-    cols <= 0 ||
-    rows <= 0 ||
-    cols > 1000 ||
-    rows > 500
-  ) {
+  if (!isValidSshResizeDims(cols, rows)) {
     logger.warn(
       `WebSocket: 收到来自 ${ws.username} (会话: ${sessionId}) 的无效调整大小请求:`,
       payload,
@@ -1039,9 +941,13 @@ export function handleSshResize(
     return;
   }
 
+  // isValidSshResizeDims 已保证为合法正整数
+  const safeCols = cols as number;
+  const safeRows = rows as number;
+
   if (state.isShellReady && state.sshShellStream) {
-    logger.debug(`SSH: 会话 ${sessionId} 调整终端大小: ${cols}x${rows}`);
-    state.sshShellStream.setWindow(rows, cols, 0, 0);
+    logger.debug(`SSH: 会话 ${sessionId} 调整终端大小: ${safeCols}x${safeRows}`);
+    state.sshShellStream.setWindow(safeRows, safeCols, 0, 0);
   } else {
     // Store intended size if shell not ready, apply when shell is ready.
     // This part is a bit more complex as it requires modifying the shell opening logic.
