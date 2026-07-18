@@ -9,7 +9,7 @@ import VueRecaptcha from 'vue3-recaptcha2'; // 使用默认导入
 import { extractErrorMessage } from '../utils/errorExtractor';
 import { log } from '@/utils/log';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const authStore = useAuthStore();
 // 获取 loginRequires2FA 状态
 const { isLoading, error, loginRequires2FA, publicCaptchaConfig, hasPasskeysAvailable } =
@@ -187,6 +187,8 @@ const handlePasskeyLogin = async () => {
                 type="text"
                 id="username"
                 v-model="credentials.username"
+                name="username"
+                autocomplete="username"
                 required
                 :disabled="isLoading"
                 class="w-full px-4 py-3 border border-border/50 rounded-lg bg-input text-foreground text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition duration-150 ease-in-out disabled:cursor-not-allowed"
@@ -200,6 +202,8 @@ const handlePasskeyLogin = async () => {
                 type="password"
                 id="password"
                 v-model="credentials.password"
+                name="password"
+                autocomplete="current-password"
                 required
                 :disabled="isLoading"
                 class="w-full px-4 py-3 border border-border/50 rounded-lg bg-input text-foreground text-base shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition duration-150 ease-in-out disabled:cursor-not-allowed"
@@ -274,6 +278,7 @@ const handlePasskeyLogin = async () => {
               <VueRecaptcha
                 ref="recaptchaWidget"
                 :sitekey="publicCaptchaConfig.recaptchaSiteKey"
+                :hl="locale"
                 @verify="handleCaptchaVerified"
                 @expire="handleCaptchaExpired"
                 @fail="handleCaptchaError"

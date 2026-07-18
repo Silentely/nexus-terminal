@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import apiClient from '@/utils/apiClient';
 import { log } from '@/utils/log';
+import { useAuthStore } from './auth.store';
 
 // 基础输入框接口 (移除 focusAction)
 export interface FocusableInput {
@@ -84,6 +85,13 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
    * On network or parse errors the function resets `sequenceOrder` to `[]` and `itemConfigs` to `{}` and logs an error.
    */
   async function loadConfigurationFromBackend() {
+    const authStore = useAuthStore();
+    // 该接口需登录；未认证时跳过，避免登录页产生 401 噪音
+    if (!authStore.isAuthenticated) {
+      log.debug('[FocusSwitcherStore] 用户未认证，跳过加载焦点切换配置');
+      return;
+    }
+
     const apiPath = '/settings/focus-switcher-sequence';
     try {
       const { data: loadedFullConfig } = await apiClient.get<FocusSwitcherFullConfig>(apiPath);
@@ -411,12 +419,20 @@ export const useFocusSwitcherStore = defineStore('focusSwitcher', () => {
   }
 
   // --- Initialization ---
-  // Store 创建时自动从后端加载配置
-  // log.info('[FocusSwitcherStore] Initializing store and scheduling loadConfigurationFromBackend...'); // 使用新名称
-  nextTick(() => {
-    // log.info('[FocusSwitcherStore] nextTick triggered, calling loadConfigurationFromBackend.'); // 使用新名称
-    loadConfigurationFromBackend(); // 调用重命名后的加载函数
-  });
+  // 仅在已认证时加载；登录后 isAuthenticated 变为 true 时再拉取（登录成功会整页刷新，init 数据也会触发）
+  const authStore = useAuthStore();
+  watch(
+    () => authStore.isAuthenticated,
+    (isAuth) => {
+      if (isAuth) {
+        void loadConfigurationFromBackend();
+      } else {
+        sequenceOrder.value = [];
+        itemConfigs.value = {};
+      }
+    },
+    { immediate: true },
+  );
 
   return {
     // State

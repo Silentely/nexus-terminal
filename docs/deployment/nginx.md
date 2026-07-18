@@ -397,6 +397,12 @@ upstream nexus_backend_cluster {
 **注意**：重复的 `Content-Security-Policy` 头会被浏览器取交集（AND），可能导致合法资源被阻止加载。
 :::
 
+::: tip CAPTCHA 与 CSP
+登录页会动态加载 Google reCAPTCHA / hCaptcha 脚本。若 CSP 未放行对应域名，浏览器会报
+`Loading the script 'https://www.google.com/recaptcha/api.js' violates Content Security Policy`，验证码无法显示。
+下方示例与后端 Helmet CSP（`packages/backend/src/config/middleware.ts`）对齐；使用 Cloudflare 等额外安全头时同样需要放行这些域。
+:::
+
 ```nginx
 server {
     # ... SSL 配置 ...
@@ -406,7 +412,8 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' wss: ws: https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com;" always;
+    # 注意：须包含 reCAPTCHA/hCaptcha/Cloudflare Insights/Google Fonts，否则登录验证码或字体可能被拦截
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com https://www.google.com https://www.gstatic.com https://hcaptcha.com https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://www.gstatic.com https://*.google.com https://hcaptcha.com https://js.hcaptcha.com https://newassets.hcaptcha.com; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' wss: ws: https://static.cloudflareinsights.com https://cdn-cgi.cloudflare.com https://www.google.com https://www.gstatic.com https://hcaptcha.com https://js.hcaptcha.com https://newassets.hcaptcha.com; frame-src 'self' https://www.google.com https://www.gstatic.com https://hcaptcha.com https://js.hcaptcha.com https://newassets.hcaptcha.com https://*.hcaptcha.com;" always;
 
     # HSTS（仅 HTTPS）
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
@@ -444,7 +451,6 @@ location / {
     # Nginx 重新设置安全头（在 server 块中用 add_header）
     # ...
 }
-```
 ```
 
 ### 访问限制

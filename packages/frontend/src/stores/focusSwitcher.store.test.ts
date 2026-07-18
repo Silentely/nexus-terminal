@@ -32,11 +32,35 @@ vi.mock('../utils/apiClient', () => ({
     put: mockPut,
   },
 }));
+vi.mock('@/utils/apiClient', () => ({
+  default: {
+    get: mockGet,
+    put: mockPut,
+  },
+}));
+
+// Mock auth.store：用 ref 保持可响应，便于 watch isAuthenticated
+const { mockIsAuthenticated } = vi.hoisted(() => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { ref: hoistedRef } = require('vue') as typeof import('vue');
+  return { mockIsAuthenticated: hoistedRef(false) };
+});
+vi.mock('./auth.store', () => ({
+  useAuthStore: () => ({
+    get isAuthenticated() {
+      return mockIsAuthenticated.value;
+    },
+    set isAuthenticated(v: boolean) {
+      mockIsAuthenticated.value = v;
+    },
+  }),
+}));
 
 /**
- * 创建 store 并等待 nextTick 自动初始化完成，然后清除 apiClient 调用历史。
+ * 以已认证状态创建 store，等待自动加载完成，然后清除 apiClient 调用历史。
  */
 async function createStoreAndFlushInit() {
+  mockIsAuthenticated.value = true;
   const store = useFocusSwitcherStore();
   await nextTick();
   await vi.waitFor(() => {
@@ -51,7 +75,8 @@ describe('focusSwitcher.store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
-    // 默认让 nextTick 内的 loadConfigurationFromBackend 成功返回空配置
+    mockIsAuthenticated.value = false;
+    // 默认让认证后自动加载成功返回空配置
     mockGet.mockResolvedValue({ data: { sequence: [], shortcuts: {} } });
   });
 
@@ -786,10 +811,64 @@ describe('focusSwitcher.store', () => {
     });
   });
 
-  describe('nextTick 初始化', () => {
-    it('创建 store 时应自动调用 loadConfigurationFromBackend', async () => {
+  describe('认证后自动加载', () => {
+    it('已认证时创建 store 应自动调用 loadConfigurationFromBackend', async () => {
       await createStoreAndFlushInit();
       const store = useFocusSwitcherStore();
+      expect(store.sequenceOrder).toEqual([]);
+      expect(store.itemConfigs).toEqual({});
+    });
+
+    it('未认证时创建 store 不应请求后端配置', async () => {
+      mockIsAuthenticated.value = false;
+      const store = useFocusSwitcherStore();
+      await nextTick();
+      // 给 watch/异步一点时间确认未发请求
+      await new Promise((r) => setTimeout(r, 20));
+      expect(mockGet).not.toHaveBeenCalled();
+      expect(store.sequenceOrder).toEqual([]);
+      expect(store.itemConfigs).toEqual({});
+    });
+
+    it('未认证时手动 load 应跳过请求并记录 debug', async () => {
+      mockIsAuthenticated.value = false;
+      const store = useFocusSwitcherStore();
+      await nextTick();
+      mockGet.mockClear();
+      mockLog.debug.mockClear();
+
+      await store.loadConfigurationFromBackend();
+
+      expect(mockGet).not.toHaveBeenCalled();
+      expect(mockLog.debug).toHaveBeenCalledWith(
+        expect.stringContaining('用户未认证，跳过加载焦点切换配置'),
+      );
+    });
+
+    it('从未认证变为已认证时应触发加载', async () => {
+      mockIsAuthenticated.value = false;
+      useFocusSwitcherStore();
+      await nextTick();
+      mockGet.mockClear();
+      mockLog.debug.mockClear();
+
+      mockGet.mockResolvedValueOnce({ data: { sequence: [], shortcuts: {} } });
+      mockIsAuthenticated.value = true;
+      await nextTick();
+      await vi.waitFor(() => {
+        expect(mockGet).toHaveBeenCalledWith('/settings/focus-switcher-sequence');
+      });
+    });
+
+    it('登出后应清空 sequenceOrder 与 itemConfigs', async () => {
+      const store = await createStoreAndFlushInit();
+      // 手动写入状态再模拟登出
+      store.sequenceOrder = ['commandInput'];
+      store.itemConfigs = { commandInput: { shortcut: 'Alt+K' } };
+
+      mockIsAuthenticated.value = false;
+      await nextTick();
+
       expect(store.sequenceOrder).toEqual([]);
       expect(store.itemConfigs).toEqual({});
     });
