@@ -81,12 +81,12 @@ async function fetchRemoteVersionFile(): Promise<string | null> {
     return null;
   }
 
-  const text =
-    typeof response.data === 'string'
-      ? response.data.trim()
-      : response.data != null
-        ? String(response.data).trim()
-        : '';
+  let text = '';
+  if (typeof response.data === 'string') {
+    text = response.data.trim();
+  } else if (response.data != null) {
+    text = String(response.data).trim();
+  }
 
   if (!text) return null;
   setCache('remote_version_text', text);

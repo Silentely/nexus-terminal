@@ -5,8 +5,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { setActivePinia, createPinia } from 'pinia';
 
 const mockAxiosGet = vi.fn();
-const mockIsAxiosError = vi.fn(
-  (error: unknown) => Boolean(error && typeof error === 'object' && 'response' in (error as object)),
+const mockIsAxiosError = vi.fn((error: unknown) =>
+  Boolean(error && typeof error === 'object' && 'response' in (error as object)),
 );
 
 vi.mock('axios', () => ({

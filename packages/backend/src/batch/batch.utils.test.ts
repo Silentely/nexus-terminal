@@ -2,11 +2,7 @@
  * 批量执行纯函数工具测试
  */
 import { describe, it, expect } from 'vitest';
-import {
-  buildBatchCommand,
-  DANGEROUS_CMD_PATTERN,
-  sanitizeBatchCommand,
-} from './batch.utils';
+import { buildBatchCommand, DANGEROUS_CMD_PATTERN, sanitizeBatchCommand } from './batch.utils';
 import type { BatchExecPayload } from './batch.types';
 
 describe('batch.utils', () => {
@@ -58,10 +54,7 @@ describe('batch.utils', () => {
     });
 
     it('应包装 env', () => {
-      const cmd = buildBatchCommand(
-        'echo hi',
-        base({ env: { FOO: 'bar', A: "x'y" } }),
-      );
+      const cmd = buildBatchCommand('echo hi', base({ env: { FOO: 'bar', A: "x'y" } }));
       expect(cmd).toContain('env ');
       expect(cmd).toContain("FOO='bar'");
       expect(cmd).toContain("A='x'\\''y'");
@@ -75,9 +68,7 @@ describe('batch.utils', () => {
     });
 
     it('应包装 workdir', () => {
-      expect(buildBatchCommand('ls', base({ workdir: '/var/log' }))).toBe(
-        "cd '/var/log' && ls",
-      );
+      expect(buildBatchCommand('ls', base({ workdir: '/var/log' }))).toBe("cd '/var/log' && ls");
     });
 
     it('应按 env → sudo → workdir 顺序嵌套', () => {

@@ -162,34 +162,34 @@ packages/backend/
 
 ## API 端点索引
 
-| 路由前缀                     | 模块               | 功能描述                                     |
-| ---------------------------- | ------------------ | -------------------------------------------- |
-| `/api/v1/auth`               | auth               | 用户登录/注册/登出、2FA、Passkey             |
-| `/api/v1/connections`        | connections        | SSH/RDP/VNC 连接 CRUD                        |
-| `/api/v1/sftp`               | sftp               | 文件上传/下载/列表/删除/权限                 |
-| `/api/v1/ssh-suspend`        | ssh-suspend        | 会话挂起与恢复                               |
-| `/api/v1/proxies`            | proxies            | 代理配置管理                                 |
-| `/api/v1/tags`               | tags               | 连接标签 CRUD                                |
-| `/api/v1/settings`           | settings           | 系统设置读写                                 |
-| `/api/v1/notifications`      | notifications      | 通知渠道配置                                 |
-| `/api/v1/audit-logs`         | audit              | 审计日志查询                                 |
-| `/api/v1/command-history`    | command-history    | 命令历史记录                                 |
-| `/api/v1/quick-commands`     | quick-commands     | 快捷指令 CRUD                                |
-| `/api/v1/quick-command-tags` | quick-command-tags | 快捷指令标签                                 |
-| `/api/v1/terminal-themes`    | terminal-themes    | 终端主题配置                                 |
-| `/api/v1/appearance`         | appearance         | 外观设置                                     |
-| `/api/v1/ssh-keys`           | ssh-keys           | SSH 密钥管理                                 |
-| `/api/v1/transfers`          | transfers          | 文件传输状态                                 |
-| `/api/v1/path-history`       | path-history       | 路径浏览历史                                 |
-| `/api/v1/favorite-paths`     | favorite-paths     | 收藏路径管理                                 |
-| `/api/v1/passkey`            | passkey            | Passkey 注册/认证                            |
-| `/api/v1/batch`              | batch              | 批量命令执行、任务状态查询、取消/删除        |
-| `/api/v1/ai`                 | ai-ops             | AI 会话管理、智能分析查询                    |
-| `/api/v1/dashboard`          | services           | 仪表盘统计、时间线、资产健康、系统资源       |
-| `/api/v1/metrics`            | metrics            | Prometheus 指标（受环境变量控制）            |
-| `/api/v1/backup`             | backup             | 数据导出/导入/验证                           |
-| `/api/v1/version`            | version            | 版本检查代理：`/check` 统一入口（VERSION 优先 + Releases 兜底），兼容 `/latest` `/remote` |
-| `/api/v1/health`             | (内置)             | 健康检查（含 SQLite 连通性检测）             |
+| 路由前缀 | 模块 | 功能描述 |
+| --- | --- | --- |
+| `/api/v1/auth` | auth | 用户登录/注册/登出、2FA、Passkey |
+| `/api/v1/connections` | connections | SSH/RDP/VNC 连接 CRUD |
+| `/api/v1/sftp` | sftp | 文件上传/下载/列表/删除/权限 |
+| `/api/v1/ssh-suspend` | ssh-suspend | 会话挂起与恢复 |
+| `/api/v1/proxies` | proxies | 代理配置管理 |
+| `/api/v1/tags` | tags | 连接标签 CRUD |
+| `/api/v1/settings` | settings | 系统设置读写 |
+| `/api/v1/notifications` | notifications | 通知渠道配置 |
+| `/api/v1/audit-logs` | audit | 审计日志查询 |
+| `/api/v1/command-history` | command-history | 命令历史记录 |
+| `/api/v1/quick-commands` | quick-commands | 快捷指令 CRUD |
+| `/api/v1/quick-command-tags` | quick-command-tags | 快捷指令标签 |
+| `/api/v1/terminal-themes` | terminal-themes | 终端主题配置 |
+| `/api/v1/appearance` | appearance | 外观设置 |
+| `/api/v1/ssh-keys` | ssh-keys | SSH 密钥管理 |
+| `/api/v1/transfers` | transfers | 文件传输状态 |
+| `/api/v1/path-history` | path-history | 路径浏览历史 |
+| `/api/v1/favorite-paths` | favorite-paths | 收藏路径管理 |
+| `/api/v1/passkey` | passkey | Passkey 注册/认证 |
+| `/api/v1/batch` | batch | 批量命令执行、任务状态查询、取消/删除 |
+| `/api/v1/ai` | ai-ops | AI 会话管理、智能分析查询 |
+| `/api/v1/dashboard` | services | 仪表盘统计、时间线、资产健康、系统资源 |
+| `/api/v1/metrics` | metrics | Prometheus 指标（受环境变量控制） |
+| `/api/v1/backup` | backup | 数据导出/导入/验证 |
+| `/api/v1/version` | version | 版本检查代理：`/check` 统一入口（VERSION 优先 + Releases 兜底），兼容 `/latest` `/remote` |
+| `/api/v1/health` | (内置) | 健康检查（含 SQLite 连通性检测） |
 
 ---
 

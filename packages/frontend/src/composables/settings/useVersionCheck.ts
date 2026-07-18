@@ -132,10 +132,7 @@ export function useVersionCheck() {
           const status = error.response?.status;
           if (status === 404) {
             log.warn('暂无可用的发布版本');
-            versionCheckError.value = t(
-              'settings.about.error.noReleases',
-              '没有找到发布版本。',
-            );
+            versionCheckError.value = t('settings.about.error.noReleases', '没有找到发布版本。');
           } else if (status === 403) {
             log.error('版本检查 API 访问受限:', error);
             versionCheckError.value = t(

@@ -68,10 +68,15 @@ export function isNewerVersion(
   latest: string | null | undefined,
   current: string | null | undefined,
 ): boolean {
-  if (!isComparableVersion(latest) || !isComparableVersion(current)) {
+  if (
+    latest == null ||
+    current == null ||
+    !isComparableVersion(latest) ||
+    !isComparableVersion(current)
+  ) {
     return false;
   }
-  return compareVersions(latest!, current!) > 0;
+  return compareVersions(latest, current) > 0;
 }
 
 /**

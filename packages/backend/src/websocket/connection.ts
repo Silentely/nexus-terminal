@@ -1140,5 +1140,3 @@ export function initializeConnectionHandler(
     'WebSocket connection handler initialized, including SshSuspendService event listener.',
   );
 }
-
-

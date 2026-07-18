@@ -44,9 +44,7 @@ async function invokeRoute(
   method: 'get',
   path: string,
 ): Promise<{ statusCode: number; body: unknown }> {
-  const layer = router.stack.find(
-    (l) => l.route?.path === path && l.route.methods[method],
-  );
+  const layer = router.stack.find((l) => l.route?.path === path && l.route.methods[method]);
   if (!layer?.route) {
     throw new Error(`Route not found: ${method.toUpperCase()} ${path}`);
   }
@@ -86,7 +84,11 @@ describe('version.routes', () => {
     });
 
     const { default: versionRoutes } = await import('./version.routes');
-    const result = await invokeRoute(versionRoutes as unknown as { stack: RouteLayer[] }, 'get', '/check');
+    const result = await invokeRoute(
+      versionRoutes as unknown as { stack: RouteLayer[] },
+      'get',
+      '/check',
+    );
 
     expect(result.statusCode).toBe(200);
     expect(result.body).toMatchObject({
@@ -115,7 +117,11 @@ describe('version.routes', () => {
     });
 
     const { default: versionRoutes } = await import('./version.routes');
-    const result = await invokeRoute(versionRoutes as unknown as { stack: RouteLayer[] }, 'get', '/check');
+    const result = await invokeRoute(
+      versionRoutes as unknown as { stack: RouteLayer[] },
+      'get',
+      '/check',
+    );
 
     expect(result.statusCode).toBe(200);
     expect(result.body).toMatchObject({

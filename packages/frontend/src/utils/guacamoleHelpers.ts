@@ -9,11 +9,7 @@ import { log } from '@/utils/log';
 import { useWebRTCTunnel } from '@/composables/useWebRTCTunnel';
 
 /** Guacamole 状态码 → 连接状态与 i18n 键片段 */
-export type RemoteDesktopConnectionStatus =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'error';
+export type RemoteDesktopConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface GuacamoleStatusPayload {
   code?: number | string;

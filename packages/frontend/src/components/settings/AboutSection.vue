@@ -19,9 +19,7 @@
           :title="$t('settings.about.multiplexHint')"
         >
           {{
-            multiplexEnabled
-              ? $t('settings.about.multiplexOn')
-              : $t('settings.about.multiplexOff')
+            multiplexEnabled ? $t('settings.about.multiplexOn') : $t('settings.about.multiplexOff')
           }}
         </span>
         <!-- Version Check Status -->

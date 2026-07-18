@@ -22,10 +22,7 @@ const WINDOWS_PROMPT_PATTERN = new RegExp(`^(?:${WINDOWS_PROMPT_CORE_PATTERN}\\s
 /**
  * 校验 SSH resize 的 cols/rows（通过后可安全当作正整数使用）
  */
-export function isValidSshResizeDims(
-  cols: unknown,
-  rows: unknown,
-): cols is number {
+export function isValidSshResizeDims(cols: unknown, rows: unknown): cols is number {
   if (
     typeof cols !== 'number' ||
     typeof rows !== 'number' ||

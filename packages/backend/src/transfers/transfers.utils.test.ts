@@ -11,9 +11,7 @@ import {
 } from './transfers.utils';
 import type { ConnectionWithTags, DecryptedConnectionCredentials } from '../types/connection.types';
 
-function makeConnection(
-  overrides: Partial<ConnectionWithTags> = {},
-): ConnectionWithTags {
+function makeConnection(overrides: Partial<ConnectionWithTags> = {}): ConnectionWithTags {
   return {
     id: 1,
     name: 'src',
@@ -99,18 +97,11 @@ describe('transfers.utils', () => {
     });
 
     it('应构建 scp 命令（目录加 -r）', () => {
-      const cmd = buildTransferCommandString(
-        '/tmp/file.txt',
-        false,
-        '/opt/files',
-        'scp',
-        'scp',
-        {
-          targetUserAndHost: 'root@host',
-          sshPortOption: '-P 22',
-          sshIdentityFileOption: '-i /tmp/key',
-        },
-      );
+      const cmd = buildTransferCommandString('/tmp/file.txt', false, '/opt/files', 'scp', 'scp', {
+        targetUserAndHost: 'root@host',
+        sshPortOption: '-P 22',
+        sshIdentityFileOption: '-i /tmp/key',
+      });
 
       expect(cmd.startsWith('scp ')).toBe(true);
       expect(cmd).toContain('-o StrictHostKeyChecking=no');

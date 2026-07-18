@@ -4,10 +4,7 @@ import * as crypto from 'crypto';
 import { Client, SFTPWrapper } from 'ssh2';
 import { InitiateTransferPayload, TransferTask, TransferSubTask } from './transfers.types';
 import { getConnectionWithDecryptedCredentials } from '../connections/connection.service';
-import type {
-  ConnectionWithTags,
-  DecryptedConnectionCredentials,
-} from '../types/connection.types';
+import type { ConnectionWithTags, DecryptedConnectionCredentials } from '../types/connection.types';
 import { getErrorMessage, isError } from '../utils/AppError';
 import { logger } from '../utils/logger';
 import {

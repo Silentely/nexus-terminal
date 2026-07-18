@@ -242,9 +242,7 @@ async function handleOffer(
   // flush 在 setRemoteDescription 前缓存的浏览器 ICE 候选
   if (session.pendingRemoteIceCandidates.length > 0) {
     const queued = session.pendingRemoteIceCandidates.splice(0);
-    logger.debug(
-      `[WebRTC Signaling] flush ${queued.length} 个缓存的远端 ICE 候选: ${sessionId}`,
-    );
+    logger.debug(`[WebRTC Signaling] flush ${queued.length} 个缓存的远端 ICE 候选: ${sessionId}`);
     for (const candidate of queued) {
       try {
         await pc.addIceCandidate(candidate);
