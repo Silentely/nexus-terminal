@@ -232,6 +232,14 @@ describe('StatusMonitorService', () => {
       const mockClient = createMockSshClient();
       const mockWs = createMockWebSocket(1); // 初始状态 OPEN
 
+      mockClient.exec.mockImplementation(
+        (_cmd: string, optionsOrCallback: unknown, callback?: Function) => {
+          const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+          const stream = createMockStream(buildBatchOutput());
+          cb?.(null, stream);
+        },
+      );
+
       clientStates.set('session-ws-closed', {
         sshClient: mockClient,
         ws: mockWs,
@@ -239,8 +247,9 @@ describe('StatusMonitorService', () => {
         statusIntervalId: undefined, // 初始无 interval，让 service 创建
       });
 
-      // 启动轮询
+      // 启动轮询（会立即采样一次）
       await service.startStatusPolling('session-ws-closed');
+      await vi.advanceTimersByTimeAsync(0);
 
       // 确认 interval 已创建
       const stateBeforeClose = clientStates.get('session-ws-closed');
@@ -249,7 +258,7 @@ describe('StatusMonitorService', () => {
       // 模拟 WS 关闭
       mockWs.readyState = 3; // CLOSED
 
-      // 推进时间触发 fetchAndSendServerStatus
+      // 推进时间触发下一轮 fetchAndSendServerStatus
       await vi.advanceTimersByTimeAsync(3000);
 
       // 由于 WS 已关闭，轮询应被停止
@@ -445,14 +454,15 @@ describe('StatusMonitorService', () => {
 
       await service.startStatusPolling('session-cpu');
 
-      // 第一次采样（返回 0，因为没有之前的数据）
-      await vi.advanceTimersByTimeAsync(3000);
+      // 立即首采样 + 500ms 引导补采
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(500);
 
-      // 第二次采样（应该有计算值）
-      await vi.advanceTimersByTimeAsync(3000);
-
-      // 验证发送了两次
-      expect(mockWs.send).toHaveBeenCalledTimes(2);
+      // 至少两轮采样（基线 + 计算值）
+      expect(mockWs.send.mock.calls.length).toBeGreaterThanOrEqual(2);
+      const firstData = JSON.parse(mockWs.send.mock.calls[0][0]);
+      expect(firstData.sid).toBe('session-cpu');
+      expect(firstData.type).toBe('status_update');
     });
 
     it('应将 iowait 计入空闲时间以避免高估 CPU 使用率', async () => {
@@ -481,11 +491,56 @@ describe('StatusMonitorService', () => {
       });
 
       await service.startStatusPolling('session-cpu-iowait');
-      await vi.advanceTimersByTimeAsync(3000);
-      await vi.advanceTimersByTimeAsync(3000);
+      // 立即首采样 + 500ms 引导补采
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(500);
 
+      expect(mockWs.send.mock.calls.length).toBeGreaterThanOrEqual(2);
       const secondData = JSON.parse(mockWs.send.mock.calls[1][0]);
+      expect(secondData.sid).toBe('session-cpu-iowait');
+      expect(secondData.sessionId).toBe('session-cpu-iowait');
       expect(secondData.payload.status.cpuPercent).toBe(36.8);
+    });
+
+    it('慢速采集未完成时跳过重叠轮询，避免 CPU 差值乱序', async () => {
+      let resolveExec: (() => void) | null = null;
+      mockClient.exec.mockImplementation(
+        (_cmd: string, optionsOrCallback: unknown, callback?: Function) => {
+          const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+          const stream = new EventEmitter() as EventEmitter & { stderr: EventEmitter };
+          stream.stderr = new EventEmitter();
+          // 挂起第一轮采集
+          resolveExec = () => {
+            stream.emit(
+              'data',
+              Buffer.from(buildBatchOutput({ PROC_STAT: 'cpu  100 0 50 500 0 0 0 0 0 0' })),
+            );
+            stream.emit('close', 0, null);
+          };
+          cb(null, stream);
+        },
+      );
+
+      const mockWs = createMockWebSocket(1);
+      clientStates.set('session-cpu-inflight', {
+        sshClient: mockClient,
+        ws: mockWs,
+        dbConnectionId: 1,
+        statusIntervalId: undefined,
+      });
+
+      await service.startStatusPolling('session-cpu-inflight');
+      // 首轮仍在进行
+      await Promise.resolve();
+      expect(mockClient.exec).toHaveBeenCalledTimes(1);
+
+      // 间隔触发时因 in-flight 应跳过
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(mockClient.exec).toHaveBeenCalledTimes(1);
+
+      resolveExec?.();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(mockWs.send).toHaveBeenCalled();
     });
 
     it('应正确解析系统负载', async () => {
@@ -661,11 +716,15 @@ describe('StatusMonitorService', () => {
       });
 
       await service.startStatusPolling('session-batch');
-      await vi.advanceTimersByTimeAsync(3000);
+      await vi.advanceTimersByTimeAsync(0);
 
-      // 应只调用一次 exec（批量命令）
-      expect(mockClient.exec).toHaveBeenCalledTimes(1);
+      // 每一轮采集只走一次批量 exec（可能有立即采样 + 引导补采，但每次仍是单条批量命令）
+      expect(mockClient.exec).toHaveBeenCalled();
+      for (const call of mockClient.exec.mock.calls) {
+        expect(call[0]).toContain('__END_PROC_STAT__');
+      }
       const sentData = JSON.parse(mockWs.send.mock.calls[0][0]);
+      expect(sentData.sid).toBe('session-batch');
       expect(sentData.payload.status.osName).toBe('Ubuntu 22.04 LTS');
       expect(sentData.payload.status.cpuModel).toContain('Intel');
       expect(sentData.payload.status.memTotal).toBe(16000);
@@ -778,12 +837,11 @@ describe('StatusMonitorService', () => {
 
       await service.startStatusPolling('session-procstat');
 
-      // 第一次采样（建立基线）
-      await vi.advanceTimersByTimeAsync(3000);
-      // 第二次采样（计算差值）
-      await vi.advanceTimersByTimeAsync(3000);
+      // 立即首采样 + 500ms 引导补采
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(500);
 
-      expect(mockWs.send).toHaveBeenCalledTimes(2);
+      expect(mockWs.send.mock.calls.length).toBeGreaterThanOrEqual(2);
       const secondData = JSON.parse(mockWs.send.mock.calls[1][0]);
       // CPU 使用率应大于 0（第二次采样有增量）
       expect(secondData.payload.status.cpuPercent).toBeGreaterThan(0);
@@ -820,12 +878,11 @@ describe('StatusMonitorService', () => {
 
       await service.startStatusPolling('session-net');
 
-      // 第一次采样
-      await vi.advanceTimersByTimeAsync(3000);
-      // 第二次采样
-      await vi.advanceTimersByTimeAsync(3000);
+      // 立即首采样 + 500ms 引导补采
+      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(500);
 
-      expect(mockWs.send).toHaveBeenCalledTimes(2);
+      expect(mockWs.send.mock.calls.length).toBeGreaterThanOrEqual(2);
       const secondData = JSON.parse(mockWs.send.mock.calls[1][0]);
       // 网络速率应大于 0（第二次采样有增量）
       expect(secondData.payload.status.netRxRate).toBeGreaterThan(0);

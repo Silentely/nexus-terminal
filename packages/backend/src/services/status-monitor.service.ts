@@ -604,8 +604,14 @@ class StatusDataAggregator {
       const totalDiff = currentCpuTimes.total - prev.total;
       const idleDiff = currentCpuTimes.idle - prev.idle;
       const timeDiffMs = now - prev.timestamp;
+      // 计数器回绕/乱序：跳过本样本，保留上次结果
+      if (totalDiff < 0 || idleDiff < 0) {
+        return prev.lastPercent;
+      }
       if (totalDiff > 0 && timeDiffMs > 100) {
-        const usageRatio = 1.0 - idleDiff / totalDiff;
+        // idle 占比超过 total 时钳制为 0（采样噪声）
+        const safeIdleDiff = Math.min(idleDiff, totalDiff);
+        const usageRatio = 1.0 - safeIdleDiff / totalDiff;
         const percent = parseFloat(Math.max(0, Math.min(100, usageRatio * 100)).toFixed(1));
         this.cpuStats.set(sessionId, {
           ...currentCpuTimes,
@@ -657,6 +663,10 @@ export class StatusMonitorService {
   private clientStates: Map<string, ClientState>;
   private healthCollector = new HealthCheckCollector();
   private dataAggregator = new StatusDataAggregator();
+  /** 防止慢速 SSH 采集与下一轮 setInterval 重叠，导致 CPU 差值乱序 */
+  private fetchInFlight = new Set<string>();
+  /** 首次采样后补采一次，尽快产出可用 CPU 百分比（避免首轮恒为 0） */
+  private bootstrapSamplePending = new Set<string>();
 
   constructor(clientStates: Map<string, ClientState>) {
     this.clientStates = clientStates;
@@ -681,6 +691,9 @@ export class StatusMonitorService {
       intervalMs = 3000;
     }
 
+    this.bootstrapSamplePending.add(sessionId);
+    // 立即采样一次，再按间隔轮询；避免用户长时间看到 0%
+    void this.fetchAndSendServerStatus(sessionId);
     state.statusIntervalId = setInterval(() => {
       this.fetchAndSendServerStatus(sessionId);
     }, intervalMs);
@@ -692,33 +705,57 @@ export class StatusMonitorService {
       clearInterval(state.statusIntervalId);
       state.statusIntervalId = undefined;
       this.dataAggregator.cleanup(sessionId);
+      this.fetchInFlight.delete(sessionId);
+      this.bootstrapSamplePending.delete(sessionId);
     }
   }
 
   private async fetchAndSendServerStatus(sessionId: string): Promise<void> {
+    if (this.fetchInFlight.has(sessionId)) {
+      logger.debug(`[StatusMonitor ${sessionId}] 上一轮采集仍在进行，跳过本轮以防 CPU 差值乱序`);
+      return;
+    }
+
     const state = this.clientStates.get(sessionId);
     if (!state || !state.sshClient || state.ws.readyState !== WebSocket.OPEN) {
       this.stopStatusPolling(sessionId);
       return;
     }
+
+    this.fetchInFlight.add(sessionId);
     try {
       const status = await this.fetchServerStatus(state.sshClient, sessionId);
+      // 注入 sid/sessionId，确保多路复用模式下前端能正确路由
       state.ws.send(
         JSON.stringify({
           type: 'status_update',
+          sid: sessionId,
+          sessionId,
           payload: { connectionId: state.dbConnectionId, status },
         }),
       );
+
+      // 首轮只有基线采样（cpuPercent 常为 0），短延迟补采一次得到真实使用率
+      if (this.bootstrapSamplePending.has(sessionId)) {
+        this.bootstrapSamplePending.delete(sessionId);
+        setTimeout(() => {
+          void this.fetchAndSendServerStatus(sessionId);
+        }, 500);
+      }
     } catch (error: unknown) {
       state.ws.send(
         JSON.stringify({
           type: 'status:error',
+          sid: sessionId,
+          sessionId,
           payload: {
             connectionId: state.dbConnectionId,
             message: `获取状态失败: ${getErrorMessage(error)}`,
           },
         }),
       );
+    } finally {
+      this.fetchInFlight.delete(sessionId);
     }
   }
 

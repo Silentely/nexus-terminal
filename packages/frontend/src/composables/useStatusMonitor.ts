@@ -47,9 +47,16 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
   };
 
   // --- WebSocket 消息处理 ---
+  const resolveMessageSessionId = (message?: WebSocketMessage): string | undefined => {
+    if (!message) return undefined;
+    // 多路复用使用 sid，旧路径使用 sessionId
+    return message.sid || message.sessionId;
+  };
+
   const handleStatusUpdate = (payload: unknown, message?: WebSocketMessage) => {
     // 检查消息是否属于此会话
-    if (message?.sessionId && message.sessionId !== sessionId) {
+    const messageSessionId = resolveMessageSessionId(message);
+    if (messageSessionId && messageSessionId !== sessionId) {
       return; // 忽略不属于此会话的消息
     }
 
@@ -75,7 +82,8 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
   // 处理可能的后端状态错误消息 (如果后端会发送的话)
   const handleStatusError = (payload: unknown, message?: WebSocketMessage) => {
     // 检查消息是否属于此会话
-    if (message?.sessionId && message.sessionId !== sessionId) {
+    const messageSessionId = resolveMessageSessionId(message);
+    if (messageSessionId && messageSessionId !== sessionId) {
       return; // 忽略不属于此会话的消息
     }
 

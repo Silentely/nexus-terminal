@@ -151,34 +151,11 @@ export async function bridgeDataChannelToGateway(
   let gwClosed = false;
   let msgCountClientToGateway = 0;
   let msgCountGatewayToClient = 0;
+  /** 网关未就绪时缓存浏览器消息，避免 RDP 握手帧被静默丢弃导致“连接卡住” */
+  const pendingClientMessages: Array<string | Buffer> = [];
+  const MAX_PENDING_CLIENT_MESSAGES = 64;
 
-  // 连接超时保护（15 秒）
-  const connectTimeout = setTimeout(() => {
-    if (!gatewayReady) {
-      logger.error(`[WebRTC Bridge] remote-gateway 连接超时: ${sessionId}`);
-      dc.send(JSON.stringify({ type: 'error', payload: 'remote-gateway 连接超时' }));
-      cleanup('connect_timeout');
-    }
-  }, 15_000);
-
-  gatewayWs.on('open', () => {
-    gatewayReady = true;
-    clearTimeout(connectTimeout);
-    logger.info(`[WebRTC Bridge] remote-gateway 已连接: ${sessionId}`);
-  });
-
-  // DataChannel → remote-gateway（浏览器 → 服务器）
-  dc.onMessage.subscribe((data: unknown) => {
-    if (gwClosed || !gatewayReady) return;
-
-    let msg: string | Buffer;
-    if (typeof data === 'string') {
-      msg = data;
-    } else if (data instanceof ArrayBuffer) {
-      msg = Buffer.from(data);
-    } else {
-      msg = String(data);
-    }
+  const forwardClientMessage = (msg: string | Buffer): void => {
     const msgStr = typeof msg === 'string' ? msg : msg.toString();
 
     // 过滤浏览器的握手指令
@@ -197,8 +174,63 @@ export async function bridgeDataChannelToGateway(
       );
     }
 
-    // 转发到 remote-gateway
     gatewayWs.send(msg);
+  };
+
+  const flushPendingClientMessages = (): void => {
+    if (pendingClientMessages.length === 0) return;
+    const queued = pendingClientMessages.splice(0);
+    logger.debug(`[WebRTC Bridge] flush ${queued.length} 条缓存的客户端消息: ${sessionId}`);
+    for (const msg of queued) {
+      if (gwClosed) break;
+      forwardClientMessage(msg);
+    }
+  };
+
+  // 连接超时保护（15 秒）
+  const connectTimeout = setTimeout(() => {
+    if (!gatewayReady) {
+      logger.error(`[WebRTC Bridge] remote-gateway 连接超时: ${sessionId}`);
+      try {
+        dc.send(JSON.stringify({ type: 'error', payload: 'remote-gateway 连接超时' }));
+      } catch (err: unknown) {
+        logger.debug({ err }, '操作失败，已忽略');
+      }
+      cleanup('connect_timeout');
+    }
+  }, 15_000);
+
+  gatewayWs.on('open', () => {
+    gatewayReady = true;
+    clearTimeout(connectTimeout);
+    logger.info(`[WebRTC Bridge] remote-gateway 已连接: ${sessionId}`);
+    flushPendingClientMessages();
+  });
+
+  // DataChannel → remote-gateway（浏览器 → 服务器）
+  dc.onMessage.subscribe((data: unknown) => {
+    if (gwClosed) return;
+
+    let msg: string | Buffer;
+    if (typeof data === 'string') {
+      msg = data;
+    } else if (data instanceof ArrayBuffer) {
+      msg = Buffer.from(data);
+    } else {
+      msg = String(data);
+    }
+
+    // 网关尚未就绪：缓存消息，待 open 后统一转发（解决 DataChannel 先开、gateway 后连的竞态）
+    if (!gatewayReady) {
+      if (pendingClientMessages.length >= MAX_PENDING_CLIENT_MESSAGES) {
+        pendingClientMessages.shift();
+        logger.warn(`[WebRTC Bridge] 客户端消息缓存已满，丢弃最旧消息: ${sessionId}`);
+      }
+      pendingClientMessages.push(msg);
+      return;
+    }
+
+    forwardClientMessage(msg);
   });
 
   // remote-gateway → DataChannel（服务器 → 浏览器）
@@ -235,6 +267,7 @@ export async function bridgeDataChannelToGateway(
       `[WebRTC Bridge] 清理连接: ${sessionId}, 原因=${reason}, C→G=${msgCountClientToGateway}, G→C=${msgCountGatewayToClient}`,
     );
 
+    pendingClientMessages.length = 0;
     clearTimeout(connectTimeout);
 
     if (!dcClosed) {

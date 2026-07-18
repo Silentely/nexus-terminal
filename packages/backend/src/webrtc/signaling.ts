@@ -43,6 +43,9 @@ interface ActiveWebRTCSession {
   sessionId: string;
   remoteGatewayUrl: string;
   createdAt: number;
+  /** remote description 设置前到达的浏览器 ICE 候选 */
+  pendingRemoteIceCandidates: RTCIceCandidateInit[];
+  remoteDescriptionSet: boolean;
 }
 
 type WeriftIceServer = {
@@ -188,6 +191,8 @@ async function handleOffer(
     sessionId,
     remoteGatewayUrl,
     createdAt: Date.now(),
+    pendingRemoteIceCandidates: [],
+    remoteDescriptionSet: false,
   };
 
   activeSessions.set(sessionId, session);
@@ -232,6 +237,22 @@ async function handleOffer(
 
   // 设置 remote description（浏览器的 offer）
   await pc.setRemoteDescription(offer);
+  session.remoteDescriptionSet = true;
+
+  // flush 在 setRemoteDescription 前缓存的浏览器 ICE 候选
+  if (session.pendingRemoteIceCandidates.length > 0) {
+    const queued = session.pendingRemoteIceCandidates.splice(0);
+    logger.debug(
+      `[WebRTC Signaling] flush ${queued.length} 个缓存的远端 ICE 候选: ${sessionId}`,
+    );
+    for (const candidate of queued) {
+      try {
+        await pc.addIceCandidate(candidate);
+      } catch (error) {
+        logger.warn(`[WebRTC Signaling] flush 缓存 ICE candidate 失败: ${sessionId}`, error);
+      }
+    }
+  }
 
   // 创建 answer
   const answer = await pc.createAnswer();
@@ -267,6 +288,15 @@ async function handleIceCandidate(clientWs: WebSocket, message: SignalingMessage
   const session = activeSessions.get(sessionId);
   if (!session) {
     sendError(clientWs, `会话不存在: ${sessionId}`);
+    return;
+  }
+
+  // remote description 尚未就绪时先缓存，避免 offer 处理中的竞态丢候选
+  if (!session.remoteDescriptionSet) {
+    session.pendingRemoteIceCandidates.push(candidate);
+    logger.debug(
+      `[WebRTC Signaling] ICE candidate 已缓存 (等待 remote description): ${sessionId}, 队列=${session.pendingRemoteIceCandidates.length}`,
+    );
     return;
   }
 

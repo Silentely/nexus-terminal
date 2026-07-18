@@ -156,15 +156,33 @@ export class WebRTCTunnel {
       };
 
       // 4. 监控连接状态
+      // 注意：ICE 协商中可能短暂出现 disconnected，不能在 signaling 阶段当致命错误，
+      // 否则会过早失败并触发无谓的 WebSocket 降级/误报。
       this.pc.onconnectionstatechange = () => {
         const connectionState = this.pc?.connectionState;
-        if (connectionState === 'failed' || connectionState === 'disconnected') {
+        if (connectionState === 'failed') {
           this.clearConnectTimer();
           this.handleError(`WebRTC 连接 ${connectionState}`);
           this.onstatechange?.(2); // 2 = Guacamole.Tunnel.State.CLOSED
+          return;
+        }
+        // 已建立后的 disconnected 才视为链路中断
+        if (connectionState === 'disconnected' && this.state === 'connected') {
+          this.clearConnectTimer();
+          this.handleError(`WebRTC 连接 ${connectionState}`);
+          this.onstatechange?.(2);
         }
         // 'connected' 状态不在这里处理，改由 dc.onopen 触发
         // 确保 DataChannel 真正可用后才通知 tunnel OPEN
+      };
+
+      this.pc.oniceconnectionstatechange = () => {
+        const iceState = this.pc?.iceConnectionState;
+        if (iceState === 'failed') {
+          this.clearConnectTimer();
+          this.handleError('WebRTC ICE 连接失败');
+          this.onstatechange?.(2);
+        }
       };
 
       // 5. 打开信令 WebSocket

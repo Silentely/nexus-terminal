@@ -187,4 +187,27 @@ describe('WebRTC 数据通道到 remote-gateway WebSocket 桥接', () => {
     expect(serializedLogs).not.toContain('secret-token');
     expect(serializedClientMessages).not.toContain('secret-token');
   });
+
+  it('网关未就绪时应缓存客户端消息，open 后统一转发', async () => {
+    process.env.REMOTE_GATEWAY_WS_URL_LOCAL = 'ws://localhost:8081/remote/bridge';
+    const dc = createDataChannel();
+    let onMessageHandler: ((data: unknown) => void) | undefined;
+    dc.onMessage.subscribe.mockImplementation((handler: (data: unknown) => void) => {
+      onMessageHandler = handler;
+      return { unsubscribe: vi.fn() };
+    });
+
+    await bridgeDataChannelToGateway(
+      dc as unknown as Parameters<typeof bridgeDataChannelToGateway>[0],
+      'ws://localhost:8081/remote/bridge?token=abc',
+      'session-queue',
+    );
+
+    expect(onMessageHandler).toBeDefined();
+    onMessageHandler?.('4.sync,1.1;');
+    expect(capturedGatewayWs?.send).not.toHaveBeenCalled();
+
+    capturedGatewayWs?.emit('open');
+    expect(capturedGatewayWs?.send).toHaveBeenCalledWith('4.sync,1.1;');
+  });
 });
