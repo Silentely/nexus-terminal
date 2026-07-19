@@ -16,13 +16,16 @@ export interface StatusMonitorDependencies {
 
 /**
  * 创建一个状态监控管理器实例
- * @param sessionId 会话唯一标识符
+ * @param sessionId 会话唯一标识符（建连时可能是前端临时 ID，ssh:connected 后会 remap 为后端 ID）
  * @param wsDeps WebSocket 依赖对象
  * @returns 状态监控管理器实例
  */
 export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMonitorDependencies) {
   const { onMessage, isConnected } = wsDeps;
   const MAX_HISTORY_POINTS = 60; // 图表显示的点数
+
+  // 可更新：后端会生成新的 sessionId，前端 Map 键会 remap，但本闭包必须同步，否则 status_update 被误丢弃
+  let currentSessionId = sessionId;
 
   const serverStatus = ref<ServerStatus | null>(null);
   const statusError = ref<string | null>(null); // 存储状态获取错误
@@ -53,14 +56,31 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
     return message.sid || message.sessionId;
   };
 
-  const handleStatusUpdate = (payload: unknown, message?: WebSocketMessage) => {
-    // 检查消息是否属于此会话
+  /** 判断消息是否属于当前会话（无会话字段时接受，兼容专属 WS / 历史消息） */
+  const belongsToCurrentSession = (message?: WebSocketMessage): boolean => {
     const messageSessionId = resolveMessageSessionId(message);
-    if (messageSessionId && messageSessionId !== sessionId) {
+    if (!messageSessionId) return true;
+    return messageSessionId === currentSessionId;
+  };
+
+  /**
+   * 会话 ID 重映射后调用（ssh:connected 后端 SID ≠ 前端临时 SID）
+   * 必须更新过滤用 ID，否则带 sid 的 status_update 会被全部丢弃
+   */
+  const updateSessionId = (newSessionId: string): void => {
+    if (!newSessionId || newSessionId === currentSessionId) return;
+    log.info(
+      `[会话 ${currentSessionId}][状态监控模块] 会话 ID 重映射: ${currentSessionId} → ${newSessionId}`,
+    );
+    currentSessionId = newSessionId;
+  };
+
+  const handleStatusUpdate = (payload: unknown, message?: WebSocketMessage) => {
+    if (!belongsToCurrentSession(message)) {
       return; // 忽略不属于此会话的消息
     }
 
-    // log.debug(`[会话 ${sessionId}][状态监控模块] 收到 status_update:`, JSON.stringify(payload));
+    // log.debug(`[会话 ${currentSessionId}][状态监控模块] 收到 status_update:`, JSON.stringify(payload));
     const payloadObj = payload as Record<string, unknown> | undefined;
     if (payloadObj?.status) {
       const newStatus: ServerStatus = payloadObj.status as ServerStatus;
@@ -73,7 +93,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
       updateHistory(netRxHistory, newStatus.netRxRate);
       updateHistory(netTxHistory, newStatus.netTxRate);
     } else {
-      log.warn(`[会话 ${sessionId}][状态监控模块] 收到无效的 status_update 消息`);
+      log.warn(`[会话 ${currentSessionId}][状态监控模块] 收到无效的 status_update 消息`);
       // 可以选择设置一个错误状态，表明数据格式不正确
       // statusError.value = '收到的状态数据格式无效';
     }
@@ -81,24 +101,34 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
 
   // 处理可能的后端状态错误消息 (如果后端会发送的话)
   const handleStatusError = (payload: unknown, message?: WebSocketMessage) => {
-    // 检查消息是否属于此会话
-    const messageSessionId = resolveMessageSessionId(message);
-    if (messageSessionId && messageSessionId !== sessionId) {
+    if (!belongsToCurrentSession(message)) {
       return; // 忽略不属于此会话的消息
     }
 
-    log.error(`[会话 ${sessionId}][状态监控模块] 收到状态错误消息:`, payload);
-    statusError.value = typeof payload === 'string' ? payload : '获取服务器状态时发生未知错误';
+    log.error(`[会话 ${currentSessionId}][状态监控模块] 收到状态错误消息:`, payload);
+    if (typeof payload === 'string') {
+      statusError.value = payload;
+    } else if (
+      payload &&
+      typeof payload === 'object' &&
+      typeof (payload as { message?: unknown }).message === 'string'
+    ) {
+      statusError.value = (payload as { message: string }).message;
+    } else {
+      statusError.value = '获取服务器状态时发生未知错误';
+    }
     serverStatus.value = null; // 出错时清除状态数据
   };
 
   // 处理 SSH 路由规划消息（跳板链路可视化）
   const handleRoutePlan = (payload: unknown, message?: WebSocketMessage) => {
-    if (message?.sessionId && message.sessionId !== sessionId) {
+    if (!belongsToCurrentSession(message)) {
       return;
     }
     routePlan.value = payload as ConnectionRoutePlan;
-    log.info(`[会话 ${sessionId}][状态监控模块] 收到路由规划: ${routePlan.value.hops.length} 跳`);
+    log.info(
+      `[会话 ${currentSessionId}][状态监控模块] 收到路由规划: ${routePlan.value.hops.length} 跳`,
+    );
   };
 
   // --- 注册 WebSocket 消息处理器 ---
@@ -109,22 +139,22 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
   const registerStatusHandlers = () => {
     // 防止重复注册
     if (unregisterUpdate || unregisterErrorCurrent || unregisterRoutePlan) {
-      log.info(`[会话 ${sessionId}][状态监控模块] 处理器已注册，跳过。`);
+      log.info(`[会话 ${currentSessionId}][状态监控模块] 处理器已注册，跳过。`);
       return;
     }
     if (isConnected.value) {
-      log.info(`[会话 ${sessionId}][状态监控模块] 注册状态消息处理器。`);
+      log.info(`[会话 ${currentSessionId}][状态监控模块] 注册状态消息处理器。`);
       unregisterUpdate = onMessage('status_update', handleStatusUpdate);
       unregisterErrorCurrent = onMessage('status:error', handleStatusError);
       unregisterRoutePlan = onMessage('ssh:route_plan', handleRoutePlan);
     } else {
-      log.warn(`[会话 ${sessionId}][状态监控模块] WebSocket 未连接，无法注册状态处理器。`);
+      log.warn(`[会话 ${currentSessionId}][状态监控模块] WebSocket 未连接，无法注册状态处理器。`);
     }
   };
 
   const unregisterAllStatusHandlers = () => {
     if (unregisterUpdate || unregisterErrorCurrent || unregisterRoutePlan) {
-      log.info(`[会话 ${sessionId}][状态监控模块] 注销状态消息处理器。`);
+      log.info(`[会话 ${currentSessionId}][状态监控模块] 注销状态消息处理器。`);
       unregisterUpdate?.();
       unregisterErrorCurrent?.();
       unregisterRoutePlan?.();
@@ -136,7 +166,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
 
   // 监听连接状态变化以自动注册/注销处理器
   watch(isConnected, (newValue, oldValue) => {
-    log.info(`[会话 ${sessionId}][状态监控模块] 连接状态变化: ${oldValue} -> ${newValue}`);
+    log.info(`[会话 ${currentSessionId}][状态监控模块] 连接状态变化: ${oldValue} -> ${newValue}`);
     if (newValue) {
       // 只有当状态监视器在布局中时才注册处理器
       const layoutStore = useLayoutStore();
@@ -145,7 +175,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
         // 连接成功后，可以考虑请求一次初始状态（如果后端支持）
         // sendMessage({ type: 'status:update', sessionId });
       } else {
-        log.info(`[会话 ${sessionId}][状态监控模块] 状态监视器不在布局中，跳过注册处理器。`);
+        log.info(`[会话 ${currentSessionId}][状态监控模块] 状态监视器不在布局中，跳过注册处理器。`);
       }
     } else {
       unregisterAllStatusHandlers();
@@ -161,7 +191,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
   // --- 清理函数 ---
   const cleanup = () => {
     unregisterAllStatusHandlers();
-    log.info(`[会话 ${sessionId}][状态监控模块] 已清理。`);
+    log.info(`[会话 ${currentSessionId}][状态监控模块] 已清理。`);
   };
 
   // --- 暴露接口 ---
@@ -177,6 +207,7 @@ export function createStatusMonitorManager(sessionId: string, wsDeps: StatusMoni
     // --- 控制函数 ---
     registerStatusHandlers,
     unregisterAllStatusHandlers,
+    updateSessionId,
     cleanup,
   };
 }

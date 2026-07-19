@@ -31,6 +31,7 @@ vi.mock('../../../composables/useSshTerminal', () => ({
 vi.mock('../../../composables/useStatusMonitor', () => ({
   createStatusMonitorManager: vi.fn(() => ({
     cleanup: vi.fn(),
+    updateSessionId: vi.fn(),
   })),
 }));
 

@@ -211,6 +211,9 @@ export const openNewSession = (
 
           sessionToUpdate.sessionId = backendSID; // 更新会话对象内部的sessionId
 
+          // 同步各 manager 闭包内的会话 ID，避免 status_update 等带 sid 的消息被误过滤
+          sessionToUpdate.statusMonitorManager?.updateSessionId?.(backendSID);
+
           currentSessions.set(backendSID, sessionToUpdate);
           sessions.value = currentSessions;
 
