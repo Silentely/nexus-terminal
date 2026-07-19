@@ -59,6 +59,24 @@ const decryptConnectionCredentials = (
 };
 
 /**
+ * 归一化连接的 proxy_type：与实际 proxy_id / jump_chain 保持一致。
+ * 历史数据与前端表单可能出现 proxy_type='proxy' 但未选代理等情况，保存时应纠正为直连。
+ */
+export const normalizeConnectionProxyType = (
+  proxyType: 'proxy' | 'jump' | null | undefined,
+  proxyId: number | null | undefined,
+  jumpChain: number[] | null | undefined,
+): 'proxy' | 'jump' | null => {
+  if (proxyType === 'proxy') {
+    return proxyId != null && proxyId > 0 ? 'proxy' : null;
+  }
+  if (proxyType === 'jump') {
+    return jumpChain != null && jumpChain.length > 0 ? 'jump' : null;
+  }
+  return null;
+};
+
+/**
  * 辅助函数：验证 jump_chain 并处理与 proxy_id 的互斥关系
  * @param jumpChain 输入的 jump_chain
  * @param proxyId 输入的 proxy_id
@@ -290,7 +308,11 @@ export const createConnection = async (
     ssh_key_id: sshKeyIdToSave, // +++ Add ssh_key_id +++
     notes: input.notes ?? null, // Add notes field
     proxy_id: input.proxy_id ?? null, // 直接使用输入的 proxy_id
-    proxy_type: input.proxy_type ?? null, // 新增 proxy_type
+    proxy_type: normalizeConnectionProxyType(
+      input.proxy_type,
+      input.proxy_id ?? null,
+      processedJumpChain,
+    ),
     jump_chain: processedJumpChain,
     force_keyboard_interactive: input.force_keyboard_interactive ?? false,
   };
@@ -437,7 +459,40 @@ export const updateConnection = async (
   if (input.notes !== undefined) dataToUpdate.notes = input.notes; // Add notes update
   // proxy_id 的处理已移至 jump_chain 逻辑块中
   // if (input.proxy_id !== undefined) dataToUpdate.proxy_id = input.proxy_id;
-  if (input.proxy_type !== undefined) dataToUpdate.proxy_type = input.proxy_type; // 新增 proxy_type 更新
+  // 归一化 proxy_type：与最终 proxy_id / jump_chain 对齐，避免有类型无详情
+  if (
+    input.proxy_type !== undefined ||
+    input.proxy_id !== undefined ||
+    input.jump_chain !== undefined
+  ) {
+    let resolvedJumpChain: number[] | null | undefined;
+    if (dataToUpdate.jump_chain !== undefined) {
+      resolvedJumpChain = dataToUpdate.jump_chain ?? null;
+    } else if (currentFullConnection.jump_chain) {
+      try {
+        resolvedJumpChain = JSON.parse(currentFullConnection.jump_chain) as number[];
+      } catch {
+        resolvedJumpChain = null;
+      }
+    } else {
+      resolvedJumpChain = null;
+    }
+
+    const resolvedProxyId =
+      dataToUpdate.proxy_id !== undefined
+        ? dataToUpdate.proxy_id
+        : (currentFullConnection.proxy_id ?? null);
+    const resolvedProxyType =
+      input.proxy_type !== undefined
+        ? input.proxy_type
+        : ((currentFullConnection.proxy_type as 'proxy' | 'jump' | null | undefined) ?? null);
+
+    dataToUpdate.proxy_type = normalizeConnectionProxyType(
+      resolvedProxyType,
+      resolvedProxyId,
+      resolvedJumpChain,
+    );
+  }
   // Handle ssh_key_id update (can be set to null or a new ID)
   if (input.ssh_key_id !== undefined) dataToUpdate.ssh_key_id = input.ssh_key_id;
 

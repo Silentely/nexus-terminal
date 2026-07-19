@@ -62,6 +62,16 @@ describe('WebSocket Validate — 真实 Schema 验证', () => {
       expect(result.data).toEqual(message);
     });
 
+    it('应成功验证 session:close 消息（多路复用关通道）', () => {
+      const message = {
+        type: 'session:close',
+        payload: {},
+      };
+      const result = validateWebSocketMessage(message);
+      expect(result.success).toBe(true);
+      expect(result.data?.type).toBe('session:close');
+    });
+
     it('ssh:connect payload 缺少 connectionId 应拒绝', () => {
       const result = validateWebSocketMessage({
         type: 'ssh:connect',

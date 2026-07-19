@@ -253,5 +253,14 @@ describe('SFTP Schema — z.union payload 匹配', () => {
         expect(messageSchemaRegistry).toHaveProperty(type);
       }
     });
+
+    it('应注册多路复用 session:close 消息类型', () => {
+      expect(messageSchemaRegistry).toHaveProperty('session:close');
+      const result = messageSchemaRegistry['session:close'].parse({
+        type: 'session:close',
+        payload: {},
+      });
+      expect(result.type).toBe('session:close');
+    });
   });
 });

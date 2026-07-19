@@ -328,6 +328,13 @@ export const sshUnmarkForSuspendSchema = z.object({
   }),
 });
 
+// 多路复用：前端关闭通道时通知后端清理会话资源
+export const sessionCloseSchema = z.object({
+  type: z.literal('session:close'),
+  // 前端发送空对象；允许缺省以兼容精简客户端
+  payload: z.object({}).passthrough().optional(),
+});
+
 // --- 消息类型与 Schema 映射表 ---
 
 export const messageSchemaRegistry = {
@@ -368,6 +375,9 @@ export const messageSchemaRegistry = {
   'sftp:upload:start': sftpUploadStartSchema,
   'sftp:upload:chunk': sftpUploadChunkSchema,
   'sftp:upload:cancel': sftpUploadCancelSchema,
+
+  // 多路复用通道关闭
+  'session:close': sessionCloseSchema,
 
   // SSH Suspend 操作
   SSH_SUSPEND_LIST_REQUEST: sshSuspendListRequestSchema,

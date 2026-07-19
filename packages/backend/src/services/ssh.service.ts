@@ -121,6 +121,7 @@ export const getConnectionDetails = async (
       passphrase: undefined,
       proxy: null,
       jump_chain: undefined,
+      // 先写入原始值；若无对应 proxy / jump_chain 详情，后面再归一为 null，避免误判为代理模式
       connection_proxy_setting: typedRawConnInfo.proxy_type ?? null,
       force_keyboard_interactive: typedRawConnInfo.force_keyboard_interactive ?? false,
     };
@@ -251,6 +252,23 @@ export const getConnectionDetails = async (
       logger.debug(
         `SshService: Connection ${connectionId} does not have jump_chain configuration in DB, or it is null/empty string.`,
       );
+    }
+
+    // 归一化：UI 默认「代理模式」可能把 proxy_type 存成 'proxy' 却未选代理，
+    // 或 jump 无有效跳板链。读库时按实际详情纠正，避免误走代理路径并刷 warn。
+    if (fullConnInfo.connection_proxy_setting === 'proxy' && !fullConnInfo.proxy) {
+      logger.debug(
+        `SshService: Connection ${connectionId} (${fullConnInfo.name}) proxy_type=proxy 但无代理详情，按直连处理。`,
+      );
+      fullConnInfo.connection_proxy_setting = null;
+    } else if (
+      fullConnInfo.connection_proxy_setting === 'jump' &&
+      (!fullConnInfo.jump_chain || fullConnInfo.jump_chain.length === 0)
+    ) {
+      logger.debug(
+        `SshService: Connection ${connectionId} (${fullConnInfo.name}) proxy_type=jump 但无跳板链，按直连处理。`,
+      );
+      fullConnInfo.connection_proxy_setting = null;
     }
 
     return fullConnInfo;

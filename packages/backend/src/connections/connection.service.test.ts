@@ -17,6 +17,7 @@ import {
   cloneConnection,
   addTagToConnections,
   updateConnectionTags,
+  normalizeConnectionProxyType,
 } from './connection.service';
 
 // Mock 依赖模块
@@ -109,8 +110,59 @@ describe('Connection Service', () => {
     });
   });
 
+  describe('normalizeConnectionProxyType', () => {
+    it('proxy 模式无 proxy_id 时应返回 null', () => {
+      expect(normalizeConnectionProxyType('proxy', null, null)).toBeNull();
+      expect(normalizeConnectionProxyType('proxy', undefined, null)).toBeNull();
+    });
+
+    it('proxy 模式有有效 proxy_id 时应返回 proxy', () => {
+      expect(normalizeConnectionProxyType('proxy', 5, null)).toBe('proxy');
+    });
+
+    it('jump 模式无跳板链时应返回 null', () => {
+      expect(normalizeConnectionProxyType('jump', null, null)).toBeNull();
+      expect(normalizeConnectionProxyType('jump', null, [])).toBeNull();
+    });
+
+    it('jump 模式有跳板链时应返回 jump', () => {
+      expect(normalizeConnectionProxyType('jump', null, [10, 20])).toBe('jump');
+    });
+  });
+
   describe('createConnection', () => {
     describe('SSH 连接', () => {
+      it('proxy_type=proxy 但无 proxy_id 时应归一为 null', async () => {
+        const input = {
+          name: '误标代理的服务器',
+          type: 'SSH',
+          host: '192.168.1.50',
+          port: 22,
+          username: 'root',
+          auth_method: 'password' as const,
+          password: 'secret',
+          proxy_type: 'proxy' as const,
+          proxy_id: null,
+        };
+
+        (ConnectionRepository.createConnection as any).mockResolvedValue(77);
+        (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue({
+          id: 77,
+          ...input,
+          proxy_type: null,
+          tag_ids: [],
+        });
+
+        await createConnection(input);
+
+        expect(ConnectionRepository.createConnection).toHaveBeenCalledWith(
+          expect.objectContaining({
+            proxy_type: null,
+            proxy_id: null,
+          }),
+        );
+      });
+
       it('应成功创建密码认证的 SSH 连接', async () => {
         const input = {
           name: '新 SSH 服务器',

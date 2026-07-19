@@ -217,6 +217,14 @@ export function createSubmitHandler(deps: SubmitDeps) {
           const currentIp = ips[i];
           const ipSuffix = currentIp.split('.').pop() || `${i + 1}`;
 
+          const batchProxyId = formData.proxy_id || null;
+          const batchProxyType =
+            formData.proxy_type === 'proxy' && !batchProxyId
+              ? null
+              : formData.proxy_type === 'jump'
+                ? null // 批量 IP 添加不带 jump_chain，不应保留 jump
+                : formData.proxy_type;
+
           const dataForThisIp: ConnectionPayload = {
             type: formData.type,
             name: formData.name ? `${formData.name}-${ipSuffix}` : currentIp,
@@ -225,9 +233,9 @@ export function createSubmitHandler(deps: SubmitDeps) {
             username: formData.username,
             auth_method: formData.auth_method,
             notes: formData.notes,
-            proxy_id: formData.proxy_id || null,
+            proxy_id: batchProxyId,
             tag_ids: currentSelectedValidTagIds,
-            proxy_type: formData.proxy_type,
+            proxy_type: batchProxyType,
           };
 
           if (formData.type === 'SSH') {
@@ -296,6 +304,21 @@ export function createSubmitHandler(deps: SubmitDeps) {
       return;
     }
 
+    // 提交前归一化：未选代理则不写 proxy；跳板链为空则不写 jump
+    const resolvedProxyId = formData.proxy_id || null;
+    const resolvedJumpChain = formData.jump_chain
+      ? (JSON.parse(JSON.stringify(formData.jump_chain)) as number[] | null)
+      : null;
+    const hasValidJump =
+      Array.isArray(resolvedJumpChain) &&
+      resolvedJumpChain.some((id) => typeof id === 'number' && id > 0);
+    let resolvedProxyType: 'proxy' | 'jump' | null = formData.proxy_type;
+    if (resolvedProxyType === 'proxy' && !resolvedProxyId) {
+      resolvedProxyType = null;
+    } else if (resolvedProxyType === 'jump' && !hasValidJump) {
+      resolvedProxyType = null;
+    }
+
     const dataToSend: ConnectionPayload = {
       type: formData.type,
       name: formData.name,
@@ -304,12 +327,10 @@ export function createSubmitHandler(deps: SubmitDeps) {
       notes: formData.notes,
       username: formData.username,
       auth_method: formData.auth_method,
-      proxy_id: formData.proxy_id || null,
-      proxy_type: formData.proxy_type,
+      proxy_id: resolvedProxyId,
+      proxy_type: resolvedProxyType,
       tag_ids: currentSelectedValidTagIds,
-      jump_chain: formData.jump_chain
-        ? (JSON.parse(JSON.stringify(formData.jump_chain)) as number[] | null)
-        : null,
+      jump_chain: resolvedJumpChain,
       force_keyboard_interactive: formData.force_keyboard_interactive,
     };
 

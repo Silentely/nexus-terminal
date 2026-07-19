@@ -196,6 +196,24 @@ describe('SSH Service', () => {
       expect(result.connection_proxy_setting).toBe('proxy');
     });
 
+    it('proxy_type 为 proxy 但无代理详情时应归一为直连', async () => {
+      const inconsistentProxy = {
+        ...baseRawConnection,
+        proxy_type: 'proxy',
+        proxy_db_id: null,
+        proxy_name: null,
+        actual_proxy_server_type: null,
+        proxy_host: null,
+        proxy_port: null,
+      };
+      (ConnectionRepository.findFullConnectionById as any).mockResolvedValue(inconsistentProxy);
+
+      const result = await getConnectionDetails(1);
+
+      expect(result.proxy).toBeNull();
+      expect(result.connection_proxy_setting).toBeNull();
+    });
+
     it('应正确处理 HTTP 代理配置', async () => {
       const httpProxyConnection = {
         ...baseRawConnection,

@@ -219,13 +219,27 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
     },
   );
 
+  // 仅当真正选了代理 / 跳板时才写入 proxy_type；UI「代理」模式默认是可选代理，未选则为直连
   watch(
-    [() => formData.type, advancedConnectionMode],
+    [
+      () => formData.type,
+      advancedConnectionMode,
+      () => formData.proxy_id,
+      () => formData.jump_chain,
+    ],
     ([newType, newAdvMode]) => {
       if (newType === 'SSH') {
-        if (newAdvMode === 'proxy') {
+        if (
+          newAdvMode === 'proxy' &&
+          formData.proxy_id !== null &&
+          formData.proxy_id !== undefined
+        ) {
           formData.proxy_type = 'proxy';
-        } else if (newAdvMode === 'jump') {
+        } else if (
+          newAdvMode === 'jump' &&
+          formData.jump_chain &&
+          formData.jump_chain.some((id) => id !== null && id !== undefined)
+        ) {
           formData.proxy_type = 'jump';
         } else {
           formData.proxy_type = null;
@@ -234,10 +248,10 @@ export function useAddConnectionForm(props: AddConnectionFormProps, emit: AddCon
         formData.proxy_type = null;
       }
       log.info(
-        `[Debug] useAddConnectionForm: proxy_type set to ${formData.proxy_type} (type: ${newType}, mode: ${newAdvMode})`,
+        `[Debug] useAddConnectionForm: proxy_type set to ${formData.proxy_type} (type: ${newType}, mode: ${newAdvMode}, proxy_id: ${formData.proxy_id})`,
       );
     },
-    { immediate: true },
+    { immediate: true, deep: true },
   );
 
   // 脚本模式提交处理器（委托给子模块）
