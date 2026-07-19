@@ -218,12 +218,13 @@ export function createSubmitHandler(deps: SubmitDeps) {
           const ipSuffix = currentIp.split('.').pop() || `${i + 1}`;
 
           const batchProxyId = formData.proxy_id || null;
-          const batchProxyType =
-            formData.proxy_type === 'proxy' && !batchProxyId
-              ? null
-              : formData.proxy_type === 'jump'
-                ? null // 批量 IP 添加不带 jump_chain，不应保留 jump
-                : formData.proxy_type;
+          // 批量 IP 添加不带 jump_chain；无 proxy_id 时也不写 proxy
+          let batchProxyType: 'proxy' | 'jump' | null = formData.proxy_type;
+          if (batchProxyType === 'jump') {
+            batchProxyType = null;
+          } else if (batchProxyType === 'proxy' && !batchProxyId) {
+            batchProxyType = null;
+          }
 
           const dataForThisIp: ConnectionPayload = {
             type: formData.type,
