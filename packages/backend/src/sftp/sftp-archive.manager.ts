@@ -52,6 +52,7 @@ export class SftpArchiveManager {
           `命令 '${requiredCommand}' 在服务器上未找到`,
           requestId,
           `Command '${requiredCommand}' not found on server.`,
+          sessionId,
         );
         return;
       }
@@ -61,6 +62,7 @@ export class SftpArchiveManager {
         `检查命令 '${requiredCommand}' 时出错`,
         requestId,
         getErrorMessage(checkError),
+        sessionId,
       );
       return;
     }
@@ -245,6 +247,8 @@ export class SftpArchiveManager {
         state.ws,
         `执行压缩时发生意外错误: ${getErrorMessage(execError)}`,
         requestId,
+        undefined,
+        sessionId,
       );
     }
   }
@@ -267,15 +271,18 @@ export class SftpArchiveManager {
     const lowerArchivePath = archivePath.toLowerCase();
 
     let requiredCommand = '';
+    // 进度解析格式：zip 走 unzip 前缀匹配（inflating:/extracting:/creating:），
+    // tar 系解压时 -v 列表为整行文件名，复用对应压缩格式的整行解析规则
+    let progressParseFormat: 'decompress' | 'targz' | 'tarbz2';
     if (lowerArchivePath.endsWith('.zip')) {
       requiredCommand = 'unzip';
-    } else if (
-      lowerArchivePath.endsWith('.tar.gz') ||
-      lowerArchivePath.endsWith('.tgz') ||
-      lowerArchivePath.endsWith('.tar.bz2') ||
-      lowerArchivePath.endsWith('.tbz2')
-    ) {
+      progressParseFormat = 'decompress';
+    } else if (lowerArchivePath.endsWith('.tar.gz') || lowerArchivePath.endsWith('.tgz')) {
       requiredCommand = 'tar';
+      progressParseFormat = 'targz';
+    } else if (lowerArchivePath.endsWith('.tar.bz2') || lowerArchivePath.endsWith('.tbz2')) {
+      requiredCommand = 'tar';
+      progressParseFormat = 'tarbz2';
     } else {
       this.sendDecompressError(
         state.ws,
@@ -295,6 +302,7 @@ export class SftpArchiveManager {
           `命令 '${requiredCommand}' 在服务器上未找到`,
           requestId,
           `Command '${requiredCommand}' not found on server.`,
+          sessionId,
         );
         return;
       }
@@ -304,6 +312,7 @@ export class SftpArchiveManager {
         `检查命令 '${requiredCommand}' 时出错`,
         requestId,
         getErrorMessage(checkError),
+        sessionId,
       );
       return;
     }
@@ -377,13 +386,39 @@ export class SftpArchiveManager {
           // fileCount 始终累加，避免因节流丢失计数（W3 修复）；只控制 ws 发送频率
           const lines = chunk.split('\n').filter((l) => l.trim());
           for (const line of lines) {
-            const fileName = this.parseArchiveFileName(line, 'decompress');
+            const fileName = this.parseArchiveFileName(line, progressParseFormat);
             if (fileName) {
               fileCount++;
               lastSeenFileName = fileName;
             }
           }
           // 节流：每 3 秒最多发送一次进度（与计数解耦）
+          const now = Date.now();
+          if (lastSeenFileName && now - lastProgressTime >= 3000) {
+            lastProgressTime = now;
+            this.sendProgress(
+              state.ws,
+              'decompress',
+              requestId,
+              fileCount,
+              lastSeenFileName,
+              sessionId,
+            );
+          }
+        });
+
+        // 必须消费 stdout：unzip 与 tar -xv 的文件列表都写到 stdout。
+        // 不消费会耗尽 ssh2 通道接收窗口，远程进程写阻塞后 stream 永不触发 close（issue #112）
+        stream.on('data', (data: Buffer) => {
+          const chunk = data.toString();
+          const lines = chunk.split('\n').filter((l) => l.trim());
+          for (const line of lines) {
+            const fileName = this.parseArchiveFileName(line, progressParseFormat);
+            if (fileName) {
+              fileCount++;
+              lastSeenFileName = fileName;
+            }
+          }
           const now = Date.now();
           if (lastSeenFileName && now - lastProgressTime >= 3000) {
             lastProgressTime = now;
@@ -460,6 +495,8 @@ export class SftpArchiveManager {
         state.ws,
         `执行解压时发生意外错误: ${getErrorMessage(execError)}`,
         requestId,
+        undefined,
+        sessionId,
       );
     }
   }

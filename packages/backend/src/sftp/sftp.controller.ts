@@ -4,6 +4,7 @@ import * as archiver from 'archiver';
 import { SFTPWrapper, Stats } from 'ssh2';
 import { WebSocket } from 'ws';
 import { clientStates } from '../websocket';
+import { sftpService } from '../websocket/state';
 import { ErrorFactory, getErrorMessage } from '../utils/AppError';
 import { shellEscape } from '../utils/shell-escape';
 import {
@@ -65,6 +66,63 @@ const findSftpSession = (
 };
 
 /**
+ * 解析出可用的 SFTP 会话；找不到带 sftp 实例的会话时，
+ * 对匹配但 SFTP 实例缺失的会话按需重建（issue #113：
+ * SFTP 通道在 end/close/error 后被置空且不会自动重建，导致后续下载全部 404）
+ */
+const resolveSftpSession = async (
+  userId: number,
+  targetDbConnectionId: number,
+  sessionId?: string,
+): Promise<ClientState | null> => {
+  const existing = findSftpSession(userId, targetDbConnectionId, sessionId);
+  if (existing) {
+    return existing;
+  }
+
+  // 收集可重建的候选会话：sshClient 健在、仅 sftp 缺失（精确 sessionId 优先）
+  const rebuildCandidates: string[] = [];
+  if (sessionId) {
+    const exactState = clientStates.get(sessionId);
+    if (
+      exactState &&
+      exactState.ws.userId === userId &&
+      exactState.dbConnectionId === targetDbConnectionId &&
+      exactState.sshClient &&
+      !exactState.sftp
+    ) {
+      rebuildCandidates.push(sessionId);
+    }
+  }
+  for (const [activeSessionId, state] of clientStates.entries()) {
+    if (
+      state.ws.userId === userId &&
+      state.dbConnectionId === targetDbConnectionId &&
+      state.sshClient &&
+      !state.sftp &&
+      !rebuildCandidates.includes(activeSessionId)
+    ) {
+      rebuildCandidates.push(activeSessionId);
+    }
+  }
+
+  for (const candidateId of rebuildCandidates) {
+    try {
+      await sftpService.initializeSftpSession(candidateId);
+      const rebuilt = clientStates.get(candidateId);
+      if (rebuilt?.sftp) {
+        logger.info(`SFTP 会话查找：会话 ${candidateId} 的 SFTP 实例已按需重建。`);
+        return rebuilt;
+      }
+    } catch (rebuildError: unknown) {
+      logger.warn(`SFTP 会话查找：会话 ${candidateId} 的 SFTP 按需重建失败:`, rebuildError);
+    }
+  }
+
+  return null;
+};
+
+/**
  * 处理文件下载请求 (GET /api/v1/sftp/download)
  */
 export const downloadFile = async (
@@ -98,7 +156,7 @@ export const downloadFile = async (
   }
 
   logger.debug(`SFTP 下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`);
-  const targetState = findSftpSession(userId, targetDbConnectionId, sessionId);
+  const targetState = await resolveSftpSession(userId, targetDbConnectionId, sessionId);
 
   if (!targetState || !targetState.sftp) {
     logger.warn(
@@ -207,7 +265,7 @@ export const downloadDirectory = async (
   logger.debug(
     `SFTP 文件夹下载：正在查找用户 ${userId} 且连接 ID 为 ${targetDbConnectionId} 的会话...`,
   );
-  const targetState = findSftpSession(userId, targetDbConnectionId, sessionId);
+  const targetState = await resolveSftpSession(userId, targetDbConnectionId, sessionId);
 
   if (!targetState || !targetState.sftp) {
     logger.warn(

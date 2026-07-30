@@ -823,6 +823,28 @@ describe('useSftpActions (createSftpActionsManager)', () => {
 
       await expect(compressPromise).rejects.toThrow('Out of space');
     });
+
+    it('命令缺失消息应立即拒绝 Promise 而不是悬挂到超时（issue #112）', async () => {
+      const manager = createSftpActionsManager('session-1', currentPathRef, createWsDeps(), mockT);
+
+      const compressPromise = manager.compressItems([createFileItem('file.txt')], 'zip');
+
+      const requestId = (mockSendMessage.mock.calls[0][0] as any).requestId;
+      triggerMessage(
+        'sftp:command_not_found',
+        { operation: 'compress', command: 'zip', message: "Command 'zip' not found on server." },
+        { requestId },
+      );
+
+      // 不推进计时器也应立即 reject，证明没有悬挂到 120 秒超时
+      await expect(compressPromise).rejects.toThrow('zip');
+      // 错误提示仅由全局 command_not_found 处理器弹一次，per-request 监听不再重复弹窗
+      expect(mockShowError).toHaveBeenCalledTimes(1);
+      expect(mockShowError).toHaveBeenCalledWith(
+        expect.stringContaining('commandNotFoundCompress'),
+      );
+      expect(manager.archiveProgress.active).toBe(false);
+    });
   });
 
   describe('decompressItem', () => {
@@ -881,6 +903,32 @@ describe('useSftpActions (createSftpActionsManager)', () => {
       );
 
       await expect(decompressPromise).rejects.toThrow('Corrupted archive');
+    });
+
+    it('命令缺失消息应立即拒绝 Promise 而不是悬挂到超时（issue #112）', async () => {
+      const manager = createSftpActionsManager('session-1', currentPathRef, createWsDeps(), mockT);
+
+      const decompressPromise = manager.decompressItem(createFileItem('archive.zip'));
+
+      const requestId = (mockSendMessage.mock.calls[0][0] as any).requestId;
+      triggerMessage(
+        'sftp:command_not_found',
+        {
+          operation: 'decompress',
+          command: 'unzip',
+          message: "Command 'unzip' not found on server.",
+        },
+        { requestId },
+      );
+
+      // 不推进计时器也应立即 reject，证明没有悬挂到 120 秒超时
+      await expect(decompressPromise).rejects.toThrow('unzip');
+      // 错误提示仅由全局 command_not_found 处理器弹一次，per-request 监听不再重复弹窗
+      expect(mockShowError).toHaveBeenCalledTimes(1);
+      expect(mockShowError).toHaveBeenCalledWith(
+        expect.stringContaining('commandNotFoundDecompress'),
+      );
+      expect(manager.archiveProgress.active).toBe(false);
     });
   });
 

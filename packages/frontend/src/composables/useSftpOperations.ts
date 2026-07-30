@@ -363,6 +363,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
       let unregisterSuccess: (() => void) | null = null;
       let unregisterError: (() => void) | null = null;
       let unregisterProgress: (() => void) | null = null;
+      let unregisterCommandNotFound: (() => void) | null = null;
 
       /** 重置超时计时器（收到进度消息时调用） */
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -372,6 +373,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
           unregisterSuccess?.();
           unregisterError?.();
           unregisterProgress?.();
+          unregisterCommandNotFound?.();
           resetArchiveProgress();
           const errMsg = t('fileManager.errors.compressTimeout');
           uiNotificationsStore.showError(errMsg);
@@ -388,6 +390,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
+            unregisterCommandNotFound?.();
             resetArchiveProgress();
             uiNotificationsStore.showSuccess(
               t('fileManager.notifications.compressSuccess', { name: archiveName }),
@@ -407,6 +410,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
+            unregisterCommandNotFound?.();
             resetArchiveProgress();
             const errorMsg =
               errorPayload.details || errorPayload.error || t('fileManager.errors.compressFailed');
@@ -434,6 +438,28 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             if (progressPayload.currentFile) {
               archiveProgress.currentFile = progressPayload.currentFile;
             }
+          }
+        },
+      );
+
+      // 后端在压缩命令缺失时只发 sftp:command_not_found（不会走 compress:error 分支），
+      // 必须按 requestId 立即 reject，否则 Promise 悬挂到 120 秒超时（issue #112）
+      unregisterCommandNotFound = onMessage(
+        'sftp:command_not_found',
+        (payload: MessagePayload, message: WebSocketMessage) => {
+          if (message.requestId === requestId) {
+            clearTimeout(timeoutId);
+            unregisterSuccess?.();
+            unregisterError?.();
+            unregisterProgress?.();
+            unregisterCommandNotFound?.();
+            resetArchiveProgress();
+            // 全局 onCommandNotFound 已弹出错误提示，这里不再重复 toast
+            const { operation, command } = payload as unknown as {
+              operation: string;
+              command: string;
+            };
+            reject(new Error(`Command '${command}' not found on server for ${operation}.`));
           }
         },
       );
@@ -472,6 +498,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
       let unregisterSuccess: (() => void) | null = null;
       let unregisterError: (() => void) | null = null;
       let unregisterProgress: (() => void) | null = null;
+      let unregisterCommandNotFound: (() => void) | null = null;
 
       /** 重置超时计时器（收到进度消息时调用） */
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -481,6 +508,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
           unregisterSuccess?.();
           unregisterError?.();
           unregisterProgress?.();
+          unregisterCommandNotFound?.();
           resetArchiveProgress();
           const errMsg = t('fileManager.errors.decompressTimeout');
           uiNotificationsStore.showError(errMsg);
@@ -497,6 +525,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
+            unregisterCommandNotFound?.();
             resetArchiveProgress();
             uiNotificationsStore.showSuccess(
               t('fileManager.notifications.decompressSuccess', { name: item.filename }),
@@ -516,6 +545,7 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             unregisterSuccess?.();
             unregisterError?.();
             unregisterProgress?.();
+            unregisterCommandNotFound?.();
             resetArchiveProgress();
             const errorMsg =
               errorPayload.details ||
@@ -545,6 +575,28 @@ export function createSftpOperations(deps: SftpOperationsDeps) {
             if (progressPayload.currentFile) {
               archiveProgress.currentFile = progressPayload.currentFile;
             }
+          }
+        },
+      );
+
+      // 后端在解压命令缺失时只发 sftp:command_not_found（不会走 decompress:error 分支），
+      // 必须按 requestId 立即 reject，否则 Promise 悬挂到 120 秒超时（issue #112）
+      unregisterCommandNotFound = onMessage(
+        'sftp:command_not_found',
+        (payload: MessagePayload, message: WebSocketMessage) => {
+          if (message.requestId === requestId) {
+            clearTimeout(timeoutId);
+            unregisterSuccess?.();
+            unregisterError?.();
+            unregisterProgress?.();
+            unregisterCommandNotFound?.();
+            resetArchiveProgress();
+            // 全局 onCommandNotFound 已弹出错误提示，这里不再重复 toast
+            const { operation, command } = payload as unknown as {
+              operation: string;
+              command: string;
+            };
+            reject(new Error(`Command '${command}' not found on server for ${operation}.`));
           }
         },
       );
