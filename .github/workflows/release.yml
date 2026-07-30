@@ -234,7 +234,13 @@ jobs:
             exit 0
           fi
 
-          BODY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty')
+          # 防御性解析：AI 端点可能返回非 JSON（代理错误页等），此时降级而非让 bash -e 拖垮整个发布
+          if ! BODY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // empty' 2>/dev/null); then
+            echo "⚠️ AI 端点返回非 JSON 响应，跳过 AI 生成"
+            echo "  响应前 200 字符：$(echo "$RESPONSE" | head -c 200 | tr '\n' ' ')"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
           if [[ -n "$BODY" ]]; then
             # 移除可能的 markdown 代码块包裹

@@ -31,45 +31,41 @@ jobs:
             exit 1
           fi
 
-          # 获取上一次提交的版本号
-          git checkout HEAD~1 -- VERSION 2>/dev/null || echo "First commit"
-          PREVIOUS_VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "0.0.0")
-          git checkout HEAD -- VERSION
-
-          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
-            # 验证版本递增
-            if [ "$PREVIOUS_VERSION" != "0.0.0" ]; then
-              CURRENT_MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
-              CURRENT_MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
-              CURRENT_PATCH=$(echo $CURRENT_VERSION | cut -d. -f3 | cut -d- -f1)
-              PREV_MAJOR=$(echo $PREVIOUS_VERSION | cut -d. -f1)
-              PREV_MINOR=$(echo $PREVIOUS_VERSION | cut -d. -f2)
-              PREV_PATCH=$(echo $PREVIOUS_VERSION | cut -d. -f3 | cut -d- -f1)
-
-              if [ $CURRENT_MAJOR -lt $PREV_MAJOR ] || \
-                 ([ $CURRENT_MAJOR -eq $PREV_MAJOR ] && [ $CURRENT_MINOR -lt $PREV_MINOR ]) || \
-                 ([ $CURRENT_MAJOR -eq $PREV_MAJOR ] && [ $CURRENT_MINOR -eq $PREV_MINOR ] && [ $CURRENT_PATCH -le $PREV_PATCH ]); then
-                echo "❌ 版本号未递增：$PREVIOUS_VERSION -> $CURRENT_VERSION"
-                exit 1
-              fi
-            fi
-
-            echo "✅ 版本号已更新：$PREVIOUS_VERSION -> $CURRENT_VERSION"
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          else
-            echo "ℹ️ 版本号未变更"
-            echo "changed=false" >> $GITHUB_OUTPUT
+          # 与远程最新标签比较，而不是与 HEAD~1 比较：
+          # 多提交推送时版本 bump 可能不在最后一个提交，HEAD~1 比较会把新版本漏掉
+          TAG_EXISTS=false
+          if git ls-remote --tags origin | grep -q "refs/tags/v${CURRENT_VERSION}$"; then
+            TAG_EXISTS=true
           fi
 
-      - name: 检查目标标签是否已存在
-        if: steps.version.outputs.changed == 'true'
-        id: tag_check
-        run: |
-          if git ls-remote --tags origin | grep -q "refs/tags/v${{ steps.version.outputs.version }}$"; then
-            echo "❌ 标签 v${{ steps.version.outputs.version }} 已存在"
+          LATEST_TAG=$(git ls-remote --tags origin 'refs/tags/v*' | awk -F/ '{print $NF}' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
+          LATEST_VERSION="${LATEST_TAG#v}"
+
+          if $TAG_EXISTS && { [[ -z "$LATEST_TAG" ]] || [[ "v${CURRENT_VERSION}" == "$LATEST_TAG" ]]; }; then
+            echo "ℹ️ 标签 v${CURRENT_VERSION} 已存在且为最新标签，无需打标"
+            echo "changed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if $TAG_EXISTS; then
+            echo "❌ 标签 v${CURRENT_VERSION} 已存在（当前最新标签：${LATEST_TAG}），如需重新发布请提升 VERSION"
             exit 1
           fi
+
+          # 验证版本递增（基于最新标签）
+          if [[ -n "$LATEST_VERSION" ]]; then
+            HIGHER=$(printf '%s\n%s\n' "$LATEST_VERSION" "$CURRENT_VERSION" | sort -V | tail -n 1)
+            if [[ "$HIGHER" != "$CURRENT_VERSION" ]]; then
+              echo "❌ 版本号未递增：${LATEST_VERSION} -> ${CURRENT_VERSION}（不高于最新标签 ${LATEST_TAG}）"
+              exit 1
+            fi
+            echo "✅ 版本号已更新：${LATEST_VERSION} -> ${CURRENT_VERSION}"
+          else
+            echo "✅ 未发现历史标签，将创建首个标签 v${CURRENT_VERSION}"
+          fi
+
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
       - name: 创建并推送新标签
         if: steps.version.outputs.changed == 'true'
