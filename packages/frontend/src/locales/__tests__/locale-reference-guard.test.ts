@@ -65,8 +65,9 @@ describe('代码引用的 i18n key 存在性守卫', () => {
       const source = fs.readFileSync(file, 'utf8');
       for (const key of extractI18nKeys(source)) {
         if (lookup(localeData, key) === undefined) {
-          if (!missing.has(key)) missing.set(key, []);
-          missing.get(key)!.push(path.relative(SRC_ROOT, file));
+          const refs = missing.get(key) ?? [];
+          refs.push(path.relative(SRC_ROOT, file));
+          missing.set(key, refs);
         }
       }
     }
@@ -85,7 +86,7 @@ describe('代码引用的 i18n key 存在性守卫', () => {
     const realMissing = [...missing.entries()].filter(([key]) => !KNOWN_FALSE_POSITIVES.has(key));
 
     const detail = realMissing
-      .map(([key, files]) => `${key} <- ${files.slice(0, 3).join(', ')}`)
+      .map(([key, refs]) => `${key} <- ${refs.slice(0, 3).join(', ')}`)
       .join('\n');
     expect(realMissing, `缺失 key:\n${detail}`).toEqual([]);
   });
