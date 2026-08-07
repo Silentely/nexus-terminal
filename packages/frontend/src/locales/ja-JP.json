@@ -85,11 +85,11 @@
     "terminalThemeColorEditorTitle": "ターミナルテーマカラーエディター",
     "errorFixJsonBeforeSave": "保存する前に JSON フォーマットのエラーを修正してください。",
     "applyButton": "適用",
-    "preview": "预览",
+    "preview": "プレビュー",
     "previewButton": "プレビュー",
-    "previewModeCommand": "命令输出",
-    "previewModeCode": "代码高亮",
-    "previewModeText": "文本样式",
+    "previewModeCommand": "コマンド出力",
+    "previewModeCode": "コードハイライト",
+    "previewModeText": "テキストスタイル",
     "searchThemePlaceholder": "テーマ名を検索...",
     "exportActiveThemeTooltip": "現在アクティブなテーマを JSON ファイルとしてエクスポート",
     "exportActiveTheme": "現在のテーマをエクスポート",
@@ -255,7 +255,7 @@
       "password": "パスワード:",
       "privateKey": "秘密鍵:",
       "passphrase": "パスフレーズ:",
-      "vncPassword": "VNC 密码:",
+      "vncPassword": "VNC パスワード:",
       "optional": "オプション",
       "confirm": "追加",
       "adding": "追加中...",
@@ -433,21 +433,21 @@
   "workspace": {
     "terminal": {
       "reconnectingMsg": "再接続を試行中...",
-      "output": "终端输出",
+      "output": "ターミナル出力",
       "unknownReason": "不明な理由",
       "unknownSshError": "不明な SSH エラー",
       "unknownGenericError": "不明な汎用エラー"
     },
     "errors": {
-      "sessionNotFound": "会话未找到",
-      "missingConnectionId": "缺少连接 ID",
-      "wsManagerNotFound": "WebSocket 管理器未找到"
+      "sessionNotFound": "セッションが見つかりません",
+      "missingConnectionId": "接続 ID がありません",
+      "wsManagerNotFound": "WebSocket マネージャーが見つかりません"
     },
     "noActiveSession": "アクティブなセッションがありません"
   },
   "session": {
     "errors": {
-      "connectionNotFound": "找不到连接信息"
+      "connectionNotFound": "接続情報が見つかりません"
     }
   },
   "fileEditor": {
@@ -544,8 +544,8 @@
       "commandNotFoundDecompress": "サーバーにコマンド '{command}' が見つからないため、解凍操作を完了できません。",
       "genericCommandNotFound": "サーバーにコマンド '{command}' が見つからないため、'{operation}' 操作を完了できません。",
       "copyPathFailed": "パスのコピーに失敗しました",
-      "sftpManagerUnavailable": "SFTP 管理器不可用",
-      "missingSessionId": "缺少会话 ID",
+      "sftpManagerUnavailable": "SFTP マネージャーが利用できません",
+      "missingSessionId": "セッション ID がありません",
       "pathReadFailed": "ターミナルのパスの読み取りに失敗しました",
       "pathReadTimeout": "ターミナルのパスの読み取りがタイムアウトしました",
       "lineEndingConversionFailed": "改行コードの変換に失敗しました",
@@ -1161,8 +1161,8 @@
       "multiplexHint": "バックエンドの ENABLE_MULTIPLEX で制御。複数タブ時はブラウザの WebSocket 数削減のため有効化を推奨。変更後はバックエンド再起動と再ログインが必要です。"
     },
     "exportConnections": {
-      "title": "导出连接数据",
-      "decryptKeyInfo": "解压密码是您 data/.env 文件中的 ENCRYPTION_KEY。请妥善保管此文件。",
+      "title": "接続データのエクスポート",
+      "decryptKeyInfo": "解凍パスワードは data/.env ファイル内の ENCRYPTION_KEY です。このファイルは大切に保管してください。",
       "buttonText": "エクスポートを開始",
       "cliHint": "別の Nexus Terminal インスタンスでコマンドラインからインポートするための CLI スクリプト形式（ZIP）としてエクスポートします。",
       "proxyNote": "注意: プロキシ設定とコンテンツ保存の SSH キーはエクスポートに含まれません。",
@@ -1172,16 +1172,16 @@
       "success": "エクスポートに成功しました。ファイルのダウンロードが開始されました。"
     },
     "tabs": {
-      "security": "安全",
-      "ipControl": "IP 管控",
-      "workspace": "工作区",
-      "system": "系统",
-      "dataManagement": "数据管理",
-      "appearance": "外观",
+      "security": "セキュリティ",
+      "ipControl": "IP 制御",
+      "workspace": "ワークスペース",
+      "system": "システム",
+      "dataManagement": "データ管理",
+      "appearance": "外観",
       "about": "このアプリについて",
       "ai": "AI アシスタント"
     },
-    "loading": "加载中...",
+    "loading": "読み込み中...",
     "logLevel": {
       "title": "コンテナログレベル",
       "selectLabel": "ログレベルを選択",
@@ -1272,7 +1272,7 @@
     "settings": "設定",
     "errorOccurred": "エラーが発生しました。",
     "close": "閉じる",
-    "back": "返回",
+    "back": "戻る",
     "remove": "削除",
     "expand": "展開",
     "collapse": "折りたたむ",
@@ -1438,7 +1438,7 @@
       "connectingWs": "WebSocket に接続中...",
       "idle": "アイドル",
       "connectingRdp": "リモートデスクトップに接続中...",
-      "connectingVnc": "正在连接 VNC...",
+      "connectingVnc": "VNC に接続中...",
       "waiting": "サーバーの応答を待機中...",
       "connecting": "接続中...",
       "error": "エラー",
@@ -1457,7 +1457,7 @@
       "tokenError": "トークンの取得に失敗しました"
     },
     "reconnectTooltip": "リモートデスクトップに再接続",
-    "resize": "调整大小"
+    "resize": "サイズ変更"
   },
   "vncModal": {
     "title": "VNCセッション",
@@ -1512,7 +1512,7 @@
   },
   "header": {
     "hide": "非表示",
-    "show": "显示顶部导航"
+    "show": "上部ナビゲーションを表示"
   },
   "commandHistory": {
     "searchPlaceholder": "履歴を検索...",
@@ -1677,78 +1677,78 @@
     },
     "filterTags": {
       "all": "すべてのタグ",
-      "ariaLabel": "按标签筛选"
+      "ariaLabel": "タグで絞り込み"
     },
     "sortBy": {
-      "ariaLabel": "排序方式"
+      "ariaLabel": "並べ替え方法"
     },
     "noConnectionsWithTag": "このタグには接続記録がありません",
     "noConnectionsMatchSearch": "検索条件に一致する接続はありません。",
     "searchConnectionsPlaceholder": "接続を検索...",
     "actions": {
-      "connection_connected": "连接已建立",
-      "connection_disconnected": "连接已断开",
-      "session_suspended": "会话已挂起",
-      "auth_login_success": "登录成功",
-      "auth_login_failed": "登录失败",
-      "command_executed": "命令执行",
-      "command_blocked": "命令被拦截",
-      "file_upload": "文件上传",
-      "file_download": "文件下载",
-      "alert_security": "安全告警",
-      "alert_error": "错误告警"
+      "connection_connected": "接続済み",
+      "connection_disconnected": "切断済み",
+      "session_suspended": "セッション中断",
+      "auth_login_success": "ログイン成功",
+      "auth_login_failed": "ログイン失敗",
+      "command_executed": "コマンド実行",
+      "command_blocked": "コマンドブロック",
+      "file_upload": "ファイルアップロード",
+      "file_download": "ファイルダウンロード",
+      "alert_security": "セキュリティアラート",
+      "alert_error": "エラーアラート"
     },
-    "title": "仪表盘",
-    "refresh": "刷新",
-    "autoRefresh": "自动刷新",
+    "title": "ダッシュボード",
+    "refresh": "更新",
+    "autoRefresh": "自動更新",
     "timeRange": {
-      "label": "时间范围",
-      "start": "开始时间",
-      "end": "结束时间",
-      "to": "至",
+      "label": "期間",
+      "start": "開始時間",
+      "end": "終了時間",
+      "to": "〜",
       "shortcuts": {
-        "last1h": "最近1小时",
-        "last24h": "最近24小时",
-        "today": "今天",
-        "last7d": "最近7天"
+        "last1h": "直近1時間",
+        "last24h": "直近24時間",
+        "today": "今日",
+        "last7d": "直近7日"
       }
     },
     "intervals": {
       "15s": "15秒",
       "30s": "30秒",
-      "1m": "1分钟",
-      "5m": "5分钟"
+      "1m": "1分",
+      "5m": "5分"
     },
     "stats": {
-      "activeSessions": "活跃会话",
-      "todayConnections": "今日连接",
-      "connections": "连接数",
-      "avgDuration": "平均时长",
-      "loginFailures": "登录失败",
-      "commandBlocks": "命令拦截",
-      "alerts": "告警数",
-      "sessionDuration": "会话时长分布",
-      "systemResources": "系统资源"
+      "activeSessions": "アクティブセッション",
+      "todayConnections": "今日の接続",
+      "connections": "接続数",
+      "avgDuration": "平均時間",
+      "loginFailures": "ログイン失敗",
+      "commandBlocks": "コマンドブロック",
+      "alerts": "アラート数",
+      "sessionDuration": "セッション時間分布",
+      "systemResources": "システムリソース"
     },
     "durationBuckets": {
-      "lt5min": "< 5分钟",
-      "5minTo30min": "5-30分钟",
-      "30minTo1hr": "30-60分钟",
-      "gt1hr": "> 1小时"
+      "lt5min": "< 5分",
+      "5minTo30min": "5-30分",
+      "30minTo1hr": "30-60分",
+      "gt1hr": "> 1時間"
     },
-    "assetHealth": "资产健康",
-    "healthy": "在线",
-    "unreachable": "离线",
-    "total": "总计",
-    "storageStats": "存储统计",
-    "recordings": "录像文件",
-    "database": "数据库",
-    "uploads": "上传文件",
-    "memory": "内存",
-    "disk": "磁盘",
-    "activityTimeline": "活动时间线",
-    "noActivity": "暂无活动记录",
-    "addConnection": "添加连接",
+    "assetHealth": "アセット健全性",
+    "healthy": "オンライン",
+    "unreachable": "オフライン",
+    "total": "合計",
+    "storageStats": "ストレージ統計",
+    "recordings": "録画ファイル",
+    "database": "データベース",
+    "uploads": "アップロードファイル",
+    "memory": "メモリ",
+    "disk": "ディスク",
+    "activityTimeline": "アクティビティタイムライン",
+    "noActivity": "アクティビティはありません",
+    "addConnection": "接続を追加",
     "errors": {
       "refreshFailed": "データの更新に失敗しました。後でもう一度お試しください",
       "timeRangeFailed": "時間範囲の変更に失敗しました。後でもう一度お試しください",
@@ -1763,15 +1763,15 @@
   },
   "tabs": {
     "contextMenu": {
-      "close": "关闭标签页",
-      "closeOthers": "关闭其他标签页",
-      "closeRight": "关闭右侧标签页",
-      "closeLeft": "关闭左侧标签页",
-      "suspendSession": "挂起会话",
-      "unmarkForSuspend": "取消挂起"
+      "close": "タブを閉じる",
+      "closeOthers": "他のタブを閉じる",
+      "closeRight": "右側のタブを閉じる",
+      "closeLeft": "左側のタブを閉じる",
+      "suspendSession": "セッションを中断",
+      "unmarkForSuspend": "中断マークを解除"
     },
-    "closeTabTooltip": "关闭标签页",
-    "newTabTooltip": "新建连接标签页"
+    "closeTabTooltip": "タブを閉じる",
+    "newTabTooltip": "新しい接続タブ"
   },
   "sshKeys": {
     "selector": {
@@ -1805,26 +1805,26 @@
     }
   },
   "suspendedSshSessions": {
-    "modalTitle": "挂起的 SSH 会话",
-    "searchPlaceholder": "搜索会话 (名称, 连接名...)",
-    "loading": "正在加载挂起的会话...",
-    "noResults": "没有找到符合条件的挂起会话。",
+    "modalTitle": "中断された SSH セッション",
+    "searchPlaceholder": "セッションを検索 (名前, 接続名...)",
+    "loading": "中断されたセッションを読み込み中...",
+    "noResults": "条件に一致する中断セッションはありません。",
     "tooltip": {
-      "editName": "点击编辑名称"
+      "editName": "クリックして名前を編集"
     },
     "label": {
-      "originalConnection": "原始连接",
-      "suspendedAt": "挂起于"
+      "originalConnection": "元の接続",
+      "suspendedAt": "中断日時"
     },
-    "disconnectedAt": "已于 {time} 断开",
+    "disconnectedAt": "{time} に切断されました",
     "status": {
-      "hanging": "活跃",
-      "disconnected": "已断开"
+      "hanging": "アクティブ",
+      "disconnected": "切断済み"
     },
     "action": {
-      "resume": "恢复",
-      "remove": "移除",
-      "exportLog": "导出日志"
+      "resume": "再開",
+      "remove": "削除",
+      "exportLog": "ログをエクスポート"
     },
     "title": "一時停止中のセッション"
   },
@@ -1858,7 +1858,7 @@
     "cancelRequested": "终止リクエストを送信しました。",
     "cancelTaskTooltip": "タスクを终止",
     "cancellingTooltip": "终止中...",
-    "cancelButton": "终止",
+    "cancelButton": "中止",
     "cancellingButton": "终止中",
     "subTasks": {
       "titleToggle": "{count} 個のサブタスクを表示",
@@ -1929,8 +1929,8 @@
       "resumeSuccess": "セッション「{name}」は正常に再開されました。",
       "resumeErrorBackend": "バックエンドがセッションの再開に失敗しました: {error}",
       "autoTerminated": "中断されたセッション「{name}」は、理由: {reason} によりバックエンドによって自動終了されました。",
-      "logExportSuccess": "已挂起会话日志 {name} 已开始下载。",
-      "logExportError": "导出已挂起会话日志失败: {error}"
+      "logExportSuccess": "中断セッションのログ {name} のダウンロードを開始しました。",
+      "logExportError": "中断セッションのログのエクスポートに失敗しました: {error}"
     }
   },
   "favoritePaths": {
@@ -1954,7 +1954,7 @@
     "loading": "Loading favorites...",
     "noResults": "No matching favorites found.",
     "noFavorites": "No favorite paths yet. Add one!",
-    "toggleSort": "切换排序",
+    "toggleSort": "並べ替えを切り替え",
     "notifications": {
       "fetchError": "Failed to load favorite paths.",
       "addSuccess": "Favorite path added successfully.",
@@ -2004,9 +2004,9 @@
   },
   "editor": {
     "unsavedChanges": {
-      "title": "未保存的更改",
-      "message": "文件 \"{filename}\" 有未保存的更改。确定要丢弃这些更改吗？",
-      "discard": "丢弃更改"
+      "title": "未保存の変更",
+      "message": "ファイル \"{filename}\" には未保存の変更があります。これらの変更を破棄してもよろしいですか？",
+      "discard": "変更を破棄"
     }
   },
   "aiOps": {
