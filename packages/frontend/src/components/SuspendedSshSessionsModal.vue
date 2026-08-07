@@ -73,7 +73,7 @@ onUnmounted(() => {
       <button
         class="absolute top-2 right-2 p-1 text-text-secondary hover:text-foreground z-10"
         @click="closeModal"
-        :title="t('close', '关闭')"
+        :title="t('common.close', '关闭')"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

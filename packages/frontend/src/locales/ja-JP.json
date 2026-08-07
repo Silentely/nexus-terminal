@@ -143,8 +143,8 @@
     "errorMissingDownloadUrl": "リモートテーマのダウンロードURLがありません。",
     "remotePresetApplyFailed": "リモートHTMLテーマの適用に失敗しました: {message}",
     "errorPresetNameRequired": "プリセット名を空にすることはできません。",
-    "localPresetRenamed": "本地预设 “{oldName}” 已成功重命名为 “{newName}”。",
-    "localPresetRenameFailed": "重命名本地预设失败: {message}",
+    "localPresetRenamed": "ローカルプリセット \"{oldName}\" を \"{newName}\" に名前変更しました。",
+    "localPresetRenameFailed": "ローカルプリセットの名前変更に失敗しました: {message}",
     "searchLocalThemesPlaceholder": "ローカルテーマを検索...",
     "searchRemoteThemesPlaceholder": "リモートテーマを検索...",
     "noMatchingLocalPresetsFound": "一致するローカルテーマが見つかりませんでした",
@@ -177,7 +177,10 @@
     "noThemeSelected": "テーマが選択されていません",
     "unknownTheme": "不明なテーマ",
     "noThemesFound": "一致するテーマが見つかりません",
-    "passkeyLoginButton": "Passkeyでログイン"
+    "passkeyLoginButton": "Passkeyでログイン",
+    "customHtmlResetFailed": "カスタム HTML のリセットに失敗しました: {message}",
+    "errorFetchingPresetContentForCopy": "コピー用のプリセット内容の取得に失敗しました: {message}",
+    "uiThemeSaved": "UI テーマを保存しました。"
   },
   "login": {
     "title": "ユーザーログイン",
@@ -226,7 +229,10 @@
       "deleteSelectedTooltip": "選択した接続を削除します",
       "confirmMessage": "選択した {count} 件の接続を本当に削除しますか？この操作は元に戻せません。",
       "successMessage": "選択した接続は正常に削除されました。",
-      "errorMessage": "接続の一括削除に失敗しました: {error}"
+      "errorMessage": "接続の一括削除に失敗しました: {error}",
+      "noSelectionForEdit": "編集する接続を少なくとも 1 つ選択してください。",
+      "noConnectionsToUpdate": "更新する接続が選択されていません",
+      "noChanges": "変更は検出されませんでした"
     },
     "actions": {
       "testAllFiltered": "すべてテスト",
@@ -348,7 +354,10 @@
       "addJumpHost": "ジャンプホストを追加",
       "noAvailableSshConnectionsForJump": "ジャンプホストとして使用できるSSH接続がありません。先にSSH接続を作成してください。",
       "forceKeyboardInteractive": "強制キーボードインタラクティブ認証",
-      "forceKeyboardInteractiveDesc": "これは通常、2要素認証（TOTP/2FA）を使用するサーバーに必要です。"
+      "forceKeyboardInteractiveDesc": "これは通常、2要素認証（TOTP/2FA）を使用するサーバーに必要です。",
+      "typeTelnet": "Telnet",
+      "scriptErrorMissingPasswordForTelnet": "接続 \"{host}\" の Telnet パスワードがありません。",
+      "errorDelete": "接続の削除に失敗しました: {error}"
     },
     "test": {
       "success": "接続テストに成功しました！",
@@ -358,7 +367,10 @@
       "errorUnknown": "テスト中に不明なエラーが発生しました。",
       "errorNetwork": "ネットワークエラーまたはサーバーにアクセスできません。",
       "testingInProgress": "テスト実行中...",
-      "errorPrefix": "エラー:"
+      "errorPrefix": "エラー:",
+      "unknownError": "不明なエラー",
+      "unknownErrorDuringBatch": "一括テスト中にエラーが発生しました",
+      "onlySshSupportedTest": "テストをサポートしているのは SSH 接続のみです。"
     },
     "prompts": {
       "confirmDelete": "\"{name}\"接続を削除しますか？この操作は元に戻せません。"
@@ -366,13 +378,18 @@
     "errors": {
       "deleteFailed": "接続の削除に失敗しました: {error}",
       "createFailed": "接続の追加に失敗しました: {error}",
-      "cloneFailed": "接続のクローン作成に失敗しました: {error}"
+      "cloneFailed": "接続のクローン作成に失敗しました: {error}",
+      "connectAllSshFailed": "すべての SSH 接続に失敗しました。"
     },
     "status": {
       "never": "なし"
     },
     "untaggedGroup": "タグなし",
-    "noUntaggedConnections": "タグなしの接続はありません。"
+    "noUntaggedConnections": "タグなしの接続はありません。",
+    "messages": {
+      "noSshConnectionsToConnectAll": "現在のフィルターに一致する SSH 接続がありません。"
+    },
+    "unnamedFallback": "名前のない接続"
   },
   "proxies": {
     "title": "プロキシ管理",
@@ -409,19 +426,24 @@
       "confirmDelete": "\"{name}\"プロキシを削除しますか？この操作は元に戻せません。"
     },
     "errors": {
-      "deleteFailed": "プロキシの削除に失敗しました: {error}"
+      "deleteFailed": "プロキシの削除に失敗しました: {error}",
+      "notFound": "プロキシ \"{name}\" が見つかりません。"
     }
   },
   "workspace": {
     "terminal": {
       "reconnectingMsg": "再接続を試行中...",
-      "output": "终端输出"
+      "output": "终端输出",
+      "unknownReason": "不明な理由",
+      "unknownSshError": "不明な SSH エラー",
+      "unknownGenericError": "不明な汎用エラー"
     },
     "errors": {
       "sessionNotFound": "会话未找到",
       "missingConnectionId": "缺少连接 ID",
       "wsManagerNotFound": "WebSocket 管理器未找到"
-    }
+    },
+    "noActiveSession": "アクティブなセッションがありません"
   },
   "session": {
     "errors": {
@@ -463,7 +485,10 @@
       "cut": "切り取り",
       "paste": "貼り付け",
       "openEditor": "エディターを開く",
-      "copyPath": "パスをコピー"
+      "copyPath": "パスをコピー",
+      "search": "検索",
+      "exitMultiSelect": "複数選択モードを終了",
+      "multiSelect": "複数選択モードを開始"
     },
     "contextMenu": {
       "compress": "圧縮",
@@ -523,7 +548,11 @@
       "missingSessionId": "缺少会话 ID",
       "pathReadFailed": "ターミナルのパスの読み取りに失敗しました",
       "pathReadTimeout": "ターミナルのパスの読み取りがタイムアウトしました",
-      "lineEndingConversionFailed": "改行コードの変換に失敗しました"
+      "lineEndingConversionFailed": "改行コードの変換に失敗しました",
+      "downloadNetworkError": "ネットワーク接続に失敗しました。接続を確認して再試行してください。",
+      "uploadFailed": "アップロードに失敗しました",
+      "readFileTimeout": "ファイルの読み取りがタイムアウトしました",
+      "sessionInvalidOrNotReady": "セッションが無効または準備ができていません。保存に失敗しました。"
     },
     "notifications": {
       "copySuccess": "コピーに成功しました",
@@ -633,7 +662,10 @@
     "networkUploadLabelUnit": "アップロード ({unit})",
     "latestCpuValue": "{value}%",
     "latestMemoryValue": "{value} {unit}",
-    "latestNetworkValue": "↓ {download} ↑ {upload} {unit}"
+    "latestNetworkValue": "↓ {download} ↑ {upload} {unit}",
+    "routePlan": "ルートパス",
+    "copyIpError": "IP のコピーに失敗しました",
+    "hops": "ホップ"
   },
   "tags": {
     "title": "タグ管理",
@@ -651,7 +683,10 @@
     "updateSuccess": "タグが正常に更新されました。",
     "deleteSuccess": "タグ「{name}」が正常に削除されました。",
     "deleteFailed": "タグ「{name}」の削除に失敗しました: {error}",
-    "errorDelete": "タグの削除中にエラーが発生しました: {error}"
+    "errorDelete": "タグの削除中にエラーが発生しました: {error}",
+    "createFailed": "タグの作成に失敗しました: {error}",
+    "deleteSuccessWithName": "タグ \"{name}\" を削除しました。",
+    "deleteFailedWithName": "タグ \"{name}\" の削除に失敗しました: {error}"
   },
   "settings": {
     "popupFileManager": {
@@ -693,7 +728,8 @@
       "success": "パスワードの変更に成功しました！",
       "error": {
         "passwordsDoNotMatch": "新しいパスワードと確認用パスワードが一致しません。",
-        "generic": "パスワードの変更に失敗しました。後でもう一度お試しください。"
+        "generic": "パスワードの変更に失敗しました。後でもう一度お試しください。",
+        "fieldsRequired": "現在のパスワードと新しいパスワードを入力してください。"
       }
     },
     "twoFactor": {
@@ -794,13 +830,18 @@
         "userNotLoggedIn": "ユーザーがログインしていないか、ユーザー名が利用できません。",
         "registrationCancelled": "Passkey の登録がキャンセルされました。",
         "registrationFailed": "Passkey の登録に失敗しました。",
-        "deleteFailedGeneral": "Passkey の削除に失敗しました。もう一度お試しください。"
+        "deleteFailedGeneral": "Passkey の削除に失敗しました。もう一度お試しください。",
+        "deleteFailedInvalidId": "削除に失敗しました: 無効な資格情報 ID です。",
+        "nameUpdateFailed": "Passkey 名の更新に失敗しました。",
+        "registrationCancelledOrExists": "Passkey の登録がキャンセルされたか、すでに存在します。"
       },
       "success": {
         "registered": "新しい Passkey が正常に登録されました！",
         "deleted": "Passkey が正常に削除されました。",
         "nameUpdated": "Passkey 名が更新されました。"
-      }
+      },
+      "enterNamePlaceholder": "Passkey 名を入力",
+      "editNameTooltip": "名前を編集"
     },
     "notifications": {
       "title": "通知設定",
@@ -863,7 +904,7 @@
         "CONNECTION_CREATED": "接続作成",
         "CONNECTION_UPDATED": "接続更新",
         "CONNECTION_DELETED": "接続削除",
-        "CONNECTIONS_EXPORTED": "接続がエクスポートされました",
+        "CONNECTIONS_EXPORTED": "接続をエクスポートしました",
         "PROXY_CREATED": "プロキシ作成",
         "PROXY_UPDATED": "プロキシ更新",
         "PROXY_DELETED": "プロキシ削除",
@@ -1005,7 +1046,10 @@
     },
     "statusMonitorShowIp": {
       "title": "ステータスモニターでIPアドレスを表示",
-      "enableLabel": "ステータスモニターにIPアドレスを表示する"
+      "enableLabel": "ステータスモニターにIPアドレスを表示する",
+      "error": {
+        "saveFailed": "ステータスモニターの IP 表示設定の保存に失敗しました。"
+      }
     },
     "terminalScrollback": {
       "title": "ターミナルスクロールバック制限",
@@ -1058,8 +1102,10 @@
         "deleteFailed": "削除に失敗しました",
         "invalidMaxAttempts": "最大試行回数は正の整数である必要があります。",
         "invalidBanDuration": "禁止時間は正の整数 (秒) である必要があります。",
-        "updateConfigFailed": "ブラックリスト構成の更新に失敗しました"
-      }
+        "updateConfigFailed": "ブラックリスト構成の更新に失敗しました",
+        "updateFailed": "IP ブラックリストの有効状態の更新に失敗しました"
+      },
+      "disabledMessage": "IP ブラックリスト機能は現在無効です。"
     },
     "captcha": {
       "title": "CAPTCHA 設定",
@@ -1081,7 +1127,8 @@
         "hcaptchaKeysRequired": "hCaptcha サイトキーとシークレットキーは検証に必要です。",
         "recaptchaKeysRequired": "reCAPTCHA サイトキーとシークレットキーは検証に必要です。",
         "verificationFailed": "CAPTCHA 認証情報検証に失敗しました。サイトキーとシークレットキーを確認してください。"
-      }
+      },
+      "secretKeyEmptyHint": "空のままにすると既存のシークレットが保持されます。クリアするには新しい値を入力して保存してください。"
     },
     "commandInputSync": {
       "title": "コマンド入力同期",
@@ -1116,7 +1163,13 @@
     "exportConnections": {
       "title": "导出连接数据",
       "decryptKeyInfo": "解压密码是您 data/.env 文件中的 ENCRYPTION_KEY。请妥善保管此文件。",
-      "buttonText": "开始导出"
+      "buttonText": "エクスポートを開始",
+      "cliHint": "別の Nexus Terminal インスタンスでコマンドラインからインポートするための CLI スクリプト形式（ZIP）としてエクスポートします。",
+      "proxyNote": "注意: プロキシ設定とコンテンツ保存の SSH キーはエクスポートに含まれません。",
+      "passwordLabel": "エクスポートパスワード（任意）",
+      "passwordPlaceholder": "空の場合は ENCRYPTION_KEY を使用",
+      "error": "接続のエクスポート中にエラーが発生しました。",
+      "success": "エクスポートに成功しました。ファイルのダウンロードが開始されました。"
     },
     "tabs": {
       "security": "安全",
@@ -1125,7 +1178,8 @@
       "system": "系统",
       "dataManagement": "数据管理",
       "appearance": "外观",
-      "about": "关于"
+      "about": "このアプリについて",
+      "ai": "AI アシスタント"
     },
     "loading": "加载中...",
     "logLevel": {
@@ -1157,6 +1211,33 @@
         "maxEntriesSaveFailed": "保存に失敗しました。",
         "deleteFailed": "削除に失敗しました。"
       }
+    },
+    "dataManagement": {
+      "dockerMigrationHint": {
+        "title": "サーバー間移行の推奨方法",
+        "description": "サーバー間で完全に移行するには、ホストの ./data ディレクトリと data/.env ファイルを新しいサーバーにコピーし、Docker コンテナを起動するのが最も簡単です。"
+      }
+    },
+    "fullBackupExport": {
+      "title": "完全データバックアップ",
+      "description": "接続、タグ、クイックコマンド、ターミナルテーマなどを含むすべてのコアデータを JSON ファイルとしてエクスポートします。インスタンス間の完全復元に使用できます。",
+      "encryptionKeyWarning": "復元にはエクスポート時と同じ ENCRYPTION_KEY が必要です。そうしないと接続パスワードと SSH キーを復号できません。",
+      "buttonText": "バックアップファイルをエクスポート",
+      "success": "バックアップファイルのダウンロードを開始しました。",
+      "error": "バックアップのエクスポート中にエラーが発生しました。"
+    },
+    "importConnections": {
+      "title": "接続データをインポート",
+      "description": "JSON 形式の接続設定ファイルを選択してインポートします（接続データのみ。タグやテーマなどは含まれません）。ファイルサイズ上限: 5MB。",
+      "confirmText": "インポートすると現在の設定が上書きされます。続行しますか？",
+      "confirmButton": "インポートを確認",
+      "buttonText": "インポートするファイルを選択",
+      "errorDetails": "インポートエラーの詳細",
+      "invalidFileType": "JSON 形式のファイルを選択してください。",
+      "fileTooLarge": "ファイルサイズが 5MB の制限を超えています。",
+      "error": "接続のインポート中にエラーが発生しました。",
+      "partialSuccess": "インポートが完了しました: 成功 {success} 件、失敗 {failure} 件。",
+      "success": "インポートに成功しました。{count} 件の接続をインポートしました。"
     }
   },
   "notificationController": {
@@ -1214,8 +1295,17 @@
     "alert": "お知らせ",
     "confirm": "確認",
     "updateSuccess": "更新に成功しました",
-    "selectAll": "全选",
-    "deselectAll": "取消全选"
+    "selectAll": "すべて選択",
+    "deselectAll": "すべて選択解除",
+    "deleting": "削除中...",
+    "unknownError": "不明なエラー",
+    "copy": "コピー",
+    "paste": "貼り付け",
+    "dismiss": "閉じる",
+    "confirmationTitle": "確認してください",
+    "navigate": "移動",
+    "select": "選択",
+    "unexpectedError": "予期しないエラーが発生しました。後でもう一度お試しください"
   },
   "layoutConfigurator": {
     "title": "レイアウトマネージャー",
@@ -1227,8 +1317,8 @@
     "leftSidebar": "左サイドバーパネル",
     "rightSidebar": "右サイドバーパネル",
     "dropHere": "利用可能なパネルからここにドラッグ",
-    "confirmClose": "未保存の変更があります。閉じてもよろしいですか？",
-    "confirmReset": "デフォルトのレイアウトとサイドバー構成に戻しますか？現在の変更は失われます。",
+    "confirmClose": "保存されていない変更があります。閉じてもよろしいですか？",
+    "confirmReset": "デフォルトレイアウトとサイドバー設定に戻しますか？現在の変更は失われます。",
     "saveError": "レイアウトの保存中にエラーが発生しました。後でもう一度お試しください。",
     "confirmClearLayout": "レイアウト全体をクリアしますか？すべてのパネルが利用可能なリストに戻ります。",
     "lockLayout": "レイアウトをロック",
@@ -1337,7 +1427,8 @@
     "confirmDeleteAllConnectionsInGroup": "グループ '{groupName}' 内の全 {count} 個の接続を削除してもよろしいですか？この操作は元に戻せません。",
     "allConnectionsInGroupDeletedSuccess": "グループ '{groupName}' から {count} 個の接続を正常に削除しました。",
     "cannotDeleteFromUntagged": "このオプションを使用して「未分類」グループから接続を削除することはできません。",
-    "someConnectionsInGroupDeleteFailed": "グループ '{groupName}' 内の {count} 個の接続の削除に失敗しました。"
+    "someConnectionsInGroupDeleteFailed": "グループ '{groupName}' 内の {count} 個の接続の削除に失敗しました。",
+    "allConnectionsTaggedFailed": "すべての接続へのタグ付けに失敗しました"
   },
   "remoteDesktopModal": {
     "title": "リモートデスクトップ",
@@ -1384,7 +1475,9 @@
     "findPrevious": "前を検索",
     "findNext": "次を検索",
     "configureFocusSwitch": "フォーカススイッチャーを設定",
-    "clearTerminal": "ターミナルをクリア"
+    "clearTerminal": "ターミナルをクリア",
+    "hideKeyboard": "仮想キーボードを隠す",
+    "showKeyboard": "仮想キーボードを表示"
   },
   "layout": {
     "loading": "ロード中...",
@@ -1411,6 +1504,10 @@
       "message": "最初にセッションに接続してください",
       "fileManagerSidebar": "ファイルマネージャーにはアクティブなセッションが必要です",
       "statusMonitorSidebar": "ステータスモニターにはアクティブなセッションが必要です"
+    },
+    "noSshSessionActive": {
+      "title": "アクティブな SSH セッションがありません",
+      "message": "このターミナルパネルを使用するには SSH セッションをアクティブにしてください。"
     }
   },
   "header": {
@@ -1466,7 +1563,9 @@
     },
     "untagged": "タグなし",
     "tags": {
-      "clickToEditTag": "クリックしてタグ名を編集"
+      "clickToEditTag": "クリックしてタグ名を編集",
+      "createSuccess": "タグを作成しました。",
+      "noCommandsToAssign": "タグを割り当てられるコマンドがありません。"
     },
     "actions": {
       "sendToAllSessions": "すべてのセッションに送信"
@@ -1474,7 +1573,10 @@
     "notifications": {
       "sentToAllSessions": "コマンドは {count} 個のセッションに送信されました。",
       "noActiveSshSessions": "コマンドを送信するアクティブな SSH セッションはありません。"
-    }
+    },
+    "noResults": "一致するコマンドが見つかりません",
+    "sortByLastUsed": "最近使用した順に並べ替え",
+    "title": "クイックコマンド"
   },
   "setup": {
     "title": "初期設定",
@@ -1646,7 +1748,14 @@
     "disk": "磁盘",
     "activityTimeline": "活动时间线",
     "noActivity": "暂无活动记录",
-    "addConnection": "添加连接"
+    "addConnection": "添加连接",
+    "errors": {
+      "refreshFailed": "データの更新に失敗しました。後でもう一度お試しください",
+      "timeRangeFailed": "時間範囲の変更に失敗しました。後でもう一度お試しください",
+      "initFailed": "ダッシュボードの初期化に失敗しました。ページを再読み込みしてください",
+      "connectFailed": "接続に失敗しました。後でもう一度お試しください",
+      "connectionsFailed": "接続リストの更新に失敗しました。後でもう一度お試しください"
+    }
   },
   "terminalTabBar": {
     "selectServerTitle": "接続するサーバーを選択",
@@ -1669,7 +1778,8 @@
       "selectPlaceholder": "SSH キーを選択...",
       "useDirectInput": "またはキーの内容を直接入力",
       "manageKeysTitle": "SSH キーを管理",
-      "loadingKeys": "キーを読み込み中..."
+      "loadingKeys": "キーを読み込み中...",
+      "errorLoading": "SSH キーの読み込みに失敗しました: {error}"
     },
     "modal": {
       "title": "SSH キー管理",
@@ -1715,7 +1825,8 @@
       "resume": "恢复",
       "remove": "移除",
       "exportLog": "导出日志"
-    }
+    },
+    "title": "一時停止中のセッション"
   },
   "transferProgressModal": {
     "title": "ファイル転送進捗",
@@ -1787,7 +1898,8 @@
     "validationError": "少なくとも1つの接続を選択し、ターゲットパスを指定してください。",
     "transferInitiated": "転送タスクが作成されました",
     "transferInitiatedGeneric": "転送タスクが正常に作成されました。",
-    "transferFailedError": "転送の開始に失敗しました。もう一度お試しください。"
+    "transferFailedError": "転送の開始に失敗しました。もう一度お試しください。",
+    "errorSourceConnectionMissing": "送信元サーバー情報がありません。転送を開始できません。"
   },
   "time": {
     "unknown": "不明な時間",
@@ -1850,8 +1962,11 @@
       "updateSuccess": "Favorite path updated successfully.",
       "updateError": "Failed to update favorite path.",
       "deleteSuccess": "Favorite path deleted successfully.",
-      "deleteError": "Failed to delete favorite path."
-    }
+      "deleteError": "Failed to delete favorite path.",
+      "markAsUsedError": "パスを使用済みとしてマークできませんでした"
+    },
+    "sendToTerminal": "ターミナルに送信",
+    "title": "お気に入りパス"
   },
   "pathHistory": {
     "loading": "読み込み中...",
@@ -1862,28 +1977,30 @@
     "copiedError": "パスのコピーに失敗しました"
   },
   "batchOps": {
-    "title": "批量执行",
-    "progress": "进度",
-    "selectServers": "选择服务器",
-    "noConnections": "没有可用的 SSH 连接",
-    "commandLabel": "要执行的命令",
-    "commandPlaceholder": "例如 apt-get update",
-    "execute": "广播执行",
-    "cancel": "取消",
-    "sudo": "以 sudo 运行",
-    "concurrency": "并发数",
-    "results": "执行结果",
-    "viewOutput": "查看",
-    "output": "输出",
-    "noOutput": "无输出",
+    "title": "一括実行",
+    "progress": "進捗",
+    "selectServers": "サーバーを選択",
+    "noConnections": "利用可能な SSH 接続がありません",
+    "commandLabel": "実行するコマンド",
+    "commandPlaceholder": "例: apt-get update",
+    "execute": "すべてに実行",
+    "cancel": "キャンセル",
+    "sudo": "sudo で実行",
+    "concurrency": "同時実行数",
+    "results": "実行結果",
+    "viewOutput": "表示",
+    "output": "出力",
+    "noOutput": "出力なし",
     "status": {
-      "queued": "队列中",
-      "inProgress": "执行中",
-      "partiallyCompleted": "部分完成",
-      "completed": "已完成",
-      "failed": "已失败",
-      "cancelled": "已取消"
-    }
+      "queued": "待機中",
+      "inProgress": "実行中",
+      "partiallyCompleted": "一部完了",
+      "completed": "完了",
+      "failed": "失敗",
+      "cancelled": "キャンセル済み"
+    },
+    "copyOutput": "クリップボードにコピー",
+    "sudoConfirm": "警告: sudo 権限で実行します。続行しますか？"
   },
   "editor": {
     "unsavedChanges": {
@@ -1893,26 +2010,72 @@
     }
   },
   "aiOps": {
-    "title": "AI 运维助手",
-    "newSession": "新建会话",
-    "history": "历史记录",
-    "sessionHistory": "会话历史",
-    "noSessions": "暂无历史会话",
-    "untitled": "未命名会话",
-    "placeholder": "询问关于服务器或日志的任何问题...",
-    "typing": "AI 正在分析...",
-    "insights": "洞察",
-    "inputPlaceholder": "输入消息...",
-    "generateCommand": "生成命令",
-    "disable": "禁用 AI",
-    "enable": "启用 AI",
-    "enableInSettings": "在设置中启用",
-    "sendMessage": "发送消息",
+    "title": "AI 運用アシスタント",
+    "newSession": "新規セッション",
+    "history": "履歴",
+    "sessionHistory": "セッション履歴",
+    "noSessions": "セッション履歴はありません",
+    "untitled": "名前のないセッション",
+    "placeholder": "サーバーやログについて何でも質問してください...",
+    "typing": "AI が分析中...",
+    "insights": "インサイト",
+    "inputPlaceholder": "メッセージを入力...",
+    "generateCommand": "コマンドを生成",
+    "disable": "AI を無効化",
+    "enable": "AI を有効化",
+    "enableInSettings": "設定で有効化",
+    "sendMessage": "メッセージを送信",
     "suggestions": {
-      "health": "检查系统健康状态",
-      "commands": "分析命令执行模式",
-      "security": "查看安全事件统计",
-      "connections": "连接使用情况"
+      "health": "システムのヘルス状態を確認",
+      "commands": "コマンド実行パターンを分析",
+      "security": "セキュリティイベント統計を表示",
+      "connections": "接続使用状況"
     }
+  },
+  "aiAudit": {
+    "title": "AI セキュリティ監査",
+    "createReport": "レポートを生成",
+    "totalReports": "レポート総数",
+    "totalAnomalies": "異常総数",
+    "criticalAnomalies": "重大な異常",
+    "recentAnomalies": "24時間以内の異常",
+    "analysisResults": "分析結果",
+    "noReports": "監査レポートはまだありません",
+    "noReportsHint": "上のボタンをクリックして最初の監査レポートを生成してください",
+    "timeRange": "時間範囲",
+    "noAnomalies": "異常は検出されていません",
+    "noAnomaliesHint": "システムは正常に動作しており、異常な動作は検出されていません",
+    "acknowledge": "確認",
+    "acknowledged": "確認済み",
+    "summary": "分析サマリー",
+    "anomalies": "異常",
+    "aiAnalysis": "AI 分析",
+    "reports": "レポート",
+    "type": {
+      "command": "コマンド分析",
+      "login": "ログイン分析",
+      "full": "完全監査"
+    },
+    "status": {
+      "pending": "待機中",
+      "inProgress": "進行中",
+      "completed": "完了",
+      "failed": "失敗"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "コマンドを入力するか検索...",
+    "noResults": "一致するコマンドが見つかりません",
+    "actionFailed": "実行に失敗しました。後でもう一度お試しください"
+  },
+  "errors": {
+    "unknown": "不明なエラー"
+  },
+  "term": {
+    "unknownError": "不明なエラー",
+    "sshSuspend": "SSH 一時停止"
+  },
+  "terminal": {
+    "output": "ターミナル出力"
   }
 }

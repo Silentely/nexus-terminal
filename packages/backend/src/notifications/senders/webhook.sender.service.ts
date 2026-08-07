@@ -4,6 +4,7 @@ import type { ProcessedNotification } from '../notification.processor.service';
 import { WebhookConfig } from '../../types/notification.types';
 import { getErrorMessage } from '../../utils/AppError';
 import { logger } from '../../utils/logger';
+import { redactUrlForLog } from '../../logging/redaction';
 import { safeHttpGet, safeHttpPost } from '../../utils/ssrf-guard';
 
 class WebhookSenderService implements INotificationSender {
@@ -21,7 +22,7 @@ class WebhookSenderService implements INotificationSender {
       new URL(url);
     } catch (error: unknown) {
       logger.error(
-        `[WebhookSender] Invalid webhook URL format: ${url} (${getErrorMessage(error)})`,
+        `[WebhookSender] Invalid webhook URL format: ${redactUrlForLog(url)} (${getErrorMessage(error)})`,
       );
       throw new Error(`Invalid webhook URL format: ${url}`);
     }
@@ -40,7 +41,9 @@ class WebhookSenderService implements INotificationSender {
     }
 
     try {
-      logger.info(`[WebhookSender] Sending ${requestMethod} notification to webhook URL: ${url}`);
+      logger.info(
+        `[WebhookSender] Sending ${requestMethod} notification to webhook URL: ${redactUrlForLog(url)}`,
+      );
 
       let requestData: unknown;
       const requestParams: Record<string, string> | undefined = undefined;
@@ -51,10 +54,7 @@ class WebhookSenderService implements INotificationSender {
             requestData = JSON.parse(requestBody);
           } catch (parseError: unknown) {
             logger.warn(
-              `[WebhookSender] Failed to parse request body as JSON for Content-Type application/json. Sending as raw string. Parse error: ${getErrorMessage(parseError)}. Body: ${requestBody.substring(
-                0,
-                100,
-              )}...`,
+              `[WebhookSender] Failed to parse request body as JSON for Content-Type application/json. Sending as raw string. Parse error: ${getErrorMessage(parseError)}. Body: ${redactUrlForLog(requestBody).substring(0, 100)}...`,
             );
             requestData = requestBody;
           }
@@ -63,7 +63,7 @@ class WebhookSenderService implements INotificationSender {
         }
       } else if (requestMethod === 'GET') {
         logger.warn(
-          `[WebhookSender] Sending data in body for GET request might not be standard. URL: ${url}`,
+          `[WebhookSender] Sending data in body for GET request might not be standard. URL: ${redactUrlForLog(url)}`,
         );
       }
 

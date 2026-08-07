@@ -44,40 +44,32 @@
       <!-- List Area -->
       <div class="flex-grow overflow-y-auto p-2">
         <!-- Loading State -->
-        <div
+        <LoadingState
           v-if="isLoading && quickCommandsStore.quickCommandsList.length === 0"
-          class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full"
-        >
-          <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
-          <p>{{ t('common.loading', '加载中...') }}</p>
-        </div>
+          :text="t('common.loading')"
+          full
+        />
         <!-- Empty State (No commands at all) -->
-        <div
+        <EmptyState
           v-else-if="!isLoading && quickCommandsStore.quickCommandsList.length === 0"
-          class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full"
-        >
-          <i class="fas fa-bolt text-xl mb-2"></i>
-          <p class="mb-3">{{ $t('quickCommands.empty', '没有快捷指令。') }}</p>
-          <button
-            @click="openAddForm"
-            class="px-4 py-2 bg-primary text-white border-none rounded-lg text-sm font-semibold cursor-pointer shadow-md transition-colors duration-200 ease-in-out hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            {{ $t('quickCommands.addFirst', '创建第一个快捷指令') }}
-          </button>
-        </div>
+          :text="$t('quickCommands.empty', '没有快捷指令。')"
+          :action-text="$t('quickCommands.addFirst', '创建第一个快捷指令')"
+          icon="fa-bolt"
+          full
+          @action="openAddForm"
+        />
         <!-- No Results State (Commands exist, but filter yields no results) -->
-        <div
+        <EmptyState
           v-else-if="
             !isLoading &&
             ((showQuickCommandTagsBoolean && filteredAndGroupedCommands.length === 0) ||
               (!showQuickCommandTagsBoolean && flatFilteredCommands.length === 0)) &&
             searchTerm
           "
-          class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full"
-        >
-          <i class="fas fa-search text-xl mb-2"></i>
-          <p>{{ t('quickCommands.noResults', '没有找到匹配的指令') }} "{{ searchTerm }}"</p>
-        </div>
+          :text="noResultsText"
+          icon="fa-search"
+          full
+        />
 
         <!-- Command List (Grouped or Flat) -->
         <div
@@ -297,6 +289,10 @@ const quickCommandContextTargetCommand = ref<QuickCommandFE | null>(null);
 
 // --- 从 Store 获取状态和 Getter ---
 const searchTerm = computed(() => quickCommandsStore.searchTerm);
+// 无匹配结果的空状态文案（含搜索词）
+const noResultsText = computed(
+  () => `${t('quickCommands.noResults', '没有找到匹配的指令')} "${searchTerm.value}"`,
+);
 const sortBy = computed(() => quickCommandsStore.sortBy);
 // Use the new grouped getter
 const filteredAndGroupedCommands = computed(() => quickCommandsStore.filteredAndGroupedCommands);

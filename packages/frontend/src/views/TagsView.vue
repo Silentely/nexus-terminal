@@ -53,21 +53,14 @@ const onTagSaved = () => {
         </button>
       </div>
 
-      <div v-if="tagsStore.isLoading" class="p-6 text-center text-text-secondary text-sm">
-        {{ t('tags.loading') }}
-      </div>
+      <LoadingState v-if="tagsStore.isLoading" :text="t('tags.loading')" compact />
       <div
         v-else-if="tagsStore.error"
         class="p-4 border-l-4 border-error bg-error/10 text-error rounded"
       >
         {{ t('tags.error', { error: tagsStore.error }) }}
       </div>
-      <div
-        v-else-if="tagsStore.tags.length === 0"
-        class="p-6 text-center text-text-secondary text-sm"
-      >
-        {{ t('tags.noTags') }}
-      </div>
+      <EmptyState v-else-if="tagsStore.tags.length === 0" :text="t('tags.noTags')" icon="fa-tags" />
       <TagList v-else :tags="tagsStore.tags" @edit-tag="openEditForm" />
 
       <!-- 添加/编辑标签表单 (模态框) -->

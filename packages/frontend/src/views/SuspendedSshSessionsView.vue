@@ -23,13 +23,12 @@
     </div>
 
     <div class="session-list-container flex-grow overflow-y-auto">
-      <div v-if="isLoading" class="text-center p-4">
-        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-        <p>{{ $t('suspendedSshSessions.loading') }}</p>
-      </div>
-      <div v-else-if="filteredSessions.length === 0 && !isLoading" class="text-center p-4">
-        <p>{{ $t('suspendedSshSessions.noResults') }}</p>
-      </div>
+      <LoadingState v-if="isLoading" :text="$t('suspendedSshSessions.loading')" />
+      <EmptyState
+        v-else-if="filteredSessions.length === 0 && !isLoading"
+        :text="$t('suspendedSshSessions.noResults')"
+        icon="fa-pause-circle"
+      />
       <ul v-else class="list-none p-0 m-0">
         <SuspendedSessionItem
           v-for="session in filteredSessions"

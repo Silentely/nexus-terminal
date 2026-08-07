@@ -18,6 +18,7 @@ import i18next, { defaultLng, supportedLngs } from '../i18n';
 import { settingsService } from '../settings/settings.service';
 import { getErrorMessage, isError } from '../utils/AppError';
 import { logger } from '../utils/logger';
+import { redactUrlForLog } from '../logging/redaction';
 
 const testSubjectKey = 'testNotification.subject';
 const testEmailBodyKey = 'testNotification.email.body';
@@ -229,7 +230,7 @@ export class NotificationService {
     };
 
     try {
-      logger.debug(`[通知测试 - Webhook] 发送测试 Webhook 到 ${config.url}`);
+      logger.debug(`[通知测试 - Webhook] 发送测试 Webhook 到 ${redactUrlForLog(config.url)}`);
       // 使用安全 HTTP 客户端，自动进行 SSRF 验证和 DNS 绑定
       const requestMethod = (config.method || 'POST').toUpperCase();
       const baseOptions = {
@@ -249,7 +250,7 @@ export class NotificationService {
             'Notification-Webhook-Test',
           );
       logger.debug(
-        `[通知测试 - Webhook] 测试 Webhook 成功发送到 ${config.url}。状态: ${response.status}`,
+        `[通知测试 - Webhook] 测试 Webhook 成功发送到 ${redactUrlForLog(config.url)}。状态: ${response.status}`,
       );
       return {
         success: true,
@@ -260,7 +261,10 @@ export class NotificationService {
         axios.isAxiosError(error) && error.response?.data
           ? error.response.data.message || error.response.data
           : getErrorMessage(error);
-      logger.error(`[通知测试 - Webhook] 发送测试 Webhook 到 ${config.url} 时出错:`, errorMessage);
+      logger.error(
+        `[通知测试 - Webhook] 发送测试 Webhook 到 ${redactUrlForLog(config.url)} 时出错:`,
+        errorMessage,
+      );
       return {
         success: false,
         message: `测试 Webhook 发送失败: ${errorMessage}`,
@@ -552,7 +556,9 @@ export class NotificationService {
     };
 
     try {
-      logger.debug(`[通知] 发送 Webhook 到 ${config.url} (事件: ${payload.event})`);
+      logger.debug(
+        `[通知] 发送 Webhook 到 ${redactUrlForLog(config.url)} (事件: ${payload.event})`,
+      );
       // 使用安全 HTTP 客户端，自动进行 SSRF 验证和 DNS 绑定
       const requestMethod = (config.method || 'POST').toUpperCase();
       const baseOptions = {
@@ -571,14 +577,16 @@ export class NotificationService {
             { ...baseOptions, method: requestMethod },
             'Notification-Webhook',
           );
-      logger.debug(`[通知] Webhook 成功发送到 ${config.url}。状态: ${response.status}`);
+      logger.debug(
+        `[通知] Webhook 成功发送到 ${redactUrlForLog(config.url)}。状态: ${response.status}`,
+      );
     } catch (error: unknown) {
       const errorMessage =
         axios.isAxiosError(error) && error.response?.data
           ? error.response.data.message || error.response.data
           : getErrorMessage(error);
       logger.error(
-        `[通知] 发送 Webhook 到 ${config.url} (设置 ID: ${setting.id}) 时出错:`,
+        `[通知] 发送 Webhook 到 ${redactUrlForLog(config.url)} (设置 ID: ${setting.id}) 时出错:`,
         errorMessage,
       );
     }

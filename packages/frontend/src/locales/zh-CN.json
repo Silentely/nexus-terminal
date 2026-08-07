@@ -143,7 +143,7 @@
     "errorMissingDownloadUrl": "远程主题下载链接缺失。",
     "remotePresetApplyFailed": "应用远程 HTML 主题失败: {message}",
     "errorPresetNameRequired": "预设名称不能为空。",
-    "localPresetRenamed": "本地预设 “{oldName}” 已成功重命名为 “{newName}”。",
+    "localPresetRenamed": "本地预设 \"{oldName}\" 已成功重命名为 \"{newName}\"。",
     "localPresetRenameFailed": "重命名本地预设失败: {message}",
     "searchLocalThemesPlaceholder": "搜索本地主题...",
     "searchRemoteThemesPlaceholder": "搜索远程主题...",
@@ -177,7 +177,10 @@
     "noThemeSelected": "未选择主题",
     "unknownTheme": "未知主题",
     "noThemesFound": "未找到匹配的主题",
-    "passkeyLoginButton": "使用 Passkey 登录"
+    "passkeyLoginButton": "使用 Passkey 登录",
+    "customHtmlResetFailed": "重置自定义 HTML 失败: {message}",
+    "errorFetchingPresetContentForCopy": "获取预设内容用于复制失败: {message}",
+    "uiThemeSaved": "UI 主题已保存。"
   },
   "login": {
     "title": "用户登录",
@@ -226,7 +229,10 @@
       "deleteSelectedTooltip": "删除选中的连接",
       "confirmMessage": "您确定要删除选中的 {count} 个连接吗？此操作无法撤销。",
       "successMessage": "选中的连接已成功删除。",
-      "errorMessage": "批量删除连接失败: {error}"
+      "errorMessage": "批量删除连接失败: {error}",
+      "noSelectionForEdit": "请至少选择一个连接进行编辑。",
+      "noConnectionsToUpdate": "没有选中的连接可供更新",
+      "noChanges": "未检测到任何更改"
     },
     "actions": {
       "testAllFiltered": "测试全部",
@@ -348,7 +354,10 @@
       "addJumpHost": "添加跳板机",
       "noAvailableSshConnectionsForJump": "没有可用的SSH连接作为跳板机。请先创建一些SSH连接。",
       "forceKeyboardInteractive": "强制键盘交互式认证",
-      "forceKeyboardInteractiveDesc": "这通常是使用双因素认证(TOTP/2FA) 的服务器所必需的。"
+      "forceKeyboardInteractiveDesc": "这通常是使用双因素认证(TOTP/2FA) 的服务器所必需的。",
+      "typeTelnet": "Telnet",
+      "scriptErrorMissingPasswordForTelnet": "连接 \"{host}\" 缺少 Telnet 密码。",
+      "errorDelete": "删除连接失败: {error}"
     },
     "test": {
       "success": "连接测试成功！",
@@ -358,7 +367,10 @@
       "errorUnknown": "测试过程中发生未知错误。",
       "errorNetwork": "网络错误或服务器无法访问。",
       "testingInProgress": "测试中...",
-      "errorPrefix": "错误:"
+      "errorPrefix": "错误:",
+      "unknownError": "未知错误",
+      "unknownErrorDuringBatch": "批量测试中发生错误",
+      "onlySshSupportedTest": "仅SSH连接支持测试。"
     },
     "prompts": {
       "confirmDelete": "确定要删除连接 \"{name}\" 吗？此操作不可撤销。"
@@ -366,13 +378,18 @@
     "errors": {
       "deleteFailed": "删除连接失败: {error}",
       "createFailed": "添加连接失败: {error}",
-      "cloneFailed": "克隆连接失败: {error}"
+      "cloneFailed": "克隆连接失败: {error}",
+      "connectAllSshFailed": "连接全部 SSH 操作失败。"
     },
     "status": {
       "never": "从未"
     },
     "untaggedGroup": "未标记",
-    "noUntaggedConnections": "没有未标记的连接。"
+    "noUntaggedConnections": "没有未标记的连接。",
+    "messages": {
+      "noSshConnectionsToConnectAll": "没有可连接的 SSH 筛选结果。"
+    },
+    "unnamedFallback": "未命名连接"
   },
   "proxies": {
     "title": "代理管理",
@@ -409,19 +426,24 @@
       "confirmDelete": "确定要删除代理 \"{name}\" 吗？此操作不可撤销。"
     },
     "errors": {
-      "deleteFailed": "删除代理失败: {error}"
+      "deleteFailed": "删除代理失败: {error}",
+      "notFound": "找不到代理 \"{name}\"。"
     }
   },
   "workspace": {
     "terminal": {
       "reconnectingMsg": "正在尝试重新连接...",
-      "output": "终端输出"
+      "output": "终端输出",
+      "unknownReason": "未知原因",
+      "unknownSshError": "未知的 SSH 错误",
+      "unknownGenericError": "未知的通用错误"
     },
     "errors": {
       "sessionNotFound": "会话未找到",
       "missingConnectionId": "缺少连接 ID",
       "wsManagerNotFound": "WebSocket 管理器未找到"
-    }
+    },
+    "noActiveSession": "没有活动的会话"
   },
   "session": {
     "errors": {
@@ -463,7 +485,10 @@
       "cut": "剪切",
       "paste": "粘贴",
       "openEditor": "打开编辑器",
-      "copyPath": "复制路径"
+      "copyPath": "复制路径",
+      "search": "搜索",
+      "exitMultiSelect": "退出多选模式",
+      "multiSelect": "进入多选模式"
     },
     "contextMenu": {
       "compress": "压缩",
@@ -523,7 +548,11 @@
       "missingSessionId": "缺少会话 ID",
       "pathReadFailed": "读取终端路径失败",
       "pathReadTimeout": "读取终端路径超时",
-      "lineEndingConversionFailed": "换行符转换失败"
+      "lineEndingConversionFailed": "换行符转换失败",
+      "downloadNetworkError": "网络连接失败，请检查连接后重试。",
+      "uploadFailed": "上传失败",
+      "readFileTimeout": "读取文件超时",
+      "sessionInvalidOrNotReady": "会话无效或未就绪，保存失败"
     },
     "notifications": {
       "copySuccess": "复制成功",
@@ -633,7 +662,10 @@
     "networkUploadLabelUnit": "上传 ({unit})",
     "latestCpuValue": "{value}%",
     "latestMemoryValue": "{value} {unit}",
-    "latestNetworkValue": "↓ {download} ↑ {upload} {unit}"
+    "latestNetworkValue": "↓ {download} ↑ {upload} {unit}",
+    "routePlan": "路由路径",
+    "copyIpError": "复制 IP 失败",
+    "hops": "跳"
   },
   "tags": {
     "title": "标签管理",
@@ -651,7 +683,10 @@
     "updateSuccess": "标签更新成功。",
     "deleteSuccess": "标签 \"{name}\" 删除成功。",
     "deleteFailed": "标签 \"{name}\" 删除失败: {error}",
-    "errorDelete": "删除标签时出错: {error}"
+    "errorDelete": "删除标签时出错: {error}",
+    "createFailed": "创建标签失败: {error}",
+    "deleteSuccessWithName": "标签 \"{name}\" 删除成功。",
+    "deleteFailedWithName": "标签 \"{name}\" 删除失败: {error}"
   },
   "settings": {
     "popupFileManager": {
@@ -693,7 +728,8 @@
       "success": "密码修改成功！",
       "error": {
         "passwordsDoNotMatch": "新密码和确认密码不匹配。",
-        "generic": "修改密码失败，请稍后重试。"
+        "generic": "修改密码失败，请稍后重试。",
+        "fieldsRequired": "请输入当前密码和新密码。"
       }
     },
     "twoFactor": {
@@ -794,13 +830,18 @@
         "userNotLoggedIn": "用户未登录或用户名不可用。",
         "registrationCancelled": "Passkey 注册已取消。",
         "registrationFailed": "Passkey 注册失败。",
-        "deleteFailedGeneral": "删除 Passkey 失败。请重试。"
+        "deleteFailedGeneral": "删除 Passkey 失败。请重试。",
+        "deleteFailedInvalidId": "删除失败：无效的凭证 ID。",
+        "nameUpdateFailed": "更新 Passkey 名称失败。",
+        "registrationCancelledOrExists": "Passkey 注册已取消或已存在。"
       },
       "success": {
         "registered": "新的 Passkey 已成功注册！",
         "deleted": "Passkey 已成功删除。",
         "nameUpdated": "Passkey 名称已更新。"
-      }
+      },
+      "enterNamePlaceholder": "输入 Passkey 名称",
+      "editNameTooltip": "编辑名称"
     },
     "notifications": {
       "title": "通知设置",
@@ -1005,7 +1046,10 @@
     },
     "statusMonitorShowIp": {
       "title": "状态监视器显示IP地址",
-      "enableLabel": "在状态监视器中显示IP地址"
+      "enableLabel": "在状态监视器中显示IP地址",
+      "error": {
+        "saveFailed": "保存状态监控 IP 显示设置失败。"
+      }
     },
     "terminalScrollback": {
       "title": "终端回滚行数",
@@ -1058,8 +1102,10 @@
         "deleteFailed": "删除失败",
         "invalidMaxAttempts": "最大失败次数必须是正整数。",
         "invalidBanDuration": "封禁时长必须是正整数（秒）。",
-        "updateConfigFailed": "更新黑名单配置失败"
-      }
+        "updateConfigFailed": "更新黑名单配置失败",
+        "updateFailed": "更新 IP 黑名单启用状态失败"
+      },
+      "disabledMessage": "IP 黑名单功能当前已禁用。"
     },
     "captcha": {
       "title": "CAPTCHA 设置",
@@ -1081,7 +1127,8 @@
         "hcaptchaKeysRequired": "hCaptcha Site Key 和 Secret Key 是必填项，以便进行验证。",
         "recaptchaKeysRequired": "reCAPTCHA Site Key 和 Secret Key 是必填项，以便进行验证。",
         "verificationFailed": "CAPTCHA 凭据验证失败。请检查您输入的 Site Key 和 Secret Key 是否正确。"
-      }
+      },
+      "secretKeyEmptyHint": "留空则保留原有密钥，如需清除请填写新值后保存。"
     },
     "commandInputSync": {
       "title": "命令输入同步",
@@ -1116,7 +1163,13 @@
     "exportConnections": {
       "title": "导出连接数据",
       "decryptKeyInfo": "解压密码是您 data/.env 文件中的 ENCRYPTION_KEY。请妥善保管此文件。",
-      "buttonText": "开始导出"
+      "buttonText": "开始导出",
+      "cliHint": "导出为 CLI 脚本格式（ZIP），用于在其他 Nexus Terminal 实例中通过命令行导入。",
+      "proxyNote": "注意：代理配置和按内容存储的 SSH 密钥不包含在导出中。",
+      "passwordLabel": "导出密码（可选）",
+      "passwordPlaceholder": "留空则使用 ENCRYPTION_KEY",
+      "error": "导出连接时发生错误。",
+      "success": "导出成功。文件已开始下载。"
     },
     "tabs": {
       "security": "安全",
@@ -1125,7 +1178,8 @@
       "system": "系统",
       "dataManagement": "数据管理",
       "appearance": "外观",
-      "about": "关于"
+      "about": "关于",
+      "ai": "AI 助手"
     },
     "loading": "加载中...",
     "logLevel": {
@@ -1157,6 +1211,33 @@
         "maxEntriesSaveFailed": "保存失败",
         "deleteFailed": "删除失败"
       }
+    },
+    "dataManagement": {
+      "dockerMigrationHint": {
+        "title": "服务器间迁移推荐方式",
+        "description": "如需在服务器间完整迁移，最简单的方式是直接复制宿主机的 ./data 目录及 data/.env 文件到新服务器，然后启动 Docker 容器即可。"
+      }
+    },
+    "fullBackupExport": {
+      "title": "完整数据备份",
+      "description": "导出全部核心业务数据为 JSON 文件，包含连接、标签、快捷指令、终端主题等。可用于跨实例完整恢复。",
+      "encryptionKeyWarning": "恢复时需使用与导出相同的 ENCRYPTION_KEY，否则连接密码和 SSH 密钥将无法解密。",
+      "buttonText": "导出备份文件",
+      "success": "备份文件已开始下载。",
+      "error": "导出备份时发生错误。"
+    },
+    "importConnections": {
+      "title": "导入连接数据",
+      "description": "选择 JSON 格式的连接配置文件进行导入（仅支持连接数据，不含标签、主题等）。文件大小限制 5MB。",
+      "confirmText": "导入将覆盖当前设置，是否继续？",
+      "confirmButton": "确认导入",
+      "buttonText": "选择文件导入",
+      "errorDetails": "导入错误详情",
+      "invalidFileType": "请选择 JSON 格式的文件。",
+      "fileTooLarge": "文件大小超过 5MB 限制。",
+      "error": "导入连接时发生错误。",
+      "partialSuccess": "导入完成，成功 {success} 条，失败 {failure} 条。",
+      "success": "导入成功完成。共导入 {count} 条连接。"
     }
   },
   "notificationController": {
@@ -1215,7 +1296,16 @@
     "confirm": "确认",
     "updateSuccess": "更新成功",
     "selectAll": "全选",
-    "deselectAll": "取消全选"
+    "deselectAll": "取消全选",
+    "deleting": "删除中...",
+    "unknownError": "未知错误",
+    "copy": "复制",
+    "paste": "粘贴",
+    "dismiss": "关闭",
+    "confirmationTitle": "请确认",
+    "navigate": "导航",
+    "select": "选择",
+    "unexpectedError": "发生意外错误，请稍后重试"
   },
   "layoutConfigurator": {
     "title": "布局管理器",
@@ -1337,7 +1427,8 @@
     "confirmDeleteAllConnectionsInGroup": "确定要删除分组 '{groupName}' 中的全部 {count} 个连接吗？此操作不可撤销。",
     "allConnectionsInGroupDeletedSuccess": "已成功从分组 '{groupName}' 中删除 {count} 个连接。",
     "cannotDeleteFromUntagged": "不能使用此选项从“未标记”分组中删除连接。",
-    "someConnectionsInGroupDeleteFailed": "分组 '{groupName}' 中的 {count} 个连接未能删除。"
+    "someConnectionsInGroupDeleteFailed": "分组 '{groupName}' 中的 {count} 个连接未能删除。",
+    "allConnectionsTaggedFailed": "为所有连接添加标签失败"
   },
   "remoteDesktopModal": {
     "title": "远程桌面",
@@ -1384,7 +1475,9 @@
     "findPrevious": "查找上一个",
     "findNext": "查找下一个",
     "configureFocusSwitch": "配置焦点切换器",
-    "clearTerminal": "清空终端"
+    "clearTerminal": "清空终端",
+    "hideKeyboard": "隐藏虚拟键盘",
+    "showKeyboard": "显示虚拟键盘"
   },
   "layout": {
     "loading": "加载中...",
@@ -1411,6 +1504,10 @@
       "message": "请先连接一个会话",
       "fileManagerSidebar": "文件管理器需要活动会话",
       "statusMonitorSidebar": "状态监视器需要活动会话"
+    },
+    "noSshSessionActive": {
+      "title": "无活动的 SSH 会话",
+      "message": "请激活一个 SSH 会话以使用此终端面板。"
     }
   },
   "header": {
@@ -1466,7 +1563,9 @@
     },
     "untagged": "未标记",
     "tags": {
-      "clickToEditTag": "点击编辑标签名称"
+      "clickToEditTag": "点击编辑标签名称",
+      "createSuccess": "标签创建成功。",
+      "noCommandsToAssign": "没有可分配标签的指令。"
     },
     "actions": {
       "sendToAllSessions": "发送到全部会话"
@@ -1474,7 +1573,10 @@
     "notifications": {
       "sentToAllSessions": "指令已发送到 {count} 个会话。",
       "noActiveSshSessions": "没有活动的 SSH 会话可发送指令。"
-    }
+    },
+    "noResults": "没有找到匹配的指令",
+    "sortByLastUsed": "按最近使用排序",
+    "title": "快捷指令"
   },
   "setup": {
     "title": "初始设置",
@@ -1646,7 +1748,14 @@
     "disk": "磁盘",
     "activityTimeline": "活动时间线",
     "noActivity": "暂无活动记录",
-    "addConnection": "添加连接"
+    "addConnection": "添加连接",
+    "errors": {
+      "refreshFailed": "刷新数据失败，请稍后重试",
+      "timeRangeFailed": "时间范围变更失败，请稍后重试",
+      "initFailed": "仪表盘初始化失败，请刷新页面重试",
+      "connectFailed": "连接失败，请稍后重试",
+      "connectionsFailed": "连接列表更新失败，请稍后重试"
+    }
   },
   "terminalTabBar": {
     "selectServerTitle": "选择要连接的服务器",
@@ -1669,7 +1778,8 @@
       "selectPlaceholder": "选择一个 SSH 密钥...",
       "useDirectInput": "或直接输入密钥内容",
       "manageKeysTitle": "管理 SSH 密钥",
-      "loadingKeys": "正在加载密钥..."
+      "loadingKeys": "正在加载密钥...",
+      "errorLoading": "加载 SSH 密钥失败: {error}"
     },
     "modal": {
       "title": "SSH 密钥管理",
@@ -1715,7 +1825,8 @@
       "resume": "恢复",
       "remove": "移除",
       "exportLog": "导出日志"
-    }
+    },
+    "title": "挂起会话"
   },
   "transferProgressModal": {
     "title": "文件传输进度",
@@ -1787,7 +1898,8 @@
     "validationError": "请至少选择一个连接并指定目标路径。",
     "transferInitiated": "传输任务已创建",
     "transferInitiatedGeneric": "传输任务创建成功。",
-    "transferFailedError": "发起传输失败。请重试。"
+    "transferFailedError": "发起传输失败。请重试。",
+    "errorSourceConnectionMissing": "源服务器信息缺失，无法发起传输。"
   },
   "time": {
     "unknown": "未知时间",
@@ -1850,8 +1962,11 @@
       "updateSuccess": "收藏路径更新成功。",
       "updateError": "更新收藏路径失败。",
       "deleteSuccess": "收藏路径删除成功。",
-      "deleteError": "删除收藏路径失败。"
-    }
+      "deleteError": "删除收藏路径失败。",
+      "markAsUsedError": "标记路径为已使用失败"
+    },
+    "sendToTerminal": "发送到终端",
+    "title": "收藏路径"
   },
   "pathHistory": {
     "loading": "加载中...",
@@ -1883,7 +1998,9 @@
       "completed": "已完成",
       "failed": "已失败",
       "cancelled": "已取消"
-    }
+    },
+    "copyOutput": "复制到剪贴板",
+    "sudoConfirm": "警告：将以 sudo 权限运行。是否继续？"
   },
   "editor": {
     "unsavedChanges": {
@@ -1914,5 +2031,51 @@
       "security": "查看安全事件统计",
       "connections": "连接使用情况"
     }
+  },
+  "aiAudit": {
+    "title": "AI 安全审计",
+    "createReport": "生成报告",
+    "totalReports": "报告总数",
+    "totalAnomalies": "异常总数",
+    "criticalAnomalies": "高危异常",
+    "recentAnomalies": "近24h异常",
+    "analysisResults": "分析结果",
+    "noReports": "暂无审计报告",
+    "noReportsHint": "点击上方按钮生成第一份审计报告",
+    "timeRange": "时间范围",
+    "noAnomalies": "暂无异常检测",
+    "noAnomaliesHint": "系统运行正常，未检测到异常行为",
+    "acknowledge": "确认",
+    "acknowledged": "已确认",
+    "summary": "分析摘要",
+    "anomalies": "异常",
+    "aiAnalysis": "AI 分析",
+    "reports": "报告",
+    "type": {
+      "command": "命令分析",
+      "login": "登录分析",
+      "full": "全面审计"
+    },
+    "status": {
+      "pending": "待处理",
+      "inProgress": "进行中",
+      "completed": "已完成",
+      "failed": "失败"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "输入命令或搜索...",
+    "noResults": "未找到匹配的命令",
+    "actionFailed": "执行失败，请稍后重试"
+  },
+  "errors": {
+    "unknown": "未知错误"
+  },
+  "term": {
+    "unknownError": "未知错误",
+    "sshSuspend": "SSH 挂起"
+  },
+  "terminal": {
+    "output": "终端输出"
   }
 }

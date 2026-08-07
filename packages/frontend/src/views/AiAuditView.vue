@@ -473,7 +473,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAiAuditStore } from '../stores/ai-audit.store';
 import type { AuditReport, ReportType, ReportStatus } from '../types/ai-audit.types';
@@ -668,6 +668,7 @@ const parsedAiAnalysis = computed<AiAnalysis | null>(() => {
 let pollingTimer: ReturnType<typeof setInterval> | null = null;
 
 function startPolling() {
+  stopPolling();
   pollingTimer = setInterval(async () => {
     const hasPending = auditStore.reports.some(
       (r) => r.status === 'pending' || r.status === 'in_progress',
@@ -687,6 +688,15 @@ function stopPolling() {
   }
 }
 
+// 页面隐藏时暂停轮询，恢复可见后继续，避免后台标签页空转浪费资源
+function handleVisibilityChange() {
+  if (document.hidden) {
+    stopPolling();
+  } else {
+    startPolling();
+  }
+}
+
 // 生命周期
 onMounted(async () => {
   await Promise.all([
@@ -695,12 +705,13 @@ onMounted(async () => {
     auditStore.fetchAnomalyStats(),
   ]);
   startPolling();
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 });
 
 // 清理轮询
-import { onUnmounted } from 'vue';
 onUnmounted(() => {
   stopPolling();
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 </script>
 

@@ -107,6 +107,12 @@ describe('ConnectionsView', () => {
         stubs: {
           AddConnectionForm: { name: 'AddConnectionForm', template: '<div />' },
           BatchEditConnectionForm: { name: 'BatchEditConnectionForm', template: '<div />' },
+          LoadingState: {
+            name: 'LoadingState',
+            props: ['text'],
+            template:
+              '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i>{{ text || "common.loading" }}</div>',
+          },
         },
       },
     });

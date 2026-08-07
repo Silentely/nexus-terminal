@@ -1,6 +1,33 @@
 # 星枢终端 - 技术债务报告
 
-> **状态**：✅ 标记债务（TODO/any/console.log）为 0 | **测试覆盖率**：待提升 | **更新时间**：2026-07-17
+> **状态**：✅ 标记债务（TODO/any/console.log）为 0 | **测试覆盖率**：待提升 | **更新时间**：2026-08-07
+
+---
+
+## ⚠️ 遗留债务（2026-08-07 发现，未在本轮修复）
+
+| ID | 问题 | 规模 | 建议 |
+| --- | --- | --- | --- |
+| L10-1 | **ja-JP 语言包大量中文残留**：1415 个 key 的值为中文（预存缺陷），日文用户实际看到中文 | 1415 key | 全量翻译任务，建议分批按模块（batchOps/aiOps/suspendedSshSessions/sshSuspend 等）推进 |
+| L10-2 | 后端 1745 处日志中英混用（约 50% 中文） | 1745 处 | 全量统一风险高，建议保持模块内一致；已通过 `redactUrlForLog` 控制敏感信息泄漏 |
+| L10-3 | `settings.tabs.about` 等 ja 值已修复，但 ja-JP 仍有 `batchOps.sudoConfirm` 等零散日文夹杂中文 | 少量 | 随 L10-1 一并处理 |
+
+---
+
+## 2026-08-07 打磨迭代（10 轮）摘要
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | 后端三语言包对齐 | zh 补 `testNotification.*` 6 key + 4 event key；en/ja 补 `event.testNotification`；清理 zh event 重复 key；三语言 70 key 完全一致 |
+| R2 | 后端 locale 对齐测试 | `backend/src/i18n.test.ts`（key 一致性/空值/重复 key/通知模板 key） |
+| R3 | 前端加载态统一 | 新增 `LoadingState.vue`，6 个 View 接入（Tags/Audit/Connections/Suspended/QuickCommands/CommandHistory） |
+| R4 | 前端空状态统一 | 新增 `EmptyState.vue`（图标+文案+操作按钮），5 个 View 接入 |
+| R5 | 通知日志敏感信息脱敏 | 修复 `Bearer xxx` token 值泄漏；增强 URL query 参数/内嵌账号密码脱敏；webhook sender 与 notification.service 记录 URL/body 前脱敏；新增 `redaction.test.ts` |
+| R6 | 网络错误友好提示 | `useFileManagerDownload` 目录下载网络错误不再直出英文异常，本地化提示；三语言包新增 `downloadNetworkError` |
+| R7 | 通知事件翻译去重 | `utils/notificationEvents.ts` 共享纯函数；移除每次渲染执行的 info 日志；新增测试 |
+| R8 | 轮询可见性感知 | AiAudit 报告轮询与 Dashboard 自动刷新页面隐藏时暂停，恢复后继续，卸载清理监听 |
+| R9 | 前端 i18n 大缺口修复 | 全量扫描发现 72 个带 fallback 的调用其 key 缺失（英文/日文用户看到中文）；补齐 zh/en/ja（含新增 `aiAudit`/`commandPalette`/`errors` 结构），三语言 1616 key 一致；修复 `SuspendedSshSessionsModal` 裸 `close` key |
+| R10 | 全量验证与自查 | 后端 2678 + 前端 2664 + 网关 11 测试全过；tsc/eslint 零错误；本表回填 |
 
 ---
 
@@ -340,6 +367,7 @@ controller 属薄层委托，测试通过 service 层间接覆盖。如需直接
 
 | 日期 | 轮次 | 内容 | 提交 |
 | --- | --- | --- | --- |
+| 2026-08-07 | 打磨10轮 | 三语言包对齐 + i18n 大缺口修复（72 key）+ 日志脱敏 + 加载/空态统一 + 轮询可见性 | `d72a9ef5` `f0a14302` `c8af5fd5` `85478f32` `f0b6ac1d` `8d08ee12` `aebbb912` |
 | 2026-07-17 | 打磨续轮 | batch/ssh-handler 纯函数拆分 + shellEscape 统一 + Guacamole 边界加固 + 自查 | 待提交 |
 | 2026-07-17 | 打磨10轮 | Guacamole 共用层、transfers/ws 纯函数拆分、主题死代码瘦身、Multiplex 可观测、测试补齐 | 待提交 |
 | 2026-05-09 | — | 技术债务报告重构：去除冗余，新增覆盖率分层目标与测试行动计划 | 待提交 |

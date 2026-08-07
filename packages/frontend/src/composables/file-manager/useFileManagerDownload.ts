@@ -25,6 +25,8 @@ export interface UseFileManagerDownloadOptions {
   sessionStore: SessionStore;
   /** 显示错误通知的函数 */
   showError: (message: string) => void;
+  /** i18n 翻译函数（可选），用于网络错误时输出用户友好提示 */
+  t?: (key: string, fallback?: string) => string;
   /** 尝试恢复 SFTP 管理器的回调（可选），返回是否恢复成功 */
   recoverManager?: () => boolean;
 }
@@ -37,6 +39,7 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
     instanceId,
     sessionStore,
     showError,
+    t,
     recoverManager,
   } = options;
 
@@ -180,7 +183,12 @@ export function useFileManagerDownload(options: UseFileManagerDownloadOptions) {
       })
       .catch((error: unknown) => {
         log.error(`${logPrefix.value} Network error during directory download:`, error);
-        showError(error instanceof Error ? error.message : String(error));
+        // 网络/连接错误直接展示原始异常不利于用户体验，优先给出本地化友好提示
+        showError(
+          t
+            ? t('fileManager.errors.downloadNetworkError', '网络连接失败，请检查连接后重试。')
+            : 'Network connection failed. Please check your connection and try again.',
+        );
       });
   };
 

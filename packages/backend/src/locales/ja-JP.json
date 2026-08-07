@@ -82,6 +82,7 @@
     "SFTP_CONNECT_SUCCESS": "SFTP 接続成功",
     "SFTP_CONNECT_FAILURE": "SFTP 接続失敗",
     "DATABASE_MIGRATION": "データベース移行",
-    "ADMIN_SETUP_COMPLETE": "初期管理者設定完了"
+    "ADMIN_SETUP_COMPLETE": "初期管理者設定完了",
+    "testNotification": "テスト通知"
   }
 }

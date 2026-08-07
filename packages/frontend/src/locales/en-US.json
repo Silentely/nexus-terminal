@@ -143,8 +143,8 @@
     "errorMissingDownloadUrl": "Remote theme download URL is missing.",
     "remotePresetApplyFailed": "Failed to apply remote HTML theme: {message}",
     "errorPresetNameRequired": "Preset name cannot be empty.",
-    "localPresetRenamed": "本地预设 “{oldName}” 已成功重命名为 “{newName}”。",
-    "localPresetRenameFailed": "重命名本地预设失败: {message}",
+    "localPresetRenamed": "Local preset \"{oldName}\" renamed to \"{newName}\".",
+    "localPresetRenameFailed": "Failed to rename local preset: {message}",
     "searchLocalThemesPlaceholder": "Search local themes...",
     "searchRemoteThemesPlaceholder": "Search remote themes...",
     "noMatchingLocalPresetsFound": "No matching local themes found",
@@ -177,7 +177,10 @@
     "noThemeSelected": "No theme selected",
     "unknownTheme": "Unknown theme",
     "noThemesFound": "No matching themes found",
-    "passkeyLoginButton": "Login with Passkey"
+    "passkeyLoginButton": "Login with Passkey",
+    "customHtmlResetFailed": "Failed to reset custom HTML: {message}",
+    "errorFetchingPresetContentForCopy": "Failed to fetch preset content for copying: {message}",
+    "uiThemeSaved": "UI theme saved."
   },
   "login": {
     "title": "User Login",
@@ -226,7 +229,10 @@
       "deleteSelectedTooltip": "Delete selected connections",
       "confirmMessage": "Are you sure you want to delete the selected {count} connections? This action cannot be undone.",
       "successMessage": "Selected connections have been successfully deleted.",
-      "errorMessage": "Batch delete connections failed: {error}"
+      "errorMessage": "Batch delete connections failed: {error}",
+      "noSelectionForEdit": "Please select at least one connection to edit.",
+      "noConnectionsToUpdate": "No connections selected for update",
+      "noChanges": "No changes detected"
     },
     "actions": {
       "testAllFiltered": "Test All",
@@ -348,7 +354,10 @@
       "addJumpHost": "Add Jump Host",
       "noAvailableSshConnectionsForJump": "No available SSH connections for jump host. Please create some SSH connections first.",
       "forceKeyboardInteractive": "Force Keyboard Interactive Authentication",
-      "forceKeyboardInteractiveDesc": "This is typically required for servers using two-factor authentication (TOTP/2FA)."
+      "forceKeyboardInteractiveDesc": "This is typically required for servers using two-factor authentication (TOTP/2FA).",
+      "typeTelnet": "Telnet",
+      "scriptErrorMissingPasswordForTelnet": "Missing Telnet password for connection \"{host}\".",
+      "errorDelete": "Failed to delete connection: {error}"
     },
     "test": {
       "success": "Connection test successful!",
@@ -358,7 +367,10 @@
       "errorUnknown": "An unknown error occurred during testing.",
       "errorNetwork": "Network error or server unreachable.",
       "testingInProgress": "Testing...",
-      "errorPrefix": "Error:"
+      "errorPrefix": "Error:",
+      "unknownError": "Unknown error",
+      "unknownErrorDuringBatch": "An error occurred during batch testing",
+      "onlySshSupportedTest": "Only SSH connections support testing."
     },
     "prompts": {
       "confirmDelete": "Are you sure you want to delete the connection \"{name}\"? This cannot be undone."
@@ -366,13 +378,18 @@
     "errors": {
       "deleteFailed": "Failed to delete connection: {error}",
       "createFailed": "Failed to add connection: {error}",
-      "cloneFailed": "Failed to clone connection: {error}"
+      "cloneFailed": "Failed to clone connection: {error}",
+      "connectAllSshFailed": "Failed to connect to all SSH connections."
     },
     "status": {
       "never": "Never"
     },
     "untaggedGroup": "Untagged",
-    "noUntaggedConnections": "No untagged connections found."
+    "noUntaggedConnections": "No untagged connections found.",
+    "messages": {
+      "noSshConnectionsToConnectAll": "No SSH connections match the current filter."
+    },
+    "unnamedFallback": "Unnamed connection"
   },
   "proxies": {
     "title": "Proxy Management",
@@ -409,19 +426,24 @@
       "confirmDelete": "Are you sure you want to delete the proxy \"{name}\"? This cannot be undone."
     },
     "errors": {
-      "deleteFailed": "Failed to delete proxy: {error}"
+      "deleteFailed": "Failed to delete proxy: {error}",
+      "notFound": "Proxy \"{name}\" not found."
     }
   },
   "workspace": {
     "terminal": {
       "reconnectingMsg": "Attempting to reconnect...",
-      "output": "Terminal Output"
+      "output": "Terminal Output",
+      "unknownReason": "Unknown reason",
+      "unknownSshError": "Unknown SSH error",
+      "unknownGenericError": "Unknown generic error"
     },
     "errors": {
       "sessionNotFound": "Session not found",
       "missingConnectionId": "Missing connection ID",
       "wsManagerNotFound": "WebSocket manager not found"
-    }
+    },
+    "noActiveSession": "No active session"
   },
   "session": {
     "errors": {
@@ -463,7 +485,10 @@
       "cut": "Cut",
       "paste": "Paste",
       "openEditor": "Open Editor",
-      "copyPath": "Copy Path"
+      "copyPath": "Copy Path",
+      "search": "Search",
+      "exitMultiSelect": "Exit Multi-Select Mode",
+      "multiSelect": "Enter Multi-Select Mode"
     },
     "contextMenu": {
       "compress": "Compress",
@@ -523,7 +548,11 @@
       "missingSessionId": "Missing session ID",
       "pathReadFailed": "Failed to read terminal path.",
       "pathReadTimeout": "Timed out while reading terminal path.",
-      "lineEndingConversionFailed": "Line ending conversion failed"
+      "lineEndingConversionFailed": "Line ending conversion failed",
+      "downloadNetworkError": "Network connection failed. Please check your connection and try again.",
+      "uploadFailed": "Upload failed",
+      "readFileTimeout": "Timed out reading the file",
+      "sessionInvalidOrNotReady": "Session is invalid or not ready. Save failed."
     },
     "notifications": {
       "copySuccess": "Copy successful",
@@ -633,7 +662,10 @@
     "networkUploadLabelUnit": "Upload ({unit})",
     "latestCpuValue": "{value}%",
     "latestMemoryValue": "{value} {unit}",
-    "latestNetworkValue": "↓ {download} ↑ {upload} {unit}"
+    "latestNetworkValue": "↓ {download} ↑ {upload} {unit}",
+    "routePlan": "Route Path",
+    "copyIpError": "Failed to copy IP",
+    "hops": "hops"
   },
   "tags": {
     "title": "Tag Management",
@@ -651,7 +683,10 @@
     "updateSuccess": "Tag updated successfully.",
     "deleteSuccess": "Tag \"{name}\" deleted successfully.",
     "deleteFailed": "Failed to delete tag \"{name}\": {error}",
-    "errorDelete": "Error deleting tag: {error}"
+    "errorDelete": "Error deleting tag: {error}",
+    "createFailed": "Failed to create tag: {error}",
+    "deleteSuccessWithName": "Tag \"{name}\" deleted successfully.",
+    "deleteFailedWithName": "Failed to delete tag \"{name}\": {error}"
   },
   "settings": {
     "popupFileManager": {
@@ -693,7 +728,8 @@
       "success": "Password changed successfully!",
       "error": {
         "passwordsDoNotMatch": "New password and confirmation do not match.",
-        "generic": "Failed to change password. Please try again later."
+        "generic": "Failed to change password. Please try again later.",
+        "fieldsRequired": "Please enter the current password and a new password."
       }
     },
     "twoFactor": {
@@ -794,13 +830,18 @@
         "userNotLoggedIn": "User not logged in or username unavailable.",
         "registrationCancelled": "Passkey registration was cancelled.",
         "registrationFailed": "Passkey registration failed.",
-        "deleteFailedGeneral": "Failed to delete Passkey. Please try again."
+        "deleteFailedGeneral": "Failed to delete Passkey. Please try again.",
+        "deleteFailedInvalidId": "Deletion failed: invalid credential ID.",
+        "nameUpdateFailed": "Failed to update Passkey name.",
+        "registrationCancelledOrExists": "Passkey registration was cancelled or already exists."
       },
       "success": {
         "registered": "New Passkey registered successfully!",
         "deleted": "Passkey deleted successfully.",
         "nameUpdated": "Passkey name updated."
-      }
+      },
+      "enterNamePlaceholder": "Enter Passkey name",
+      "editNameTooltip": "Edit name"
     },
     "notifications": {
       "title": "Notification Settings",
@@ -863,7 +904,7 @@
         "CONNECTION_CREATED": "Connection Created",
         "CONNECTION_UPDATED": "Connection Updated",
         "CONNECTION_DELETED": "Connection Deleted",
-        "CONNECTIONS_EXPORTED": "连接已导出",
+        "CONNECTIONS_EXPORTED": "Connections Exported",
         "PROXY_CREATED": "Proxy Created",
         "PROXY_UPDATED": "Proxy Updated",
         "PROXY_DELETED": "Proxy Deleted",
@@ -1005,7 +1046,10 @@
     },
     "statusMonitorShowIp": {
       "title": "Status Monitor: Show IP Address",
-      "enableLabel": "Show IP address in status monitor"
+      "enableLabel": "Show IP address in status monitor",
+      "error": {
+        "saveFailed": "Failed to save status monitor IP display setting."
+      }
     },
     "terminalScrollback": {
       "title": "Terminal Scrollback Limit",
@@ -1058,8 +1102,10 @@
         "deleteFailed": "Failed to delete",
         "invalidMaxAttempts": "Max failed attempts must be a positive integer.",
         "invalidBanDuration": "Ban duration must be a positive integer (seconds).",
-        "updateConfigFailed": "Failed to update blacklist configuration"
-      }
+        "updateConfigFailed": "Failed to update blacklist configuration",
+        "updateFailed": "Failed to update IP blacklist enabled state"
+      },
+      "disabledMessage": "IP blacklist feature is currently disabled."
     },
     "captcha": {
       "title": "CAPTCHA Settings",
@@ -1081,7 +1127,8 @@
         "hcaptchaKeysRequired": "hCaptcha Site Key and Secret Key are required for verification.",
         "recaptchaKeysRequired": "reCAPTCHA Site Key and Secret Key are required for verification.",
         "verificationFailed": "CAPTCHA credential verification failed. Please check your Site Key and Secret Key."
-      }
+      },
+      "secretKeyEmptyHint": "Leave empty to keep the existing secret. To clear it, enter a new value and save."
     },
     "commandInputSync": {
       "title": "Command Input Sync",
@@ -1116,7 +1163,13 @@
     "exportConnections": {
       "title": "Export Connection Data",
       "decryptKeyInfo": "The decryption password is the ENCRYPTION_KEY in your data/.env file. Please keep this file secure.",
-      "buttonText": "Start Export"
+      "buttonText": "Start Export",
+      "cliHint": "Export as CLI script format (ZIP) for importing via command line in another Nexus Terminal instance.",
+      "proxyNote": "Note: proxy configurations and content-stored SSH keys are not included in the export.",
+      "passwordLabel": "Export password (optional)",
+      "passwordPlaceholder": "Leave empty to use ENCRYPTION_KEY",
+      "error": "An error occurred while exporting connections.",
+      "success": "Export successful. The file download has started."
     },
     "tabs": {
       "security": "Security",
@@ -1125,7 +1178,8 @@
       "system": "System",
       "dataManagement": "Data Management",
       "appearance": "Appearance",
-      "about": "About"
+      "about": "About",
+      "ai": "AI Assistant"
     },
     "loading": "Loading...",
     "logLevel": {
@@ -1157,6 +1211,33 @@
         "maxEntriesSaveFailed": "Failed to save.",
         "deleteFailed": "Failed to delete."
       }
+    },
+    "dataManagement": {
+      "dockerMigrationHint": {
+        "title": "Recommended way to migrate between servers",
+        "description": "For a complete migration between servers, the simplest approach is to copy the ./data directory and the data/.env file from the host to the new server, then start the Docker containers."
+      }
+    },
+    "fullBackupExport": {
+      "title": "Full Data Backup",
+      "description": "Export all core business data as a JSON file, including connections, tags, quick commands, terminal themes, and more. Can be used for full cross-instance recovery.",
+      "encryptionKeyWarning": "Restoration requires the same ENCRYPTION_KEY used for the export; otherwise connection passwords and SSH keys cannot be decrypted.",
+      "buttonText": "Export backup file",
+      "success": "Backup file download started.",
+      "error": "An error occurred while exporting the backup."
+    },
+    "importConnections": {
+      "title": "Import Connection Data",
+      "description": "Select a JSON connection config file to import (connection data only; tags, themes, etc. are not included). File size limit: 5MB.",
+      "confirmText": "Importing will overwrite current settings. Continue?",
+      "confirmButton": "Confirm Import",
+      "buttonText": "Select file to import",
+      "errorDetails": "Import error details",
+      "invalidFileType": "Please select a JSON file.",
+      "fileTooLarge": "File size exceeds the 5MB limit.",
+      "error": "An error occurred while importing connections.",
+      "partialSuccess": "Import finished: {success} succeeded, {failure} failed.",
+      "success": "Import completed successfully. {count} connections imported."
     }
   },
   "notificationController": {
@@ -1214,8 +1295,17 @@
     "alert": "Alert",
     "confirm": "Confirm",
     "updateSuccess": "Update successful",
-    "selectAll": "全选",
-    "deselectAll": "取消全选"
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "deleting": "Deleting...",
+    "unknownError": "Unknown error",
+    "copy": "Copy",
+    "paste": "Paste",
+    "dismiss": "Dismiss",
+    "confirmationTitle": "Please confirm",
+    "navigate": "Navigate",
+    "select": "Select",
+    "unexpectedError": "An unexpected error occurred, please try again later"
   },
   "layoutConfigurator": {
     "title": "Layout Configurator",
@@ -1227,8 +1317,8 @@
     "leftSidebar": "Left Sidebar Panes",
     "rightSidebar": "Right Sidebar Panes",
     "dropHere": "Drop panes from available list here",
-    "confirmClose": "有未保存的更改，确定要关闭吗？",
-    "confirmReset": "确定要恢复默认布局和侧栏配置吗？当前更改将丢失。",
+    "confirmClose": "You have unsaved changes. Are you sure you want to close?",
+    "confirmReset": "Reset to default layout and sidebar configuration? Current changes will be lost.",
     "saveError": "Error saving layout. Please try again later.",
     "confirmClearLayout": "Are you sure you want to clear the entire layout? All panes will return to the available list.",
     "lockLayout": "Lock Layout",
@@ -1337,7 +1427,8 @@
     "confirmDeleteAllConnectionsInGroup": "Are you sure you want to delete all {count} connections in group '{groupName}'? This cannot be undone.",
     "allConnectionsInGroupDeletedSuccess": "{count} connections successfully deleted from group '{groupName}'.",
     "cannotDeleteFromUntagged": "Cannot use this option to delete connections from the 'Untagged' group.",
-    "someConnectionsInGroupDeleteFailed": "{count} connections in group '{groupName}' failed to delete."
+    "someConnectionsInGroupDeleteFailed": "{count} connections in group '{groupName}' failed to delete.",
+    "allConnectionsTaggedFailed": "Failed to tag all connections"
   },
   "remoteDesktopModal": {
     "title": "Remote Desktop",
@@ -1384,7 +1475,9 @@
     "findPrevious": "Find previous",
     "findNext": "Find next",
     "configureFocusSwitch": "Configure Focus Switcher",
-    "clearTerminal": "Clear Terminal"
+    "clearTerminal": "Clear Terminal",
+    "hideKeyboard": "Hide virtual keyboard",
+    "showKeyboard": "Show virtual keyboard"
   },
   "layout": {
     "loading": "Loading...",
@@ -1411,6 +1504,10 @@
       "message": "Please connect to a session first",
       "fileManagerSidebar": "File Manager requires an active session",
       "statusMonitorSidebar": "Status Monitor requires an active session"
+    },
+    "noSshSessionActive": {
+      "title": "No active SSH session",
+      "message": "Please activate an SSH session to use this terminal panel."
     }
   },
   "header": {
@@ -1466,7 +1563,9 @@
     },
     "untagged": "Untagged",
     "tags": {
-      "clickToEditTag": "Click to edit tag name"
+      "clickToEditTag": "Click to edit tag name",
+      "createSuccess": "Tag created successfully.",
+      "noCommandsToAssign": "No commands available to assign tags."
     },
     "actions": {
       "sendToAllSessions": "Send to All Sessions"
@@ -1474,7 +1573,10 @@
     "notifications": {
       "sentToAllSessions": "Command sent to {count} sessions.",
       "noActiveSshSessions": "No active SSH sessions to send command to."
-    }
+    },
+    "noResults": "No matching commands found",
+    "sortByLastUsed": "Sort by last used",
+    "title": "Quick Commands"
   },
   "setup": {
     "title": "Initial Setup",
@@ -1646,7 +1748,14 @@
     "disk": "Disk",
     "activityTimeline": "Activity Timeline",
     "noActivity": "No activity records",
-    "addConnection": "Add Connection"
+    "addConnection": "Add Connection",
+    "errors": {
+      "refreshFailed": "Failed to refresh data, please try again later",
+      "timeRangeFailed": "Failed to change time range, please try again later",
+      "initFailed": "Dashboard initialization failed, please refresh the page",
+      "connectFailed": "Connection failed, please try again later",
+      "connectionsFailed": "Failed to update the connection list, please try again later"
+    }
   },
   "terminalTabBar": {
     "selectServerTitle": "Select server to connect",
@@ -1669,7 +1778,8 @@
       "selectPlaceholder": "Select an SSH key...",
       "useDirectInput": "Or input key content directly",
       "manageKeysTitle": "Manage SSH Keys",
-      "loadingKeys": "Loading keys..."
+      "loadingKeys": "Loading keys...",
+      "errorLoading": "Failed to load SSH keys: {error}"
     },
     "modal": {
       "title": "SSH Key Management",
@@ -1715,7 +1825,8 @@
       "resume": "Resume",
       "remove": "Remove",
       "exportLog": "Export Log"
-    }
+    },
+    "title": "Suspended Sessions"
   },
   "transferProgressModal": {
     "title": "File Transfer Progress",
@@ -1787,7 +1898,8 @@
     "validationError": "Please select at least one connection and specify a target path.",
     "transferInitiated": "Transfer task created",
     "transferInitiatedGeneric": "Transfer task created successfully.",
-    "transferFailedError": "Failed to initiate transfer. Please try again."
+    "transferFailedError": "Failed to initiate transfer. Please try again.",
+    "errorSourceConnectionMissing": "Source server information is missing. Cannot initiate transfer."
   },
   "time": {
     "unknown": "Unknown time",
@@ -1850,8 +1962,11 @@
       "updateSuccess": "Favorite path updated successfully.",
       "updateError": "Failed to update favorite path.",
       "deleteSuccess": "Favorite path deleted successfully.",
-      "deleteError": "Failed to delete favorite path."
-    }
+      "deleteError": "Failed to delete favorite path.",
+      "markAsUsedError": "Failed to mark path as used"
+    },
+    "sendToTerminal": "Send to Terminal",
+    "title": "Favorite Paths"
   },
   "pathHistory": {
     "loading": "Loading...",
@@ -1862,28 +1977,30 @@
     "copiedError": "Failed to copy path"
   },
   "batchOps": {
-    "title": "批量执行",
-    "progress": "进度",
-    "selectServers": "选择服务器",
-    "noConnections": "没有可用的 SSH 连接",
-    "commandLabel": "要执行的命令",
-    "commandPlaceholder": "例如 apt-get update",
-    "execute": "广播执行",
-    "cancel": "取消",
-    "sudo": "以 sudo 运行",
-    "concurrency": "并发数",
-    "results": "执行结果",
-    "viewOutput": "查看",
-    "output": "输出",
-    "noOutput": "无输出",
+    "title": "Batch Execution",
+    "progress": "Progress",
+    "selectServers": "Select servers",
+    "noConnections": "No SSH connections available",
+    "commandLabel": "Command to execute",
+    "commandPlaceholder": "e.g. apt-get update",
+    "execute": "Execute on all",
+    "cancel": "Cancel",
+    "sudo": "Run with sudo",
+    "concurrency": "Concurrency",
+    "results": "Results",
+    "viewOutput": "View",
+    "output": "Output",
+    "noOutput": "No output",
     "status": {
-      "queued": "队列中",
-      "inProgress": "执行中",
-      "partiallyCompleted": "部分完成",
-      "completed": "已完成",
-      "failed": "已失败",
-      "cancelled": "已取消"
-    }
+      "queued": "Queued",
+      "inProgress": "In progress",
+      "partiallyCompleted": "Partially completed",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "copyOutput": "Copy to clipboard",
+    "sudoConfirm": "Warning: Running with sudo privileges. Continue?"
   },
   "editor": {
     "unsavedChanges": {
@@ -1893,26 +2010,72 @@
     }
   },
   "aiOps": {
-    "title": "AI 运维助手",
-    "newSession": "新建会话",
-    "history": "历史记录",
-    "sessionHistory": "会话历史",
-    "noSessions": "暂无历史会话",
-    "untitled": "未命名会话",
-    "placeholder": "询问关于服务器或日志的任何问题...",
-    "typing": "AI 正在分析...",
-    "insights": "洞察",
-    "inputPlaceholder": "输入消息...",
-    "generateCommand": "生成命令",
-    "disable": "禁用 AI",
-    "enable": "启用 AI",
-    "enableInSettings": "在设置中启用",
-    "sendMessage": "发送消息",
+    "title": "AI Ops Assistant",
+    "newSession": "New session",
+    "history": "History",
+    "sessionHistory": "Session history",
+    "noSessions": "No session history",
+    "untitled": "Untitled session",
+    "placeholder": "Ask anything about your servers or logs...",
+    "typing": "AI is analyzing...",
+    "insights": "Insights",
+    "inputPlaceholder": "Type a message...",
+    "generateCommand": "Generate command",
+    "disable": "Disable AI",
+    "enable": "Enable AI",
+    "enableInSettings": "Enable in settings",
+    "sendMessage": "Send message",
     "suggestions": {
-      "health": "检查系统健康状态",
-      "commands": "分析命令执行模式",
-      "security": "查看安全事件统计",
-      "connections": "连接使用情况"
+      "health": "Check system health",
+      "commands": "Analyze command execution patterns",
+      "security": "View security event statistics",
+      "connections": "Connection usage"
     }
+  },
+  "aiAudit": {
+    "title": "AI Security Audit",
+    "createReport": "Generate Report",
+    "totalReports": "Total Reports",
+    "totalAnomalies": "Total Anomalies",
+    "criticalAnomalies": "Critical Anomalies",
+    "recentAnomalies": "Anomalies (24h)",
+    "analysisResults": "Analysis Results",
+    "noReports": "No audit reports yet",
+    "noReportsHint": "Click the button above to generate your first audit report",
+    "timeRange": "Time Range",
+    "noAnomalies": "No anomalies detected",
+    "noAnomaliesHint": "System is running normally, no anomalous behavior detected",
+    "acknowledge": "Acknowledge",
+    "acknowledged": "Acknowledged",
+    "summary": "Analysis Summary",
+    "anomalies": "Anomalies",
+    "aiAnalysis": "AI Analysis",
+    "reports": "Reports",
+    "type": {
+      "command": "Command Analysis",
+      "login": "Login Analysis",
+      "full": "Full Audit"
+    },
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
+  },
+  "commandPalette": {
+    "placeholder": "Type a command or search...",
+    "noResults": "No matching commands found",
+    "actionFailed": "Action failed, please try again later"
+  },
+  "errors": {
+    "unknown": "Unknown error"
+  },
+  "term": {
+    "unknownError": "Unknown error",
+    "sshSuspend": "SSH Suspend"
+  },
+  "terminal": {
+    "output": "Terminal output"
   }
 }

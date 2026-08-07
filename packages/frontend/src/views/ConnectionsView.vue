@@ -720,12 +720,10 @@ const handleConnectAllFilteredConnections = async () => {
         </div>
 
         <div class="p-4">
-          <div
+          <LoadingState
             v-if="isLoadingConnections && filteredAndSortedConnections.length === 0"
-            class="text-center text-text-secondary"
-          >
-            {{ t('common.loading') }}
-          </div>
+            compact
+          />
           <ul v-else-if="filteredAndSortedConnections.length > 0" class="space-y-2">
             <li
               v-for="conn in filteredAndSortedConnections"

@@ -460,6 +460,7 @@ const { triggerDownload, triggerDownloadDirectory } = useFileManagerDownload({
   instanceId: props.instanceId,
   sessionStore,
   showError: uiNotificationsStore.showError,
+  t,
   recoverManager: () => {
     // 尝试重新初始化 SFTP 管理器
     initializeSftpManager(effectiveSessionId.value, props.instanceId);

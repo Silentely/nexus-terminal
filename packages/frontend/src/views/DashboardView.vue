@@ -178,7 +178,8 @@ const handleTimeRangeChange = async () => {
 
 const startAutoRefresh = () => {
   if (refreshTimer) clearInterval(refreshTimer);
-  if (autoRefresh.value) {
+  // 页面隐藏时不启动定时器，避免后台标签页持续请求接口
+  if (autoRefresh.value && !document.hidden) {
     refreshTimer = setInterval(() => {
       dashboardStore.fetchAllData(timeRange.value);
     }, refreshInterval.value);
@@ -189,6 +190,15 @@ const stopAutoRefresh = () => {
   if (refreshTimer) {
     clearInterval(refreshTimer);
     refreshTimer = null;
+  }
+};
+
+// 页面重新可见时按当前开关状态恢复自动刷新
+const handleVisibilityChange = () => {
+  if (document.hidden) {
+    stopAutoRefresh();
+  } else {
+    startAutoRefresh();
   }
 };
 
@@ -240,10 +250,12 @@ onMounted(async () => {
       t('dashboard.errors.initFailed') || '仪表盘初始化失败，请刷新页面重试',
     );
   }
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 });
 
 onUnmounted(() => {
   stopAutoRefresh();
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 
 watch(

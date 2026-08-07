@@ -70,20 +70,19 @@
       </div>
 
       <!-- Loading state -->
-      <div
+      <LoadingState
         v-else-if="store.isLoading && logs.length === 0"
-        class="p-4 text-center text-text-secondary italic flex-shrink-0"
-      >
-        {{ $t('common.loading') }}
-      </div>
+        compact
+        class="flex-shrink-0"
+      />
 
       <!-- No logs state -->
-      <div
+      <EmptyState
         v-else-if="!store.isLoading && !store.error && logs.length === 0"
-        class="p-4 mb-4 border-l-4 border-info bg-info/10 text-foreground rounded flex-shrink-0"
-      >
-        {{ $t('auditLog.noLogs') }}
-      </div>
+        :text="$t('auditLog.noLogs')"
+        icon="fa-file-lines"
+        class="flex-shrink-0"
+      />
 
       <!-- Virtual List -->
       <div

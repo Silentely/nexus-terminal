@@ -82,6 +82,7 @@
     "SFTP_CONNECT_SUCCESS": "SFTP Connection Successful",
     "SFTP_CONNECT_FAILURE": "SFTP Connection Failed",
     "DATABASE_MIGRATION": "Database Migration",
-    "ADMIN_SETUP_COMPLETE": "Initial Admin Setup Completed"
+    "ADMIN_SETUP_COMPLETE": "Initial Admin Setup Completed",
+    "testNotification": "Test Notification"
   }
 }

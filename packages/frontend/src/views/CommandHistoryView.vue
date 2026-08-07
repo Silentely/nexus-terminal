@@ -29,21 +29,18 @@
       <!-- List Area -->
       <div class="flex-grow overflow-y-auto p-2">
         <!-- Loading State (Only show if loading AND no history is displayed yet) -->
-        <div
+        <LoadingState
           v-if="isLoading && filteredHistory.length === 0"
-          class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full"
-        >
-          <i class="fas fa-spinner fa-spin text-xl mb-2"></i>
-          <p>{{ $t('commandHistory.loading', '加载中...') }}</p>
-        </div>
+          :text="$t('commandHistory.loading', '加载中...')"
+          full
+        />
         <!-- Empty State -->
-        <div
+        <EmptyState
           v-else-if="filteredHistory.length === 0"
-          class="p-6 text-center text-text-secondary text-sm flex flex-col items-center justify-center h-full"
-        >
-          <i class="fas fa-history text-xl mb-2"></i>
-          <p>{{ $t('commandHistory.empty', '没有历史记录') }}</p>
-        </div>
+          :text="$t('commandHistory.empty', '没有历史记录')"
+          icon="fa-history"
+          full
+        />
         <!-- History List (虚拟滚动) -->
         <div v-else v-bind="containerProps" class="h-full">
           <ul v-bind="wrapperProps" class="list-none p-0 m-0">

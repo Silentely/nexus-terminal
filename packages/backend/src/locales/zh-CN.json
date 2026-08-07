@@ -1,4 +1,18 @@
 {
+  "testNotification": {
+    "subject": "星枢终端 测试通知 ({event})",
+    "email": {
+      "body": "这是一封来自星枢终端的测试邮件，用于事件 '{event}'。\n\n如果您收到此邮件，说明 SMTP 配置正常。\n\n时间戳: {timestamp}",
+      "bodyHtml": "<p>这是一封来自<b>星枢终端</b>的测试邮件，用于事件 '{event}'。</p><p>如果您收到此邮件，说明 SMTP 配置正常。</p><p>时间戳: {timestamp}</p>"
+    },
+    "webhook": {
+      "detailsMessage": "这是一条来自星枢终端的测试通知 (Webhook - i18n)，用于事件 '{event}'。"
+    },
+    "telegram": {
+      "detailsMessage": "这是一条来自星枢终端的测试通知 (Telegram - i18n)，用于事件 '{event}'。",
+      "bodyTemplate": "*星枢终端 测试通知*\n事件: `{event}`\n时间戳: {timestamp}\n详情:\n```\n{details}\n```"
+    }
+  },
   "notificationController": {
     "genericEmailBody": "<p>事件: {event}</p><p>时间: {timestamp}</p><p>详情:</p><pre>{details}</pre>",
     "genericTelegramBody": "*{event}*\n时间: {timestamp}\n详情:\n```\n{details}\n```",
@@ -43,15 +57,16 @@
     "TELNET_CONNECT_FAILURE": "Telnet 连接失败",
     "TELNET_DISCONNECT": "Telnet 连接已断开",
     "PASSKEY_REGISTERED": "通行密钥已注册",
-    "PASSKEY_DELETE_UNAUTHORIZED": "通行密钥删除未授权",
-    "PASSKEY_NAME_UPDATED": "通行密钥名称已更新",
-    "PASSKEY_NAME_UPDATE_UNAUTHORIZED": "通行密钥名称更新未授权",
     "PASSKEY_AUTH_SUCCESS": "通行密钥认证成功",
     "PASSKEY_AUTH_FAILURE": "通行密钥认证失败",
     "PASSKEY_DELETED": "通行密钥已删除",
     "PASSKEY_DELETE_UNAUTHORIZED": "通行密钥删除未授权",
     "PASSKEY_NAME_UPDATED": "通行密钥名称已更新",
     "PASSKEY_NAME_UPDATE_UNAUTHORIZED": "通行密钥名称更新未授权",
+    "FILE_UPLOAD": "文件已上传",
+    "FILE_DOWNLOAD": "文件已下载",
+    "COMMAND_BLOCKED": "命令已被拦截",
+    "BATCH_COMMAND_EXECUTED": "批量命令已执行",
     "BATCH_TASK_CREATED": "批量任务已创建",
     "BATCH_TASK_COMPLETED": "批量任务已完成",
     "BATCH_TASK_FAILED": "批量任务失败",

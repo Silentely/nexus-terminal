@@ -125,6 +125,10 @@ import NotificationSettingForm from './NotificationSettingForm.vue';
 import { useI18n } from 'vue-i18n';
 import { useConfirmDialog } from '../composables/useConfirmDialog';
 import { log } from '@/utils/log';
+import {
+  getNotificationEventDisplayName,
+  getNotificationEventsSummary,
+} from '../utils/notificationEvents';
 
 const store = useNotificationsStore();
 const { showConfirmDialog } = useConfirmDialog();
@@ -152,27 +156,17 @@ const getChannelTypeName = (type: NotificationChannelType): string => {
   }
 };
 
-// Helper function to translate a single event name
-const getSingleEventDisplayName = (event: NotificationEvent): string => {
-  const i18nKey = `settings.notifications.events.${event}`;
-  const translated = t(i18nKey);
-  // Fallback if translation is missing
-  if (translated === i18nKey) {
-    log.warn(`Missing translation for notification event: ${i18nKey}`);
-    return event
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, (l) => l.toUpperCase());
-  }
-  return translated;
-};
+// 通知事件名翻译统一复用共享工具（缺失翻译时回退为可读形式）
+const getSingleEventDisplayName = (event: NotificationEvent): string =>
+  getNotificationEventDisplayName(event, t);
 
-const getEventNames = (events: NotificationEvent[]): string => {
-  if (!events || events.length === 0) return t('settings.notifications.noEventsEnabled');
-  // Translate each event name
-  const translatedNames = events.map((event) => getSingleEventDisplayName(event));
-  return t('settings.notifications.triggers') + ': ' + translatedNames.join(', ');
-};
+const getEventNames = (events: NotificationEvent[]): string =>
+  getNotificationEventsSummary(
+    events,
+    t,
+    t('settings.notifications.noEventsEnabled'),
+    t('settings.notifications.triggers'),
+  );
 
 const editSetting = (setting: NotificationSetting) => {
   editingSetting.value = { ...setting }; // Clone to avoid modifying store directly

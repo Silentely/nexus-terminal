@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
 import AutoImport from 'unplugin-auto-import/vite';
+import Components from 'unplugin-vue-components/vite';
 import path from 'path';
 
 export default defineConfig({
@@ -8,6 +9,12 @@ export default defineConfig({
     vue(),
     AutoImport({
       imports: ['vue', 'pinia'],
+      dts: false,
+    }),
+    // 与 vite.config.ts 保持一致：自动注册 src/components 与 src/features 下的组件，
+    // 避免测试环境无法解析 LoadingState/EmptyState 等公共组件导致静默渲染失败
+    Components({
+      dirs: ['src/components', 'src/features'],
       dts: false,
     }),
   ],

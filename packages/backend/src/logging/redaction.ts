@@ -48,10 +48,18 @@ export function redactSensitiveData(value: unknown, depth = 0, seen = new WeakSe
   if (typeof value === 'string') {
     let redactedStr = value;
     redactedStr = redactedStr.replace(
-      /(\b(?:cookie|authorization|token|api[_-]?key|password|secret|passwd|pwd|credit[_-]?card|card[_-]?number|ssn|social[_-]?security|private[_-]?key)\s*[:=]\s*["']?)([^\s;,&"']+)/gi,
+      /(\b(?:cookie|authorization|token|api[_-]?key|password|secret|passwd|pwd|credit[_-]?card|card[_-]?number|ssn|social[_-]?security|private[_-]?key)\s*[:=]\s*["']?)(?!Bearer\b)([^\s;,&"']+)/gi,
       '$1[REDACTED]',
     );
     redactedStr = redactedStr.replace(/\bBearer\s+[A-Za-z0-9\-._~+/]+/gi, 'Bearer [REDACTED]');
+    // URL query 参数脱敏：覆盖签名/密钥类参数名（如 ?signature=、&key=、?auth=）
+    // 用于防止 webhook URL、回调链接等带敏感参数的裸字符串泄漏
+    redactedStr = redactedStr.replace(
+      /([?&](?:signature|sig|key|auth|access[_-]?token|refresh[_-]?token|client[_-]?secret|code|api[_-]?key|token|secret|password|pwd)=)[^&\s"']*/gi,
+      '$1[REDACTED]',
+    );
+    // URL 内嵌账号密码（https://user:pass@host）脱敏
+    redactedStr = redactedStr.replace(/(\/\/[^/?#\s]+:)[^@\s/?#]+(@)/g, '$1[REDACTED]$2');
     return redactedStr;
   }
 
@@ -125,4 +133,12 @@ export function redactSensitiveData(value: unknown, depth = 0, seen = new WeakSe
  */
 export function redactLogArgs(args: unknown[]): unknown[] {
   return args.map((arg) => redactSensitiveData(arg));
+}
+
+/**
+ * 脱敏日志中的 URL（如 webhook 回调地址）
+ * URL 常携带签名/密钥等 query 参数或内嵌账号密码，直接输出会泄漏敏感信息
+ */
+export function redactUrlForLog(url: string): string {
+  return redactSensitiveData(url) as string;
 }

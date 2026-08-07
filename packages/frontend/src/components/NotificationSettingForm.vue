@@ -443,6 +443,7 @@ import {
 } from '../types/server.types';
 import { useI18n } from 'vue-i18n';
 import { extractErrorMessage } from '../utils/errorExtractor';
+import { getNotificationEventDisplayName } from '../utils/notificationEvents';
 import { log } from '@/utils/log';
 
 interface SmtpEmailConfig extends Omit<EmailConfig, 'subjectTemplate'> {
@@ -721,21 +722,8 @@ watch(
   { deep: true },
 );
 
-const getEventDisplayName = (event: NotificationEvent): string => {
-  // Use i18n key, fallback to formatted name if key not found
-  const i18nKey = `settings.notifications.events.${event}`;
-  log.info(`[NotificationSettingForm] Translating event display name for key: ${i18nKey}`); // Log event key translation attempt
-  const translated = t(i18nKey);
-  // If translation returns the key itself, it means translation is missing
-  if (translated === i18nKey) {
-    log.warn(`Missing translation for notification event: ${i18nKey}`);
-    return event
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .replace(/\b\w/g, (l) => l.toUpperCase()); // Fallback
-  }
-  return translated;
-};
+const getEventDisplayName = (event: NotificationEvent): string =>
+  getNotificationEventDisplayName(event, t);
 
 const handleSubmit = async () => {
   log.info('[NotificationSettingForm] handleSubmit called.'); // Log submit start
