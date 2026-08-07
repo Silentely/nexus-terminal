@@ -9,7 +9,7 @@ on:
   pull_request:
     branches:
       - main
-      - develop
+      - dev
 
   # 允许手动触发
   workflow_dispatch:

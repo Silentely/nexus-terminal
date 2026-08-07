@@ -2,7 +2,7 @@ name: Build and Publish Docker Images
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'dev']
     tags: ['v*']
   workflow_dispatch:
   repository_dispatch:
@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 检测文件变更（仅 main 分支普通推送时执行）
+  # 检测文件变更（仅分支普通推送时执行）
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
@@ -51,7 +51,7 @@ jobs:
             echo "✅ 手动触发，将全量构建所有镜像"
           else
             echo "should_build_all=false" >> $GITHUB_OUTPUT
-            echo "✅ main 分支推送，将检测变更按需构建"
+            echo "✅ 分支推送，将检测变更按需构建"
           fi
 
       - name: 检测文件变更
@@ -119,12 +119,15 @@ jobs:
           if [ -n "$PAYLOAD_VERSION" ]; then
             VERSION="$PAYLOAD_VERSION"
             echo "✅ 使用 payload 中的版本号：$VERSION"
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            echo "✅ 使用标签版本号：$VERSION"
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
             VERSION="dev"
-            echo "✅ 使用 main 分支版本号：$VERSION"
+            echo "✅ 使用 dev 分支版本号：$VERSION"
           else
-            VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "latest")
-            echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
+            VERSION="main"
+            echo "✅ 使用 main 分支版本号：$VERSION"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
@@ -140,21 +143,19 @@ jobs:
             echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
             echo "✅ 检测到标签推送，构建 release 镜像"
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
             echo "BUILD_TYPE=dev" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
-            echo "✅ 检测到 main 分支推送，构建 dev 镜像"
+            echo "✅ 检测到 dev 分支推送，构建 dev 镜像"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "BUILD_TYPE=main" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+            echo "✅ 检测到 main 分支推送，构建 main-<sha> 镜像"
           else
             echo "BUILD_TYPE=manual" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
             echo "✅ 手动触发或其他情况"
           fi
-
-      - name: 更新 VERSION 文件（main 分支构建时）
-        if: steps.build_type.outputs.BUILD_TYPE == 'dev'
-        run: |
-          echo "dev" > VERSION
-          echo "✅ 已更新 VERSION 文件为 'dev'"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -176,12 +177,10 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}-backend
           tags: |
             type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=sha,prefix=dev-,format=short,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=sha,prefix=main-,format=short,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'main' || steps.build_type.outputs.BUILD_TYPE == 'manual' }}
             type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
             type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
-            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
-            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' && steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
-            type=ref,event=tag,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
-            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
 
       - name: Build and push backend
         uses: docker/build-push-action@v6
@@ -217,12 +216,15 @@ jobs:
           if [ -n "$PAYLOAD_VERSION" ]; then
             VERSION="$PAYLOAD_VERSION"
             echo "✅ 使用 payload 中的版本号：$VERSION"
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            echo "✅ 使用标签版本号：$VERSION"
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
             VERSION="dev"
-            echo "✅ 使用 main 分支版本号：$VERSION"
+            echo "✅ 使用 dev 分支版本号：$VERSION"
           else
-            VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "latest")
-            echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
+            VERSION="main"
+            echo "✅ 使用 main 分支版本号：$VERSION"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
@@ -236,18 +238,16 @@ jobs:
           elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
             echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
             echo "BUILD_TYPE=dev" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "BUILD_TYPE=main" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
           else
             echo "BUILD_TYPE=manual" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: 更新 VERSION 文件（main 分支构建时）
-        if: steps.build_type.outputs.BUILD_TYPE == 'dev'
-        run: |
-          echo "dev" > VERSION
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -269,12 +269,10 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}-frontend
           tags: |
             type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=sha,prefix=dev-,format=short,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=sha,prefix=main-,format=short,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'main' || steps.build_type.outputs.BUILD_TYPE == 'manual' }}
             type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
             type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
-            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
-            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' && steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
-            type=ref,event=tag,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
-            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
 
       - name: Build and push frontend
         uses: docker/build-push-action@v6
@@ -310,12 +308,15 @@ jobs:
           if [ -n "$PAYLOAD_VERSION" ]; then
             VERSION="$PAYLOAD_VERSION"
             echo "✅ 使用 payload 中的版本号：$VERSION"
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            echo "✅ 使用标签版本号：$VERSION"
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
             VERSION="dev"
-            echo "✅ 使用 main 分支版本号：$VERSION"
+            echo "✅ 使用 dev 分支版本号：$VERSION"
           else
-            VERSION=$(cat VERSION 2>/dev/null | tr -d '[:space:]' || echo "latest")
-            echo "✅ 使用 VERSION 文件中的版本号：$VERSION"
+            VERSION="main"
+            echo "✅ 使用 main 分支版本号：$VERSION"
           fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
@@ -329,18 +330,16 @@ jobs:
           elif [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
             echo "BUILD_TYPE=release" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+          elif [[ "${{ github.ref_name }}" == "dev" ]]; then
             echo "BUILD_TYPE=dev" >> $GITHUB_OUTPUT
+            echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "BUILD_TYPE=main" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
           else
             echo "BUILD_TYPE=manual" >> $GITHUB_OUTPUT
             echo "IS_TAG_PUSH=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: 更新 VERSION 文件（main 分支构建时）
-        if: steps.build_type.outputs.BUILD_TYPE == 'dev'
-        run: |
-          echo "dev" > VERSION
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -362,12 +361,10 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}-remote-gateway
           tags: |
             type=raw,value=dev,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=sha,prefix=dev-,format=short,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'dev' }}
+            type=sha,prefix=main-,format=short,enable=${{ steps.build_type.outputs.BUILD_TYPE == 'main' || steps.build_type.outputs.BUILD_TYPE == 'manual' }}
             type=raw,value=latest,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
             type=raw,value=${{ steps.version.outputs.VERSION }},enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' && steps.version.outputs.VERSION != '' }}
-            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH == 'true' }}
-            type=ref,event=branch,enable=${{ steps.build_type.outputs.BUILD_TYPE != 'dev' && steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
-            type=ref,event=tag,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
-            type=sha,enable=${{ steps.build_type.outputs.IS_TAG_PUSH != 'true' }}
 
       - name: Build and push remote-gateway (内嵌 guacd)
         uses: docker/build-push-action@v6
