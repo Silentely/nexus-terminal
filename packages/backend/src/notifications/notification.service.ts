@@ -19,6 +19,7 @@ import { settingsService } from '../settings/settings.service';
 import { getErrorMessage, isError } from '../utils/AppError';
 import { logger } from '../utils/logger';
 import { redactUrlForLog } from '../logging/redaction';
+import { renderCustomTemplate, renderTemplate } from './notification-template.utils';
 
 const testSubjectKey = 'testNotification.subject';
 const testEmailBodyKey = 'testNotification.email.body';
@@ -212,7 +213,7 @@ export class NotificationService {
       timestamp: new Date(testPayload.timestamp).toISOString(),
       details: this._formatTemplateDetails(testPayload.details),
     };
-    const requestBody = this._renderTemplate(
+    const requestBody = renderTemplate(
       config.bodyTemplate || defaultBodyTemplate,
       templateDataWebhookTest,
       defaultBody,
@@ -348,7 +349,7 @@ export class NotificationService {
       details: this._escapeBasicMarkdown(messageFromPayload),
     };
 
-    const messageText = this._renderTemplate(
+    const messageText = renderTemplate(
       templateToUse,
       templateDataTelegramTest,
       defaultMessageTemplateFromI18n,
@@ -474,19 +475,6 @@ export class NotificationService {
     return text.replace(/([*_`\[])/g, '\\$1');
   }
 
-  private _renderTemplate(
-    template: string | undefined,
-    data: Record<string, string>,
-    defaultText: string,
-  ): string {
-    if (!template) return defaultText;
-    let rendered = template;
-    for (const key of Object.keys(data)) {
-      rendered = rendered.replace(new RegExp(`\\{${key}\\}`, 'g'), data[key]);
-    }
-    return rendered;
-  }
-
   private async _sendWebhook(
     setting: NotificationSetting,
     payload: NotificationPayload,
@@ -522,27 +510,12 @@ export class NotificationService {
 
       details: this._formatTemplateDetails(translatedPayload.details),
     };
-    let templateToRender = config.bodyTemplate || defaultBodyTemplate;
-    const isCustomTemplate = !!config.bodyTemplate;
-
-    if (isCustomTemplate) {
-      logger.debug(
-        `[_sendWebhook] Original custom body template for event ${payload.event}:`,
-        templateToRender,
-      );
-
-      templateToRender = templateToRender.replace(/\{event\}/g, '{eventDisplay}');
-      logger.debug(
-        `[_sendWebhook] Pre-processed body template (replaced {event} with {eventDisplay}):`,
-        templateToRender,
-      );
-    } else {
-      logger.debug(
-        `[_sendWebhook] No custom body template found. Using default template for event ${payload.event}`,
-      );
-    }
-
-    const requestBody = this._renderTemplate(templateToRender, templateDataWebhook, defaultBody);
+    // 统一渲染：{event} 归一化为 {eventDisplay}，未配置自定义模板时渲染默认模板
+    const requestBody = renderCustomTemplate(
+      config.bodyTemplate || defaultBodyTemplate,
+      templateDataWebhook,
+      defaultBody,
+    );
 
     const requestConfig: AxiosRequestConfig = {
       method: config.method || 'POST',
@@ -633,8 +606,9 @@ export class NotificationService {
       defaultValue: payload.event,
     });
 
-    const subject = eventDisplayName;
-    logger.debug(`[_sendEmail] Using fixed subject for event ${payload.event}: ${subject}`);
+    // 邮件主题带产品名前缀，便于用户在收件箱中识别来源
+    const subject = `[Nexus Terminal] ${eventDisplayName}`;
+    logger.debug(`[通知 - 邮件] 使用固定主题 (事件: ${payload.event}): ${subject}`);
 
     const formattedTimestampForEmail = formatInTimeZone(
       new Date(payload.timestamp),
@@ -663,34 +637,14 @@ export class NotificationService {
       ),
     };
     logger.debug(
-      `[_sendEmail] Prepared templateDataEmailBody for event ${payload.event}:`,
+      `[通知 - 邮件] Prepared templateDataEmailBody for event ${payload.event}:`,
       templateDataEmailBody,
     );
 
-    let body = '';
     const defaultBodyText = `Event: ${eventDisplayName}\nTimestamp: ${formattedTimestampForEmail}\nDetails:\n${detailsString}`;
-
-    if (config.bodyTemplate) {
-      let templateToRender = config.bodyTemplate;
-      logger.debug(
-        `[_sendEmail] Original custom body template for event ${payload.event}:`,
-        templateToRender,
-      );
-
-      templateToRender = templateToRender.replace(/\{event\}/g, '{eventDisplay}');
-      logger.debug(
-        `[_sendEmail] Pre-processed body template (replaced {event} with {eventDisplay}):`,
-        templateToRender,
-      );
-
-      body = this._renderTemplate(templateToRender, templateDataEmailBody, defaultBodyText);
-    } else {
-      logger.debug(
-        `[_sendEmail] No custom body template found. Using default constructed body text for event ${payload.event}`,
-      );
-      body = defaultBodyText;
-    }
-    logger.debug(`[_sendEmail] Final email body rendered for event ${payload.event}`, {
+    // 统一渲染：{event} 归一化为 {eventDisplay}，未配置自定义模板时使用默认文本
+    const body = renderCustomTemplate(config.bodyTemplate, templateDataEmailBody, defaultBodyText);
+    logger.debug(`[通知 - 邮件] Final email body rendered for event ${payload.event}`, {
       settingId: setting.id,
       bodyLength: body.length,
     });
@@ -725,9 +679,9 @@ export class NotificationService {
     userTimezone: string,
   ): Promise<void> {
     logger.debug(
-      `[_sendTelegram] Initiating for event: ${payload.event}, Setting ID: ${setting.id}, Lang: ${userLang}, Timezone: ${userTimezone}`,
+      `[通知 - Telegram] Initiating for event: ${payload.event}, Setting ID: ${setting.id}, Lang: ${userLang}, Timezone: ${userTimezone}`,
     );
-    logger.debug('[_sendTelegram] Received payload', {
+    logger.debug('[通知 - Telegram] Received payload', {
       event: payload.event,
       settingId: setting.id,
     });
@@ -751,7 +705,7 @@ export class NotificationService {
         detailsText = JSON.stringify(payload.details);
       }
     }
-    logger.debug(`[_sendTelegram] Formatted detailsText:`, detailsText);
+    logger.debug(`[通知 - Telegram] Formatted detailsText:`, detailsText);
 
     const translatedEventName = i18next.t(`event.${payload.event}`, {
       lng: userLang,
@@ -768,18 +722,18 @@ export class NotificationService {
       details: detailsText,
     };
     logger.debug(
-      `[_sendTelegram] Prepared templateData (NO escaping):`,
+      `[通知 - Telegram] Prepared templateData (NO escaping):`,
       JSON.stringify(templateData, null, 2),
     );
 
     let messageText = '';
     if (config.messageTemplate) {
-      logger.debug(`[_sendTelegram] Using custom template:`, config.messageTemplate);
+      logger.debug(`[通知 - Telegram] Using custom template:`, config.messageTemplate);
       const fallbackForCustom = `Event: ${templateData.event}, Details: ${templateData.details}`;
-      messageText = this._renderTemplate(config.messageTemplate, templateData, fallbackForCustom);
+      messageText = renderTemplate(config.messageTemplate, templateData, fallbackForCustom);
     } else {
       const i18nKey = `eventBody.${payload.event}`;
-      logger.debug(`[_sendTelegram] Using i18n template key:`, i18nKey);
+      logger.debug(`[通知 - Telegram] Using i18n template key:`, i18nKey);
       const fallbackBody = `*Fallback Notification*\nEvent: ${templateData.event}\nTime: \`${templateData.timestamp}\`\nDetails: ${templateData.details}`;
       messageText = i18next.t(i18nKey, {
         lng: userLang,
@@ -787,17 +741,19 @@ export class NotificationService {
         defaultValue: fallbackBody,
       });
     }
-    logger.debug(`[_sendTelegram] Final message text to send:`, messageText);
+    logger.debug(`[通知 - Telegram] Final message text to send:`, messageText);
 
     let baseApiUrlSend = 'https://api.telegram.org';
     if (config.customDomain) {
       try {
         const url = new URL(config.customDomain);
         baseApiUrlSend = `${url.protocol}//${url.host}`;
-        logger.debug(`[_sendTelegram] 使用自定义域名: ${baseApiUrlSend} (事件: ${payload.event})`);
+        logger.debug(
+          `[通知 - Telegram] 使用自定义域名: ${baseApiUrlSend} (事件: ${payload.event})`,
+        );
       } catch (error: unknown) {
         logger.warn(
-          `[_sendTelegram] 无效的自定义域名 URL: ${config.customDomain} (事件: ${payload.event})。将回退到默认 Telegram API。(${getErrorMessage(error)})`,
+          `[通知 - Telegram] 无效的自定义域名 URL: ${config.customDomain} (事件: ${payload.event})。将回退到默认 Telegram API。(${getErrorMessage(error)})`,
         );
       }
     }
@@ -811,7 +767,7 @@ export class NotificationService {
         parse_mode: 'Markdown',
       };
       logger.debug(
-        `[_sendTelegram] Sending request to Telegram API:`,
+        `[通知 - Telegram] Sending request to Telegram API:`,
         JSON.stringify(requestBody, null, 2),
       );
       // 使用安全 HTTP 客户端，自动进行 SSRF 验证和 DNS 绑定

@@ -8,8 +8,9 @@ import { useTagsStore } from '../stores/tags.store';
 import { useConfirmDialog } from '../composables/useConfirmDialog';
 import { useAlertDialog } from '../composables/useAlertDialog';
 import { log } from '@/utils/log';
+import { formatDateTime } from '@/utils/dateFormat';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const router = useRouter();
 const tagsStore = useTagsStore();
 const { showConfirmDialog } = useConfirmDialog();
@@ -120,10 +121,11 @@ const groupedConnections = computed(() => {
 });
 
 // 辅助函数：格式化时间戳
-const formatTimestamp = (timestamp: number | null): string => {
-  if (!timestamp) return t('connections.status.never'); // 使用 i18n
-  return new Date(timestamp * 1000).toLocaleString(); // 乘以 1000 转换为毫秒
-};
+// 辅助函数：格式化时间戳（统一走 utils/dateFormat 公共工具；0/空值视为从未连接）
+const formatTimestamp = (timestamp: number | null): string =>
+  timestamp
+    ? formatDateTime(timestamp, { locale: locale.value, fallback: t('connections.status.never') })
+    : t('connections.status.never');
 
 // 处理删除连接的方法
 const handleDelete = async (conn: ConnectionInfo) => {

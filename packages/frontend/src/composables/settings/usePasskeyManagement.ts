@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../../stores/auth.store';
 import { extractErrorMessage } from '../../utils/errorExtractor';
 import { log } from '@/utils/log';
+import { formatDateTime } from '../../utils/dateFormat';
 
 export function usePasskeyManagement() {
   const authStore = useAuthStore();
@@ -118,8 +119,8 @@ export function usePasskeyManagement() {
       );
       return;
     }
-    // It's better to handle confirmation in the component itself if needed, or pass a confirm function
-    // For now, assuming confirmation is handled or not strictly needed in the composable.
+    // 需要确认时更适合在组件内处理，或传入确认函数
+    // 目前假定确认已在组件内处理或非必需。
     // if (!confirm(t('settings.passkey.confirmDelete'))) return;
 
     passkeyDeleteLoadingStates[credentialID] = true;
@@ -143,18 +144,11 @@ export function usePasskeyManagement() {
     }
   };
 
-  const formatDate = (dateInput: string | number | Date | undefined): string => {
-    if (!dateInput) return t('statusMonitor.notAvailable', 'N/A');
-    try {
-      const date = new Date(typeof dateInput === 'number' ? dateInput * 1000 : dateInput);
-      return !Number.isNaN(date.getTime())
-        ? date.toLocaleString()
-        : t('statusMonitor.notAvailable', 'N/A');
-    } catch (error: unknown) {
-      log.error('Error formatting date:', error);
-      return t('statusMonitor.notAvailable', 'N/A');
-    }
-  };
+  // 格式化日期（统一走 utils/dateFormat 公共工具；数字视为秒级时间戳，空值显示 N/A）
+  const formatDate = (dateInput: string | number | Date | undefined): string =>
+    dateInput
+      ? formatDateTime(dateInput, { fallback: t('statusMonitor.notAvailable', 'N/A') })
+      : t('statusMonitor.notAvailable', 'N/A');
 
   // Fetch passkeys on composable initialization if user is authenticated
   if (authStore.isAuthenticated) {

@@ -91,8 +91,8 @@ export function useCaptchaSettings() {
   };
 
   // Load initial CAPTCHA settings when the composable is used
-  // settingsStore.loadCaptchaSettings(); // This is called in SettingsView onMounted, might be redundant here unless SettingsView stops calling it.
-  // For now, assume SettingsView still handles initial load on its onMounted.
+  // settingsStore.loadCaptchaSettings(); // SettingsView 的 onMounted 中已调用，此处重复调用可能冗余
+  // 目前假定 SettingsView 仍在 onMounted 中处理初始加载。
 
   return {
     captchaForm,

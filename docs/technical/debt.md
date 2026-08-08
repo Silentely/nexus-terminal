@@ -1,6 +1,6 @@
 # 星枢终端 - 技术债务报告
 
-> **状态**：✅ 标记债务（TODO/any/console.log）为 0 | ✅ ja-JP 中文残留清零 | **测试覆盖率**：待提升 | **更新时间**：2026-08-07
+> **状态**：✅ 标记债务（TODO/any/console.log）为 0 | ✅ ja-JP 中文残留清零 | **测试覆盖率**：待提升 | **更新时间**：2026-08-08
 
 ---
 
@@ -28,6 +28,23 @@
 | R8 | 轮询可见性感知 | AiAudit 报告轮询与 Dashboard 自动刷新页面隐藏时暂停，恢复后继续，卸载清理监听 |
 | R9 | 前端 i18n 大缺口修复 | 全量扫描发现 72 个带 fallback 的调用其 key 缺失（英文/日文用户看到中文）；补齐 zh/en/ja（含新增 `aiAudit`/`commandPalette`/`errors` 结构），三语言 1616 key 一致；修复 `SuspendedSshSessionsModal` 裸 `close` key |
 | R10 | 全量验证与自查 | 后端 2678 + 前端 2664 + 网关 11 测试全过；tsc/eslint 零错误；本表回填 |
+
+---
+
+## 2026-08-08 打磨迭代（10 轮）摘要
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | 统一日期格式化工具 | `utils/dateFormat.ts`（秒/毫秒时间戳自动识别 + formatDateTime/formatShortDateTime/formatTime + i18n locale），替换 9 处重复实现（AuditLog/AiAudit/ConnectionList/ProxyList/Suspended×2/TransferProgress/AIAssistant/Passkey），修复硬编码 `'zh-CN'` 不随语言切换 | 14 测试 |
+| R2 | 统一防抖工具 | `utils/debounce.ts`（createDebounced 支持 cancel），替换 Terminal.vue / useTerminalFit 2 处重复实现 | 4 测试 |
+| R3 | 通知组件清理与无障碍 | UINotificationDisplay 移除未使用的 `getContainerClass` 与全仓唯一 `!important` 内联样式，容器补 `role=status`/`aria-live`，关闭按钮补 `aria-label` |
+| R4 | 通知 store 语义修复 | 单条通知 `timeout` 生效（原类型声明支持但实现强制全局值，文档与实现不符）；warning 类型加入去重窗口防刷屏；清理误导性注释 | 10 测试 |
+| R5 | 统一错误横幅 | 新增 `common/ErrorBanner.vue`（`role=alert` + 警示图标），接入 TagsView/NotificationSettings/ProxyList/NotificationSettingForm，消除散落的 `border-l-4 border-error` 重复写法 | 4 测试 |
+| R6 | 通知渠道日志与文案 | `_sendEmail/_sendWebhook/_sendTelegram` 调试日志前缀统一为 `[通知 - 渠道]` 风格（原中英混用）；邮件主题由裸事件名改为 `[Nexus Terminal]` 前缀 |
+| R7 | 轮询可见性感知 | TransferProgressModal 页面隐藏时停止 5s 轮询，恢复可见且弹窗打开时立即刷新并恢复轮询，监听统一在生命周期清理 |
+| R8 | 英文残留注释统一 | 前端 src 约 150 处英文注释翻译为简体中文（登录/连接/快捷指令/命令历史/Docker/布局配置/设置等 18 个文件），清理陈旧重复注释行 |
+| R9 | 通知模板工具化 | 提取 `notification-template.utils.ts`（renderTemplate / normalizeEventPlaceholder / renderCustomTemplate 纯函数），邮件/Webhook `{event}`→`{eventDisplay}` 归一化去重，删除约 40 行重复分支 | 9 测试 |
+| R10 | 全量验证与自查 | 后端 2690 + 前端 2691 + 网关 11 测试全过；tsc/eslint/prettier/debt/locale 零错误；自查修复 0 值时间戳回归（ConnectionList/ProxyList/Passkey 保留 falsy 语义）；清理孤儿 i18n key `time.invalidDate`；本表回填 |
 
 ---
 
@@ -367,6 +384,7 @@ controller 属薄层委托，测试通过 service 层间接覆盖。如需直接
 
 | 日期 | 轮次 | 内容 | 提交 |
 | --- | --- | --- | --- |
+| 2026-08-08 | 打磨10轮 | 日期/防抖工具统一、通知组件无障碍与语义修复、ErrorBanner、通知渠道日志与文案、轮询可见性、英文注释统一、通知模板工具化 | `7666fe94` `bd09dd57` `3844ebb4` `c6707bb1` `e3f80b85` `ed7724a6` |
 | 2026-08-07 | 遗留债务处理 | ja-JP 语言包中文残留清零（L10-1/L10-3）：105 条简体中文残留翻译为日文，key 一致性零差异；L10-2 维持模块内一致评估 | 待提交 |
 | 2026-08-07 | 打磨10轮 | 三语言包对齐 + i18n 大缺口修复（72 key）+ 日志脱敏 + 加载/空态统一 + 轮询可见性 | `d72a9ef5` `f0a14302` `c8af5fd5` `85478f32` `f0b6ac1d` `8d08ee12` `aebbb912` |
 | 2026-07-17 | 打磨续轮 | batch/ssh-handler 纯函数拆分 + shellEscape 统一 + Guacamole 边界加固 + 自查 | 待提交 |

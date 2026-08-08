@@ -149,7 +149,7 @@ const searchTerm = computed(() => commandHistoryStore.searchTerm);
 // 使用 store 的 filteredHistory getter
 const filteredHistory = computed(() => commandHistoryStore.filteredHistory);
 const isLoading = computed(() => commandHistoryStore.isLoading);
-const { selectedIndex: storeSelectedIndex } = storeToRefs(commandHistoryStore); // Get selectedIndex reactively
+const { selectedIndex: storeSelectedIndex } = storeToRefs(commandHistoryStore); // 响应式获取 selectedIndex
 
 // --- 虚拟滚动配置 ---
 const ITEM_HEIGHT = 44; // 每个命令项的高度 (px)
@@ -196,7 +196,7 @@ const updateSearchTerm = useDebounceFn((event: Event) => {
 
 // 滚动到选中的项目（虚拟滚动兼容）
 const scrollToSelected = async (index: number) => {
-  // Accept index as argument
+  // 接收 index 参数
   await nextTick(); // 等待 DOM 更新
   if (index < 0) return;
 
@@ -218,12 +218,12 @@ const scrollToSelected = async (index: number) => {
   }
 };
 
-// Watch for changes in the store's selectedIndex and scroll
+// 监听 store 中 selectedIndex 的变化并滚动
 watch(storeSelectedIndex, (newIndex) => {
   scrollToSelected(newIndex);
 });
 
-// Renamed function to avoid conflict if needed, and added logic
+// 重命名函数以避免潜在冲突，并补充逻辑
 const handleSearchInputKeydown = (event: KeyboardEvent) => {
   const history = filteredHistory.value;
   if (!history.length) return;
@@ -231,12 +231,12 @@ const handleSearchInputKeydown = (event: KeyboardEvent) => {
   switch (event.key) {
     case 'ArrowDown':
       event.preventDefault();
-      commandHistoryStore.selectNextCommand(); // Use store action
+      commandHistoryStore.selectNextCommand(); // 使用 store 动作
       // scrollToSelected is handled by watcher
       break;
     case 'ArrowUp':
       event.preventDefault();
-      commandHistoryStore.selectPreviousCommand(); // Use store action
+      commandHistoryStore.selectPreviousCommand(); // 使用 store 动作
       // scrollToSelected is handled by watcher
       break;
     case 'Enter':
@@ -294,7 +294,7 @@ const deleteSingleCommand = (id: number) => {
 // 执行命令 (发出事件)
 const executeCommand = (command: string) => {
   emitWorkspaceEvent('terminal:sendCommand', { command });
-  // Optionally reset selection after execution
+  // 执行后可选择重置选中
   // selectedIndex.value = -1; // REMOVED: Store handles index
 };
 

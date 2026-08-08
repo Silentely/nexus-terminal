@@ -29,10 +29,13 @@ export const pruneExpiredNotificationKeys = (
   return removed;
 };
 
+// 通知类型（供展示组件与调用方复用）
+export type UINotificationType = 'success' | 'error' | 'info' | 'warning';
+
 // 定义通知对象的接口
 export interface UINotification {
   id: number;
-  type: 'success' | 'error' | 'info' | 'warning';
+  type: UINotificationType;
   message: string;
   timeout?: number; // 可选的自动关闭超时时间 (毫秒)
 }
@@ -57,33 +60,33 @@ export const useUiNotificationsStore = defineStore('uiNotifications', () => {
    * @param notification - 通知对象 (至少包含 type 和 message)
    */
   const addNotification = (notification: Omit<UINotification, 'id'> & { timeout?: number }) => {
-    if (notification.type === 'error') {
+    // 错误与警告类通知在短时间窗口内去重，避免轮询失败导致刷屏。
+    if (notification.type === 'error' || notification.type === 'warning') {
       const dedupeKey = `${notification.type}:${notification.message}`;
       const now = Date.now();
       maybeCleanupDedupeCache(now);
       const recentShownAt = lastNotificationAt.get(dedupeKey);
 
-      // 在短时间窗口内抑制重复错误通知，避免轮询失败导致刷屏。
       if (recentShownAt && now - recentShownAt < DEDUPE_WINDOW_MS) {
         return;
       }
       lastNotificationAt.set(dedupeKey, now);
     }
 
-    // Ensure timeout is part of the input type for clarity
     const id = nextId++;
-    // Force a fixed timeout for all notifications
+    // 优先使用单条通知的自定义超时，缺省回退全局配置
+    const effectiveTimeout = notification.timeout ?? notificationTimeoutMs;
     const newNotification: UINotification = {
       ...notification,
       id,
-      timeout: notificationTimeoutMs,
+      timeout: effectiveTimeout,
     };
     notifications.value.push(newNotification);
 
-    // Always set timeout to remove the notification automatically
+    // 按有效超时自动移除通知
     setTimeout(() => {
       removeNotification(id);
-    }, notificationTimeoutMs);
+    }, effectiveTimeout);
   };
 
   /**
@@ -94,25 +97,21 @@ export const useUiNotificationsStore = defineStore('uiNotifications', () => {
     notifications.value = notifications.value.filter((n) => n.id !== id);
   };
 
-  // 便捷方法
+  // 便捷方法（超时由 addNotification 统一处理）
   const showError = (message: string) => {
-    // Removed options
-    addNotification({ type: 'error', message }); // Timeout is handled by addNotification
+    addNotification({ type: 'error', message });
   };
 
   const showSuccess = (message: string) => {
-    // Removed options
-    addNotification({ type: 'success', message }); // Timeout is handled by addNotification
+    addNotification({ type: 'success', message });
   };
 
   const showInfo = (message: string) => {
-    // Removed options
-    addNotification({ type: 'info', message }); // Timeout is handled by addNotification
+    addNotification({ type: 'info', message });
   };
 
   const showWarning = (message: string) => {
-    // Removed options
-    addNotification({ type: 'warning', message }); // Timeout is handled by addNotification
+    addNotification({ type: 'warning', message });
   };
 
   return {

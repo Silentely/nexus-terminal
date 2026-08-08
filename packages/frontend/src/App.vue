@@ -73,16 +73,16 @@ const updateUnderline = async () => {
       underlineRef.value.style.left = `${activeLink.offsetLeft}px`;
       underlineRef.value.style.width = `${activeLink.offsetWidth}px`;
       // underlineRef.value.style.top = `${activeLink.offsetTop + activeLink.offsetHeight + offsetBottom}px`; // 移除 top 设置
-      underlineRef.value.style.opacity = '1'; // Make it visible
+      underlineRef.value.style.opacity = '1'; // 使其可见
     } else {
-      underlineRef.value.style.opacity = '0'; // Hide if no active link (e.g., on login page if not a nav link)
+      underlineRef.value.style.opacity = '0'; // 无激活链接时隐藏（例如登录页）
     }
   }
 };
 
 onMounted(() => {
-  // Initial position update
-  // Use setTimeout to ensure styles are applied and elements have dimensions
+  // 初始化位置更新
+  // 使用 setTimeout 确保样式生效且元素已具备尺寸
   setTimeout(updateUnderline, 100);
 
   // +++ 全局 Alt 键监听器 +++

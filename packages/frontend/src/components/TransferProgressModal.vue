@@ -5,6 +5,7 @@ import apiClient from '../utils/apiClient';
 import { useConnectionsStore } from '../stores/connections.store'; // 请确认此路径是否正确
 import { extractErrorMessage } from '../utils/errorExtractor';
 import { log } from '@/utils/log';
+import { formatDateTime } from '../utils/dateFormat';
 
 interface Props {
   visible: boolean;
@@ -89,6 +90,7 @@ const transferTasks = ref<TransferTask[]>([]);
 const isLoading = ref(false);
 const errorLoading = ref<string | null>(null);
 const pollingIntervalId = ref<number | null>(null);
+const POLLING_INTERVAL_MS = 5000;
 
 // Computed property for sorted and limited tasks
 const displayedTasks = computed(() => {
@@ -172,52 +174,58 @@ const getDisplayStatus = (status: string): string => {
 
 const formatDate = (dateInput: string | Date): string => {
   if (!dateInput) return '';
-  try {
-    // +++ 使用 i18n 的 locale 进行日期格式化 +++
-    return new Date(dateInput).toLocaleString(locale.value, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  } catch (_error: unknown) {
-    return String(dateInput);
-  }
+  // 统一走 utils/dateFormat 公共工具，保持原有含秒显示与 locale 语义
+  return formatDateTime(dateInput, { locale: locale.value, fallback: '', withSeconds: true });
 };
 
-onMounted(() => {
-  if (props.visible) {
-    fetchTransferTasks();
-    if (pollingIntervalId.value === null) {
-      pollingIntervalId.value = window.setInterval(fetchTransferTasks, 5000);
+// 启动轮询：页面隐藏时不请求，避免后台标签页持续消耗资源
+const startPolling = () => {
+  if (pollingIntervalId.value !== null) return;
+  pollingIntervalId.value = window.setInterval(() => {
+    if (document.hidden) {
+      stopPolling();
+      return;
     }
-  }
-});
+    fetchTransferTasks();
+  }, POLLING_INTERVAL_MS);
+};
 
-onUnmounted(() => {
+const stopPolling = () => {
   if (pollingIntervalId.value !== null) {
     clearInterval(pollingIntervalId.value);
     pollingIntervalId.value = null;
   }
+};
+
+// 页面恢复可见且模态框打开时，立即刷新并恢复轮询
+const handleVisibilityChange = () => {
+  if (!document.hidden && props.visible && pollingIntervalId.value === null) {
+    fetchTransferTasks();
+    startPolling();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  if (props.visible) {
+    fetchTransferTasks();
+    startPolling();
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
+  stopPolling();
 });
 
 watch(
   () => props.visible,
   (newVisible) => {
-    // internalVisible.value = newVisible; // 由下面的watch处理
     if (newVisible) {
       fetchTransferTasks(); // 模态框可见时立即获取一次数据
-      if (pollingIntervalId.value === null) {
-        // 只有在没有定时器时才启动
-        pollingIntervalId.value = window.setInterval(fetchTransferTasks, 5000);
-      }
+      startPolling();
     } else {
-      if (pollingIntervalId.value !== null) {
-        clearInterval(pollingIntervalId.value);
-        pollingIntervalId.value = null;
-      }
+      stopPolling();
     }
   },
   { immediate: false },

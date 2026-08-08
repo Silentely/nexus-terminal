@@ -1902,8 +1902,7 @@
     "errorSourceConnectionMissing": "源服务器信息缺失，无法发起传输。"
   },
   "time": {
-    "unknown": "未知时间",
-    "invalidDate": "无效日期"
+    "unknown": "未知时间"
   },
   "sshSuspend": {
     "notifications": {

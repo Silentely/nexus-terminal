@@ -11,7 +11,7 @@ import type { ConnectionInfo } from '../stores/connections.store';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key: string) => key }),
+  useI18n: () => ({ t: (key: string) => key, locale: ref('zh-CN') }),
 }));
 
 // Mock vue-router

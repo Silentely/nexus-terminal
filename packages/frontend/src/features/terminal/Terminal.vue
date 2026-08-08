@@ -39,6 +39,7 @@ import { useTouchGestures } from '../../composables/useTouchGestures';
 import { OutputEnhancerAddon } from './addons/output-enhancer';
 import PerformanceMonitor from './components/PerformanceMonitor.vue';
 import { log } from '@/utils/log';
+import { createDebounced } from '@/utils/debounce';
 
 // 定义 props 和 emits
 const props = defineProps({
@@ -132,16 +133,9 @@ const {
   terminalEnableBracketedPasteBoolean,
 } = storeToRefs(settingsStore);
 
-const debounce = <TArgs extends unknown[]>(func: (...args: TArgs) => void, delay: number) => {
-  let timeoutId: number | null = null;
-  return (...args: TArgs) => {
-    if (timeoutId !== null) clearTimeout(timeoutId);
-    timeoutId = window.setTimeout(() => {
-      func(...args);
-      timeoutId = null;
-    }, delay);
-  };
-};
+// 统一防抖实现（utils/debounce 公共工具）
+const debounce = <TArgs extends unknown[]>(func: (...args: TArgs) => void, delay: number) =>
+  createDebounced(func, delay);
 
 // 创建防抖版的字体大小保存函数 (区分设备)
 const debouncedSaveFontSize = debounce(async (size: number) => {

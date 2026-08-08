@@ -121,4 +121,47 @@ describe('uiNotifications.store', () => {
     vi.advanceTimersByTime(mod.DEFAULT_NOTIFICATION_TIMEOUT_MS);
     expect(store.notifications).toHaveLength(0);
   });
+
+  it('单条通知的自定义 timeout 应覆盖全局默认值', async () => {
+    const mod = await loadStoreModule();
+    setActivePinia(createPinia());
+    const store = mod.useUiNotificationsStore();
+
+    store.addNotification({ type: 'info', message: '长时间提示', timeout: 10000 });
+    expect(store.notifications[0]?.timeout).toBe(10000);
+
+    // 超过默认超时但未到自定义超时，通知应仍在
+    vi.advanceTimersByTime(mod.DEFAULT_NOTIFICATION_TIMEOUT_MS + 100);
+    expect(store.notifications).toHaveLength(1);
+
+    // 到达自定义超时后移除
+    vi.advanceTimersByTime(10000 - mod.DEFAULT_NOTIFICATION_TIMEOUT_MS);
+    expect(store.notifications).toHaveLength(0);
+  });
+
+  it('重复警告通知应在去重窗口内被抑制', async () => {
+    const mod = await loadStoreModule();
+    setActivePinia(createPinia());
+    const store = mod.useUiNotificationsStore();
+
+    store.showWarning('磁盘空间不足');
+    expect(store.notifications).toHaveLength(1);
+
+    store.showWarning('磁盘空间不足');
+    expect(store.notifications).toHaveLength(1);
+  });
+
+  it('相同警告消息在去重窗口过期后应允许再次显示', async () => {
+    const mod = await loadStoreModule();
+    setActivePinia(createPinia());
+    const store = mod.useUiNotificationsStore();
+
+    store.showWarning('连接不稳定');
+    expect(store.notifications).toHaveLength(1);
+
+    vi.advanceTimersByTime(mod.DEDUPE_WINDOW_MS + 1);
+    store.showWarning('连接不稳定');
+    expect(store.notifications).toHaveLength(1);
+    expect(store.notifications[0].message).toBe('连接不稳定');
+  });
 });

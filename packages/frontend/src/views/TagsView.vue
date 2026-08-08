@@ -54,12 +54,10 @@ const onTagSaved = () => {
       </div>
 
       <LoadingState v-if="tagsStore.isLoading" :text="t('tags.loading')" compact />
-      <div
+      <ErrorBanner
         v-else-if="tagsStore.error"
-        class="p-4 border-l-4 border-error bg-error/10 text-error rounded"
-      >
-        {{ t('tags.error', { error: tagsStore.error }) }}
-      </div>
+        :message="t('tags.error', { error: tagsStore.error })"
+      />
       <EmptyState v-else-if="tagsStore.tags.length === 0" :text="t('tags.noTags')" icon="fa-tags" />
       <TagList v-else :tags="tagsStore.tags" @edit-tag="openEditForm" />
 

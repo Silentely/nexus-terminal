@@ -57,8 +57,9 @@ import type { SuspendedSshSession } from '../types/ssh-suspend.types';
 import { useWorkspaceEventEmitter } from '../composables/workspaceEvents'; // +++ 导入事件发射器 +++
 import SuspendedSessionItem from '../components/SuspendedSessionItem.vue';
 import { log } from '@/utils/log';
+import { formatDateTime as formatDateTimeUtil } from '../utils/dateFormat';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const emitWorkspaceEvent = useWorkspaceEventEmitter(); // +++ 获取事件发射器 +++
 const sessionStore = useSessionStore();
 const { suspendedSshSessions: storeSuspendedSshSessions, isLoadingSuspendedSessions: isLoading } =
@@ -87,20 +88,9 @@ const filterSessions = () => {
   // 计算属性会自动处理过滤
 };
 
-const formatDateTime = (isoString?: string) => {
-  if (!isoString) return t('time.unknown');
-  try {
-    return new Date(isoString).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch (error: unknown) {
-    return t('time.invalidDate');
-  }
-};
+// 格式化挂起时间（统一走 utils/dateFormat 公共工具，跟随 i18n locale）
+const formatDateTime = (isoString?: string) =>
+  formatDateTimeUtil(isoString, { locale: locale.value, fallback: t('time.unknown') });
 
 const startEditingName = (session: SuspendedSshSession) => {
   // async 不再需要，聚焦由 watcher 处理

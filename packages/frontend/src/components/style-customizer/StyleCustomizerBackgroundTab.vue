@@ -296,7 +296,7 @@ const handleSaveLocalPreset = async () => {
   const content = newPresetContent.value.trim();
 
   if (!desiredBaseName) {
-    // It's recommended to add this key to your i18n files, e.g., "Preset name cannot be empty."
+    // 建议将此文案补充到 i18n 语言包，例如 "预设名称不能为空。"
     notificationsStore.addNotification({
       type: 'error',
       message: t('styleCustomizer.errorPresetNameRequired', '预设名称不能为空。'),
@@ -343,7 +343,7 @@ const handleSaveLocalPreset = async () => {
         await createLocalHtmlPreset(finalNewFullName, content);
         // If creation was successful, delete the old preset
         await deleteLocalHtmlPreset(originalFullName);
-        // It's recommended to add this key to your i18n files, e.g., "Local preset '{oldName}' has been renamed to '{newName}'."
+        // 建议将此文案补充到 i18n 语言包，例如 "本地预设 '{oldName}' 已重命名为 '{newName}'。"
         notificationsStore.addNotification({
           type: 'success',
           message: t('styleCustomizer.localPresetRenamed', {
@@ -353,7 +353,7 @@ const handleSaveLocalPreset = async () => {
         });
         showPresetEditor.value = false;
       } catch (error: unknown) {
-        // It's recommended to add this key to your i18n files, error.g., "Failed to rename local preset: {message}"
+        // 建议将此文案补充到 i18n 语言包，例如 "本地预设重命名失败: {message}"
         notificationsStore.addNotification({
           type: 'error',
           message: t('styleCustomizer.localPresetRenameFailed', {

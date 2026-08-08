@@ -14,7 +14,7 @@ interface PortInfo {
 }
 
 export interface DockerContainer {
-  // Exporting for potential use elsewhere
+  // 导出供其他位置复用
   id: string;
   Names: string[];
   Image: string;
@@ -29,7 +29,7 @@ export interface DockerContainer {
 }
 
 export interface DockerStats {
-  // Exporting for potential use elsewhere
+  // 导出供其他位置复用
   ID: string;
   Name: string;
   CPUPerc: string;
@@ -41,7 +41,7 @@ export interface DockerStats {
 }
 
 // --- WebSocket Dependencies Interface ---
-// Similar to other composables, defining dependencies for WS communication
+// 与其他 composable 类似，定义 WebSocket 通信所需依赖
 export interface DockerManagerDependencies {
   sendMessage: (message: WebSocketMessage) => void;
   onMessage: (
@@ -49,8 +49,8 @@ export interface DockerManagerDependencies {
     handler: (payload: unknown, fullMessage?: WebSocketMessage) => void,
   ) => () => void;
   isConnected: ComputedRef<boolean>;
-  // We might need isSshReady or similar if Docker commands depend on SSH being fully ready
-  // For now, isConnected might suffice, assuming WS connection implies SSH readiness for Docker
+  // 若 Docker 命令依赖 SSH 就绪，可能需要 isSshReady 等状态
+  // 目前假定 WS 已连接即 SSH 就绪，isConnected 足够
 }
 
 interface DockerStatusUpdatePayload {
@@ -104,26 +104,26 @@ export function createDockerManager(
   i18n: { t: (key: string, params?: unknown) => string },
 ) {
   const { sendMessage, onMessage, isConnected } = wsDeps;
-  const { t } = i18n; // Use the passed i18n instance
+  const { t } = i18n; // 使用传入的 i18n 实例
 
   // --- State ---
   const containers = ref<DockerContainer[]>([]);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
-  const isDockerAvailable = ref(true); // Assume available until checked
+  const isDockerAvailable = ref(true); // 校验前先假定可用
   const expandedContainerIds = ref<Set<string>>(new Set());
   const initialLoadDone = ref(false);
   let refreshInterval: ReturnType<typeof setInterval> | null = null;
   let wsUnsubscribeHooks: (() => void)[] = [];
 
   // --- Settings Store ---
-  // Settings need to be accessed here as well for default expansion
+  // 此处也需要读取设置以决定默认展开
   const settingsStore = useSettingsStore();
   const { dockerDefaultExpandBoolean } = storeToRefs(settingsStore);
 
   // --- Methods ---
 
-  // Clear existing WebSocket listeners
+  // 清理既有 WebSocket 监听
   const clearWsListeners = () => {
     if (wsUnsubscribeHooks.length > 0) {
       wsUnsubscribeHooks.forEach((unsub) => unsub());
@@ -134,11 +134,11 @@ export function createDockerManager(
   // Request Docker status via WebSocket
   const requestDockerStatus = () => {
     if (!isConnected.value) {
-      // Reset state if disconnected? Or rely on watch(isConnected)?
+      // 断开时是否重置状态？还是依赖 watch(isConnected)？
       // Let's reset here for immediate feedback if called manually while disconnected.
       containers.value = [];
       isLoading.value = false;
-      error.value = t('dockerManager.error.sshDisconnected'); // Use a generic disconnected message
+      error.value = t('dockerManager.error.sshDisconnected'); // 使用通用的断开提示
       isDockerAvailable.value = false;
       expandedContainerIds.value.clear();
       initialLoadDone.value = false;
@@ -148,20 +148,20 @@ export function createDockerManager(
     }
 
     isLoading.value = true;
-    error.value = null; // Clear previous error
-    sendMessage({ type: 'docker:get_status', sessionId }); // Ensure sessionId is included if needed by backend routing
+    error.value = null; // 清除之前的错误
+    sendMessage({ type: 'docker:get_status', sessionId }); // 如后端路由需要，确保带上 sessionId
   };
 
   // Setup WebSocket listeners
   const setupWsListeners = () => {
-    clearWsListeners(); // Clear previous listeners first
+    clearWsListeners(); // 先清理既有监听
     if (!isConnected.value) {
       log.warn(`[DockerManager ${sessionId}] Cannot setup listeners, WebSocket not connected.`);
       return;
     }
 
     const unsubStatus = onMessage('docker:status:update', (payload, message) => {
-      if (message?.sessionId && message.sessionId !== sessionId) return; // Ignore messages for other sessions
+      if (message?.sessionId && message.sessionId !== sessionId) return; // 忽略其他会话的消息
       isLoading.value = false;
       const statusPayload = parseDockerStatusUpdatePayload(payload);
 
@@ -171,7 +171,7 @@ export function createDockerManager(
           containers.value = statusPayload.containers;
           error.value = null;
 
-          // Clean up expansion state
+          // 清理展开状态
           const currentIds = new Set(containers.value.map((c) => c.id));
           const idsToRemove = new Set<string>();
           expandedContainerIds.value.forEach((id) => {
@@ -179,7 +179,7 @@ export function createDockerManager(
           });
           idsToRemove.forEach((id) => expandedContainerIds.value.delete(id));
 
-          // Handle default expand on initial load
+          // 首次加载时处理默认展开
           if (!initialLoadDone.value && dockerDefaultExpandBoolean.value) {
             containers.value.forEach((container) => {
               if (!expandedContainerIds.value.has(container.id)) {
@@ -223,9 +223,9 @@ export function createDockerManager(
     const unsubCommandError = onMessage('docker:command:error', (payload, message) => {
       if (message?.sessionId && message.sessionId !== sessionId) return;
       log.error(`[DockerManager ${sessionId}] Received docker:command:error`, payload);
-      // How to notify UI? Maybe set an error ref? Or rely on status update?
-      // For now, just log. UI component could show a generic error or use a notification system.
-      // Consider adding a transient commandError ref if needed.
+      // 如何通知 UI？可设置 error ref 或依赖状态更新？
+      // 目前仅记录日志。UI 组件可展示通用错误或使用通知系统。
+      // 如有需要可增加临时 commandError ref。
     });
 
     const unsubStatsError = onMessage('docker:stats:error', (payload, message) => {
@@ -237,7 +237,7 @@ export function createDockerManager(
 
     const unsubRequestUpdate = onMessage('request_docker_status_update', (payload, message) => {
       if (message?.sessionId && message.sessionId !== sessionId) return;
-      requestDockerStatus(); // Trigger a status refresh immediately
+      requestDockerStatus(); // 立即触发一次状态刷新
     });
 
     wsUnsubscribeHooks.push(
@@ -249,7 +249,7 @@ export function createDockerManager(
     );
   };
 
-  // Send command for a specific container via WebSocket
+  // 通过 WebSocket 向指定容器发送命令
   const sendDockerCommand = (
     containerId: string,
     command: 'start' | 'stop' | 'restart' | 'remove',
@@ -268,11 +268,11 @@ export function createDockerManager(
       sessionId, // Include sessionId if needed by backend routing
       payload: { containerId, command },
     });
-    // Optionally trigger a status refresh sooner after a command
+    // 命令后可选择提前刷新状态
     // setTimeout(requestDockerStatus, 500);
   };
 
-  // Toggle expansion state for a container
+  // 切换容器的展开状态
   const toggleExpand = (containerId: string) => {
     if (expandedContainerIds.value.has(containerId)) {
       expandedContainerIds.value.delete(containerId);
@@ -283,12 +283,12 @@ export function createDockerManager(
 
   // --- Lifecycle Management ---
 
-  // Reset state function
+  // 重置状态
   const resetStateAndInterval = () => {
     containers.value = [];
     isLoading.value = false;
     error.value = null;
-    isDockerAvailable.value = true; // Assume available until checked
+    isDockerAvailable.value = true; // 校验前先假定可用
     expandedContainerIds.value.clear();
     initialLoadDone.value = false;
 
@@ -299,7 +299,7 @@ export function createDockerManager(
     clearWsListeners();
   };
 
-  // Watch for connection changes to manage listeners and interval
+  // 监听连接变化以管理监听与定时器
   watch(
     isConnected,
     (newIsConnected) => {
@@ -307,36 +307,36 @@ export function createDockerManager(
         // 只有当Docker管理器在布局中时才设置监听器和定时器
         const layoutStore = useLayoutStore();
         if (layoutStore.usedPanes.has('dockerManager')) {
-          // Connection established
+          // 连接已建立
           setupWsListeners();
-          requestDockerStatus(); // Fetch initial status
+          requestDockerStatus(); // 拉取初始状态
 
-          // Start refresh interval (consider if backend pushes updates reliably)
+          // 启动刷新定时器（考虑后端推送是否可靠）
           if (!refreshInterval) {
-            // Keep a safety interval
-            refreshInterval = setInterval(requestDockerStatus, 15000); // Check every 15s
+            // 保留安全刷新间隔
+            refreshInterval = setInterval(requestDockerStatus, 15000); // 每 15 秒检查
           }
         } else {
         }
       } else {
-        // Connection lost
+        // 连接已断开
         resetStateAndInterval();
-        // Set error state to indicate disconnection
+        // 设置错误状态以提示断开
         error.value = t('dockerManager.error.sshDisconnected');
-        isDockerAvailable.value = false; // Assume unavailable when disconnected
+        isDockerAvailable.value = false; // 断开时假定不可用
       }
     },
     { immediate: false },
   ); // Don't run immediately, let initial connect trigger it
 
-  // Cleanup function to be called when the session ends
+  // 会话结束时调用的清理函数
   const cleanup = () => {
-    resetStateAndInterval(); // Clears listeners and interval
+    resetStateAndInterval(); // 清理监听与定时器
   };
 
   // --- Initial Setup ---
-  // If already connected when this manager is created, set up listeners and fetch data.
-  // This handles cases where the manager is created after the WS connection is live.
+  // 若创建时已连接，则建立监听并拉取数据。
+  // 覆盖管理器在 WS 连接建立后才创建的情况。
   if (isConnected.value) {
     // 只有当Docker管理器在布局中时才设置监听器和定时器
     const layoutStore = useLayoutStore();
@@ -349,7 +349,7 @@ export function createDockerManager(
     } else {
     }
   } else {
-    // Set initial state for disconnected status
+    // 设置断开时的初始状态
     error.value = t('dockerManager.error.sshDisconnected');
     isDockerAvailable.value = false;
   }
@@ -364,7 +364,7 @@ export function createDockerManager(
     expandedContainerIds: readonly(expandedContainerIds), // UI needs this read-only
 
     // Methods
-    requestDockerStatus, // Might be useful for manual refresh button in UI
+    requestDockerStatus, // 可供 UI 手动刷新按钮使用
     sendDockerCommand,
     toggleExpand, // UI needs this to handle clicks
 
@@ -373,5 +373,5 @@ export function createDockerManager(
   };
 }
 
-// Export the type of the returned manager instance
+// 导出返回的管理器实例类型
 export type DockerManagerInstance = ReturnType<typeof createDockerManager>;

@@ -29,7 +29,7 @@ import { log } from '@/utils/log';
 // --- Setup ---
 const { t } = useI18n();
 const sessionStore = useSessionStore();
-const settingsStore = useSettingsStore(); // Keep settingsStore instance
+const settingsStore = useSettingsStore(); // 保留 settingsStore 实例
 const fileEditorStore = useFileEditorStore();
 const layoutStore = useLayoutStore();
 const commandHistoryStore = useCommandHistoryStore();

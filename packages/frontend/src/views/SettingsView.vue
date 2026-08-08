@@ -174,7 +174,7 @@ const settingsStore = useSettingsStore();
 const { t } = useI18n();
 const { isUpdateAvailable, checkLatestVersion } = useVersionCheck();
 
-// Define tabs for settings sections
+// 定义设置分区标签页
 const tabs = computed(() => [
   { key: 'workspace', label: t('settings.tabs.workspace', '工作区') },
   { key: 'system', label: t('settings.tabs.system', '系统') },

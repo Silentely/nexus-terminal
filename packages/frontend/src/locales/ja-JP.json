@@ -1902,8 +1902,7 @@
     "errorSourceConnectionMissing": "送信元サーバー情報がありません。転送を開始できません。"
   },
   "time": {
-    "unknown": "不明な時間",
-    "invalidDate": "無効な日付"
+    "unknown": "不明な時間"
   },
   "sshSuspend": {
     "notifications": {

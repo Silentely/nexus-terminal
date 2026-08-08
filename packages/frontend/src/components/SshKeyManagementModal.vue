@@ -101,7 +101,7 @@ const handleSubmit = async () => {
   if (success) {
     isAddEditFormVisible.value = false; // Close form on success
   } else {
-    // Error message is handled by the store and displayed via uiNotificationsStore
+    // 错误消息由 store 处理并通过 uiNotificationsStore 展示
     // Optionally set formError based on store error if needed for specific display
     formError.value = sshKeysStore.error;
   }
@@ -115,7 +115,7 @@ const handleDelete = async (key: SshKeyBasicInfo) => {
   if (confirmed) {
     const success = await sshKeysStore.deleteSshKey(key.id);
     if (!success) {
-      // Error handled by store
+      // 错误由 store 处理
     }
     // If the deleted key was being edited, close the form
     if (keyToEdit.value?.id === key.id) {

@@ -1902,8 +1902,7 @@
     "errorSourceConnectionMissing": "Source server information is missing. Cannot initiate transfer."
   },
   "time": {
-    "unknown": "Unknown time",
-    "invalidDate": "Invalid date"
+    "unknown": "Unknown time"
   },
   "sshSuspend": {
     "notifications": {

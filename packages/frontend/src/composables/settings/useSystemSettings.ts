@@ -36,7 +36,7 @@ export function useSystemSettings() {
       await settingsStore.updateSetting('language', selectedLanguage.value);
       languageMessage.value = t('settings.language.success.saved');
       languageSuccess.value = true;
-      // The language change will be reflected globally by the i18n instance
+      // 语言变更将由 i18n 实例全局生效
       // when settingsStore.language updates.
     } catch (error: unknown) {
       log.error('更新语言设置失败:', error);

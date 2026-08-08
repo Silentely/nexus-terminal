@@ -5,9 +5,9 @@ interface UseResizableOptions {
   minHeight?: number;
   maxWidth?: number;
   maxHeight?: number;
-  edgeThreshold?: number; // How close to an edge to consider it a drag handle
-  initialWidth?: number | string; // Allow string for % or vh/vw, or number for px
-  initialHeight?: number | string; // Allow string for % or vh/vw, or number for px
+  edgeThreshold?: number; // 距离边缘多近视为拖拽手柄
+  initialWidth?: number | string; // 允许字符串（% / vh / vw）或数字（px）
+  initialHeight?: number | string; // 允许字符串（% / vh / vw）或数字（px）
 }
 
 type Edge =
@@ -26,8 +26,8 @@ export function useResizable(
   options: UseResizableOptions = {},
 ) {
   const {
-    minWidth = 100, // Default min width
-    minHeight = 100, // Default min height
+    minWidth = 100, // 默认最小宽度
+    minHeight = 100, // 默认最小高度
     maxWidth = Infinity,
     maxHeight = Infinity,
     edgeThreshold = 8, // pixels, sensitivity for edge detection
@@ -48,7 +48,7 @@ export function useResizable(
     const rect = el.getBoundingClientRect();
     const { clientX, clientY } = event;
 
-    // Check corners first
+    // 优先检测四角
     const onRight = Math.abs(clientX - rect.right) < edgeThreshold;
     const onLeft = Math.abs(clientX - rect.left) < edgeThreshold;
     const onBottom = Math.abs(clientY - rect.bottom) < edgeThreshold;
@@ -79,21 +79,21 @@ export function useResizable(
     const edge = getEdge(event, elementRef.value);
 
     if (!edge) return;
-    event.preventDefault(); // Prevent text selection, etc.
+    event.preventDefault(); // 阻止文本选中等默认行为
 
     isResizing.value = true;
     currentEdge.value = edge;
     startX = event.clientX;
     startY = event.clientY;
 
-    // Ensure width and height refs have current dimensions
+    // 确保宽高 ref 持有当前尺寸
     const rect = elementRef.value.getBoundingClientRect();
     startWidth = rect.width;
     startHeight = rect.height;
     width.value = startWidth;
     height.value = startHeight;
 
-    elementRef.value.style.userSelect = 'none'; // Prevent text selection
+    elementRef.value.style.userSelect = 'none'; // 阻止文本选中
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
@@ -122,7 +122,7 @@ export function useResizable(
       newHeight = startHeight - deltaY;
     }
 
-    // Apply constraints
+    // 应用约束
     width.value = Math.max(minWidth, Math.min(maxWidth, newWidth));
     height.value = Math.max(minHeight, Math.min(maxHeight, newHeight));
   };
@@ -132,7 +132,7 @@ export function useResizable(
     isResizing.value = false;
     if (elementRef.value) {
       elementRef.value.style.userSelect = '';
-      updateCursorStyle(elementRef.value, null); // Reset to default or hover state
+      updateCursorStyle(elementRef.value, null); // 恢复默认或悬停态光标
     }
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
@@ -153,19 +153,19 @@ export function useResizable(
   onMounted(() => {
     if (elementRef.value) {
       const el = elementRef.value;
-      // Initialize width and height from element's current computed size
-      // This ensures that initial CSS (like %, vw, vh, or fixed values) is respected
+      // 依据元素当前计算尺寸初始化宽高
+      // 确保初始 CSS（如 %、vw、vh 或固定值）被尊重
       const computedStyle = window.getComputedStyle(el);
       const parsedWidth = parseFloat(computedStyle.width);
       const parsedHeight = parseFloat(computedStyle.height);
 
-      // Fallback to minWidth/minHeight if parsing results in NaN, or ensure value is at least minWidth/minHeight
+      // 解析为 NaN 时回退到 minWidth/minHeight，或确保值不小于最小尺寸
       width.value = Number.isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
       height.value = Number.isNaN(parsedHeight) ? minHeight : Math.max(minHeight, parsedHeight);
 
       el.addEventListener('mousedown', handleMouseDown);
-      el.addEventListener('mousemove', handleElementHover); // For cursor changes
-      // Reset cursor when mouse leaves the element
+      el.addEventListener('mousemove', handleElementHover); // 用于光标样式切换
+      // 鼠标离开元素时重置光标
       el.addEventListener('mouseleave', handleMouseLeave);
     }
   });
@@ -176,11 +176,11 @@ export function useResizable(
       elementRef.value.removeEventListener('mousemove', handleElementHover);
       elementRef.value.removeEventListener('mouseleave', handleMouseLeave);
     }
-    window.removeEventListener('mousemove', handleMouseMove); // Cleanup just in case
-    window.removeEventListener('mouseup', handleMouseUp); // Cleanup just in case
+    window.removeEventListener('mousemove', handleMouseMove); // 兜底清理
+    window.removeEventListener('mouseup', handleMouseUp); // 兜底清理
   });
 
-  // Watch for external changes to elementRef if it can become null
+  // 监听 elementRef 的外部变化（可能变为 null）
   watch(elementRef, (newEl, oldEl) => {
     if (oldEl) {
       oldEl.removeEventListener('mousedown', handleMouseDown);
@@ -192,7 +192,7 @@ export function useResizable(
       const parsedWidth = parseFloat(computedStyle.width);
       const parsedHeight = parseFloat(computedStyle.height);
 
-      // Fallback to minWidth/minHeight if parsing results in NaN, or ensure value is at least minWidth/minHeight
+      // 解析为 NaN 时回退到 minWidth/minHeight，或确保值不小于最小尺寸
       width.value = Number.isNaN(parsedWidth) ? minWidth : Math.max(minWidth, parsedWidth);
       height.value = Number.isNaN(parsedHeight) ? minHeight : Math.max(minHeight, parsedHeight);
 

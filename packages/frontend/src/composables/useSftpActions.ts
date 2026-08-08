@@ -55,7 +55,7 @@ export interface SftpManagerInstance {
   joinPath: (base: string, name: string) => string;
   setInitialLoadDone: (value: boolean) => void;
 
-  // Cleanup function
+  // 清理函数
   cleanup: () => void;
 }
 

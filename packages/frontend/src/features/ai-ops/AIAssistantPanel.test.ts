@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
-import { nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
 import AIAssistantPanel from './AIAssistantPanel.vue';
 import type { AIMessage, AISession, AIInsight } from '../../types/ai.types';
 
@@ -13,6 +13,7 @@ import type { AIMessage, AISession, AIInsight } from '../../types/ai.types';
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string, fallback?: string) => fallback || key,
+    locale: ref('zh-CN'),
   }),
 }));
 

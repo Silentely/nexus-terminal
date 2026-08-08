@@ -412,20 +412,8 @@
         {{ store.isLoading ? $t('common.saving') : $t('common.save') }}
       </button>
     </div>
-    <div
-      v-if="formError"
-      class="p-3 mt-3 border-l-4 border-error bg-error/10 text-error text-sm rounded"
-    >
-      {{ formError }}
-    </div>
-    <!-- Use error colors -->
-    <div
-      v-if="testError"
-      class="p-3 mt-3 border-l-4 border-error bg-error/10 text-error text-sm rounded"
-    >
-      {{ testError }}
-    </div>
-    <!-- Use error colors -->
+    <ErrorBanner v-if="formError" class="mt-3" compact :message="formError" />
+    <ErrorBanner v-if="testError" class="mt-3" compact :message="testError" />
   </form>
 </template>
 

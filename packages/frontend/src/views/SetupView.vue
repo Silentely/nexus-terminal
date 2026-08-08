@@ -163,16 +163,16 @@ const handleSetup = async () => {
     authStore.isAuthenticated = false;
     authStore.user = null;
     // 禁用表单或按钮，防止重复提交
-    isLoading.value = true; // Keep loading state to disable button
-    // Redirect to login immediately after showing success message (removed setTimeout)
-    // The success message will be briefly visible before navigation.
+    isLoading.value = true; // 保持加载状态以禁用按钮
+    // 显示成功消息后立即跳转登录页（已移除 setTimeout）
+    // 成功消息在跳转前会短暂显示。
     router.push('/login');
   } catch (err: unknown) {
     log.error('Setup failed:', err);
     error.value = extractErrorMessage(err, t('setup.error.generic'));
     isLoading.value = false; // Re-enable button on error
   }
-  // Removed finally block setting isLoading to false on success to keep button disabled
+  // 已移除成功时复位 isLoading 的 finally 块，以保持按钮禁用
 };
 </script>
 

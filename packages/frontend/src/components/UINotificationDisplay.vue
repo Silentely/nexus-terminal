@@ -1,32 +1,29 @@
 <script setup lang="ts">
-import { useUiNotificationsStore } from '../stores/uiNotifications.store';
+import { useUiNotificationsStore, type UINotificationType } from '../stores/uiNotifications.store';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const notificationsStore = useUiNotificationsStore();
 const { notifications } = storeToRefs(notificationsStore);
 
-const getIconClass = (type: string) => {
-  switch (type) {
-    case 'success':
-      return 'fas fa-check-circle';
-    case 'error':
-      return 'fas fa-times-circle';
-    case 'info':
-      return 'fas fa-info-circle';
-    case 'warning':
-      return 'fas fa-exclamation-triangle';
-    default:
-      return '';
-  }
+const ICON_CLASSES: Record<UINotificationType, string> = {
+  success: 'fas fa-check-circle',
+  error: 'fas fa-times-circle',
+  info: 'fas fa-info-circle',
+  warning: 'fas fa-exclamation-triangle',
 };
 
-const getContainerClass = (type: string) => {
-  return `notification-item notification-${type}`;
-};
+const getIconClass = (type: UINotificationType): string => ICON_CLASSES[type];
 </script>
 
 <template>
-  <div class="fixed top-4 right-4 z-[1100] flex flex-col items-end">
+  <div
+    class="fixed top-4 right-4 z-[1100] flex flex-col items-end"
+    role="status"
+    aria-live="polite"
+    aria-atomic="false"
+  >
     <transition-group
       tag="div"
       enter-active-class="transition duration-500 ease-out"
@@ -50,12 +47,12 @@ const getContainerClass = (type: string) => {
         ]"
       >
         <i
-          :class="['mr-3 text-lg relative top-px', getIconClass(notification.type)]"
-          style="color: white !important"
+          :class="['mr-3 text-lg relative top-px text-white', getIconClass(notification.type)]"
         ></i>
         <span class="flex-grow break-words text-sm">{{ notification.message }}</span>
         <button
           class="ml-4 p-1 bg-transparent border-none text-white opacity-70 hover:opacity-100 cursor-pointer text-lg leading-none"
+          :aria-label="t('common.close')"
           @click="notificationsStore.removeNotification(notification.id)"
         >
           &times;

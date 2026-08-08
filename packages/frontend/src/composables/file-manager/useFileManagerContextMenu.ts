@@ -260,8 +260,8 @@ export function useFileManagerContextMenu(options: UseFileManagerContextMenuOpti
       }
 
       // --- 分隔符 (视觉) ---
-      // The invalid object literal was here and is now removed.
-      // The separator below handles the division correctly.
+      // 此处的无效对象字面量已移除。
+      // 下方分隔符正确实现分区逻辑。
 
       // Ensure separator is pushed separately and correctly
       menu.push({ label: '', action: () => {}, disabled: true, separator: true }); // Separator

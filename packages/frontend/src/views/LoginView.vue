@@ -48,9 +48,9 @@ const handleCaptchaError = (errorDetails: unknown) => {
 const resetCaptchaWidget = () => {
   // log.info('Resetting CAPTCHA widget...');
   captchaToken.value = null;
-  // Reset hCaptcha if it exists
+  // 重置 hCaptcha（如存在）
   hcaptchaWidget.value?.reset();
-  // Reset reCAPTCHA v2 if it exists
+  // 重置 reCAPTCHA v2（如存在）
   recaptchaWidget.value?.reset();
 };
 
@@ -61,10 +61,10 @@ const handleSubmit = async () => {
   // --- CAPTCHA Execution & Check ---
   // --- CAPTCHA Check (v2/hCaptcha) ---
   if (publicCaptchaConfig.value?.enabled && !loginRequires2FA.value) {
-    // Check if token exists (obtained via component event for v2/hCaptcha)
+    // 校验 token 是否存在（v2/hCaptcha 通过组件事件获取）
     if (!captchaToken.value) {
       captchaError.value = t('login.error.captchaRequired');
-      return; // Stop submission if CAPTCHA is required but not completed
+      return; // 若需要验证码但未完成，则中止提交
     }
   }
 
@@ -77,7 +77,7 @@ const handleSubmit = async () => {
       await authStore.login({
         ...credentials,
         rememberMe: rememberMe.value,
-        captchaToken: captchaToken.value ?? undefined, // Pass token or undefined if null
+        captchaToken: captchaToken.value ?? undefined, // 传入 token；为空则传 undefined
       });
     }
     // 成功后的重定向由 store action 处理
@@ -85,7 +85,7 @@ const handleSubmit = async () => {
   } finally {
     // Reset CAPTCHA after attempt (success or failure handled by store redirect/error display)
     if (publicCaptchaConfig.value?.enabled) {
-      resetCaptchaWidget(); // Reset the widget for potential retry
+      resetCaptchaWidget(); // 重置验证码组件以便重试
     }
   } // <-- Correctly closing the try block here
 };
@@ -94,8 +94,8 @@ const handleSubmit = async () => {
 onMounted(async () => {
   // log.info('[LoginView] Component mounted, calling fetchCaptchaConfig and checkHasPasskeysConfigured...');
   authStore.fetchCaptchaConfig();
-  // Check if passkeys are available for login (uses the new public endpoint)
-  // Optionally pass username if needed: await authStore.checkHasPasskeysConfigured(credentials.username);
+  // 检查是否可用 Passkey 登录（使用新的公开端点）
+  // 可选：按需传入用户名：await authStore.checkHasPasskeysConfigured(credentials.username);
   await authStore.checkHasPasskeysConfigured();
 });
 
@@ -105,8 +105,8 @@ const handlePasskeyLogin = async () => {
     isLoading.value = true;
     error.value = null; // Clear previous errors
 
-    // Prepare body for authentication options request
-    // If username is provided, include it. Otherwise, send an empty object
+    // 组装认证选项请求体
+    // 若提供了用户名则带上；否则发送空对象
     // to allow the backend to attempt discoverable credential authentication.
     const authOptionsBody = credentials.username ? { username: credentials.username } : {};
 
@@ -128,15 +128,15 @@ const handlePasskeyLogin = async () => {
     const authenticationResult = await startAuthentication(authOptions);
 
     // Step 3: Send authentication result to the server
-    // Pass username if it was used to get options, otherwise pass null or rely on backend to extract from assertion
-    // For simplicity, we'll pass the username if available, or an empty string if not.
-    // The store action `loginWithPasskey` expects a string.
-    // The backend should ideally identify the user from the assertion if an empty username is provided.
+    // 若使用用户名获取选项则回传用户名，否则传空并依赖后端从断言中提取
+    // 为简化处理：用户名可用则传入，否则传空字符串。
+    // store 的 `loginWithPasskey` 动作期望字符串参数。
+    // 空用户名时，理想情况下后端应从断言中识别用户。
     await authStore.loginWithPasskey(credentials.username || '', authenticationResult);
   } catch (err: unknown) {
     log.error('Passkey login error:', err);
     error.value = extractErrorMessage(err, t('login.error.passkeyAuthFailed'));
-    // Potentially reset CAPTCHA if it was involved, though typically not for passkey flows directly
+    // 若涉及验证码可考虑重置，但 Passkey 流程通常不直接需要
     // if (publicCaptchaConfig.value?.enabled) {
     //   resetCaptchaWidget();
     // }

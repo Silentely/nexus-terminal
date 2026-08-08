@@ -159,9 +159,10 @@ import { useAuditLogStore } from '../stores/audit.store';
 import { AuditLogEntry, AuditLogActionType } from '../types/server.types';
 import { useI18n } from 'vue-i18n';
 import { useVirtualListSetup } from '../composables/useVirtualListSetup';
+import { formatDateTime } from '../utils/dateFormat';
 
 const store = useAuditLogStore();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 // --- Filtering State ---
 const searchTerm = ref('');
@@ -231,9 +232,9 @@ onMounted(() => {
   store.fetchLogs();
 });
 
-const formatTimestamp = (timestamp: number): string => {
-  return new Date(timestamp * 1000).toLocaleString();
-};
+// 辅助函数：格式化时间戳（统一走 utils/dateFormat 公共工具）
+const formatTimestamp = (timestamp: number): string =>
+  formatDateTime(timestamp, { locale: locale.value });
 
 const translateActionType = (actionType: AuditLogActionType): string => {
   const key = `auditLog.actions.${actionType}`;

@@ -109,7 +109,11 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { SuspendedSshSession } from '../types/ssh-suspend.types';
+import { formatDateTime as formatDateTimeUtil } from '../utils/dateFormat';
+
+const { locale } = useI18n();
 
 const props = defineProps<{
   session: SuspendedSshSession;
@@ -139,18 +143,7 @@ watch(
   },
 );
 
-const formatDateTime = (isoString?: string) => {
-  if (!isoString) return '';
-  try {
-    return new Date(isoString).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return isoString;
-  }
-};
+// 格式化挂起时间（统一走 utils/dateFormat 公共工具，跟随 i18n locale）
+const formatDateTime = (isoString?: string) =>
+  formatDateTimeUtil(isoString, { locale: locale.value, fallback: '' });
 </script>

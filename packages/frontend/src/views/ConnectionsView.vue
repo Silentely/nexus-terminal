@@ -216,7 +216,7 @@ const handleConnectionModified = async () => {
 const toggleBatchEditMode = () => {
   isBatchEditMode.value = !isBatchEditMode.value;
   if (!isBatchEditMode.value) {
-    selectedConnectionIdsForBatch.value.clear(); // Clear selection when exiting batch mode
+    selectedConnectionIdsForBatch.value.clear(); // 退出批量模式时清空选中
   }
 };
 
@@ -272,7 +272,7 @@ const openBatchEditModal = () => {
 const handleBatchEditSaved = async () => {
   showBatchEditForm.value = false;
   selectedConnectionIdsForBatch.value.clear();
-  // isBatchEditMode.value = false; // Optionally exit batch mode after saving
+  // isBatchEditMode.value = false; // 保存后可选择退出批量模式
   await connectionsStore.fetchConnections(); // Refresh the list
 };
 
@@ -333,8 +333,8 @@ const connectionTestStates = ref<Map<number, ConnectionTestState>>(new Map());
 const isTestingAll = ref(false);
 
 const getLatencyColorString = (latencyMs?: number): string => {
-  if (latencyMs === undefined) return 'inherit'; // Default or inherit
-  // These colors should ideally come from theme variables if available
+  if (latencyMs === undefined) return 'inherit'; // 默认或继承
+  // 这些颜色最好取自主题变量（如可用）
   if (latencyMs < 100) return 'var(--color-success, #4CAF50)';
   if (latencyMs < 300) return 'var(--color-warning, #ff9800)';
   return 'var(--color-error, #F44336)';
@@ -349,7 +349,7 @@ const handleTestSingleConnection = async (conn: ConnectionInfo) => {
   });
 
   try {
-    // Pass only the ID to testConnection, as per store definition
+    // 按 store 定义仅传入 ID 进行连接测试
     const result = await connectionsStore.testConnection(conn.id);
 
     if (result.success) {
@@ -390,13 +390,13 @@ const handleTestSingleConnection = async (conn: ConnectionInfo) => {
 
 const handleTestAllFilteredConnections = async () => {
   if (isTestingAll.value || isLoadingConnections.value) return;
-  // Ensure conn.id exists for map function and error handling
+  // 确保 conn.id 存在，供 map 遍历与错误处理使用
   const sshConnectionsToTest = filteredAndSortedConnections.value.filter(
     (c) => c.type === 'SSH' && c.id != null,
   );
   if (sshConnectionsToTest.length === 0) {
-    // Optionally notify user that there are no SSH connections to test
-    // Consider using uiNotificationsStore from your project for a user-friendly message
+    // 可选：提示用户当前没有可测试的 SSH 连接
+    // 可考虑使用项目中的 uiNotificationsStore 输出友好提示
     return;
   }
 
@@ -404,15 +404,15 @@ const handleTestAllFilteredConnections = async () => {
   const testPromises = sshConnectionsToTest.map((conn) => {
     // conn.id is guaranteed to exist here due to the filter above.
     // We're calling handleTestSingleConnection for each.
-    // Individual errors within handleTestSingleConnection will update that specific connection's state.
-    // We also add a .catch here to handle any unexpected errors from handleTestSingleConnection itself
+    // handleTestSingleConnection 内的单个错误会更新对应连接的状态。
+    // 此处补充 .catch 兜底 handleTestSingleConnection 自身的意外错误
     // or if conn.id was somehow null/undefined (though filtered out).
     return handleTestSingleConnection(conn).catch((error) => {
       log.error(`Error testing connection ${conn.id}:`, error);
-      // Ensure state is updated for this specific connection to show an error
+      // 确保该连接状态被更新以展示错误
       // The 'id' here is from the 'conn' object in the map function's scope.
       connectionTestStates.value.set(conn.id!, {
-        // Using non-null assertion as id is checked
+        // id 已校验，使用非空断言
         status: 'error',
         resultText: t('connections.test.unknownErrorDuringBatch', '批量测试中发生错误'), // New i18n key
       });
@@ -422,7 +422,7 @@ const handleTestAllFilteredConnections = async () => {
   try {
     await Promise.all(testPromises);
   } catch (error: unknown) {
-    // This catch block handles errors if Promise.all itself fails,
+    // 该 catch 处理 Promise.all 自身的失败，
     // though individual promise rejections are handled above.
     log.error('Error during batch testing of connections (Promise.all):', error);
     // Optionally, set a general error state or notification for the entire batch operation if needed.
@@ -444,7 +444,7 @@ const getSingleTestButtonInfo = (connId: number | undefined, connType: string | 
     };
   }
   if (!connId) {
-    // Should not happen if connType is SSH and we are in the list
+    // 若 connType 为 SSH 且在列表中，此分支不应出现
     return {
       textKey: 'connections.actions.test',
       iconClass: 'fas fa-plug',
@@ -510,9 +510,9 @@ const handleConnectAllFilteredConnections = async () => {
   try {
     for (const conn of sshConnectionsToConnect) {
       connectTo(conn);
-      // Consider a small delay if you want to visually see connections initiating one by one,
+      // 如需逐条看到连接发起，可考虑加入小延迟，
       // or if connectTo triggers operations that might benefit from not being fired too rapidly.
-      // await new Promise(resolve => setTimeout(resolve, 200)); // Example delay
+      // await new Promise(resolve => setTimeout(resolve, 200)); // 示例延迟
     }
   } catch (error: unknown) {
     log.error('Error connecting to all filtered SSH connections:', error);

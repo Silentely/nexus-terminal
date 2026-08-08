@@ -31,15 +31,14 @@ const { showAlertDialog } = useAlertDialog();
 
 // --- State ---
 const localLayoutTree: Ref<LayoutNode | null> = ref(null);
-// State for current edits
-// const localLayoutTree: Ref<LayoutNode | null> = ref(null); // REMOVE DUPLICATE
+// 当前编辑状态
 const localSidebarPanes: Ref<{ left: PaneName[]; right: PaneName[] }> = ref({
   left: [],
   right: [],
 });
 const localAvailablePanes: Ref<PaneName[]> = ref([]);
 
-// State for original values to compare against
+// 用于对比的原始值状态
 const originalLayoutTree: Ref<LayoutNode | null> = ref(null);
 const originalSidebarPanes: Ref<{ left: PaneName[]; right: PaneName[] }> = ref({
   left: [],
@@ -70,16 +69,16 @@ watch(
       localSidebarPanes.value = initialSidebars;
       originalSidebarPanes.value = JSON.parse(JSON.stringify(initialSidebars));
 
-      // Initialize available panes: Include 'terminal' only if it's not already used.
+      // 初始化可用面板：若 'terminal' 未被使用则包含它。
       const initialUsed = getAllLocalUsedPaneNames(localLayoutTree.value, localSidebarPanes.value);
       if (initialUsed.has('terminal')) {
-        // Terminal is used, available list excludes it
+        // 已使用 terminal，可用列表排除它
         localAvailablePanes.value = layoutStore.allPossiblePanes.filter((p) => p !== 'terminal');
       } else {
-        // Terminal is not used, available list includes all
+        // 未使用 terminal，可用列表包含全部
         localAvailablePanes.value = [...layoutStore.allPossiblePanes];
       }
-      // Ensure original order is maintained
+      // 保持原始顺序
       localAvailablePanes.value.sort(
         (a, b) => layoutStore.allPossiblePanes.indexOf(a) - layoutStore.allPossiblePanes.indexOf(b),
       );
@@ -125,11 +124,11 @@ function getAllLocalUsedPaneNames(
 }
 
 // --- Restore Helper Functions for Terminal ---
-// Helper to add 'terminal' back to available list if not present
+// 将 'terminal' 重新加入可用列表（如缺失）
 function addPaneToAvailableList(paneName: PaneName) {
-  // Only act if the pane is 'terminal' and it's not already available
+  // 仅当面板为 'terminal' 且尚不在可用列表中时处理
   if (paneName === 'terminal' && !localAvailablePanes.value.includes('terminal')) {
-    // Maintain original order if possible
+    // 尽量保持原始顺序
     const originalIndex = layoutStore.allPossiblePanes.indexOf('terminal');
     let inserted = false;
     for (let i = 0; i < localAvailablePanes.value.length; i++) {
@@ -142,13 +141,13 @@ function addPaneToAvailableList(paneName: PaneName) {
       }
     }
     if (!inserted) {
-      localAvailablePanes.value.push('terminal'); // Add to end if no suitable spot found
+      localAvailablePanes.value.push('terminal'); // 未找到合适位置时追加到末尾
     }
     log.info(`[LayoutConfigurator] Added 'terminal' back to available panes.`);
   }
 }
 
-// Helper to remove 'terminal' from available list
+// 从可用列表移除 'terminal'
 function removePaneFromAvailableList(paneName: PaneName) {
   if (paneName === 'terminal') {
     const index = localAvailablePanes.value.indexOf('terminal');
@@ -159,24 +158,24 @@ function removePaneFromAvailableList(paneName: PaneName) {
   }
 }
 // --- Computed ---
-// Panel Labels for display
-// Real-time comparison to determine if changes exist
+// 面板标签展示
+// 实时对比以判断是否存在变更
 const isModified = computed(() => {
-  // Compare current local state with the original snapshot
+  // 对比当前本地状态与原始快照
   const currentLayoutJson = JSON.stringify(localLayoutTree.value);
   const originalLayoutJson = JSON.stringify(originalLayoutTree.value);
   const currentSidebarJson = JSON.stringify(localSidebarPanes.value);
   const originalSidebarJson = JSON.stringify(originalSidebarPanes.value);
 
-  // Return true if either layout or sidebars differ from the original
+  // 布局或侧栏任一与原始状态不同则返回 true
   const modified =
     currentLayoutJson !== originalLayoutJson || currentSidebarJson !== originalSidebarJson;
-  // log.info(`[LayoutConfigurator] isModified computed: ${modified}`); // Debug log
+  // log.info(`[LayoutConfigurator] isModified computed: ${modified}`); // 调试日志
   return modified;
 });
 
 const paneLabels = computed(() => ({
-  // Assuming labels might depend on i18n
+  // 假定标签文案依赖 i18n
   connections: t('layout.pane.connections', '连接列表'),
   terminal: t('layout.pane.terminal', '终端'),
   commandBar: t('layout.pane.commandBar', '命令栏'),
@@ -192,16 +191,16 @@ const paneLabels = computed(() => ({
 }));
 
 // --- Methods ---
-// +++ Method to update layout lock setting +++
+// +++ 更新布局锁定设置的方法 +++
 const handleLayoutLockChange = async () => {
-  // Removed event parameter
-  const isLocked = !layoutLockedBoolean.value; // Toggle the current state
+  // 已移除事件参数
+  const isLocked = !layoutLockedBoolean.value; // 切换当前锁定状态
   log.info(`[LayoutConfigurator] Layout lock toggled: ${isLocked}`);
   try {
-    // +++ Convert boolean to string before sending +++
+    // +++ 发送前将布尔值转为字符串 +++
     await settingsStore.updateSetting('layoutLocked', String(isLocked));
-    // No need to update local state directly, store watcher should handle it if needed,
-    // but the button's appearance relies on layoutLockedBoolean which comes from the store.
+    // 无需直接更新本地状态，需要时由 store 监听处理，
+    // 但按钮外观依赖来自 store 的 layoutLockedBoolean。
   } catch (error: unknown) {
     log.error('[LayoutConfigurator] Failed to update layout lock setting:', error);
   }

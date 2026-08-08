@@ -261,7 +261,7 @@ const connectionsStore = useConnectionsStore();
 
 const isFormVisible = ref(false);
 const commandToEdit = ref<QuickCommandFE | null>(null);
-const commandListContainerRef = ref<HTMLDivElement | null>(null); // Changed ref name to match template
+const commandListContainerRef = ref<HTMLDivElement | null>(null); // 调整 ref 名称以匹配模板
 const searchInputRef = ref<HTMLInputElement | null>(null); // +++ Ref for the search input +++
 let unregisterFocus: (() => void) | null = null; // +++ 保存注销函数 +++
 
@@ -294,7 +294,7 @@ const noResultsText = computed(
   () => `${t('quickCommands.noResults', '没有找到匹配的指令')} "${searchTerm.value}"`,
 );
 const sortBy = computed(() => quickCommandsStore.sortBy);
-// Use the new grouped getter
+// 使用新的分组 getter
 const filteredAndGroupedCommands = computed(() => quickCommandsStore.filteredAndGroupedCommands);
 const isLoading = computed(() => quickCommandsStore.isLoading);
 
@@ -368,12 +368,12 @@ const isCommandSelected = (commandId: number): boolean => {
 
 // --- 生命周期钩子 ---
 onMounted(async () => {
-  // Make onMounted async
-  // Load expanded groups state first
+  // 使 onMounted 为异步
+  // 先加载分组展开状态
   quickCommandsStore.loadExpandedGroups();
-  // Then fetch commands (which might initialize expandedGroups for new groups)
+  // 再拉取指令（可能为新分组初始化展开状态）
   await quickCommandsStore.fetchQuickCommands();
-  // Also fetch the quick command tags using the correct store instance
+  // 同时使用正确的 store 实例拉取快捷指令标签
   await quickCommandTagsStore.fetchTags();
   // +++ 注册自定义聚焦动作 +++
   unregisterFocus = focusSwitcherStore.registerFocusAction('quickCommandsSearch', focusSearchInput);
@@ -408,7 +408,7 @@ const scrollToSelected = async (index: number) => {
   const selectedCommandId = flatVisibleCommands.value[index].id;
   const listContainer = commandListContainerRef.value;
 
-  // Find the element using the data attribute (works for both views)
+  // 通过 data 属性定位元素（两种视图均适用）
   const selectedElement = listContainer.querySelector(
     `li[data-command-id="${selectedCommandId}"]`,
   ) as HTMLLIElement;
@@ -425,12 +425,12 @@ const scrollToSelected = async (index: number) => {
   }
 };
 
-// Watch for changes in the store's selectedIndex and scroll
+// 监听 store 中 selectedIndex 的变化并滚动
 watch(storeSelectedIndex, (newIndex) => {
   scrollToSelected(newIndex);
 });
 
-// Keyboard navigation now operates on the flat visible list from the store
+// 键盘导航基于 store 中扁平化的可见列表
 const handleSearchInputKeydown = (event: KeyboardEvent) => {
   // 使用 store 的 flatVisibleCommands
   const commands = flatVisibleCommands.value;
@@ -439,12 +439,12 @@ const handleSearchInputKeydown = (event: KeyboardEvent) => {
   switch (event.key) {
     case 'ArrowDown':
       event.preventDefault();
-      quickCommandsStore.selectNextCommand(); // Use store action
+      quickCommandsStore.selectNextCommand(); // 使用 store 动作
       // scrollToSelected is handled by watcher
       break;
     case 'ArrowUp':
       event.preventDefault();
-      quickCommandsStore.selectPreviousCommand(); // Use store action
+      quickCommandsStore.selectPreviousCommand(); // 使用 store 动作
       // scrollToSelected is handled by watcher
       break;
     case 'Enter':
@@ -481,10 +481,10 @@ const toggleSortBy = () => {
 // +++ Action to toggle group expansion +++
 const toggleGroup = (groupName: string) => {
   quickCommandsStore.toggleGroup(groupName);
-  // After toggling, selection might become invalid if the selected item is now hidden
-  // Reset selection or check if the selected item is still visible
+  // 切换后，若选中项被隐藏则选中可能失效
+  // 重置选中，或检查选中项是否仍然可见
   nextTick(() => {
-    // Wait for DOM update potentially caused by v-show
+    // 等待 v-show 可能触发的 DOM 更新
     // 使用 store 的 flatVisibleCommands 和 storeSelectedIndex
     const selectedCmdId =
       storeSelectedIndex.value >= 0 && flatVisibleCommands.value[storeSelectedIndex.value]
@@ -493,10 +493,10 @@ const toggleGroup = (groupName: string) => {
     if (selectedCmdId !== null) {
       const newIndex = flatVisibleCommands.value.findIndex((cmd) => cmd.id === selectedCmdId);
       if (newIndex === -1) {
-        // Selected item is no longer visible
+        // 选中项已不可见
         quickCommandsStore.resetSelection();
       } else {
-        // Update index if it shifted, though usually reset is safer/simpler
+        // 若索引发生偏移则修正，但通常重置更稳妥
         // storeSelectedIndex.value = newIndex;
       }
     }

@@ -6,9 +6,7 @@
     </h2>
 
     <!-- Error state (Show first if error exists) -->
-    <div v-if="store.error" class="p-4 mb-4 border-l-4 border-error bg-error/10 text-error rounded">
-      {{ store.error }}
-    </div>
+    <ErrorBanner v-if="store.error" class="mb-4" :message="store.error" />
 
     <!-- Add Button (Show if no error) -->
     <button

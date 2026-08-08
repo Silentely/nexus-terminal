@@ -226,8 +226,9 @@ import { useI18n } from 'vue-i18n';
 import DOMPurify from 'dompurify';
 import { useAIStore } from '../../stores/ai.store';
 import type { AIInsightSeverity } from '../../types/ai.types';
+import { formatShortDateTime, formatTime as formatClockTime } from '../../utils/dateFormat';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const emit = defineEmits(['close']);
 
 const aiStore = useAIStore();
@@ -274,22 +275,12 @@ const truncateSessionId = computed(() => {
   return aiStore.currentSessionId.substring(0, 8) + '...';
 });
 
-// 格式化时间
-const formatTime = (ts: Date | string | number) => {
-  const date = ts instanceof Date ? ts : new Date(ts);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
+// 格式化时间（统一走 utils/dateFormat 公共工具）
+const formatTime = (ts: Date | string | number) => formatClockTime(ts, { locale: locale.value });
 
-// 格式化日期
-const formatDate = (ts: Date | string | number) => {
-  const date = ts instanceof Date ? ts : new Date(ts);
-  return date.toLocaleDateString([], {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
+// 格式化日期（统一走 utils/dateFormat 公共工具）
+const formatDate = (ts: Date | string | number) =>
+  formatShortDateTime(ts, { locale: locale.value });
 
 // 格式化消息（支持 Markdown 基础格式，使用 DOMPurify 防止 XSS）
 const formatMessage = (content: string) => {
