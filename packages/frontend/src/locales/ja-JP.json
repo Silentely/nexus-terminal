@@ -1999,7 +1999,14 @@
       "cancelled": "キャンセル済み"
     },
     "copyOutput": "クリップボードにコピー",
-    "sudoConfirm": "警告: sudo 権限で実行します。続行しますか？"
+    "copied": "コピーしました",
+    "copySuccess": "出力をクリップボードにコピーしました",
+    "copyFailed": "出力のコピーに失敗しました。テキストを選択して手動でコピーしてください。",
+    "closeOutput": "出力を閉じる",
+    "sudoConfirmTitle": "高い権限で実行する確認",
+    "sudoConfirm": "選択したサーバーで sudo を使って実行するため、システム状態が変更される可能性があります。続行しますか？",
+    "cancelTitle": "一括実行をキャンセルしますか？",
+    "cancelConfirm": "実行中の接続は中断され、待機中の接続は実行されません。"
   },
   "editor": {
     "unsavedChanges": {

@@ -3,6 +3,7 @@
  * 测试批量命令执行的核心业务逻辑
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { EventEmitter } from 'node:events';
 
 import {
   execCommandBatch,
@@ -11,10 +12,12 @@ import {
   cancelTask,
   deleteTask,
   cleanupOldTasks,
+  executeCommand,
 } from './batch.service';
 import * as BatchRepository from './batch.repository';
 import { broadcastToUser } from '../websocket/state';
 import * as ConnectionRepository from '../connections/connection.repository';
+import * as SshService from '../services/ssh.service';
 import type { BatchTask, BatchExecPayload } from './batch.types';
 
 // Mock 依赖模块
@@ -225,6 +228,302 @@ describe('Batch Service', () => {
   });
 
   describe('cancelTask', () => {
+    it('启动前取消应持久化所有 queued 子任务并广播取消原因', async () => {
+      const task: BatchTask = {
+        taskId: 'mock-uuid-1234',
+        userId: 1,
+        status: 'queued',
+        concurrencyLimit: 2,
+        overallProgress: 0,
+        totalSubTasks: 2,
+        completedSubTasks: 0,
+        failedSubTasks: 0,
+        cancelledSubTasks: 0,
+        payload: { connectionIds: [1, 2], command: 'ls' },
+        subTasks: [
+          {
+            subTaskId: 'sub-1',
+            taskId: 'mock-uuid-1234',
+            connectionId: 1,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+          {
+            subTaskId: 'sub-2',
+            taskId: 'mock-uuid-1234',
+            connectionId: 2,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+        ],
+        priority: 'normal',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      let resolveTask!: (value: BatchTask) => void;
+      const taskLoaded = new Promise<BatchTask>((resolve) => {
+        resolveTask = resolve;
+      });
+
+      (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue({
+        id: 1,
+        name: '服务器',
+      });
+      (BatchRepository.createTask as any).mockResolvedValue(undefined);
+      (BatchRepository.getTask as any).mockReturnValueOnce(taskLoaded).mockResolvedValueOnce(task);
+      (BatchRepository.cancelSubTasks as any).mockResolvedValue(2);
+      (BatchRepository.updateTaskStatus as any).mockResolvedValue(undefined);
+      (BatchRepository.updateSubTaskStatus as any).mockResolvedValue(undefined);
+
+      const createdTask = await execCommandBatch(
+        { connectionIds: [1, 2], command: 'ls', concurrencyLimit: 2 },
+        1,
+      );
+
+      await expect(cancelTask(createdTask.taskId, '主人主动取消')).resolves.toBe(true);
+      resolveTask(task);
+
+      await vi.waitFor(() => {
+        expect(BatchRepository.updateTaskStatus).toHaveBeenCalledWith(
+          'mock-uuid-1234',
+          'cancelled',
+          expect.objectContaining({
+            message: '主人主动取消',
+            cancelledSubTasks: 2,
+          }),
+        );
+      });
+
+      expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledWith(
+        'mock-uuid-1234',
+        'sub-1',
+        'cancelled',
+        0,
+        expect.objectContaining({ message: '主人主动取消' }),
+      );
+      expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledWith(
+        'mock-uuid-1234',
+        'sub-2',
+        'cancelled',
+        0,
+        expect.objectContaining({ message: '主人主动取消' }),
+      );
+      expect(broadcastToUser).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          type: 'batch:cancelled',
+          payload: { taskId: 'mock-uuid-1234', reason: '主人主动取消' },
+        }),
+      );
+    });
+
+    it('启动前取消不应覆盖已完成或失败子任务的计数', async () => {
+      const task: BatchTask = {
+        taskId: 'mock-uuid-1234',
+        userId: 1,
+        status: 'queued',
+        concurrencyLimit: 3,
+        overallProgress: 66,
+        totalSubTasks: 3,
+        completedSubTasks: 1,
+        failedSubTasks: 1,
+        cancelledSubTasks: 0,
+        payload: { connectionIds: [1, 2, 3], command: 'ls' },
+        subTasks: [
+          {
+            subTaskId: 'sub-completed',
+            taskId: 'mock-uuid-1234',
+            connectionId: 1,
+            command: 'ls',
+            status: 'completed',
+            progress: 100,
+          },
+          {
+            subTaskId: 'sub-failed',
+            taskId: 'mock-uuid-1234',
+            connectionId: 2,
+            command: 'ls',
+            status: 'failed',
+            progress: 100,
+          },
+          {
+            subTaskId: 'sub-queued',
+            taskId: 'mock-uuid-1234',
+            connectionId: 3,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+        ],
+        priority: 'normal',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      let resolveTask!: (value: BatchTask) => void;
+      const taskLoaded = new Promise<BatchTask>((resolve) => {
+        resolveTask = resolve;
+      });
+
+      (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue({
+        id: 1,
+        name: '服务器',
+      });
+      (BatchRepository.createTask as any).mockResolvedValue(undefined);
+      (BatchRepository.getTask as any).mockReturnValueOnce(taskLoaded).mockResolvedValueOnce(task);
+      (BatchRepository.cancelSubTasks as any).mockResolvedValue(1);
+      (BatchRepository.updateTaskStatus as any).mockResolvedValue(undefined);
+      (BatchRepository.updateSubTaskStatus as any).mockResolvedValue(undefined);
+
+      const createdTask = await execCommandBatch(
+        { connectionIds: [1, 2, 3], command: 'ls', concurrencyLimit: 3 },
+        1,
+      );
+      await expect(cancelTask(createdTask.taskId, '主人主动取消')).resolves.toBe(true);
+      resolveTask(task);
+
+      await vi.waitFor(() => {
+        expect(BatchRepository.updateTaskStatus).toHaveBeenCalledWith(
+          'mock-uuid-1234',
+          'cancelled',
+          expect.objectContaining({
+            completedSubTasks: 1,
+            failedSubTasks: 1,
+            cancelledSubTasks: 1,
+          }),
+        );
+      });
+
+      expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledTimes(1);
+      expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledWith(
+        'mock-uuid-1234',
+        'sub-queued',
+        'cancelled',
+        0,
+        expect.objectContaining({ message: '主人主动取消' }),
+      );
+    });
+
+    it('取消连接中的任务时应等待 queued 子任务落盘后发送终态事件', async () => {
+      const task: BatchTask = {
+        taskId: 'mock-uuid-1234',
+        userId: 1,
+        status: 'in-progress',
+        concurrencyLimit: 1,
+        overallProgress: 0,
+        totalSubTasks: 2,
+        completedSubTasks: 0,
+        failedSubTasks: 0,
+        cancelledSubTasks: 0,
+        payload: { connectionIds: [1, 2], command: 'ls' },
+        subTasks: [
+          {
+            subTaskId: 'sub-1',
+            taskId: 'mock-uuid-1234',
+            connectionId: 1,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+          {
+            subTaskId: 'sub-2',
+            taskId: 'mock-uuid-1234',
+            connectionId: 2,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+        ],
+        priority: 'normal',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      let resolveConnection!: (value: {
+        host: string;
+        port: number;
+        username: string;
+        auth_method: string;
+      }) => void;
+      const connectionLoaded = new Promise<{
+        host: string;
+        port: number;
+        username: string;
+        auth_method: string;
+      }>((resolve) => {
+        resolveConnection = resolve;
+      });
+
+      (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue({
+        id: 1,
+        name: '服务器',
+      });
+      (BatchRepository.createTask as any).mockResolvedValue(undefined);
+      (BatchRepository.getTask as any).mockResolvedValue(task);
+      (BatchRepository.cancelSubTasks as any).mockResolvedValue(1);
+      (BatchRepository.updateTaskStatus as any).mockResolvedValue(undefined);
+      (BatchRepository.updateSubTaskStatus as any).mockResolvedValue(undefined);
+      (SshService.getConnectionDetails as any).mockReturnValue(connectionLoaded);
+
+      const createdTask = await execCommandBatch(
+        { connectionIds: [1, 2], command: 'ls', concurrencyLimit: 1 },
+        1,
+      );
+
+      await vi.waitFor(() => {
+        expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledWith(
+          'mock-uuid-1234',
+          'sub-1',
+          'connecting',
+          0,
+          expect.objectContaining({ startedAt: expect.any(Date) }),
+        );
+      });
+
+      await expect(cancelTask(createdTask.taskId, '主人主动取消')).resolves.toBe(true);
+      resolveConnection({
+        host: '127.0.0.1',
+        port: 22,
+        username: 'tester',
+        auth_method: 'password',
+      });
+
+      await vi.waitFor(() => {
+        expect(BatchRepository.updateTaskStatus).toHaveBeenCalledWith(
+          'mock-uuid-1234',
+          'cancelled',
+          expect.objectContaining({
+            completedSubTasks: 0,
+            failedSubTasks: 0,
+            cancelledSubTasks: 2,
+          }),
+        );
+      });
+
+      expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledWith(
+        'mock-uuid-1234',
+        'sub-1',
+        'cancelled',
+        0,
+        expect.objectContaining({ message: '主人主动取消' }),
+      );
+
+      const finalStatusCall = (
+        BatchRepository.updateTaskStatus as any
+      ).mock.invocationCallOrder.find(
+        (callOrder: number, index: number) =>
+          (BatchRepository.updateTaskStatus as any).mock.calls[index]?.[1] === 'cancelled',
+      );
+      const finalEventCall = (broadcastToUser as any).mock.invocationCallOrder.find(
+        (callOrder: number, index: number) =>
+          (broadcastToUser as any).mock.calls[index]?.[1]?.type === 'batch:cancelled',
+      );
+
+      expect(finalStatusCall).toBeDefined();
+      expect(finalEventCall).toBeDefined();
+      expect(finalStatusCall).toBeLessThan(finalEventCall);
+    });
+
     it('应成功取消执行中的任务', async () => {
       const mockTask: BatchTask = {
         taskId: 'task-1',
@@ -251,6 +550,254 @@ describe('Batch Service', () => {
       // H2 修复：WS 终态事件统一由 finalizeTask 在 DB 写入后发送，
       // cancelTask 不再提前广播 batch:cancelled 事件，避免竞态条件
       expect(broadcastToUser).not.toHaveBeenCalled();
+    });
+
+    it('queued 子任务落库失败时仍应先中断后台执行', async () => {
+      const task: BatchTask = {
+        taskId: 'mock-uuid-1234',
+        userId: 1,
+        status: 'queued',
+        concurrencyLimit: 1,
+        overallProgress: 0,
+        totalSubTasks: 1,
+        completedSubTasks: 0,
+        failedSubTasks: 0,
+        cancelledSubTasks: 0,
+        payload: { connectionIds: [1], command: 'ls' },
+        subTasks: [
+          {
+            subTaskId: 'sub-1',
+            taskId: 'mock-uuid-1234',
+            connectionId: 1,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+        ],
+        priority: 'normal',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      let resolveTask!: (value: BatchTask) => void;
+      const taskLoaded = new Promise<BatchTask>((resolve) => {
+        resolveTask = resolve;
+      });
+
+      (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue({
+        id: 1,
+        name: '服务器',
+      });
+      (BatchRepository.createTask as any).mockResolvedValue(undefined);
+      (BatchRepository.getTask as any).mockReturnValueOnce(taskLoaded).mockResolvedValueOnce(task);
+      (BatchRepository.cancelSubTasks as any).mockRejectedValueOnce(new Error('数据库暂不可用'));
+      (BatchRepository.updateTaskStatus as any).mockResolvedValue(undefined);
+      (BatchRepository.updateSubTaskStatus as any).mockResolvedValue(undefined);
+
+      const createdTask = await execCommandBatch(
+        { connectionIds: [1], command: 'ls', concurrencyLimit: 1 },
+        1,
+      );
+
+      await expect(cancelTask(createdTask.taskId, '主人主动取消')).rejects.toThrow(
+        '数据库暂不可用',
+      );
+      resolveTask(task);
+
+      await vi.waitFor(() => {
+        expect(BatchRepository.updateTaskStatus).toHaveBeenCalledWith(
+          'mock-uuid-1234',
+          'cancelled',
+          expect.objectContaining({ message: '主人主动取消' }),
+        );
+      });
+    });
+
+    it('终态写库失败时仍应广播带自定义原因的取消事件', async () => {
+      const task: BatchTask = {
+        taskId: 'mock-uuid-1234',
+        userId: 1,
+        status: 'in-progress',
+        concurrencyLimit: 1,
+        overallProgress: 0,
+        totalSubTasks: 1,
+        completedSubTasks: 0,
+        failedSubTasks: 0,
+        cancelledSubTasks: 0,
+        payload: { connectionIds: [1], command: 'ls' },
+        subTasks: [
+          {
+            subTaskId: 'sub-1',
+            taskId: 'mock-uuid-1234',
+            connectionId: 1,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      let resolveConnection!: (value: {
+        host: string;
+        port: number;
+        username: string;
+        auth_method: string;
+      }) => void;
+      const connectionLoaded = new Promise<{
+        host: string;
+        port: number;
+        username: string;
+        auth_method: string;
+      }>((resolve) => {
+        resolveConnection = resolve;
+      });
+
+      (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue({
+        id: 1,
+        name: '服务器',
+      });
+      (BatchRepository.createTask as any).mockResolvedValue(undefined);
+      (BatchRepository.getTask as any).mockResolvedValue(task);
+      (BatchRepository.cancelSubTasks as any).mockResolvedValue(0);
+      (BatchRepository.updateSubTaskStatus as any).mockResolvedValue(undefined);
+      (BatchRepository.updateTaskStatus as any).mockImplementation(
+        async (_taskId: string, status: string, updates: { message?: string }) => {
+          if (status === 'cancelled' && updates.message === '主人主动取消') {
+            throw new Error('终态写库暂不可用');
+          }
+        },
+      );
+      (SshService.getConnectionDetails as any).mockReturnValue(connectionLoaded);
+
+      const createdTask = await execCommandBatch(
+        { connectionIds: [1], command: 'ls', concurrencyLimit: 1 },
+        1,
+      );
+
+      await vi.waitFor(() => {
+        expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledWith(
+          'mock-uuid-1234',
+          'sub-1',
+          'connecting',
+          0,
+          expect.objectContaining({ startedAt: expect.any(Date) }),
+        );
+      });
+
+      await expect(cancelTask(createdTask.taskId, '主人主动取消')).resolves.toBe(true);
+      resolveConnection({
+        host: '127.0.0.1',
+        port: 22,
+        username: 'tester',
+        auth_method: 'password',
+      });
+
+      await vi.waitFor(() => {
+        expect(broadcastToUser).toHaveBeenCalledWith(
+          1,
+          expect.objectContaining({
+            type: 'batch:cancelled',
+            payload: expect.objectContaining({
+              taskId: 'mock-uuid-1234',
+              reason: '主人主动取消',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('进入终态写回期间不应再次接受取消请求', async () => {
+      const task: BatchTask = {
+        taskId: 'mock-uuid-1234',
+        userId: 1,
+        status: 'in-progress',
+        concurrencyLimit: 1,
+        overallProgress: 0,
+        totalSubTasks: 1,
+        completedSubTasks: 0,
+        failedSubTasks: 0,
+        cancelledSubTasks: 0,
+        payload: { connectionIds: [1], command: 'ls' },
+        subTasks: [
+          {
+            subTaskId: 'sub-1',
+            taskId: 'mock-uuid-1234',
+            connectionId: 1,
+            command: 'ls',
+            status: 'queued',
+            progress: 0,
+          },
+        ],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      let resolveConnection!: (value: {
+        host: string;
+        port: number;
+        username: string;
+        auth_method: string;
+      }) => void;
+      const connectionLoaded = new Promise<{
+        host: string;
+        port: number;
+        username: string;
+        auth_method: string;
+      }>((resolve) => {
+        resolveConnection = resolve;
+      });
+      let releaseFinalStatus!: () => void;
+      let finalStatusStarted!: () => void;
+      const finalStatusPending = new Promise<void>((resolve) => {
+        releaseFinalStatus = resolve;
+      });
+      const finalStatusObserved = new Promise<void>((resolve) => {
+        finalStatusStarted = resolve;
+      });
+
+      (ConnectionRepository.findConnectionByIdWithTags as any).mockResolvedValue({
+        id: 1,
+        name: '服务器',
+      });
+      (BatchRepository.createTask as any).mockResolvedValue(undefined);
+      (BatchRepository.getTask as any).mockResolvedValue(task);
+      (BatchRepository.cancelSubTasks as any).mockResolvedValue(0);
+      (BatchRepository.updateSubTaskStatus as any).mockResolvedValue(undefined);
+      (BatchRepository.updateTaskStatus as any).mockImplementation(
+        async (_taskId: string, status: string) => {
+          if (status === 'cancelled') {
+            finalStatusStarted();
+            await finalStatusPending;
+          }
+        },
+      );
+      (SshService.getConnectionDetails as any).mockReturnValue(connectionLoaded);
+
+      const createdTask = await execCommandBatch(
+        { connectionIds: [1], command: 'ls', concurrencyLimit: 1 },
+        1,
+      );
+
+      await vi.waitFor(() => {
+        expect(BatchRepository.updateSubTaskStatus).toHaveBeenCalledWith(
+          'mock-uuid-1234',
+          'sub-1',
+          'connecting',
+          0,
+          expect.objectContaining({ startedAt: expect.any(Date) }),
+        );
+      });
+
+      await expect(cancelTask(createdTask.taskId, '主人主动取消')).resolves.toBe(true);
+      resolveConnection({
+        host: '127.0.0.1',
+        port: 22,
+        username: 'tester',
+        auth_method: 'password',
+      });
+      await finalStatusObserved;
+
+      await expect(cancelTask(createdTask.taskId, '再次取消')).resolves.toBe(false);
+      releaseFinalStatus();
     });
 
     it('应使用默认取消原因', async () => {
@@ -353,6 +900,63 @@ describe('Batch Service', () => {
       const result = await cancelTask('task-1');
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('executeCommand', () => {
+    it('应限制单次 WebSocket 输出载荷，避免超大 chunk 占用资源', async () => {
+      const stream = Object.assign(new EventEmitter(), {
+        stderr: new EventEmitter(),
+        signal: vi.fn(),
+        close: vi.fn(),
+      });
+      const sshClient = {
+        exec: vi.fn(
+          (_command: string, callback: (error: undefined, stream: typeof stream) => void) =>
+            callback(undefined, stream),
+        ),
+      };
+      const hugeChunk = 'x'.repeat(1024 * 1024 * 2);
+
+      const resultPromise = executeCommand(
+        sshClient as any,
+        'echo output',
+        'task-1',
+        'sub-1',
+        1,
+        new AbortController().signal,
+        30,
+      );
+      stream.emit('data', Buffer.from(hugeChunk));
+      stream.emit('close', 0);
+
+      const result = await resultPromise;
+      expect(result.output).toHaveLength(1024 * 1024);
+      const logEvent = (broadcastToUser as any).mock.calls.find(
+        (call: [number, { type?: string }]) => call[1]?.type === 'batch:log',
+      );
+      expect(logEvent?.[1].payload.chunk).toHaveLength(1024 * 1024);
+    });
+
+    it('exec 同步抛错时应清理超时定时器', async () => {
+      const sshClient = {
+        exec: vi.fn(() => {
+          throw new Error('exec failed');
+        }),
+      };
+
+      await expect(
+        executeCommand(
+          sshClient as any,
+          'echo output',
+          'task-1',
+          'sub-1',
+          1,
+          new AbortController().signal,
+          30,
+        ),
+      ).rejects.toThrow('exec failed');
+      expect(vi.getTimerCount()).toBe(0);
     });
   });
 

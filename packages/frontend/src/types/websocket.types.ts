@@ -165,6 +165,24 @@ export interface BatchOverallPayload {
   [key: string]: unknown;
 }
 
+export interface BatchStartedPayload {
+  taskId: string;
+  total?: number;
+  concurrency?: number;
+  [key: string]: unknown;
+}
+
+export interface BatchTerminalPayload {
+  taskId: string;
+  status?: string;
+  overallProgress?: number;
+  completed?: number;
+  failed?: number;
+  cancelled?: number;
+  reason?: string;
+  [key: string]: unknown;
+}
+
 // --- AI 消息 Payload ---
 export interface AiMessagePayload {
   content: string;
@@ -840,11 +858,19 @@ export interface DockerStatsErrorMessage extends TypedWebSocketMessage<string> {
 }
 
 // Batch 补充消息
-export interface BatchStartedMessage extends TypedWebSocketMessage<{ taskId: string }> {
+export interface BatchStartedMessage extends TypedWebSocketMessage<BatchStartedPayload> {
   type: 'batch:started';
 }
 
-export interface BatchCancelledMessage extends TypedWebSocketMessage<{ taskId: string }> {
+export interface BatchCompletedMessage extends TypedWebSocketMessage<BatchTerminalPayload> {
+  type: 'batch:completed';
+}
+
+export interface BatchFailedMessage extends TypedWebSocketMessage<BatchTerminalPayload> {
+  type: 'batch:failed';
+}
+
+export interface BatchCancelledMessage extends TypedWebSocketMessage<BatchTerminalPayload> {
   type: 'batch:cancelled';
 }
 
@@ -975,7 +1001,14 @@ export type DockerMessage =
   | DockerStatsUpdateMessage;
 
 // Batch 消息联合类型
-export type BatchMessage = BatchSubtaskUpdateMessage | BatchOverallMessage | BatchLogMessage;
+export type BatchMessage =
+  | BatchStartedMessage
+  | BatchSubtaskUpdateMessage
+  | BatchOverallMessage
+  | BatchCompletedMessage
+  | BatchFailedMessage
+  | BatchCancelledMessage
+  | BatchLogMessage;
 
 // AI 消息联合类型
 export type AiMessage = AiChatMessage | AiErrorMessage;

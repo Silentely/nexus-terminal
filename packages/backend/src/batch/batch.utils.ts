@@ -3,7 +3,7 @@
  * 命令清洗、包装与 shell 参数转义（复用全局 shellEscape）
  */
 import { shellEscape } from '../utils/shell-escape';
-import type { BatchExecPayload } from './batch.types';
+import type { BatchExecPayload, BatchSubTask } from './batch.types';
 
 /**
  * 危险注入模式：仅拦截真正风险向量，允许管道/逻辑运算符等合法 shell 语法
@@ -53,4 +53,22 @@ export function buildBatchCommand(command: string, payload: BatchExecPayload): s
   }
 
   return fullCommand;
+}
+
+/**
+ * 将仍在排队的子任务统一标记为取消。
+ * 只修改 queued 状态，避免覆盖已经开始执行或已经结束的子任务。
+ */
+export function markQueuedSubTasksCancelled(subTasks: BatchSubTask[], message: string): number {
+  let cancelledCount = 0;
+
+  for (const subTask of subTasks) {
+    if (subTask.status !== 'queued') continue;
+
+    subTask.status = 'cancelled';
+    subTask.message = message;
+    cancelledCount++;
+  }
+
+  return cancelledCount;
 }

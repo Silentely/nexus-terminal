@@ -21,7 +21,11 @@ import * as ConnectionRepository from '../connections/connection.repository';
 import { logger } from '../utils/logger';
 import eventService, { AppEventType } from '../services/event.service';
 import { sshPoolService, type PoolKey } from '../services/ssh-pool.service';
-import { buildBatchCommand, sanitizeBatchCommand } from './batch.utils';
+import {
+  buildBatchCommand,
+  markQueuedSubTasksCancelled,
+  sanitizeBatchCommand,
+} from './batch.utils';
 
 // 默认配置
 const DEFAULT_CONCURRENCY = 5;
@@ -35,6 +39,8 @@ type SubTaskResult = 'completed' | 'failed' | 'cancelled';
 
 // 存储任务的 AbortController
 const taskAbortControllers = new Map<string, AbortController>();
+// 任务已结束子任务执行、正在落盘终态时不可再取消，避免取消请求落在生命周期缝隙中。
+const finalizingTaskIds = new Set<string>();
 
 /**
  * 向用户发送批量作业 WebSocket 消息
@@ -169,18 +175,35 @@ async function processTask(
 
   // 检查是否已取消（任务启动前就收到 abort 信号）
   if (signal.aborted) {
-    await updateTaskStatus(taskId, 'cancelled', {
-      message: '任务启动前已取消',
-      endedAt: new Date(),
-      overallProgress: 0,
-      completedSubTasks: 0,
-      failedSubTasks: 0,
-      cancelledSubTasks: task.totalSubTasks,
-    });
+    const cancellationMessage = getCancellationMessage(signal);
+    const queuedSubTasks = task.subTasks.filter((subTask) => subTask.status === 'queued');
+    markQueuedSubTasksCancelled(queuedSubTasks, cancellationMessage);
+    await persistCancelledSubTasks(userId, taskId, queuedSubTasks, cancellationMessage);
+
+    const completedSubTasks = task.subTasks.filter(
+      (subTask) => subTask.status === 'completed',
+    ).length;
+    const failedSubTasks = task.subTasks.filter((subTask) => subTask.status === 'failed').length;
+    const cancelledSubTasks = task.subTasks.filter(
+      (subTask) => subTask.status === 'cancelled',
+    ).length;
+
+    try {
+      await updateTaskStatus(taskId, 'cancelled', {
+        message: cancellationMessage,
+        endedAt: new Date(),
+        overallProgress: 100,
+        completedSubTasks,
+        failedSubTasks,
+        cancelledSubTasks,
+      });
+    } catch (error: unknown) {
+      logger.error(`[BatchService] 任务 ${taskId} 启动前取消状态写回失败:`, error);
+    }
     // 发送终态事件，确保前端能收到 batch:cancelled
     sendBatchEvent(userId, {
       type: 'batch:cancelled',
-      payload: { taskId, reason: '任务启动前已取消' },
+      payload: { taskId, reason: cancellationMessage },
     });
     taskAbortControllers.delete(taskId);
     return;
@@ -206,22 +229,33 @@ async function processTask(
   let completedCount = 0;
   let failedCount = 0;
   let cancelledCount = 0;
+  let cancellationReason: string | undefined;
 
   // 标记任务是否被取消
   let taskCancelled = false;
+  let queuedCancellation: Promise<void> = Promise.resolve();
+  let progressUpdateChain: Promise<void> = Promise.resolve();
 
   await new Promise<void>((resolve) => {
     const onAbort = () => {
       logger.debug(`[BatchService] 任务 ${taskId} 收到取消信号。`);
       taskCancelled = true;
-      // 将所有 queued 状态的子任务标记为取消
-      for (let i = currentIndex; i < subTasks.length; i++) {
-        if (subTasks[i].status === 'queued') {
-          cancelledCount++;
-        }
-      }
+      const cancellationMessage = getCancellationMessage(signal);
+      cancellationReason = cancellationMessage;
+      const queuedSubTasks = subTasks
+        .slice(currentIndex)
+        .filter((subTask) => subTask.status === 'queued');
+      cancelledCount += markQueuedSubTasksCancelled(queuedSubTasks, cancellationMessage);
+      queuedCancellation = persistCancelledSubTasks(
+        userId,
+        taskId,
+        queuedSubTasks,
+        cancellationMessage,
+      );
     };
     signal.addEventListener('abort', onAbort, { once: true });
+    // updateTaskStatus 存在异步间隙，取消可能发生在监听器注册前；补一次同步检查避免漏掉信号。
+    if (signal.aborted) onAbort();
 
     const handleSubTaskResult = (result: SubTaskResult) => {
       switch (result) {
@@ -241,16 +275,32 @@ async function processTask(
       failedCount++;
     };
 
+    const queueOverallProgressUpdate = () => {
+      const snapshot = {
+        completed: completedCount,
+        failed: failedCount,
+        cancelled: cancelledCount,
+      };
+
+      progressUpdateChain = progressUpdateChain
+        .then(() =>
+          updateOverallProgress(
+            taskId,
+            userId,
+            snapshot.completed,
+            snapshot.failed,
+            snapshot.cancelled,
+            subTasks.length,
+          ),
+        )
+        .catch((error: unknown) => {
+          logger.warn(`[BatchService] 任务 ${taskId} 整体进度写回失败，继续完成任务:`, error);
+        });
+    };
+
     const handleSubTaskComplete = () => {
       activeCount--;
-      updateOverallProgress(
-        taskId,
-        userId,
-        completedCount,
-        failedCount,
-        cancelledCount,
-        subTasks.length,
-      );
+      queueOverallProgressUpdate();
 
       if (currentIndex < subTasks.length && !signal.aborted) {
         launchNext();
@@ -305,17 +355,26 @@ async function processTask(
     launchNext();
   });
 
-  // 最终状态更新（如果任务被取消，强制使用 cancelled 状态）
-  await finalizeTask(
-    taskId,
-    userId,
-    completedCount,
-    failedCount,
-    cancelledCount,
-    subTasks.length,
-    taskCancelled,
-  );
+  finalizingTaskIds.add(taskId);
   taskAbortControllers.delete(taskId);
+  try {
+    await queuedCancellation;
+    await progressUpdateChain;
+
+    // 最终状态更新（如果任务被取消，强制使用 cancelled 状态）
+    await finalizeTask(
+      taskId,
+      userId,
+      completedCount,
+      failedCount,
+      cancelledCount,
+      subTasks.length,
+      taskCancelled,
+      cancellationReason,
+    );
+  } finally {
+    finalizingTaskIds.delete(taskId);
+  }
 }
 
 /**
@@ -337,8 +396,9 @@ async function runSubTask(
   try {
     // 检查取消
     if (signal.aborted) {
-      await updateSubTask(taskId, subTaskId, 'cancelled', 0, { message: '已取消' });
-      sendSubTaskUpdate(userId, taskId, subTaskId, 'cancelled', 0, '已取消');
+      const cancellationMessage = getCancellationMessage(signal);
+      await updateSubTask(taskId, subTaskId, 'cancelled', 0, { message: cancellationMessage });
+      sendSubTaskUpdate(userId, taskId, subTaskId, 'cancelled', 0, cancellationMessage);
       return 'cancelled';
     }
 
@@ -366,8 +426,9 @@ async function runSubTask(
     };
 
     if (signal.aborted) {
-      await updateSubTask(taskId, subTaskId, 'cancelled', 0, { message: '已取消' });
-      sendSubTaskUpdate(userId, taskId, subTaskId, 'cancelled', 0, '已取消');
+      const cancellationMessage = getCancellationMessage(signal);
+      await updateSubTask(taskId, subTaskId, 'cancelled', 0, { message: cancellationMessage });
+      sendSubTaskUpdate(userId, taskId, subTaskId, 'cancelled', 0, cancellationMessage);
       return 'cancelled';
     }
 
@@ -386,8 +447,9 @@ async function runSubTask(
     }
 
     if (signal.aborted) {
-      await updateSubTask(taskId, subTaskId, 'cancelled', 0, { message: '已取消' });
-      sendSubTaskUpdate(userId, taskId, subTaskId, 'cancelled', 0, '已取消');
+      const cancellationMessage = getCancellationMessage(signal);
+      await updateSubTask(taskId, subTaskId, 'cancelled', 0, { message: cancellationMessage });
+      sendSubTaskUpdate(userId, taskId, subTaskId, 'cancelled', 0, cancellationMessage);
       return 'cancelled';
     }
 
@@ -417,17 +479,11 @@ async function runSubTask(
       // 取消时丢弃连接而不是归还，因为远端会话可能处于半关闭状态
       shouldDiscard = true;
       await updateSubTask(taskId, subTaskId, 'cancelled', 100, {
-        message: result.timedOut ? '执行超时' : '已取消',
+        message: result.timedOut ? '执行超时' : getCancellationMessage(signal),
         endedAt: new Date(),
       });
-      sendSubTaskUpdate(
-        userId,
-        taskId,
-        subTaskId,
-        'cancelled',
-        100,
-        result.timedOut ? '执行超时' : '已取消',
-      );
+      const cancellationMessage = result.timedOut ? '执行超时' : getCancellationMessage(signal);
+      sendSubTaskUpdate(userId, taskId, subTaskId, 'cancelled', 100, cancellationMessage);
       return 'cancelled';
     }
 
@@ -507,7 +563,7 @@ async function runSubTask(
 /**
  * 在 SSH 连接上执行命令
  */
-function executeCommand(
+export function executeCommand(
   sshClient: Client,
   command: string,
   taskId: string,
@@ -524,11 +580,16 @@ function executeCommand(
     let stream: ClientChannel | null = null;
     let timeoutTimer: NodeJS.Timeout | null = null;
     let lastDbWriteTime = 0;
+    let abortHandler: (() => void) | null = null;
 
     const cleanup = () => {
       if (timeoutTimer) {
         clearTimeout(timeoutTimer);
         timeoutTimer = null;
+      }
+      if (abortHandler) {
+        signal.removeEventListener('abort', abortHandler);
+        abortHandler = null;
       }
     };
 
@@ -558,80 +619,94 @@ function executeCommand(
         resolve({ exitCode: -1, output, cancelled: true, timedOut: false });
       }
     };
+    abortHandler = onAbort;
     signal.addEventListener('abort', onAbort, { once: true });
 
     // 设置超时定时器
     timeoutTimer = setTimeout(() => {
       if (!resolved) {
         resolved = true;
-        signal.removeEventListener('abort', onAbort);
+        cleanup();
         terminateStream();
         resolve({ exitCode: -1, output, cancelled: true, timedOut: true });
       }
     }, timeoutSeconds * 1000);
 
-    sshClient.exec(command, (err: Error | undefined, execStream: ClientChannel) => {
-      if (err) {
-        cleanup();
-        signal.removeEventListener('abort', onAbort);
-        return reject(err);
-      }
-
-      stream = execStream;
-
-      const handleData = (data: Buffer) => {
-        if (signal.aborted || resolved) return;
-
-        const chunk = data.toString();
-
-        // 限制内存中的输出大小
-        if (outputSize < MAX_OUTPUT_SIZE) {
-          const allowedSize = Math.min(chunk.length, MAX_OUTPUT_SIZE - outputSize);
-          output += chunk.substring(0, allowedSize);
-          outputSize += allowedSize;
+    try {
+      sshClient.exec(command, (err: Error | undefined, execStream: ClientChannel) => {
+        if (err) {
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            reject(err);
+          }
+          return;
         }
 
-        // 发送流式日志（总是发送，让前端决定显示策略）
-        sendBatchEvent(userId, {
-          type: 'batch:log',
-          payload: { taskId, subTaskId, chunk },
+        stream = execStream;
+        // abort 可能先于 exec 回调到达，收到迟到的 stream 后立即终止，避免远端命令泄漏。
+        if (resolved) {
+          terminateStream();
+          return;
+        }
+
+        const handleData = (data: Buffer) => {
+          if (signal.aborted || resolved) return;
+
+          const chunk = data.toString();
+          const allowedSize = Math.min(chunk.length, MAX_OUTPUT_SIZE - outputSize);
+          const logChunk = allowedSize > 0 ? chunk.substring(0, allowedSize) : '';
+
+          // 限制内存中的输出大小，并让 WebSocket 使用同一上限，避免超大 payload 阻塞事件循环。
+          if (logChunk) {
+            output += logChunk;
+            outputSize += logChunk.length;
+            sendBatchEvent(userId, {
+              type: 'batch:log',
+              payload: { taskId, subTaskId, chunk: logChunk },
+            });
+          }
+
+          // 节流写入数据库，同时限制数据库存储大小
+          const now = Date.now();
+          if (now - lastDbWriteTime > OUTPUT_THROTTLE_MS && dbOutputSize < MAX_OUTPUT_SIZE) {
+            lastDbWriteTime = now;
+            // 计算可以写入的大小
+            const dbAllowedSize = Math.min(chunk.length, MAX_OUTPUT_SIZE - dbOutputSize);
+            if (dbAllowedSize > 0) {
+              const dbChunk = chunk.substring(0, dbAllowedSize);
+              dbOutputSize += dbAllowedSize;
+              BatchRepository.appendSubTaskOutput(subTaskId, dbChunk);
+            }
+          }
+        };
+
+        stream.on('data', handleData);
+        stream.stderr.on('data', handleData);
+
+        stream.on('close', (code: number | null) => {
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            resolve({ exitCode: code ?? -1, output, cancelled: false, timedOut: false });
+          }
         });
 
-        // 节流写入数据库，同时限制数据库存储大小
-        const now = Date.now();
-        if (now - lastDbWriteTime > OUTPUT_THROTTLE_MS && dbOutputSize < MAX_OUTPUT_SIZE) {
-          lastDbWriteTime = now;
-          // 计算可以写入的大小
-          const dbAllowedSize = Math.min(chunk.length, MAX_OUTPUT_SIZE - dbOutputSize);
-          if (dbAllowedSize > 0) {
-            const dbChunk = chunk.substring(0, dbAllowedSize);
-            dbOutputSize += dbAllowedSize;
-            BatchRepository.appendSubTaskOutput(subTaskId, dbChunk);
+        stream.on('error', (streamErr: Error) => {
+          if (!resolved) {
+            resolved = true;
+            cleanup();
+            reject(streamErr);
           }
-        }
-      };
-
-      stream.on('data', handleData);
-      stream.stderr.on('data', handleData);
-
-      stream.on('close', (code: number | null) => {
-        cleanup();
-        signal.removeEventListener('abort', onAbort);
-        if (!resolved) {
-          resolved = true;
-          resolve({ exitCode: code ?? -1, output, cancelled: false, timedOut: false });
-        }
+        });
       });
-
-      stream.on('error', (streamErr: Error) => {
+    } catch (error: unknown) {
+      if (!resolved) {
+        resolved = true;
         cleanup();
-        signal.removeEventListener('abort', onAbort);
-        if (!resolved) {
-          resolved = true;
-          reject(streamErr);
-        }
-      });
-    });
+        reject(error instanceof Error ? error : new Error(String(error)));
+      }
+    }
   });
 }
 
@@ -639,6 +714,46 @@ function executeCommand(
  * 更新子任务状态（直接委托到 Repository）
  */
 const updateSubTask = BatchRepository.updateSubTaskStatus;
+
+/** 获取取消信号中的可读原因，统一前后端展示文案。 */
+function getCancellationMessage(signal: AbortSignal): string {
+  return typeof signal.reason === 'string' && signal.reason.trim() ? signal.reason : '已取消';
+}
+
+/**
+ * 持久化排队子任务的取消状态。
+ *
+ * 取消已经是用户明确选择的终态，单个子任务写入失败不应把整个父任务升级为 failed；
+ * 同时只有写入成功的子任务才广播更新，避免前端看到数据库中不存在的状态。
+ */
+async function persistCancelledSubTasks(
+  userId: number | string,
+  taskId: string,
+  subTasks: BatchSubTask[],
+  message: string,
+): Promise<void> {
+  const results = await Promise.allSettled(
+    subTasks.map((subTask) =>
+      updateSubTask(taskId, subTask.subTaskId, 'cancelled', subTask.progress, {
+        message,
+        endedAt: new Date(),
+      }),
+    ),
+  );
+
+  results.forEach((result, index) => {
+    const subTask = subTasks[index];
+    if (result.status === 'fulfilled') {
+      sendSubTaskUpdate(userId, taskId, subTask.subTaskId, 'cancelled', subTask.progress, message);
+      return;
+    }
+
+    logger.warn(
+      `[BatchService] 子任务 ${subTask.subTaskId} 取消状态写入失败，继续完成父任务取消流程:`,
+      result.reason,
+    );
+  });
+}
 
 /**
  * 发送子任务更新事件
@@ -716,6 +831,7 @@ async function finalizeTask(
   cancelled: number,
   total: number,
   taskCancelled: boolean,
+  cancellationReason?: string,
 ): Promise<void> {
   let finalStatus: BatchTaskStatus;
 
@@ -734,13 +850,26 @@ async function finalizeTask(
     finalStatus = 'cancelled';
   }
 
-  await updateTaskStatus(taskId, finalStatus, {
-    overallProgress: 100,
-    completedSubTasks: completed,
-    failedSubTasks: failed,
-    cancelledSubTasks: cancelled,
-    endedAt: new Date(),
-  });
+  let finalMessage: string | undefined;
+  if (finalStatus === 'cancelled') {
+    finalMessage = cancellationReason || '任务已取消';
+  } else if (finalStatus === 'failed') {
+    finalMessage = '部分或全部子任务执行失败';
+  }
+
+  try {
+    await updateTaskStatus(taskId, finalStatus, {
+      overallProgress: 100,
+      completedSubTasks: completed,
+      failedSubTasks: failed,
+      cancelledSubTasks: cancelled,
+      message: finalMessage,
+      endedAt: new Date(),
+    });
+  } catch (error: unknown) {
+    // 终态已经由内存状态确定；写库失败不能阻止终态事件和取消原因送达前端。
+    logger.error(`[BatchService] 任务 ${taskId} 终态状态写回失败，仍发送终态事件:`, error);
+  }
 
   // 发送完成事件
   let eventType: BatchWsMessage['type'] = 'batch:completed';
@@ -748,13 +877,6 @@ async function finalizeTask(
     eventType = 'batch:failed';
   } else if (finalStatus === 'cancelled') {
     eventType = 'batch:cancelled';
-  }
-
-  let reason: string | undefined;
-  if (finalStatus === 'failed') {
-    reason = '部分或全部子任务执行失败';
-  } else if (finalStatus === 'cancelled') {
-    reason = '任务已取消';
   }
 
   sendBatchEvent(userId, {
@@ -766,7 +888,7 @@ async function finalizeTask(
       completed,
       failed,
       cancelled,
-      reason,
+      reason: finalMessage,
     },
   });
 
@@ -830,14 +952,25 @@ export async function cancelTask(taskId: string, reason: string = '用户取消'
     return false;
   }
 
-  // 触发 AbortController
-  const abortController = taskAbortControllers.get(taskId);
-  if (abortController) {
-    abortController.abort();
+  if (finalizingTaskIds.has(taskId)) {
+    logger.info(`[BatchService] 任务 ${taskId} 正在写回终态，拒绝重复取消请求。`);
+    return false;
   }
 
-  // 取消排队中的子任务
-  const cancelledCount = await BatchRepository.cancelSubTasks(taskId, reason);
+  // 先中断活动中的 SSH 子任务，避免数据库暂时不可用时后台命令继续执行。
+  const abortController = taskAbortControllers.get(taskId);
+  if (abortController) {
+    abortController.abort(reason);
+  }
+
+  // 再持久化排队中的子任务；即使写库失败，abort 也已经生效。
+  let cancelledCount: number;
+  try {
+    cancelledCount = await BatchRepository.cancelSubTasks(taskId, reason);
+  } catch (error: unknown) {
+    logger.warn(`[BatchService] 任务 ${taskId} 排队子任务取消状态写入失败:`, error);
+    throw error;
+  }
   logger.info(`[BatchService] 已取消任务 ${taskId} 的 ${cancelledCount} 个排队子任务。`);
 
   // 不在这里发送 WS 事件或更新任务状态

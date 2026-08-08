@@ -431,27 +431,53 @@ export async function processInWorker(
   try {
     // 懒加载 Worker 池（单例初始化，防止并发竞态）
     if (!workerPool) {
-      workerPoolInit ??= (async () => {
-        const { createWorkerPool } = await import('../workers/createWorkerPool');
-        return createWorkerPool(new URL('../workers/output-processor.worker.ts', import.meta.url), {
-          size: 2,
-          timeout: 5000,
-          // 降级处理：Worker 不可用时使用主线程同步处理
-          fallback: (_type: string, payload: unknown) => {
-            const { text: inputText, options: opts } = payload as {
-              text: string;
-              options?: typeof options;
-            };
-            const processor = opts ? new OutputProcessor(opts) : outputProcessor;
-            return processor.process(inputText);
-          },
-        });
-      })();
-      workerPool = await workerPoolInit;
+      const initPromise =
+        workerPoolInit ??
+        (workerPoolInit = (async () => {
+          const { createWorkerPool } = await import('../workers/createWorkerPool');
+          return createWorkerPool(
+            new URL('../workers/output-processor.worker.ts', import.meta.url),
+            {
+              size: 2,
+              timeout: 5000,
+              // 降级处理：Worker 不可用时使用主线程同步处理
+              fallback: (_type: string, payload: unknown) => {
+                const { text: inputText, options: opts } = payload as {
+                  text: string;
+                  options?: typeof options;
+                };
+                const processor = opts ? new OutputProcessor(opts) : outputProcessor;
+                return processor.process(inputText);
+              },
+            },
+          );
+        })());
+
+      try {
+        const initializedPool = await initPromise;
+        // destroyWorkerPool 可能在动态 import 期间执行；迟到的实例必须立即释放，不能重新挂回单例。
+        if (workerPoolInit !== initPromise) {
+          initializedPool.destroy();
+          throw new Error('Worker pool 在初始化期间被销毁');
+        }
+        workerPool = initializedPool;
+      } catch (error: unknown) {
+        if (workerPoolInit === initPromise) workerPoolInit = null;
+        throw error;
+      }
     }
 
     return await workerPool.execute<ProcessedOutput>('process', { text, options });
-  } catch {
+  } catch (error: unknown) {
+    log.warn(
+      {
+        component: 'OutputProcessor',
+        action: 'worker-fallback',
+        error: error instanceof Error ? error.message : String(error),
+        inputSize: text.length,
+      },
+      'Worker 处理失败，已降级到主线程',
+    );
     // Worker 执行失败时降级为同步处理（保留 options）
     const processor = options ? new OutputProcessor(options) : outputProcessor;
     return processor.process(text);
@@ -465,8 +491,9 @@ export async function processInWorker(
  * worker pool reference is cleared.
  */
 export function destroyWorkerPool(): void {
-  if (workerPool) {
-    workerPool.destroy();
-    workerPool = null;
-  }
+  const activePool = workerPool;
+  workerPool = null;
+  // 清除初始化 Promise，使下一次调用可以重新创建池；正在进行的旧初始化会因身份校验而自我销毁。
+  workerPoolInit = null;
+  activePool?.destroy();
 }

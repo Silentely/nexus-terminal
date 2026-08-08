@@ -1999,7 +1999,14 @@
       "cancelled": "Cancelled"
     },
     "copyOutput": "Copy to clipboard",
-    "sudoConfirm": "Warning: Running with sudo privileges. Continue?"
+    "copied": "Copied",
+    "copySuccess": "Output copied to clipboard",
+    "copyFailed": "Failed to copy output. Select the text and copy it manually.",
+    "closeOutput": "Close output",
+    "sudoConfirmTitle": "Confirm privileged execution",
+    "sudoConfirm": "This command will run with sudo on the selected servers and may change system state. Continue?",
+    "cancelTitle": "Cancel batch execution?",
+    "cancelConfirm": "Running connections will be interrupted and queued connections will not continue."
   },
   "editor": {
     "unsavedChanges": {

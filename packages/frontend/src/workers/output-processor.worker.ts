@@ -30,10 +30,9 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     switch (type) {
       case 'process': {
         const { text, options } = payload as { text: string; options?: ProcessConfig };
-        if (options) {
-          processor = new OutputProcessor(options);
-        }
-        const result: ProcessedOutput = processor.process(text);
+        // 单次请求的配置只影响当前处理，避免污染后续未传配置的请求。
+        const requestProcessor = options ? new OutputProcessor(options) : processor;
+        const result: ProcessedOutput = requestProcessor.process(text);
         const response: WorkerResponse = { id, type, payload: result };
         self.postMessage(response);
         break;

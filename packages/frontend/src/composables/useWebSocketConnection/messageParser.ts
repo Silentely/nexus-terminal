@@ -82,6 +82,8 @@ export const ALLOWED_MESSAGE_TYPES = new Set([
   'status:error',
   // Batch
   'batch:started',
+  'batch:completed',
+  'batch:failed',
   'batch:cancelled',
   'batch:subtask:update',
   'batch:overall',

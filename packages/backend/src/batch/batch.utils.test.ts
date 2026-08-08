@@ -3,6 +3,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { buildBatchCommand, DANGEROUS_CMD_PATTERN, sanitizeBatchCommand } from './batch.utils';
+import * as batchUtils from './batch.utils';
 import type { BatchExecPayload } from './batch.types';
 
 describe('batch.utils', () => {
@@ -81,6 +82,29 @@ describe('batch.utils', () => {
         }),
       );
       expect(cmd).toBe("cd '/tmp' && sudo -n env LANG='C' id");
+    });
+  });
+
+  describe('markQueuedSubTasksCancelled', () => {
+    it('应只标记 queued 子任务并保留其他状态', () => {
+      const markQueuedSubTasksCancelled = (batchUtils as Record<string, unknown>)
+        .markQueuedSubTasksCancelled as
+        | ((subTasks: Array<{ status: string; message?: string }>, message: string) => number)
+        | undefined;
+
+      expect(markQueuedSubTasksCancelled).toBeTypeOf('function');
+      if (!markQueuedSubTasksCancelled) return;
+
+      const subTasks = [
+        { status: 'running' },
+        { status: 'queued' },
+        { status: 'completed' },
+      ] as Array<{ status: 'running' | 'queued' | 'completed' | 'cancelled'; message?: string }>;
+
+      expect(markQueuedSubTasksCancelled(subTasks, '用户取消')).toBe(1);
+      expect(subTasks[0]).toEqual({ status: 'running' });
+      expect(subTasks[1]).toEqual({ status: 'cancelled', message: '用户取消' });
+      expect(subTasks[2]).toEqual({ status: 'completed' });
     });
   });
 });

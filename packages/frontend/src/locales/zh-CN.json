@@ -1999,7 +1999,14 @@
       "cancelled": "已取消"
     },
     "copyOutput": "复制到剪贴板",
-    "sudoConfirm": "警告：将以 sudo 权限运行。是否继续？"
+    "copied": "已复制",
+    "copySuccess": "输出已复制到剪贴板",
+    "copyFailed": "复制输出失败，请手动选择文本复制",
+    "closeOutput": "关闭输出",
+    "sudoConfirmTitle": "确认以高权限执行",
+    "sudoConfirm": "该命令将以 sudo 权限在所选服务器上执行，可能修改系统状态。是否继续？",
+    "cancelTitle": "取消批量执行？",
+    "cancelConfirm": "正在执行的连接会被中断，排队中的连接不会继续执行。"
   },
   "editor": {
     "unsavedChanges": {

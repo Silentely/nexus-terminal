@@ -24,6 +24,12 @@ const MAX_OUTPUT_SIZE = 512 * 1024; // 512KB
 const TRUNCATION_NOTICE = '\n\n[输出已截断，超过 512KB 限制]';
 // WS 事件超时兜底（毫秒）：若 WS 断连，超时后自动降级为轮询
 const WS_TIMEOUT_MS = 10_000;
+const TERMINAL_TASK_STATUSES = new Set<BatchTask['status']>([
+  'completed',
+  'failed',
+  'cancelled',
+  'partially-completed',
+]);
 
 /**
  * 将 API 响应中的日期字段统一转换为 Date 对象
@@ -83,6 +89,7 @@ export const useBatchStore = defineStore('batch', () => {
     if (isExecuting.value) return null;
 
     error.value = null;
+    clearWsTimeoutGuard();
     isExecuting.value = true;
     wsEventReceived.value = false;
 
@@ -139,6 +146,14 @@ export const useBatchStore = defineStore('batch', () => {
 
         // 更新当前任务
         if (currentTask.value?.taskId === taskId) {
+          // 终态 WS 之后的旧 REST 快照不能把 UI 回退到 in-progress，避免终态竞态造成假运行状态。
+          if (
+            TERMINAL_TASK_STATUSES.has(currentTask.value.status) &&
+            !TERMINAL_TASK_STATUSES.has(task.status)
+          ) {
+            return currentTask.value;
+          }
+
           currentTask.value = task;
           subTaskStatusMap.value[task.taskId] = subTaskStatusMap.value[task.taskId] || {};
           task.subTasks.forEach((st) => {
@@ -278,7 +293,9 @@ export const useBatchStore = defineStore('batch', () => {
       overallProgress?: number;
       completed?: number;
       failed?: number;
+      cancelled?: number;
       chunk?: string;
+      reason?: string;
     };
 
     if (!currentTask.value || currentTask.value.taskId !== eventPayload.taskId) return;
@@ -320,11 +337,34 @@ export const useBatchStore = defineStore('batch', () => {
           currentTask.value.completedSubTasks = eventPayload.completed;
         if (eventPayload.failed !== undefined)
           currentTask.value.failedSubTasks = eventPayload.failed;
+        if (eventPayload.cancelled !== undefined)
+          currentTask.value.cancelledSubTasks = eventPayload.cancelled;
         break;
 
       case 'batch:completed':
       case 'batch:failed':
       case 'batch:cancelled': {
+        // 先合并 WS 终态，REST 快照失败时 UI 仍能准确表达任务已经结束。
+        let terminalStatus = eventPayload.status as BatchTask['status'] | undefined;
+        if (!terminalStatus) {
+          if (type === 'batch:completed') terminalStatus = 'completed';
+          else if (type === 'batch:failed') terminalStatus = 'failed';
+          else terminalStatus = 'cancelled';
+        }
+        currentTask.value.status = terminalStatus;
+        if (eventPayload.overallProgress !== undefined) {
+          currentTask.value.overallProgress = eventPayload.overallProgress;
+        } else if (terminalStatus !== 'partially-completed') {
+          currentTask.value.overallProgress = 100;
+        }
+        if (eventPayload.completed !== undefined)
+          currentTask.value.completedSubTasks = eventPayload.completed;
+        if (eventPayload.failed !== undefined)
+          currentTask.value.failedSubTasks = eventPayload.failed;
+        if (eventPayload.cancelled !== undefined)
+          currentTask.value.cancelledSubTasks = eventPayload.cancelled;
+        if (eventPayload.reason !== undefined) currentTask.value.message = eventPayload.reason;
+
         // 任务结束
         isExecuting.value = false;
         clearWsTimeoutGuard();
@@ -395,6 +435,7 @@ export const useBatchStore = defineStore('batch', () => {
     isExecuting.value = false;
     error.value = null;
     subTaskStatusMap.value = {};
+    wsEventReceived.value = false;
     clearWsTimeoutGuard();
   };
 

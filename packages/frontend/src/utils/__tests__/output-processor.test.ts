@@ -1,5 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { OutputProcessor, OutputType, outputProcessor } from '../output-processor';
+import { createWorkerPool } from '../../workers/createWorkerPool';
+import {
+  OutputProcessor,
+  OutputType,
+  destroyWorkerPool,
+  outputProcessor,
+  processInWorker,
+} from '../output-processor';
+
+const { warningMock } = vi.hoisted(() => ({
+  warningMock: vi.fn(),
+}));
+
+vi.mock('../../workers/createWorkerPool', () => ({
+  createWorkerPool: vi.fn(),
+}));
+
+vi.mock('@/utils/log', () => ({
+  log: {
+    warn: warningMock,
+    info: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
 
 describe('OutputProcessor', () => {
   let processor: OutputProcessor;
@@ -136,5 +160,86 @@ describe('OutputProcessor', () => {
 describe('outputProcessor 单例', () => {
   it('应该导出默认实例', () => {
     expect(outputProcessor).toBeInstanceOf(OutputProcessor);
+  });
+
+  it('销毁后下一次大输出应重新创建 Worker 池', async () => {
+    const firstPool = {
+      execute: vi.fn().mockResolvedValue({ type: OutputType.TEXT, content: 'first' }),
+      destroy: vi.fn(),
+    };
+    const secondPool = {
+      execute: vi.fn().mockResolvedValue({ type: OutputType.TEXT, content: 'second' }),
+      destroy: vi.fn(),
+    };
+    vi.mocked(createWorkerPool)
+      .mockReturnValueOnce(firstPool as never)
+      .mockReturnValueOnce(secondPool as never);
+    const largeOutput = 'x'.repeat(101);
+
+    await expect(processInWorker(largeOutput)).resolves.toEqual({
+      type: OutputType.TEXT,
+      content: 'first',
+    });
+    destroyWorkerPool();
+
+    await expect(processInWorker(largeOutput)).resolves.toEqual({
+      type: OutputType.TEXT,
+      content: 'second',
+    });
+
+    expect(createWorkerPool).toHaveBeenCalledTimes(2);
+    expect(firstPool.destroy).toHaveBeenCalledTimes(1);
+    expect(secondPool.execute).toHaveBeenCalledTimes(1);
+    destroyWorkerPool();
+  });
+
+  it('初始化期间销毁应释放迟到的 Worker 池并回退到同步处理', async () => {
+    destroyWorkerPool();
+    vi.mocked(createWorkerPool).mockReset();
+
+    const latePool = {
+      execute: vi.fn().mockResolvedValue({ type: OutputType.TEXT, content: 'late' }),
+      destroy: vi.fn(),
+    };
+    vi.mocked(createWorkerPool).mockReturnValueOnce(latePool as never);
+    const largeOutput = 'x'.repeat(101);
+
+    const pendingResult = processInWorker(largeOutput);
+    destroyWorkerPool();
+
+    await expect(pendingResult).resolves.toMatchObject({
+      type: OutputType.TEXT,
+      content: largeOutput,
+    });
+    expect(latePool.execute).not.toHaveBeenCalled();
+    expect(latePool.destroy).toHaveBeenCalledTimes(1);
+    destroyWorkerPool();
+  });
+
+  it('Worker 执行失败降级时应记录结构化 warning', async () => {
+    destroyWorkerPool();
+    vi.mocked(createWorkerPool).mockReset();
+    warningMock.mockReset();
+
+    const failedPool = {
+      execute: vi.fn().mockRejectedValue(new Error('worker crashed')),
+      destroy: vi.fn(),
+    };
+    vi.mocked(createWorkerPool).mockReturnValueOnce(failedPool as never);
+
+    await expect(processInWorker('x'.repeat(101))).resolves.toMatchObject({
+      type: OutputType.TEXT,
+    });
+
+    expect(warningMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        component: 'OutputProcessor',
+        action: 'worker-fallback',
+        error: 'worker crashed',
+        inputSize: 101,
+      }),
+      'Worker 处理失败，已降级到主线程',
+    );
+    destroyWorkerPool();
   });
 });

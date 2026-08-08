@@ -346,6 +346,22 @@ describe('batch.store', () => {
       expect(store.currentTask?.completedSubTasks).toBe(2);
     });
 
+    it('batch:overall 应同步取消子任务数量', () => {
+      const store = useBatchStore();
+      store.currentTask = { ...mockTask, cancelledSubTasks: 0 };
+
+      store.handleBatchWsEvent('batch:overall', {
+        taskId: 'task-123',
+        status: 'cancelled',
+        overallProgress: 100,
+        completed: 1,
+        failed: 0,
+        cancelled: 1,
+      });
+
+      expect(store.currentTask?.cancelledSubTasks).toBe(1);
+    });
+
     it('batch:completed 应停止执行并刷新状态', () => {
       const store = useBatchStore();
       store.isExecuting = true;
@@ -358,6 +374,56 @@ describe('batch.store', () => {
         taskId: 'task-123',
       });
 
+      expect(store.isExecuting).toBe(false);
+    });
+
+    it('终态 REST 快照失败时仍应保留 WS 提供的本地终态', async () => {
+      const store = useBatchStore();
+      store.isExecuting = true;
+      vi.mocked(apiClient.get).mockRejectedValueOnce(new Error('快照暂时不可用'));
+
+      store.handleBatchWsEvent('batch:cancelled', {
+        taskId: 'task-123',
+        status: 'cancelled',
+        overallProgress: 100,
+        completed: 1,
+        failed: 0,
+        cancelled: 1,
+        reason: '主人主动取消',
+      });
+
+      await vi.waitFor(() => {
+        expect(store.currentTask?.status).toBe('cancelled');
+      });
+
+      expect(store.currentTask?.overallProgress).toBe(100);
+      expect(store.currentTask?.completedSubTasks).toBe(1);
+      expect(store.currentTask?.cancelledSubTasks).toBe(1);
+      expect(store.currentTask?.message).toBe('主人主动取消');
+      expect(store.isExecuting).toBe(false);
+    });
+
+    it('旧的 in-progress REST 快照不应回退已收到的 WS 终态', async () => {
+      const store = useBatchStore();
+      store.isExecuting = true;
+      vi.mocked(apiClient.get).mockResolvedValueOnce({
+        data: {
+          success: true,
+          task: { ...mockTask, status: 'in-progress' } as any,
+        },
+      });
+
+      store.handleBatchWsEvent('batch:cancelled', {
+        taskId: 'task-123',
+        status: 'cancelled',
+        overallProgress: 100,
+        cancelled: 1,
+        reason: '主人主动取消',
+      });
+
+      await vi.waitFor(() => expect(apiClient.get).toHaveBeenCalledWith('/batch/task-123'));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(store.currentTask?.status).toBe('cancelled');
       expect(store.isExecuting).toBe(false);
     });
 
@@ -423,6 +489,7 @@ describe('batch.store', () => {
       store.isExecuting = true;
       store.error = '错误';
       store.subTaskStatusMap = { 'test-task': { 1: 'running' } };
+      store.wsEventReceived = true;
 
       store.reset();
 
@@ -430,6 +497,7 @@ describe('batch.store', () => {
       expect(store.isExecuting).toBe(false);
       expect(store.error).toBeNull();
       expect(store.subTaskStatusMap).toEqual({});
+      expect(store.wsEventReceived).toBe(false);
     });
   });
 
