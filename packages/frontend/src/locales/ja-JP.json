@@ -760,7 +760,8 @@
         "codeRequired": "コードを入力してください。",
         "verificationFailed": "無効なコードまたは期限切れのコードです。",
         "passwordRequiredForDisable": "無効にするには、現在のパスワードを入力する必要があります。",
-        "disableFailed": "2段階認証の無効化に失敗しました。"
+        "disableFailed": "2段階認証の無効化に失敗しました。",
+        "timeSkewDetected": "デバイスとサーバーの時刻に約 {skew} のずれが検出されました。システムの自動時刻同期（NTP）を有効にして再試行してください。"
       }
     },
     "ipWhitelist": {

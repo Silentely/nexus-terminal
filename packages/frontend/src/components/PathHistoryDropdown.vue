@@ -3,13 +3,11 @@
     class="path-history-dropdown absolute z-40 w-full rounded-md bg-background shadow-lg border border-border/50 max-h-60 overflow-y-auto text-sm"
   >
     <!-- Loading State -->
-    <div
+    <LoadingState
       v-if="isLoading && filteredHistory.length === 0"
-      class="p-3 text-center text-text-secondary"
-    >
-      <i class="fas fa-spinner fa-spin mr-2"></i>
-      {{ $t('pathHistory.loading', '加载中...') }}
-    </div>
+      :text="$t('pathHistory.loading')"
+      compact
+    />
     <!-- Empty State -->
     <div v-else-if="filteredHistory.length === 0" class="p-3 text-center text-text-secondary">
       <i class="fas fa-history mr-2"></i>

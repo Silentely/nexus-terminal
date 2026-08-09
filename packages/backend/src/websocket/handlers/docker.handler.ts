@@ -59,7 +59,7 @@ export async function fetchRemoteDockerStatus(
 ): Promise<{ available: boolean; containers: DockerContainer[] }> {
   if (!state || !state.sshClient) {
     logger.warn(
-      `[fetchRemoteDockerStatus] SSH client not available or not connected for session ${state?.ws?.sessionId}.`,
+      `[DockerHandler] SSH client not available or not connected for session ${state?.ws?.sessionId}.`,
     );
     return { available: false, containers: [] };
   }
@@ -97,25 +97,25 @@ export async function fetchRemoteDockerStatus(
       versionStderr.includes('Cannot connect to the Docker daemon')
     ) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker version check failed on session ${state.ws.sessionId}. Docker unavailable or inaccessible. Stderr: ${versionStderr.trim()}`,
+        `[DockerHandler] Docker version check failed on session ${state.ws.sessionId}. Docker unavailable or inaccessible. Stderr: ${versionStderr.trim()}`,
       );
       return { available: false, containers: [] };
     }
     if (versionStderr) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker version command stderr on session ${state.ws.sessionId}: ${versionStderr.trim()}`,
+        `[DockerHandler] Docker version command stderr on session ${state.ws.sessionId}: ${versionStderr.trim()}`,
       );
     }
 
     if (!versionStdout.trim()) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker version check on session ${state.ws.sessionId} produced no output, assuming Docker unavailable.`,
+        `[DockerHandler] Docker version check on session ${state.ws.sessionId} produced no output, assuming Docker unavailable.`,
       );
       return { available: false, containers: [] };
     }
   } catch (error: unknown) {
     logger.error(
-      `[fetchRemoteDockerStatus] Error executing docker version for session ${state.ws.sessionId}:`,
+      `[DockerHandler] Error executing docker version for session ${state.ws.sessionId}:`,
       getErrorMessage(error),
     );
     return { available: false, containers: [] };
@@ -151,13 +151,13 @@ export async function fetchRemoteDockerStatus(
       psStderr.includes('Cannot connect to the Docker daemon')
     ) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker ps command failed unexpectedly after version check on session ${state.ws.sessionId}. Stderr: ${psStderr.trim()}`,
+        `[DockerHandler] Docker ps command failed unexpectedly after version check on session ${state.ws.sessionId}. Stderr: ${psStderr.trim()}`,
       );
       return { available: false, containers: [] };
     }
     if (psStderr) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Docker ps command stderr on session ${state.ws.sessionId}: ${psStderr.trim()}`,
+        `[DockerHandler] Docker ps command stderr on session ${state.ws.sessionId}: ${psStderr.trim()}`,
       );
     }
 
@@ -182,7 +182,7 @@ export async function fetchRemoteDockerStatus(
           return container;
         } catch (parseError: unknown) {
           logger.error(
-            `[fetchRemoteDockerStatus] Failed to parse container JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`,
+            `[DockerHandler] Failed to parse container JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`,
           );
           return null;
         }
@@ -190,7 +190,7 @@ export async function fetchRemoteDockerStatus(
       .filter((container): container is DockerContainer => container !== null);
   } catch (error: unknown) {
     logger.error(
-      `[fetchRemoteDockerStatus] Error executing docker ps for session ${state.ws.sessionId}:`,
+      `[DockerHandler] Error executing docker ps for session ${state.ws.sessionId}:`,
       getErrorMessage(error),
     );
     return { available: false, containers: [] };
@@ -207,7 +207,7 @@ export async function fetchRemoteDockerStatus(
 
       if (cleanContainerIds.length === 0) {
         logger.warn(
-          `[fetchRemoteDockerStatus] All running container IDs failed sanitization for session ${state.ws.sessionId}.`,
+          `[DockerHandler] All running container IDs failed sanitization for session ${state.ws.sessionId}.`,
         );
         return { available: true, containers: allContainers }; // Return containers without stats
       }
@@ -237,7 +237,7 @@ export async function fetchRemoteDockerStatus(
 
       if (statsStderr) {
         logger.warn(
-          `[fetchRemoteDockerStatus] Docker stats command stderr on session ${state.ws.sessionId}: ${statsStderr.trim()}`,
+          `[DockerHandler] Docker stats command stderr on session ${state.ws.sessionId}: ${statsStderr.trim()}`,
         );
       }
 
@@ -250,13 +250,13 @@ export async function fetchRemoteDockerStatus(
           }
         } catch (parseError: unknown) {
           logger.error(
-            `[fetchRemoteDockerStatus] Failed to parse stats JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`,
+            `[DockerHandler] Failed to parse stats JSON line for session ${state.ws.sessionId}: ${line} (${getErrorMessage(parseError)})`,
           );
         }
       });
     } catch (error: unknown) {
       logger.warn(
-        `[fetchRemoteDockerStatus] Error executing docker stats for session ${state.ws.sessionId}:`,
+        `[DockerHandler] Error executing docker stats for session ${state.ws.sessionId}:`,
         getErrorMessage(error),
       );
     }

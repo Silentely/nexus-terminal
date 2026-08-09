@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed, readonly } from 'vue';
 import apiClient from '../utils/apiClient';
 import { extractErrorMessage } from '../utils/errorExtractor';
+import { formatBytes } from '../utils/formatBytes';
 import { log } from '@/utils/log';
 
 export interface DashboardTimeRange {
@@ -215,12 +216,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     state.value.isLoading = false;
   };
 
-  const formatBytes = (bytes: number): string => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-  };
+  // 统一走共享 formatBytes，保留原语义：KB/MB 1 位小数、GB 2 位小数
+  const formatStoreBytes = (bytes: number): string => formatBytes(bytes, 1, 2);
 
   const getActionIcon = (actionType: string): string => {
     const icons: Record<string, string> = {
@@ -258,7 +255,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     fetchStorage,
     fetchSystemResources,
     fetchAllData,
-    formatBytes,
+    formatBytes: formatStoreBytes,
     getActionIcon,
   };
 });

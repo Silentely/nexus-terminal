@@ -125,13 +125,11 @@ const viewContainerLogs = (containerId: string) => {
       }}</small>
     </div>
     <!-- Case 5: Active session, SSH connected, Docker loading -->
-    <div
+    <LoadingState
       v-else-if="isLoading && containers.length === 0"
-      class="flex flex-col justify-center items-center text-center flex-grow text-text-secondary p-4"
-    >
-      <!-- Use computed isLoading -->
-      <i class="fas fa-spinner fa-spin text-4xl mb-3"></i> {{ t('dockerManager.loading') }}
-    </div>
+      :text="t('dockerManager.loading')"
+      full
+    />
     <!-- Case 6: Active session, SSH connected, Docker unavailable -->
     <div
       v-else-if="!isDockerAvailable"

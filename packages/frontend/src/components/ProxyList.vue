@@ -43,20 +43,9 @@ const formatTimestamp = (timestamp: number | null): string =>
   <div class="mt-4">
     <!-- Container with top margin -->
     <!-- Loading state (Only show if loading AND no proxies are displayed yet) -->
-    <div
-      v-if="isLoading && proxies.length === 0"
-      class="p-4 border border-border rounded-md mb-4 text-text-secondary bg-header/50 text-center italic"
-    >
-      {{ t('proxies.loading') }}
-    </div>
+    <LoadingState v-if="isLoading && proxies.length === 0" :text="t('proxies.loading')" />
     <ErrorBanner v-else-if="error" class="mb-4" :message="t('proxies.error', { error })" />
-    <div
-      v-else-if="proxies.length === 0"
-      class="p-4 mb-4 border-l-4 border-primary/40 bg-primary/10 text-primary rounded"
-    >
-      <!-- No proxies state consistent with Notifications (using blue for now) -->
-      {{ t('proxies.noProxies') }}
-    </div>
+    <EmptyState v-else-if="proxies.length === 0" :text="t('proxies.noProxies')" icon="fa-server" />
 
     <!-- Proxy List using Card Layout -->
     <div v-else class="grid gap-4 mt-4">

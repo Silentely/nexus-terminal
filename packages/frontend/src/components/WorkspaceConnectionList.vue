@@ -418,7 +418,7 @@ const handleMenuAction = async (action: 'add' | 'edit' | 'delete' | 'clone') => 
 
       connectionsStore.cloneConnection(conn.id, newName).catch((error) => {
         // 可以在这里处理克隆失败的特定 UI 反馈，如果需要的话
-        log.error('Cloning failed in component:', error);
+        log.error('组件内克隆失败:', error);
       });
     }
   }
@@ -658,12 +658,11 @@ const scrollToHighlighted = async () => {
 <template>
   <div class="h-full flex flex-col overflow-hidden bg-background text-foreground">
     <!-- ... Loading/Error states ... -->
-    <div
+    <LoadingState
       v-if="(connectionsLoading || tagsLoading) && connections.length === 0 && tags.length === 0"
-      class="flex items-center justify-center h-full text-text-secondary"
-    >
-      <i class="fas fa-spinner fa-spin mr-2"></i> {{ t('common.loading') }}
-    </div>
+      :text="t('common.loading')"
+      full
+    />
     <div
       v-else-if="connectionsError || (tagsError && tags.length === 0)"
       class="flex items-center justify-center h-full text-error px-4 text-center"

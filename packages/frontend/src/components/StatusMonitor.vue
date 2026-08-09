@@ -27,13 +27,7 @@
     </div>
 
     <!-- 加载状态 -->
-    <div
-      v-else-if="!currentServerStatus"
-      class="loading-status flex flex-col items-center justify-center text-center text-text-secondary mt-4 h-full"
-    >
-      <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-      <span>{{ t('statusMonitor.loading') }}</span>
-    </div>
+    <LoadingState v-else-if="!currentServerStatus" :text="t('statusMonitor.loading')" full />
 
     <!-- 状态网格 -->
     <div v-else class="status-grid grid gap-3">

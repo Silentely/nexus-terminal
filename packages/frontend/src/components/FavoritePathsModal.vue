@@ -263,13 +263,11 @@ onBeforeUnmount(() => {
 
       <!-- Path List -->
       <div class="overflow-y-auto flex-grow p-1 text-sm">
-        <div
+        <LoadingState
           v-if="favoritePathsStore.isLoading && filteredPaths.length === 0"
-          class="p-3 text-center text-text-secondary"
-        >
-          <i class="fas fa-spinner fa-spin mr-1"></i>
-          {{ t('favoritePaths.loading', 'Loading favorites...') }}
-        </div>
+          :text="t('favoritePaths.loading')"
+          compact
+        />
         <div
           v-else-if="!favoritePathsStore.isLoading && filteredPaths.length === 0"
           class="p-3 text-center text-text-secondary"

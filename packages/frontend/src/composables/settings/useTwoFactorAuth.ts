@@ -88,7 +88,7 @@ export function useTwoFactorAuth() {
         const minutes = Math.floor(skewSeconds / 60);
         const seconds = skewSeconds % 60;
         const skewText = minutes > 0 ? `${minutes} 分 ${seconds} 秒` : `${seconds} 秒`;
-        twoFactorMessage.value = `检测到设备时间与服务器存在约 ${skewText} 偏差，请开启系统自动校时（NTP）后重试。`;
+        twoFactorMessage.value = t('settings.twoFactor.error.timeSkewDetected', { skew: skewText });
       } else {
         twoFactorMessage.value = extractErrorMessage(
           error,

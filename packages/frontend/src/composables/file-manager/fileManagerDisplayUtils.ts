@@ -1,9 +1,10 @@
-export const formatSize = (size: number): string => {
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-  if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-};
+import { formatBytes } from '../../utils/formatBytes';
+
+/**
+ * 字节大小格式化（文件管理器历史语义：B 整数、KB/MB/GB 1 位小数）
+ * 统一走共享 formatBytes 工具，避免与 dashboard 等其他模块重复实现
+ */
+export const formatSize = (size: number): string => formatBytes(size, 1, 1);
 
 export const formatMode = (mode: number): string => {
   const perm = mode & 0o777;

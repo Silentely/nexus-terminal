@@ -18,20 +18,17 @@
     </button>
 
     <!-- Loading state (Show only if loading AND settings empty AND no error) -->
-    <div
+    <LoadingState
       v-if="store.isLoading && settings.length === 0 && !store.error"
-      class="p-4 text-center text-text-secondary italic"
-    >
-      {{ $t('common.loading') }}
-    </div>
+      :text="$t('common.loading')"
+    />
 
     <!-- Empty state (Show only if not loading, no error, and settings empty) -->
-    <div
+    <EmptyState
       v-else-if="!store.isLoading && !store.error && settings.length === 0"
-      class="p-4 mb-4 border-l-4 border-primary/40 bg-primary/10 text-primary rounded"
-    >
-      {{ $t('settings.notifications.noChannels') }}
-    </div>
+      :text="$t('settings.notifications.noChannels')"
+      icon="fa-bell"
+    />
 
     <!-- Notification List (Show if not loading, no error, and has settings) -->
     <div
@@ -189,7 +186,7 @@ const closeForm = () => {
 
 // 保存回调：表单组件内部已处理 store 更新，此处仅需关闭表单
 const handleSave = (savedSetting: NotificationSetting) => {
-  log.info('Setting saved:', savedSetting);
+  log.info('通知设置已保存:', savedSetting);
   closeForm();
 };
 </script>

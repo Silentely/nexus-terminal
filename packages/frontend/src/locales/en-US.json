@@ -760,7 +760,8 @@
         "codeRequired": "Please enter the verification code.",
         "verificationFailed": "Invalid or expired verification code.",
         "passwordRequiredForDisable": "Current password is required to disable.",
-        "disableFailed": "Failed to disable two-factor authentication."
+        "disableFailed": "Failed to disable two-factor authentication.",
+        "timeSkewDetected": "Detected a time skew of about {skew} between your device and the server. Please enable automatic time sync (NTP) and try again."
       }
     },
     "ipWhitelist": {

@@ -36,7 +36,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     // 处理请求错误
-    log.error('Request error:', error);
+    log.error('请求错误:', error);
     return Promise.reject(error);
   },
 );
@@ -96,9 +96,9 @@ apiClient.interceptors.response.use(
         data: bodySnippet,
       };
       if (isUpstreamUnavailableStatus) {
-        log.warn('[apiClient] Response warning:', responseErrorPayload);
+        log.warn('[apiClient] 上游瞬时错误响应:', responseErrorPayload);
       } else {
-        log.error('[apiClient] Response error:', responseErrorPayload);
+        log.error('[apiClient] 响应错误:', responseErrorPayload);
       }
 
       // 处理常见的 HTTP 错误状态码
@@ -107,39 +107,33 @@ apiClient.interceptors.response.use(
           if (await handleUnauthorizedLogout()) {
             return Promise.reject(new Error('Unauthorized, logging out.'));
           }
-          log.info('Unauthorized access to protected route.');
+          log.info('未授权访问受保护路由。');
           break;
         case 403: // 禁止访问
           // 可以显示一个权限不足的提示
-          log.error('Forbidden access.');
+          log.error('禁止访问。');
           break;
         case 404: // 未找到
-          log.error('Resource not found.');
+          log.error('资源未找到。');
           break;
         case 500: // 服务器内部错误
-          log.error('Internal server error.');
+          log.error('服务器内部错误。');
           break;
         case 502: // 网关错误
         case 503: // 服务不可用
         case 504: // 网关超时
-          log.warn(
-            `[apiClient] Upstream service unavailable (${status}) for ${requestMethod} ${requestUrl}`,
-          );
+          log.warn(`[apiClient] 上游服务不可用 (${status})，请求 ${requestMethod} ${requestUrl}`);
           break;
         // 可以根据需要添加更多错误状态码的处理
         default:
-          log.error(
-            `[apiClient] Unhandled error status: ${status} (${requestMethod} ${requestUrl})`,
-          );
+          log.error(`[apiClient] 未处理的错误状态码: ${status} (${requestMethod} ${requestUrl})`);
       }
     } else if (error.request) {
       // 请求已发出，但没有收到响应 (例如网络问题)
-      log.error(
-        `[apiClient] Network error or no response received: ${requestMethod} ${requestUrl}`,
-      );
+      log.error(`[apiClient] 网络错误或未收到响应: ${requestMethod} ${requestUrl}`);
     } else {
       // 发送请求时出了点问题
-      log.error('[apiClient] Error setting up request:', error.message);
+      log.error('[apiClient] 请求设置出错:', error.message);
     }
 
     // 将错误继续抛出，以便调用方可以捕获并处理

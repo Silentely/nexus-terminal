@@ -232,12 +232,7 @@ onMounted(() => {
           <!-- Removed space-y-2 from here -->
           <div class="space-y-4 p-4 border border-border rounded-md bg-header/30">
             <!-- New wrapper div -->
-            <div
-              v-if="connectionsLoading"
-              class="flex items-center justify-center h-full text-text-secondary"
-            >
-              <i class="fas fa-spinner fa-spin mr-2"></i> {{ t('common.loading') }}
-            </div>
+            <LoadingState v-if="connectionsLoading" :text="t('common.loading')" compact />
             <ul v-else-if="filteredConnectionsInModal.length > 0" class="space-y-1">
               <li
                 v-for="conn in filteredConnectionsInModal"

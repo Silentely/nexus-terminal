@@ -760,7 +760,8 @@
         "codeRequired": "请输入验证码。",
         "verificationFailed": "验证码无效或已过期。",
         "passwordRequiredForDisable": "需要输入当前密码才能禁用。",
-        "disableFailed": "禁用两步验证失败。"
+        "disableFailed": "禁用两步验证失败。",
+        "timeSkewDetected": "检测到设备时间与服务器存在约 {skew} 偏差，请开启系统自动校时（NTP）后重试。"
       }
     },
     "ipWhitelist": {
