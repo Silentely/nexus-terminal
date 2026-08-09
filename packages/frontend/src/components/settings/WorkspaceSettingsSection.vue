@@ -27,11 +27,7 @@
             >
           </div>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="popupEditorLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="popupEditorLoading" class="btn-primary">
               {{ $t('common.save') }}
             </button>
             <p
@@ -65,11 +61,7 @@
           </div>
           <!-- <small class="block mt-1 text-xs text-text-secondary">{{ t('settings.popupFileManager.description') }}</small> -->
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="showPopupFileManagerLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="showPopupFileManagerLoading" class="btn-primary">
               {{ t('common.save') }}
             </button>
             <p
@@ -105,11 +97,7 @@
             {{ $t('settings.shareEditorTabs.description') }}
           </p>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="shareTabsLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="shareTabsLoading" class="btn-primary">
               {{ $t('common.save') }}
             </button>
             <p
@@ -142,11 +130,7 @@
             >
           </div>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="autoCopyLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="autoCopyLoading" class="btn-primary">
               {{ $t('common.save') }}
             </button>
             <p
@@ -182,11 +166,7 @@
             {{ $t('settings.workspace.sidebarPersistentDescription') }}
           </p>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="workspaceSidebarPersistentLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="workspaceSidebarPersistentLoading" class="btn-primary">
               {{ $t('common.save') }}
             </button>
             <p
@@ -242,11 +222,7 @@
             </p>
           </div>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="commandInputSyncLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="commandInputSyncLoading" class="btn-primary">
               {{ $t('common.save') }}
             </button>
             <p
@@ -287,11 +263,7 @@
             }}
           </p>
           <div class="flex items-center justify-between pt-2">
-            <button
-              type="submit"
-              :disabled="showConnectionTagsLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="showConnectionTagsLoading" class="btn-primary">
               {{ $t('common.save') }}
             </button>
             <p
@@ -334,11 +306,7 @@
             }}
           </p>
           <div class="flex items-center justify-between pt-2">
-            <button
-              type="submit"
-              :disabled="showQuickCommandTagsLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="showQuickCommandTagsLoading" class="btn-primary">
               {{ $t('common.save') }}
             </button>
             <p
@@ -380,11 +348,7 @@
             }}</small>
           </div>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="terminalScrollbackLimitLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="terminalScrollbackLimitLoading" class="btn-primary">
               {{ t('common.save') }}
             </button>
             <p
@@ -511,7 +475,7 @@
             <button
               type="submit"
               :disabled="fileManagerShowDeleteConfirmationLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              class="btn-primary"
             >
               {{ $t('common.save') }}
             </button>
@@ -564,7 +528,7 @@
             <button
               type="submit"
               :disabled="fileManagerSingleClickOpenFileLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              class="btn-primary"
             >
               {{ $t('common.save') }}
             </button>
@@ -607,7 +571,7 @@
             <button
               type="submit"
               :disabled="terminalEnableRightClickPasteLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              class="btn-primary"
             >
               {{ $t('common.save') }}
             </button>
@@ -650,7 +614,7 @@
             <button
               type="submit"
               :disabled="terminalEnableBracketedPasteLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              class="btn-primary"
             >
               {{ $t('common.save') }}
             </button>
@@ -773,11 +737,7 @@
             </small>
           </div>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="statusMonitorLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="statusMonitorLoading" class="btn-primary">
               {{ t('settings.statusMonitor.saveButton') }}
             </button>
             <p
@@ -829,11 +789,7 @@
             </label>
           </div>
           <div class="flex items-center justify-between">
-            <button
-              type="submit"
-              :disabled="dockerSettingsLoading"
-              class="px-4 py-2 bg-button text-button-text rounded-md shadow-sm hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <button type="submit" :disabled="dockerSettingsLoading" class="btn-primary">
               {{ t('settings.docker.saveButton') }}
             </button>
             <p

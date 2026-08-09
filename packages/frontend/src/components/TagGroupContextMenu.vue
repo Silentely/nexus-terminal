@@ -1,6 +1,7 @@
 /** * 标签分组右键菜单组件 * * 从 WorkspaceConnectionList.vue 中提取，通过 teleport 渲染到 body， *
 提供标签分组的连接全部、管理标签、删除组内所有连接操作。 */
 <script setup lang="ts">
+import { watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { ConnectionInfo } from '../stores/connections.store';
 
@@ -13,7 +14,7 @@ export interface TagGroupData {
 
 const { t } = useI18n();
 
-defineProps<{
+const props = defineProps<{
   /** 菜单是否可见（v-model） */
   visible: boolean;
   /** 菜单位置 */
@@ -38,6 +39,22 @@ const handleAction = (actionType: 'connectAll' | 'manageTag' | 'deleteAllConnect
 const hasSshConnections = (group: TagGroupData | null): boolean => {
   return group?.connections.some((c: ConnectionInfo) => c.type === 'SSH') ?? false;
 };
+
+// 键盘支持：Esc 关闭菜单
+const closeMenuOnEscape = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.visible) {
+    emit('update:visible', false);
+  }
+};
+watch(
+  () => props.visible,
+  (visible) => {
+    if (visible) document.addEventListener('keydown', closeMenuOnEscape);
+    else document.removeEventListener('keydown', closeMenuOnEscape);
+  },
+  { immediate: true },
+);
+onBeforeUnmount(() => document.removeEventListener('keydown', closeMenuOnEscape));
 </script>
 
 <template>

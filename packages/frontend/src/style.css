@@ -439,3 +439,65 @@ button:hover {
     user-select: none;
   }
 }
+
+/* ==========================================
+   共享语义组件类（DRY）
+   替代散落在各组件中的重复 Tailwind 工具类组合，
+   新组件应优先使用以下语义类，保持 UI 一致性。
+   ========================================== */
+@layer components {
+  /* 主操作按钮（对应 bg-button + 交互态） */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.15s ease-in-out;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--button-hover-bg-color);
+  }
+  .btn-primary:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--link-active-color);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* 表单输入框（对应 bg-input 系列） */
+  .form-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition:
+      border-color 0.15s ease-in-out,
+      box-shadow 0.15s ease-in-out;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: var(--input-focus-border-color);
+    box-shadow: 0 0 0 1px var(--input-focus-border-color);
+  }
+  .form-input::placeholder {
+    color: var(--input-placeholder-color);
+  }
+  .form-input:disabled {
+    background-color: var(--input-disabled-bg-color);
+    color: var(--input-disabled-text-color);
+    cursor: not-allowed;
+  }
+}

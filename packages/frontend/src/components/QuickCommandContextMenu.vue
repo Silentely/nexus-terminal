@@ -125,4 +125,20 @@ watch(
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleGlobalClick);
 });
+
+// 键盘支持：Esc 关闭菜单
+const closeMenuOnEscape = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.visible) {
+    emit('update:visible', false);
+  }
+};
+watch(
+  () => props.visible,
+  (visible) => {
+    if (visible) document.addEventListener('keydown', closeMenuOnEscape);
+    else document.removeEventListener('keydown', closeMenuOnEscape);
+  },
+  { immediate: true },
+);
+onBeforeUnmount(() => document.removeEventListener('keydown', closeMenuOnEscape));
 </script>

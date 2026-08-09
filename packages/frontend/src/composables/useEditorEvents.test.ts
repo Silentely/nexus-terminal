@@ -90,7 +90,9 @@ describe('useEditorEvents', () => {
     it('共享模式下返回 fileEditorStore 的标签', () => {
       const { deps, fileEditorStore, shareFileEditorTabsBoolean } = createDeps();
       shareFileEditorTabsBoolean.value = true;
-      fileEditorStore.orderedTabs.value = [{ id: 'shared-1' }] as unknown as FileTab[];
+      fileEditorStore.orderedTabs.value = [
+        { id: 'shared-1' },
+      ] as unknown as EditorEventsDependencies['fileEditorStore']['orderedTabs']['value'];
 
       const { editorTabs } = useEditorEvents(deps);
       expect(editorTabs.value.map((t) => t.id)).toEqual(['shared-1']);
@@ -254,7 +256,7 @@ describe('useEditorEvents', () => {
         { id: 'a' },
         { id: 'b' },
         { id: 'c' },
-      ] as unknown as FileTab[];
+      ] as unknown as EditorEventsDependencies['fileEditorStore']['orderedTabs']['value'];
 
       const { handleCloseOtherEditorTabs } = useEditorEvents(deps);
       handleCloseOtherEditorTabs('b');
@@ -270,7 +272,7 @@ describe('useEditorEvents', () => {
         { id: 'a' },
         { id: 'b' },
         { id: 'c' },
-      ] as unknown as FileTab[];
+      ] as unknown as EditorEventsDependencies['fileEditorStore']['orderedTabs']['value'];
 
       const { handleCloseEditorTabsToRight } = useEditorEvents(deps);
       handleCloseEditorTabsToRight('a');
@@ -286,7 +288,7 @@ describe('useEditorEvents', () => {
         { id: 'a' },
         { id: 'b' },
         { id: 'c' },
-      ] as unknown as FileTab[];
+      ] as unknown as EditorEventsDependencies['fileEditorStore']['orderedTabs']['value'];
 
       const { handleCloseEditorTabsToLeft } = useEditorEvents(deps);
       handleCloseEditorTabsToLeft('c');

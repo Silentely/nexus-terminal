@@ -78,7 +78,7 @@
             type="text"
             id="hcaptchaSiteKey"
             v-model="captchaForm.hcaptchaSiteKey"
-            class="w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+            class="form-input"
           />
         </div>
         <div>
@@ -93,7 +93,7 @@
             v-model="captchaForm.hcaptchaSecretKey"
             placeholder="••••••••••••"
             autocomplete="new-password"
-            class="w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+            class="form-input"
           />
           <small class="block mt-1 text-xs text-text-secondary">{{
             $t('settings.captcha.secretKeyHint')
@@ -132,7 +132,7 @@
             type="text"
             id="recaptchaSiteKey"
             v-model="captchaForm.recaptchaSiteKey"
-            class="w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+            class="form-input"
           />
         </div>
         <div>
@@ -147,7 +147,7 @@
             v-model="captchaForm.recaptchaSecretKey"
             placeholder="••••••••••••"
             autocomplete="new-password"
-            class="w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+            class="form-input"
           />
           <small class="block mt-1 text-xs text-text-secondary">{{
             $t('settings.captcha.secretKeyHint')

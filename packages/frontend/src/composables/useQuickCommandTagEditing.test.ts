@@ -110,7 +110,7 @@ describe('useQuickCommandTagEditing', () => {
 
     startEditingTag(5, '运维');
     editedTagName.value = '   '; // 空白名称
-    await finishEditingTag([untaggedGroup, tagGroup], {});
+    await finishEditingTag([untaggedGroup, tagGroup] as unknown as never, {});
     expect(mockUpdateTag).not.toHaveBeenCalled();
     expect(editingTagId.value).toBeNull();
   });
@@ -124,7 +124,7 @@ describe('useQuickCommandTagEditing', () => {
     editedTagName.value = '新组';
     const expandedGroups: Record<string, boolean> = { 未标记: true };
 
-    await finishEditingTag([untaggedGroup, tagGroup], expandedGroups);
+    await finishEditingTag([untaggedGroup, tagGroup] as unknown as never, expandedGroups);
 
     expect(mockAddTag).toHaveBeenCalledWith('新组');
     expect(mockAssignCommandsToTagAction).toHaveBeenCalledWith([1, 2], 9);
@@ -140,7 +140,7 @@ describe('useQuickCommandTagEditing', () => {
 
     startEditingTag(null, '');
     editedTagName.value = '新组';
-    await finishEditingTag([tagGroup], {});
+    await finishEditingTag([tagGroup] as unknown as never, {});
 
     expect(mockShowInfo).toHaveBeenCalled();
   });
@@ -154,7 +154,7 @@ describe('useQuickCommandTagEditing', () => {
     editedTagName.value = '监控';
     const expandedGroups: Record<string, boolean> = { 运维: false };
 
-    await finishEditingTag([untaggedGroup, tagGroup], expandedGroups);
+    await finishEditingTag([untaggedGroup, tagGroup] as unknown as never, expandedGroups);
 
     expect(mockUpdateTag).toHaveBeenCalledWith(5, '监控');
     expect(mockFetchQuickCommands).toHaveBeenCalled();
@@ -166,7 +166,7 @@ describe('useQuickCommandTagEditing', () => {
     const { startEditingTag, finishEditingTag } = useQuickCommandTagEditing();
 
     startEditingTag(5, '运维');
-    await finishEditingTag([untaggedGroup, tagGroup], {});
+    await finishEditingTag([untaggedGroup, tagGroup] as unknown as never, {});
 
     expect(mockUpdateTag).not.toHaveBeenCalled();
   });
@@ -178,7 +178,7 @@ describe('useQuickCommandTagEditing', () => {
 
     startEditingTag(5, '运维');
     editedTagName.value = '监控';
-    await finishEditingTag([untaggedGroup, tagGroup], {});
+    await finishEditingTag([untaggedGroup, tagGroup] as unknown as never, {});
 
     expect(mockUpdateTag).toHaveBeenCalledWith(5, '监控');
     expect(editingTagId.value).toBeNull();
@@ -190,7 +190,7 @@ describe('useQuickCommandTagEditing', () => {
 
     startEditingTag(null, '');
     editedTagName.value = '新组';
-    await finishEditingTag([untaggedGroup, tagGroup], {});
+    await finishEditingTag([untaggedGroup, tagGroup] as unknown as never, {});
 
     expect(mockShowError).toHaveBeenCalled();
   });
