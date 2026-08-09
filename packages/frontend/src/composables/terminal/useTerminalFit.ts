@@ -65,7 +65,7 @@ export function useTerminalFit(
         });
       }
     } catch (error: unknown) {
-      log.warn('Immediate fit/resize failed:', error);
+      log.warn('终端立即适配/调整大小失败:', error);
     }
   };
 

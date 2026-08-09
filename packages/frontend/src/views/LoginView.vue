@@ -41,7 +41,7 @@ const handleCaptchaExpired = () => {
   captchaToken.value = null;
 };
 const handleCaptchaError = (errorDetails: unknown) => {
-  log.error('CAPTCHA error:', errorDetails);
+  log.error('验证码处理失败:', errorDetails);
   captchaToken.value = null;
   captchaError.value = t('login.error.captchaLoadFailed');
 };
@@ -134,7 +134,7 @@ const handlePasskeyLogin = async () => {
     // 空用户名时，理想情况下后端应从断言中识别用户。
     await authStore.loginWithPasskey(credentials.username || '', authenticationResult);
   } catch (err: unknown) {
-    log.error('Passkey login error:', err);
+    log.error('Passkey 登录失败:', err);
     error.value = extractErrorMessage(err, t('login.error.passkeyAuthFailed'));
     // 若涉及验证码可考虑重置，但 Passkey 流程通常不直接需要
     // if (publicCaptchaConfig.value?.enabled) {

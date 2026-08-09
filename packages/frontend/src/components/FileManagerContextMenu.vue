@@ -198,7 +198,7 @@ const handleSendToClick = () => {
 };
 
 const handleFilesSent = (payload: unknown) => {
-  log.info('Files to send (from FileManagerContextMenu):', payload);
+  log.info('待发送的文件（来自文件管理器右键菜单）:', payload);
   // 实际发送逻辑可以后续添加或委派
 };
 

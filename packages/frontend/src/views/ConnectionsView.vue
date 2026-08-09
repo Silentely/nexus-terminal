@@ -311,7 +311,7 @@ const handleBatchDeleteConnections = async () => {
       await connectionsStore.fetchConnections();
     } catch (error: unknown) {
       const errorMessage = extractErrorMessage(error, '未知错误');
-      log.error('Batch delete connections error:', error);
+      log.error('批量删除连接失败:', error);
       showAlertDialog({
         title: t('common.error'),
         message: t('connections.batchEdit.errorMessage', `批量删除连接失败: ${errorMessage}`),

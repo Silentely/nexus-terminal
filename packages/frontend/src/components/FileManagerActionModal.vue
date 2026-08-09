@@ -175,7 +175,7 @@ const confirmAction = () => {
   ) {
     // This case should ideally be handled by disabling the button, but as a fallback:
     // Consider showing an inline error message instead of alert
-    log.warn('Invalid chmod format submitted');
+    log.warn('提交了无效的 chmod 格式');
     return;
   }
   emit('confirm', inputValue.value.trim());

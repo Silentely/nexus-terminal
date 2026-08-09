@@ -58,7 +58,7 @@ const setupWebManifestLink = async () => {
     if (!authStore.isAuthenticated) {
       return false;
     }
-    log.warn('Unauthorized access detected. Logging out.');
+    log.warn('检测到未授权访问，正在退出登录。');
     await authStore.logout();
     return true;
   });
@@ -136,7 +136,7 @@ const setupWebManifestLink = async () => {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          log.info('SW registered: ', registration);
+          log.info('Service Worker 注册成功:', registration);
 
           // 检测 SW 更新：当有新的 Service Worker 进入 waiting 状态时通知用户刷新
           registration.addEventListener('updatefound', () => {
@@ -166,7 +166,7 @@ const setupWebManifestLink = async () => {
           });
         })
         .catch((registrationError: unknown) => {
-          log.info('SW registration failed: ', registrationError);
+          log.info('Service Worker 注册失败:', registrationError);
         });
     });
   }

@@ -471,7 +471,7 @@ export const useAuthStore = defineStore(
      */
     async function fetchPasskeys() {
       if (!isAuthenticated.value) {
-        log.warn('User not authenticated. Cannot fetch passkeys.');
+        log.warn('用户未认证，无法获取 Passkey 列表。');
         passkeys.value = null;
         return;
       }
@@ -497,7 +497,7 @@ export const useAuthStore = defineStore(
           lastUsedDate: pk.last_used_at,
           name: pk.name,
         }));
-        log.info('Passkeys fetched and mapped successfully:', passkeys.value);
+        log.info('Passkey 列表获取并映射成功:', passkeys.value);
       } catch (err: unknown) {
         log.error('获取 Passkey 列表失败:', err);
         error.value = extractErrorMessage(err, '');

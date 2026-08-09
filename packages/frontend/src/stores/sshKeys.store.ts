@@ -37,7 +37,7 @@ export const useSshKeysStore = defineStore('sshKeys', () => {
     try {
       const response = await apiClient.get<SshKeyBasicInfo[]>('/ssh-keys');
       sshKeys.value = response.data;
-      log.info('SSH Keys fetched:', sshKeys.value);
+      log.info('SSH 密钥列表已获取:', sshKeys.value);
     } catch (err: unknown) {
       log.error('获取 SSH 密钥失败:', err);
       error.value = extractErrorMessage(err, '获取 SSH 密钥列表失败。');

@@ -812,7 +812,7 @@ const handleTestNotification = async () => {
         ),
     };
   } catch (error: unknown) {
-    log.error('Test notification error:', error);
+    log.error('测试通知发送失败:', error);
     const message = extractErrorMessage(error, t('settings.notifications.form.testFailed'));
     testResult.value = { success: false, message: message };
     // Optionally set testError if you want a separate display area for errors vs results

@@ -168,7 +168,7 @@ const handleSetup = async () => {
     // 成功消息在跳转前会短暂显示。
     router.push('/login');
   } catch (err: unknown) {
-    log.error('Setup failed:', err);
+    log.error('初始化设置失败:', err);
     error.value = extractErrorMessage(err, t('setup.error.generic'));
     isLoading.value = false; // Re-enable button on error
   }

@@ -341,7 +341,7 @@ const removeInputListeners = () => {
           displayEl.style.cursor = 'default';
         }
       } catch (error: unknown) {
-        log.warn('Could not reset cursor on VNC display element:', error);
+        log.warn('重置 VNC 显示元素光标失败:', error);
       }
     }
   }
