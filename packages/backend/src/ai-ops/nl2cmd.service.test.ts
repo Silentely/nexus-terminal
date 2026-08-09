@@ -19,6 +19,15 @@ vi.mock('../utils/crypto', () => ({
   decrypt: vi.fn((text: string) => text.replace('encrypted_', '')),
 }));
 
+// 模拟 SSRF 防护的 DNS 解析：测试不应发起真实网络请求，
+// 否则在无外网/受限 DNS 环境下 resolveAndValidatePublicHost 会因解析失败抛错
+vi.mock('../utils/url', () => ({
+  resolveAndValidatePublicHost: vi.fn(async (targetUrl: string) => ({
+    hostname: new URL(targetUrl).hostname,
+    addresses: ['203.0.113.1'], // 测试用保留地址，仅用于构造 pinned agent
+  })),
+}));
+
 describe('NL2CMD Service', () => {
   // Axios mock 状态
   let mockPost: ReturnType<typeof vi.fn>;
