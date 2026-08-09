@@ -98,7 +98,7 @@ describe('EmailSenderService', () => {
 
       expect(mockSendMail).toHaveBeenCalledWith(
         expect.objectContaining({
-          subject: 'Notification',
+          subject: '[Nexus Terminal] Notification',
         }),
       );
     });

@@ -117,7 +117,7 @@ const copyPathToClipboard = async (path: string) => {
     await navigator.clipboard.writeText(path);
     uiNotificationsStore.showSuccess(t('pathHistory.copiedSuccess', '路径已复制到剪贴板'));
   } catch (err: unknown) {
-    log.error('Failed to copy path:', err);
+    log.error('复制路径失败:', err);
     uiNotificationsStore.showError(t('pathHistory.copiedError', '复制路径失败'));
   }
 };

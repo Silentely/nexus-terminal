@@ -375,6 +375,44 @@ describe('useDockerManager (createDockerManager)', () => {
     });
   });
 
+  describe('docker:command:error 消息处理', () => {
+    it('应透传命令失败信息给 UI 反馈', () => {
+      mockIsConnected.value = true;
+      const manager = createDockerManager('session-1', createWsDeps(), mockI18n);
+
+      triggerMessage(
+        'docker:command:error',
+        { command: 'start', containerId: 'c1', message: 'Permission denied' },
+        'session-1',
+      );
+
+      expect(manager.commandError.value).toBe('Permission denied');
+    });
+
+    it('无 message 时应回退到本地化命令失败文案', () => {
+      mockIsConnected.value = true;
+      const manager = createDockerManager('session-1', createWsDeps(), mockI18n);
+
+      triggerMessage('docker:command:error', { command: 'remove' }, 'session-1');
+
+      // mockI18n.t 直接返回 key，commandError 应为 i18n key 拼接结果
+      expect(manager.commandError.value).toBe('dockerManager.error.commandFailed');
+    });
+
+    it('应忽略其他会话的命令错误', () => {
+      mockIsConnected.value = true;
+      const manager = createDockerManager('session-1', createWsDeps(), mockI18n);
+
+      triggerMessage(
+        'docker:command:error',
+        { command: 'start', message: 'Permission denied' },
+        'session-2',
+      );
+
+      expect(manager.commandError.value).toBeNull();
+    });
+  });
+
   describe('sendDockerCommand', () => {
     it('未连接时不应发送命令', () => {
       mockIsConnected.value = true;
@@ -592,6 +630,90 @@ describe('useDockerManager (createDockerManager)', () => {
       mockIsConnected.value = true;
 
       createDockerManager('session-1', createWsDeps(), mockI18n);
+
+      expect(mockSendMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('页面可见性感知轮询', () => {
+    // 重置 document.hidden，避免用例间相互影响
+    const setDocumentHidden = (hidden: boolean) => {
+      Object.defineProperty(document, 'hidden', {
+        value: hidden,
+        configurable: true,
+      });
+    };
+
+    const dispatchVisibilityChange = () => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    };
+
+    beforeEach(() => {
+      setDocumentHidden(false);
+    });
+
+    it('页面隐藏时应暂停 15s 轮询，恢复可见后立即刷新并继续', async () => {
+      mockIsConnected.value = true;
+      createDockerManager('session-1', createWsDeps(), mockI18n);
+
+      // 初始请求 + 清空调用记录
+      expect(mockSendMessage).toHaveBeenCalledTimes(1);
+      mockSendMessage.mockClear();
+
+      // 推进 15s，模拟一次轮询触发
+      await vi.advanceTimersByTimeAsync(15000);
+      expect(mockSendMessage).toHaveBeenCalledTimes(1);
+      mockSendMessage.mockClear();
+
+      // 页面隐藏：暂停轮询
+      setDocumentHidden(true);
+      dispatchVisibilityChange();
+      await vi.advanceTimersByTimeAsync(45000); // 3 个轮询周期
+      expect(mockSendMessage).not.toHaveBeenCalled();
+
+      // 恢复可见：立即刷新一次并恢复轮询
+      setDocumentHidden(false);
+      dispatchVisibilityChange();
+      expect(mockSendMessage).toHaveBeenCalledTimes(1);
+      mockSendMessage.mockClear();
+
+      // 恢复后轮询继续生效
+      await vi.advanceTimersByTimeAsync(15000);
+      expect(mockSendMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('恢复可见但已断开连接时不应恢复轮询', async () => {
+      mockIsConnected.value = true;
+      createDockerManager('session-1', createWsDeps(), mockI18n);
+      mockSendMessage.mockClear();
+
+      // 页面隐藏并断开连接
+      setDocumentHidden(true);
+      dispatchVisibilityChange();
+      mockIsConnected.value = false;
+      await nextTick();
+
+      // 恢复可见：连接已断开，不应请求
+      setDocumentHidden(false);
+      dispatchVisibilityChange();
+      expect(mockSendMessage).not.toHaveBeenCalled();
+
+      // 即使推进时间也不应有轮询请求
+      await vi.advanceTimersByTimeAsync(30000);
+      expect(mockSendMessage).not.toHaveBeenCalled();
+    });
+
+    it('cleanup 后不再响应可见性事件', async () => {
+      mockIsConnected.value = true;
+      const manager = createDockerManager('session-1', createWsDeps(), mockI18n);
+      mockSendMessage.mockClear();
+
+      manager.cleanup();
+
+      setDocumentHidden(true);
+      dispatchVisibilityChange();
+      setDocumentHidden(false);
+      dispatchVisibilityChange();
 
       expect(mockSendMessage).not.toHaveBeenCalled();
     });

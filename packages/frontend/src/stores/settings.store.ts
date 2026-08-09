@@ -173,7 +173,7 @@ export const useSettingsStore = defineStore('settings', () => {
         setLocale(defaultLng);
       }
     } catch (err: unknown) {
-      log.error('Error loading general settings:', err);
+      log.error('加载常规设置失败:', err);
       error.value = getApiErrorMessage(err, 'Failed to load settings');
       const navigatorLocale = navigator.language;
       const navigatorLangPart = navigatorLocale?.split('-')[0];

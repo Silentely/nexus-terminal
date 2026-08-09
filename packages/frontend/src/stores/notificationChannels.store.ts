@@ -23,7 +23,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       const response = await apiClient.get<NotificationSetting[]>('/notifications'); // 使用 apiClient
       settings.value = response.data;
     } catch (err: unknown) {
-      log.error('Error fetching notification settings:', err);
+      log.error('获取通知设置失败:', err);
       error.value = extractErrorMessage(err, '获取通知设置失败');
       settings.value = []; // Clear settings on error
     } finally {
@@ -41,7 +41,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       settings.value.push(response.data);
       return response.data;
     } catch (err: unknown) {
-      log.error('Error adding notification setting:', err);
+      log.error('添加通知设置失败:', err);
       error.value = extractErrorMessage(err, '添加通知设置失败');
       return null;
     } finally {

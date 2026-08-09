@@ -34,7 +34,7 @@ export function useTerminalSocket(
             }
           }
         } catch (error: unknown) {
-          log.error('Error reading terminal stream:', error);
+          log.error('读取终端流失败:', error);
         } finally {
           reader.releaseLock();
         }

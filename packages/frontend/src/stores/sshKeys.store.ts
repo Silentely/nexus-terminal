@@ -39,7 +39,7 @@ export const useSshKeysStore = defineStore('sshKeys', () => {
       sshKeys.value = response.data;
       log.info('SSH Keys fetched:', sshKeys.value);
     } catch (err: unknown) {
-      log.error('Failed to fetch SSH keys:', err);
+      log.error('获取 SSH 密钥失败:', err);
       error.value = extractErrorMessage(err, '获取 SSH 密钥列表失败。');
       // Ensure error.value is not null before passing
       // uiNotificationsStore.addNotification({ message: error.value ?? '未知错误', type: 'error' }); // Removed notification
@@ -63,7 +63,7 @@ export const useSshKeysStore = defineStore('sshKeys', () => {
       sshKeys.value.sort((a, b) => a.name.localeCompare(b.name));
       return true;
     } catch (err: unknown) {
-      log.error('Failed to add SSH key:', err);
+      log.error('添加 SSH 密钥失败:', err);
       error.value = extractErrorMessage(err, '添加 SSH 密钥失败。');
       // Ensure error.value is not null before passing
       return false;

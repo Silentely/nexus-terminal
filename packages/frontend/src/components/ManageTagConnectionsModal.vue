@@ -168,7 +168,7 @@ const handleDeleteTag = async () => {
       uiNotificationsStore.addNotification({
         message: t('tags.deleteFailed', {
           name: tagName,
-          error: tagsStore.error || 'Unknown error',
+          error: tagsStore.error || t('common.unknownError'),
         }),
         type: 'error',
       }); // 需要新的翻译键

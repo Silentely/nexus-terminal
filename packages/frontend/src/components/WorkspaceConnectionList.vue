@@ -72,7 +72,7 @@ const loadInitialExpandedGroups = (): Record<string, boolean> => {
       }
     }
   } catch (error: unknown) {
-    log.error('Failed to load or parse expanded groups state from localStorage:', error);
+    log.error('读取展开分组状态失败:', error);
     localStorage.removeItem(EXPANDED_GROUPS_STORAGE_KEY); // 清除无效状态
   }
   // 默认返回空对象，让 computed 属性处理默认展开
@@ -298,7 +298,7 @@ watch(
       try {
         localStorage.setItem(EXPANDED_GROUPS_STORAGE_KEY, JSON.stringify(newState));
       } catch (error: unknown) {
-        log.error('Failed to save expanded groups state to localStorage:', error);
+        log.error('保存展开分组状态失败:', error);
       }
     }
   },

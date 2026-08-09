@@ -313,10 +313,6 @@ const BATCH_WS_EVENT_TYPES = [
 ] as const;
 let unregisterBatchWsHandlers: Array<() => void> = [];
 
-// H4: 轮询仅作为 WS 降级方案
-let pollInterval: ReturnType<typeof setInterval> | null = null;
-let pollingActive = false;
-
 const toggleSelection = (id: number) => {
   if (selectedIds.value.includes(id)) {
     selectedIds.value = selectedIds.value.filter((i) => i !== id);
@@ -470,9 +466,28 @@ const copyOutput = async () => {
 };
 
 // H4: 轮询作为 WS 降级方案
+let pollInterval: ReturnType<typeof setInterval> | null = null;
+let pollingActive = false;
+let pollTaskId: string | null = null;
+
+// 页面隐藏时暂停降级轮询，恢复可见且任务仍在执行中时继续，避免后台标签页空转浪费资源
+const handleVisibilityChange = () => {
+  if (document.hidden) {
+    stopPolling();
+    return;
+  }
+  const task = batchStore.currentTask;
+  // 隐藏期间 stopPolling 会清空 pollTaskId，此处从 currentTask 兜底取回任务 ID
+  const taskId = pollTaskId || task?.taskId || null;
+  if (taskId && task && (task.status === 'in-progress' || task.status === 'queued')) {
+    startPolling(taskId);
+  }
+};
+
 const startPolling = (taskId: string) => {
   stopPolling();
   pollingActive = true;
+  pollTaskId = taskId;
   pollInterval = setInterval(async () => {
     // 轮询持续到 REST 明确返回终态，避免非终态 WS 事件丢失后 UI 永远停在执行中。
     if (!pollingActive) {
@@ -488,6 +503,7 @@ const startPolling = (taskId: string) => {
 
 const stopPolling = () => {
   pollingActive = false;
+  pollTaskId = null;
   if (pollInterval) {
     clearInterval(pollInterval);
     pollInterval = null;
@@ -526,6 +542,7 @@ watch(
 
 // 组件挂载时获取连接列表
 onMounted(() => {
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   if (connectionsStore.connections.length === 0) {
     connectionsStore.fetchConnections();
   }
@@ -533,6 +550,7 @@ onMounted(() => {
 
 // 组件卸载时清理
 onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
   stopPolling();
   unregisterBatchMessageHandlers();
   if (copyFeedbackTimer) clearTimeout(copyFeedbackTimer);

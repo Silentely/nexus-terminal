@@ -62,6 +62,13 @@ interface DockerStatusErrorPayload {
   message?: string;
 }
 
+/** docker:command:error 载荷：命令失败时透传给 UI 反馈 */
+interface DockerCommandErrorPayload {
+  command?: string;
+  containerId?: string;
+  message?: string;
+}
+
 const asObjectRecord = (value: unknown): Record<string, unknown> | null =>
   typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null;
 
@@ -91,6 +98,18 @@ const parseDockerStatusErrorPayload = (payload: unknown): DockerStatusErrorPaylo
   };
 };
 
+const parseDockerCommandErrorPayload = (payload: unknown): DockerCommandErrorPayload => {
+  const record = asObjectRecord(payload);
+  if (!record) {
+    return {};
+  }
+  return {
+    command: typeof record.command === 'string' ? record.command : undefined,
+    containerId: typeof record.containerId === 'string' ? record.containerId : undefined,
+    message: typeof record.message === 'string' ? record.message : undefined,
+  };
+};
+
 /**
  * Creates a Docker manager instance for a specific session.
  * @param sessionId The unique identifier for the session.
@@ -113,6 +132,8 @@ export function createDockerManager(
   const isDockerAvailable = ref(true); // 校验前先假定可用
   const expandedContainerIds = ref<Set<string>>(new Set());
   const initialLoadDone = ref(false);
+  /** 最近一次 Docker 容器操作（start/stop/restart/remove）的失败信息，供 UI 反馈 */
+  const commandError = ref<string | null>(null);
   let refreshInterval: ReturnType<typeof setInterval> | null = null;
   let wsUnsubscribeHooks: (() => void)[] = [];
 
@@ -142,14 +163,42 @@ export function createDockerManager(
       isDockerAvailable.value = false;
       expandedContainerIds.value.clear();
       initialLoadDone.value = false;
-      if (refreshInterval) clearInterval(refreshInterval);
-      refreshInterval = null;
+      stopRefreshInterval();
       return;
     }
 
     isLoading.value = true;
     error.value = null; // 清除之前的错误
     sendMessage({ type: 'docker:get_status', sessionId }); // 如后端路由需要，确保带上 sessionId
+  };
+
+  // 启动刷新定时器（考虑后端推送是否可靠）
+  // 与其他轮询组件（Dashboard/AiAudit/TransferProgress）保持一致，统一由 stopRefreshInterval 管理生命周期
+  const startRefreshInterval = () => {
+    if (refreshInterval) return; // 已存在定时器时不重复创建
+    refreshInterval = setInterval(requestDockerStatus, 15000); // 每 15 秒检查
+  };
+
+  // 停止刷新定时器，避免后台标签页空转浪费资源
+  const stopRefreshInterval = () => {
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+      refreshInterval = null;
+    }
+  };
+
+  // 页面隐藏时暂停轮询，恢复可见后立即刷新并继续，避免后台标签页持续请求接口
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      stopRefreshInterval();
+      return;
+    }
+    // 仅当连接建立且 Docker 面板仍在布局中时才恢复轮询
+    const layoutStore = useLayoutStore();
+    if (isConnected.value && layoutStore.usedPanes.has('dockerManager')) {
+      requestDockerStatus(); // 恢复可见时立即刷新一次
+      startRefreshInterval();
+    }
   };
 
   // Setup WebSocket listeners
@@ -193,8 +242,7 @@ export function createDockerManager(
           error.value = null;
           expandedContainerIds.value.clear();
           if (refreshInterval && !statusPayload.available) {
-            clearInterval(refreshInterval);
-            refreshInterval = null;
+            stopRefreshInterval();
           }
         }
       } else {
@@ -202,8 +250,7 @@ export function createDockerManager(
         containers.value = [];
         error.value = t('dockerManager.error.invalidResponse');
         expandedContainerIds.value.clear();
-        if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = null;
+        stopRefreshInterval();
       }
     });
 
@@ -216,16 +263,17 @@ export function createDockerManager(
       isDockerAvailable.value = false;
       containers.value = [];
       expandedContainerIds.value.clear();
-      if (refreshInterval) clearInterval(refreshInterval);
-      refreshInterval = null;
+      stopRefreshInterval();
     });
 
     const unsubCommandError = onMessage('docker:command:error', (payload, message) => {
       if (message?.sessionId && message.sessionId !== sessionId) return;
       log.error(`[DockerManager ${sessionId}] Received docker:command:error`, payload);
-      // 如何通知 UI？可设置 error ref 或依赖状态更新？
-      // 目前仅记录日志。UI 组件可展示通用错误或使用通知系统。
-      // 如有需要可增加临时 commandError ref。
+      const commandErrorPayload = parseDockerCommandErrorPayload(payload);
+      // 将命令失败信息暴露给 UI 反馈，用户操作容器后能立即感知失败原因
+      commandError.value =
+        commandErrorPayload.message ||
+        t('dockerManager.error.commandFailed', { command: commandErrorPayload.command ?? '' });
     });
 
     const unsubStatsError = onMessage('docker:stats:error', (payload, message) => {
@@ -291,11 +339,9 @@ export function createDockerManager(
     isDockerAvailable.value = true; // 校验前先假定可用
     expandedContainerIds.value.clear();
     initialLoadDone.value = false;
+    commandError.value = null;
 
-    if (refreshInterval) {
-      clearInterval(refreshInterval);
-      refreshInterval = null;
-    }
+    stopRefreshInterval();
     clearWsListeners();
   };
 
@@ -312,11 +358,7 @@ export function createDockerManager(
           requestDockerStatus(); // 拉取初始状态
 
           // 启动刷新定时器（考虑后端推送是否可靠）
-          if (!refreshInterval) {
-            // 保留安全刷新间隔
-            refreshInterval = setInterval(requestDockerStatus, 15000); // 每 15 秒检查
-          }
-        } else {
+          startRefreshInterval();
         }
       } else {
         // 连接已断开
@@ -331,6 +373,10 @@ export function createDockerManager(
 
   // 会话结束时调用的清理函数
   const cleanup = () => {
+    // 移除页面可见性监听，避免会话结束后仍被全局事件回调持有
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
     resetStateAndInterval(); // 清理监听与定时器
   };
 
@@ -343,15 +389,17 @@ export function createDockerManager(
     if (layoutStore.usedPanes.has('dockerManager')) {
       setupWsListeners();
       requestDockerStatus();
-      if (!refreshInterval) {
-        refreshInterval = setInterval(requestDockerStatus, 15000);
-      }
-    } else {
+      startRefreshInterval();
     }
   } else {
     // 设置断开时的初始状态
     error.value = t('dockerManager.error.sshDisconnected');
     isDockerAvailable.value = false;
+  }
+
+  // 注册页面可见性监听：后台标签页暂停轮询，恢复后继续
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
   }
 
   // --- Exposed Interface ---
@@ -362,6 +410,7 @@ export function createDockerManager(
     error: readonly(error),
     isDockerAvailable: readonly(isDockerAvailable),
     expandedContainerIds: readonly(expandedContainerIds), // UI needs this read-only
+    commandError: readonly(commandError), // 容器操作失败信息，供 UI 展示反馈
 
     // Methods
     requestDockerStatus, // 可供 UI 手动刷新按钮使用

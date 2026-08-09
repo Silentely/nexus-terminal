@@ -145,7 +145,7 @@ const fetchTransferTasks = async () => {
       return task;
     });
   } catch (error: unknown) {
-    log.error('Failed to fetch transfer tasks:', error);
+    log.error('获取传输任务失败:', error);
     errorLoading.value = extractErrorMessage(
       error,
       t('transferProgressModal.error.unknown', '未知错误'),

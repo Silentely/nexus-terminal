@@ -214,7 +214,7 @@ const handleDeleteTag = async (tagId: number) => {
     uiNotificationsStore.addNotification({
       message: t('tags.deleteFailedWithName', {
         name: deletedTagName,
-        error: tagsStore.error || 'Unknown error',
+        error: tagsStore.error || t('common.unknownError'),
       }),
       type: 'error',
     });

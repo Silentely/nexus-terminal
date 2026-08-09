@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSessionStore } from '../stores/session.store';
 import { storeToRefs } from 'pinia';
 import { useWorkspaceEventEmitter } from '../composables/workspaceEvents';
+import { useUiNotificationsStore } from '../stores/uiNotifications.store';
 
 const { t } = useI18n();
 const sessionStore = useSessionStore();
+const uiNotificationsStore = useUiNotificationsStore();
 const { activeSession } = storeToRefs(sessionStore); // Get reactive active session
 const emitWorkspaceEvent = useWorkspaceEventEmitter();
 
@@ -20,6 +22,16 @@ const error = computed(() => dockerManager.value?.error.value ?? null);
 const isDockerAvailable = computed(() => dockerManager.value?.isDockerAvailable.value ?? false); // Default to false if no manager
 const expandedContainerIds = computed(
   () => dockerManager.value?.expandedContainerIds.value ?? new Set<string>(),
+);
+
+// 容器操作失败时通过通知反馈用户，避免只记录日志导致无感知
+watch(
+  () => dockerManager.value?.commandError?.value ?? null,
+  (commandError) => {
+    if (commandError) {
+      uiNotificationsStore.showError(commandError);
+    }
+  },
 );
 
 // --- Computed properties for UI state (independent of dockerManager) ---
@@ -49,6 +61,9 @@ const enterContainer = (containerId: string) => {
     });
   }
 };
+
+// 无数据占位文案，三语言统一走 i18n，避免硬编码 N/A
+const na = computed(() => t('common.na'));
 
 const viewContainerLogs = (containerId: string) => {
   if (activeSession.value?.sessionId) {
@@ -106,7 +121,7 @@ const viewContainerLogs = (containerId: string) => {
       <i class="fas fa-exclamation-circle text-3xl text-error mb-2"></i>
       <p class="mt-2 mb-1 font-medium">{{ t('dockerManager.error.sshError') }}</p>
       <small class="text-xs max-w-[80%]">{{
-        activeSession?.wsManager.statusMessage.value || 'Unknown SSH error'
+        activeSession?.wsManager.statusMessage.value || t('dockerManager.error.sshNotConnected')
       }}</small>
     </div>
     <!-- Case 5: Active session, SSH connected, Docker loading -->
@@ -229,7 +244,7 @@ const viewContainerLogs = (containerId: string) => {
                   <span
                     class="font-medium text-sm truncate max-w-[180px]"
                     :title="container.Names?.join(', ')"
-                    >{{ container.Names?.join(', ') || 'N/A' }}</span
+                    >{{ container.Names?.join(', ') || na }}</span
                   >
                   <span
                     class="text-xs text-text-secondary truncate max-w-[180px]"
@@ -278,7 +293,7 @@ const viewContainerLogs = (containerId: string) => {
                     container.Ports?.map(
                       (p) =>
                         `${p.IP ? p.IP + ':' : ''}${p.PublicPort ? p.PublicPort + '->' : ''}${p.PrivatePort}/${p.Type}`,
-                    ).join(', ') || 'N/A'
+                    ).join(', ') || na
                   }}
                 </span>
               </td>
@@ -368,27 +383,25 @@ const viewContainerLogs = (containerId: string) => {
                       <dt class="font-medium text-text-secondary">
                         {{ t('dockerManager.stats.cpu') }}
                       </dt>
-                      <dd class="font-mono">{{ container.stats.CPUPerc ?? 'N/A' }}</dd>
+                      <dd class="font-mono">{{ container.stats.CPUPerc ?? na }}</dd>
                       <dt class="font-medium text-text-secondary">
                         {{ t('dockerManager.stats.memory') }}
                       </dt>
                       <dd class="font-mono">
-                        {{ container.stats.MemUsage ?? 'N/A' }} ({{
-                          container.stats.MemPerc ?? 'N/A'
-                        }})
+                        {{ container.stats.MemUsage ?? na }} ({{ container.stats.MemPerc ?? na }})
                       </dd>
                       <dt class="font-medium text-text-secondary">
                         {{ t('dockerManager.stats.netIO') }}
                       </dt>
-                      <dd class="font-mono">{{ container.stats.NetIO ?? 'N/A' }}</dd>
+                      <dd class="font-mono">{{ container.stats.NetIO ?? na }}</dd>
                       <dt class="font-medium text-text-secondary">
                         {{ t('dockerManager.stats.blockIO') }}
                       </dt>
-                      <dd class="font-mono">{{ container.stats.BlockIO ?? 'N/A' }}</dd>
+                      <dd class="font-mono">{{ container.stats.BlockIO ?? na }}</dd>
                       <dt class="font-medium text-text-secondary">
                         {{ t('dockerManager.stats.pids') }}
                       </dt>
-                      <dd class="font-mono">{{ container.stats.PIDs ?? 'N/A' }}</dd>
+                      <dd class="font-mono">{{ container.stats.PIDs ?? na }}</dd>
                     </dl>
                     <div v-else class="text-center text-text-secondary italic text-xs py-2">
                       {{ t('dockerManager.stats.noData') }}
@@ -418,27 +431,25 @@ const viewContainerLogs = (containerId: string) => {
                     <dt class="font-medium text-text-secondary">
                       {{ t('dockerManager.stats.cpu') }}
                     </dt>
-                    <dd class="font-mono">{{ container.stats.CPUPerc ?? 'N/A' }}</dd>
+                    <dd class="font-mono">{{ container.stats.CPUPerc ?? na }}</dd>
                     <dt class="font-medium text-text-secondary">
                       {{ t('dockerManager.stats.memory') }}
                     </dt>
                     <dd class="font-mono">
-                      {{ container.stats.MemUsage ?? 'N/A' }} ({{
-                        container.stats.MemPerc ?? 'N/A'
-                      }})
+                      {{ container.stats.MemUsage ?? na }} ({{ container.stats.MemPerc ?? na }})
                     </dd>
                     <dt class="font-medium text-text-secondary">
                       {{ t('dockerManager.stats.netIO') }}
                     </dt>
-                    <dd class="font-mono">{{ container.stats.NetIO ?? 'N/A' }}</dd>
+                    <dd class="font-mono">{{ container.stats.NetIO ?? na }}</dd>
                     <dt class="font-medium text-text-secondary">
                       {{ t('dockerManager.stats.blockIO') }}
                     </dt>
-                    <dd class="font-mono">{{ container.stats.BlockIO ?? 'N/A' }}</dd>
+                    <dd class="font-mono">{{ container.stats.BlockIO ?? na }}</dd>
                     <dt class="font-medium text-text-secondary">
                       {{ t('dockerManager.stats.pids') }}
                     </dt>
-                    <dd class="font-mono">{{ container.stats.PIDs ?? 'N/A' }}</dd>
+                    <dd class="font-mono">{{ container.stats.PIDs ?? na }}</dd>
                   </dl>
                   <div v-else class="text-center text-text-secondary italic text-xs py-2">
                     {{ t('dockerManager.stats.noData') }}

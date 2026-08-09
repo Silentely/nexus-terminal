@@ -221,7 +221,7 @@ export class DockerService {
         break;
     }
 
-    logger.info(`[DockerService] Executing command: ${dockerCliCommand}`); // Use console.log
+    logger.info(`[DockerService] Executing command: ${dockerCliCommand}`);
     try {
       const { stdout, stderr } = await execAsync(dockerCliCommand, {
         timeout: this.commandTimeout,
@@ -229,7 +229,7 @@ export class DockerService {
       if (stderr) {
         // Docker 命令有时会将正常信息输出到 stderr (例如 rm 返回容器 ID)
         // 但也可能包含错误信息
-        logger.warn(`[DockerService] Command "${dockerCliCommand}" produced stderr:`, { stderr }); // Use console.warn
+        logger.warn(`[DockerService] Command "${dockerCliCommand}" produced stderr:`, { stderr });
         // 可以根据 stderr 内容判断是否真的是错误
         if (stderr.toLowerCase().includes('error') || stderr.toLowerCase().includes('failed')) {
           throw new Error(`Docker command failed: ${stderr}`);
@@ -237,7 +237,7 @@ export class DockerService {
       }
       logger.info(`[DockerService] Command "${dockerCliCommand}" executed successfully.`, {
         stdout,
-      }); // Use console.log
+      });
 
       // 触发事件总线通知
       // restart 语义上是"先停止再启动"，此处复用 DockerContainerStarted 事件；
@@ -260,7 +260,7 @@ export class DockerService {
       logger.error(`[DockerService] Failed to execute command "${dockerCliCommand}"`, {
         error: errorMsg,
         stderr,
-      }); // Use console.error
+      });
       eventService.emitEvent(AppEventType.DockerContainerCommandFailed, {
         details: { containerId: cleanContainerId, command, reason: errorMsg },
       });

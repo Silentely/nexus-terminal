@@ -1305,7 +1305,8 @@
     "confirmationTitle": "確認してください",
     "navigate": "移動",
     "select": "選択",
-    "unexpectedError": "予期しないエラーが発生しました。後でもう一度お試しください"
+    "unexpectedError": "予期しないエラーが発生しました。後でもう一度お試しください",
+    "na": "該当なし"
   },
   "layoutConfigurator": {
     "title": "レイアウトマネージャー",
@@ -1454,7 +1455,10 @@
       "connectionFailed": "接続に失敗しました",
       "inputError": "入力リスナーの設定中にエラーが発生しました。",
       "noConnection": "接続情報が提供されていません。",
-      "tokenError": "トークンの取得に失敗しました"
+      "tokenError": "トークンの取得に失敗しました",
+      "unknownTunnelError": "不明なトンネルエラー",
+      "unknownClientError": "不明なクライアントエラー",
+      "na": "該当なし"
     },
     "reconnectTooltip": "リモートデスクトップに再接続",
     "resize": "サイズ変更"

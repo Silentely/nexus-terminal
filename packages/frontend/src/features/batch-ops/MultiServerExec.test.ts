@@ -248,4 +248,108 @@ describe('MultiServerExec.vue', () => {
     wrapper.unmount();
     expect(wsUnsubscribeMock).toHaveBeenCalledTimes(7);
   });
+
+  it('页面隐藏时应暂停降级轮询，恢复可见且任务未终态时继续轮询', async () => {
+    vi.useFakeTimers();
+    const setDocumentHidden = (hidden: boolean) => {
+      Object.defineProperty(document, 'hidden', { value: hidden, configurable: true });
+    };
+    const dispatchVisibility = () => document.dispatchEvent(new Event('visibilitychange'));
+
+    setDocumentHidden(false);
+    batchStoreMock.currentTask = {
+      taskId: 'task-1',
+      status: 'in-progress',
+      overallProgress: 10,
+      subTasks: [],
+    };
+    batchStoreMock.executeBatch.mockResolvedValue('task-1');
+    batchStoreMock.fetchTaskStatus.mockResolvedValue({
+      taskId: 'task-1',
+      status: 'in-progress',
+      overallProgress: 20,
+      subTasks: [],
+    });
+
+    const wrapper = mount(MultiServerExec, {
+      global: {
+        stubs: {
+          StatusBadge: true,
+          StatusIcon: true,
+        },
+      },
+    });
+
+    // 执行批次启动轮询
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    await wrapper.get('#batch-command').setValue('whoami');
+    await wrapper.find('button[aria-label="batchOps.execute"]').trigger('click');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(batchStoreMock.executeBatch).toHaveBeenCalled();
+    batchStoreMock.fetchTaskStatus.mockClear();
+
+    // 页面隐藏：暂停轮询，2s 间隔不应触发请求
+    setDocumentHidden(true);
+    dispatchVisibility();
+    await vi.advanceTimersByTimeAsync(8000);
+    expect(batchStoreMock.fetchTaskStatus).not.toHaveBeenCalled();
+
+    // 恢复可见：立即恢复轮询，下一个周期应触发请求
+    setDocumentHidden(false);
+    dispatchVisibility();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(batchStoreMock.fetchTaskStatus).toHaveBeenCalled();
+
+    wrapper.unmount();
+    vi.useRealTimers();
+  });
+
+  it('恢复可见但任务已终态时不应继续降级轮询', async () => {
+    vi.useFakeTimers();
+    const setDocumentHidden = (hidden: boolean) => {
+      Object.defineProperty(document, 'hidden', { value: hidden, configurable: true });
+    };
+    const dispatchVisibility = () => document.dispatchEvent(new Event('visibilitychange'));
+
+    setDocumentHidden(false);
+    batchStoreMock.currentTask = {
+      taskId: 'task-1',
+      status: 'completed',
+      overallProgress: 100,
+      subTasks: [],
+    };
+    batchStoreMock.executeBatch.mockResolvedValue('task-1');
+    batchStoreMock.fetchTaskStatus.mockResolvedValue({
+      taskId: 'task-1',
+      status: 'completed',
+      overallProgress: 100,
+      subTasks: [],
+    });
+
+    const wrapper = mount(MultiServerExec, {
+      global: {
+        stubs: {
+          StatusBadge: true,
+          StatusIcon: true,
+        },
+      },
+    });
+
+    await wrapper.get('input[type="checkbox"]').setValue(true);
+    await wrapper.get('#batch-command').setValue('whoami');
+    await wrapper.find('button[aria-label="batchOps.execute"]').trigger('click');
+    await vi.advanceTimersByTimeAsync(0);
+    batchStoreMock.fetchTaskStatus.mockClear();
+
+    // 隐藏后恢复：任务已终态，不应重新启动轮询
+    setDocumentHidden(true);
+    dispatchVisibility();
+    setDocumentHidden(false);
+    dispatchVisibility();
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(batchStoreMock.fetchTaskStatus).not.toHaveBeenCalled();
+
+    wrapper.unmount();
+    vi.useRealTimers();
+  });
 });

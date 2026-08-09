@@ -1305,7 +1305,8 @@
     "confirmationTitle": "请确认",
     "navigate": "导航",
     "select": "选择",
-    "unexpectedError": "发生意外错误，请稍后重试"
+    "unexpectedError": "发生意外错误，请稍后重试",
+    "na": "不适用"
   },
   "layoutConfigurator": {
     "title": "布局管理器",
@@ -1454,7 +1455,10 @@
       "connectionFailed": "连接失败",
       "inputError": "设置输入监听器时出错。",
       "noConnection": "未提供连接信息。",
-      "tokenError": "获取令牌失败"
+      "tokenError": "获取令牌失败",
+      "unknownTunnelError": "未知通道错误",
+      "unknownClientError": "未知客户端错误",
+      "na": "不适用"
     },
     "reconnectTooltip": "重新连接到远程桌面",
     "resize": "调整大小"

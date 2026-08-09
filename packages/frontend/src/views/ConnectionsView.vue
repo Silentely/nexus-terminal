@@ -515,7 +515,7 @@ const handleConnectAllFilteredConnections = async () => {
       // await new Promise(resolve => setTimeout(resolve, 200)); // 示例延迟
     }
   } catch (error: unknown) {
-    log.error('Error connecting to all filtered SSH connections:', error);
+    log.error('连接全部筛选 SSH 连接失败:', error);
     // uiNotificationsStore.addNotification({ message: t('connections.errors.connectAllSshFailed', '连接全部 SSH 操作失败。'), type: 'error' });
   } finally {
     isConnectingAll.value = false;

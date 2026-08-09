@@ -152,8 +152,9 @@ const handleConnection = async () => {
 
     tunnel.onerror = (status: unknown) => {
       const normalizedStatus = normalizeGuacamoleStatus(status);
-      const errorMessage = normalizedStatus.message || 'Unknown tunnel error';
-      const errorCode = normalizedStatus.code || 'N/A';
+      const errorMessage =
+        normalizedStatus.message || t('remoteDesktopModal.errors.unknownTunnelError');
+      const errorCode = normalizedStatus.code || t('remoteDesktopModal.errors.na');
       statusMessage.value = `${t('remoteDesktopModal.errors.tunnelError')} (${errorCode}): ${errorMessage}`;
       connectionStatus.value = 'error';
       disconnectGuacamole();
@@ -319,7 +320,7 @@ const setupInputListeners = () => {
     // displayEl.addEventListener('mouseenter', trySyncClipboardOnMouseEnter); // Changed to focus event
     displayEl.addEventListener('focus', trySyncClipboardOnDisplayFocus);
   } catch (inputError: unknown) {
-    log.error('Error setting up VNC input listeners:', inputError);
+    log.error('设置 VNC 输入监听器失败:', inputError);
     statusMessage.value = t('remoteDesktopModal.errors.inputError');
   }
 };

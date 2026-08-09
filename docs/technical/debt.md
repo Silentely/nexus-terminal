@@ -48,6 +48,23 @@
 
 ---
 
+## 2026-08-08 轮询与文案打磨迭代（10 轮）
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | Docker 管理器 15s 轮询可见性感知 | `useDockerManager.ts` 提取 start/stopRefreshInterval，页面隐藏暂停、恢复可见立即刷新并继续；cleanup 移除监听 | 3 测试 |
+| R2 | 批量执行降级轮询可见性感知 | `MultiServerExec.vue` 页面隐藏暂停 2s 轮询，恢复可见且任务未终态时继续（从 currentTask 兜底取回任务 ID） | 2 测试 |
+| R3 | 后端过时注释清理 | `docker.service.ts` 4 处 `// Use console.log` 残留注释（已改用 logger）移除 |
+| R4 | 空 else 分支清理 | `useDockerManager.ts` 2 处空 `else {}` 分支随 R1 重构消除 |
+| R5 | Docker 面板硬编码英文本地化 | `DockerManager.vue` `'Unknown SSH error'`、14 处 `'N/A'` 改为 i18n（新增 `common.na`） |
+| R6 | 组件硬编码错误文案本地化 | `BatchEditConnectionForm`/`ManageTagConnectionsModal` 的 `'Unknown error'` → `t('common.unknownError')` |
+| R7 | 远程桌面/VNC 错误文案本地化 | `RemoteDesktopModal`/`VncModal` 的 `'Unknown tunnel/client error'`、`'N/A'` 改为 i18n（新增 `remoteDesktopModal.errors.*`） | 三语言 8 key |
+| R8 | 前端英文日志统一为中文 | 26 处 `log.error('Failed to ...')` 等英文日志改为中文（组件/Composable/Store/View） |
+| R9 | Docker 命令失败 UI 反馈 | `useDockerManager` 新增 `commandError` 状态（解析 `docker:command:error` 载荷），`DockerManager.vue` watch 后通过通知反馈用户 | 3 测试 |
+| R10 | 通知默认主题规范化 + 全量验证 | `email.sender.service` 默认主题 `'Notification'` → `'[Nexus Terminal] Notification'`；前端 2716 + 后端 2699 测试全过，tsc/eslint/prettier/debt/locale 零错误 |
+
+---
+
 ## 2026-08-08 三轨打磨迭代（10 轮）
 
 | 轮次 | 内容 | 产物 |

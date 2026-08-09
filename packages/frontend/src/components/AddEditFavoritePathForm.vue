@@ -90,7 +90,7 @@ const handleSubmit = async () => {
     emit('saveSuccess');
     closeModal();
   } catch (error: unknown) {
-    log.error('Error saving favorite path:', error);
+    log.error('保存收藏路径失败:', error);
     const errMsg = error instanceof Error ? error.message : '';
     errorMessage.value =
       errMsg ||

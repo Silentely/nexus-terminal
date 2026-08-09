@@ -499,7 +499,7 @@ export const useAuthStore = defineStore(
         }));
         log.info('Passkeys fetched and mapped successfully:', passkeys.value);
       } catch (err: unknown) {
-        log.error('Failed to fetch passkeys:', err);
+        log.error('获取 Passkey 列表失败:', err);
         error.value = extractErrorMessage(err, '');
         passkeys.value = null;
       } finally {

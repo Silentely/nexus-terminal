@@ -470,7 +470,7 @@ const handleSend = async () => {
     emitWorkspaceEvent('ui:openTransferProgressModal'); // +++ 触发打开传输进度模态框的事件 +++
     emit('update:visible', false);
   } catch (error: unknown) {
-    log.error('Failed to initiate transfer:', error);
+    log.error('发起传输失败:', error);
     const err = error as { response?: { data?: { message?: string } }; message?: string };
     const errorMessage =
       err.response?.data?.message || err.message || t('sendFilesModal.transferFailedError');

@@ -115,7 +115,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
       _sortFavoritePaths();
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to fetch favorite paths');
-      log.error('Error fetching favorite paths:', err);
+      log.error('获取收藏路径失败:', err);
       isInitialized.value = false;
     } finally {
       isLoading.value = false;
@@ -203,7 +203,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
       });
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to add favorite path');
-      log.error('Error adding favorite path:', err);
+      log.error('添加收藏路径失败:', err);
       notificationsStore.addNotification({
         message: t('favoritePaths.notifications.addError', 'Failed to add favorite path.'),
         type: 'error',
@@ -249,7 +249,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
       });
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to update favorite path');
-      log.error('Error updating favorite path:', err);
+      log.error('更新收藏路径失败:', err);
       notificationsStore.addNotification({
         message: t('favoritePaths.notifications.updateError', 'Failed to update favorite path.'),
         type: 'error',
@@ -285,7 +285,7 @@ export const useFavoritePathsStore = defineStore('favoritePaths', () => {
       });
     } catch (err: unknown) {
       error.value = extractErrorMessage(err, 'Failed to delete favorite path');
-      log.error('Error deleting favorite path:', err);
+      log.error('删除收藏路径失败:', err);
       notificationsStore.addNotification({
         message: t('favoritePaths.notifications.deleteError', 'Failed to delete favorite path.'),
         type: 'error',

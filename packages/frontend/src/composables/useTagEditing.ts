@@ -150,7 +150,7 @@ export function useTagEditing(deps: TagEditingDependencies) {
         }
       }
     } catch (error: unknown) {
-      log.error('Error during finishEditingTag:', error);
+      log.error('完成标签编辑失败:', error);
       deps.notify({ message: deps.t('common.unexpectedError'), type: 'error' });
     } finally {
       // 无论核心操作成功与否，最终都退出编辑模式

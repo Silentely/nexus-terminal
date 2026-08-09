@@ -12,7 +12,7 @@ class EmailSenderService implements INotificationSender {
   async send(notification: ProcessedNotification): Promise<void> {
     const config = notification.config as EmailConfig;
     const { to, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, from } = config;
-    const subject = notification.subject || 'Notification';
+    const subject = notification.subject || '[Nexus Terminal] Notification';
     const { body } = notification;
 
     if (!to) {

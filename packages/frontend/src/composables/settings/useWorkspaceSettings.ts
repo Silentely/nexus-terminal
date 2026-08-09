@@ -522,7 +522,7 @@ export function useWorkspaceSettings() {
       statusMonitorShowIpMessage.value = t('common.saved');
       statusMonitorShowIpSuccess.value = true;
     } catch (error: unknown) {
-      log.error('Failed to update status monitor IP display setting:', error);
+      log.error('更新状态监控 IP 显示设置失败:', error);
       statusMonitorShowIpEnabled.value = statusMonitorShowIpBoolean.value;
       statusMonitorShowIpMessage.value = extractErrorMessage(
         error,

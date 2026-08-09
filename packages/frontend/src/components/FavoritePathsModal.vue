@@ -64,7 +64,7 @@ const handleItemClick = async (pathItem: FavoritePathItem) => {
     // Mark path as used before navigating
     await favoritePathsStore.markPathAsUsed(pathItem.id, t);
   } catch (error: unknown) {
-    log.error('Failed to mark path as used:', error);
+    log.error('标记路径已使用失败:', error);
     // Optionally, inform the user about the failure, though navigation will still proceed.
   }
   emit('navigateToPath', pathItem.path);
@@ -89,7 +89,7 @@ const handleDelete = async (pathItem: FavoritePathItem) => {
     try {
       await favoritePathsStore.deleteFavoritePath(pathItem.id, t);
     } catch (error: unknown) {
-      log.error('Failed to delete favorite path from modal:', error);
+      log.error('删除收藏路径失败:', error);
     }
   }
 };

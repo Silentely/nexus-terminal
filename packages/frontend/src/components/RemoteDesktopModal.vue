@@ -158,8 +158,8 @@ const handleConnection = async () => {
 
     tunnel.onerror = (status: GuacamoleStatusPayload) => {
       const normalized = normalizeGuacamoleStatus(status);
-      const errorMessage = normalized.message || 'Unknown tunnel error';
-      const errorCode = normalized.code || 'N/A';
+      const errorMessage = normalized.message || t('remoteDesktopModal.errors.unknownTunnelError');
+      const errorCode = normalized.code || t('remoteDesktopModal.errors.na');
       statusMessage.value = `${t('remoteDesktopModal.errors.tunnelError')} (${errorCode}): ${errorMessage}`;
       connectionStatus.value = 'error';
       disconnectGuacamole();
@@ -204,7 +204,7 @@ const handleConnection = async () => {
 
     guacClient.value.onerror = (status: GuacamoleStatusPayload) => {
       const normalized = normalizeGuacamoleStatus(status);
-      const errorMessage = normalized.message || 'Unknown client error';
+      const errorMessage = normalized.message || t('remoteDesktopModal.errors.unknownClientError');
       statusMessage.value = `${t('remoteDesktopModal.errors.clientError')}: ${errorMessage}`;
       connectionStatus.value = 'error';
       disconnectGuacamole();
@@ -354,7 +354,7 @@ const setupInputListeners = () => {
       }
     };
   } catch (inputError: unknown) {
-    log.error('Error setting up input listeners:', inputError); // 添加错误日志
+    log.error('设置输入监听器失败:', inputError);
     statusMessage.value = t('remoteDesktopModal.errors.inputError');
   }
 };
