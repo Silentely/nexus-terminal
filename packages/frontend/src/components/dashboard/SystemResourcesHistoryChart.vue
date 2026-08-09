@@ -9,6 +9,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Line } from 'vue-chartjs';
 import { useAppearanceStore } from '../../stores/appearance.store';
+import { useCssVarWithLifecycle, hexToRgba } from '../../composables/useCssVar';
 import {
   Chart as ChartJS,
   Title,
@@ -52,6 +53,17 @@ const textColorSecondary = computed(
 );
 const borderColor = computed(() => appearanceStore.currentUiTheme['--border-color'] || '#cccccc');
 
+// Chart.js 无法解析 CSS 变量字符串与 color-mix()，必须读取解析后的实际色值；
+// 响应式读取确保浅色/深色主题切换后图表配色同步刷新
+const chartPrimaryColor = useCssVarWithLifecycle('--color-primary', '#0ea5e9');
+const chartSuccessColor = useCssVarWithLifecycle('--color-success', '#10b981');
+const chartWarningColor = useCssVarWithLifecycle('--color-warning', '#f59e0b');
+
+// 半透明填充色：基于主色生成 rgba（Chart.js 需要实际颜色）
+const chartPrimaryFill = computed(() => hexToRgba(chartPrimaryColor.value.value, 0.15));
+const chartSuccessFill = computed(() => hexToRgba(chartSuccessColor.value.value, 0.15));
+const chartWarningFill = computed(() => hexToRgba(chartWarningColor.value.value, 0.15));
+
 const labels = computed(() =>
   props.history.map((p) => {
     const date = new Date(p.timestamp);
@@ -68,8 +80,8 @@ const chartData = computed<ChartData<'line'>>(() => ({
     {
       label: 'CPU',
       data: props.history.map((p) => p.cpuPercent),
-      borderColor: 'var(--color-primary)',
-      backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
+      borderColor: chartPrimaryColor.value.value,
+      backgroundColor: chartPrimaryFill.value,
       tension: 0.3,
       pointRadius: 0,
       fill: true,
@@ -77,8 +89,8 @@ const chartData = computed<ChartData<'line'>>(() => ({
     {
       label: t('dashboard.memory'),
       data: props.history.map((p) => p.memPercent),
-      borderColor: 'var(--color-success)',
-      backgroundColor: 'color-mix(in srgb, var(--color-success) 15%, transparent)',
+      borderColor: chartSuccessColor.value.value,
+      backgroundColor: chartSuccessFill.value,
       tension: 0.3,
       pointRadius: 0,
       fill: true,
@@ -86,8 +98,8 @@ const chartData = computed<ChartData<'line'>>(() => ({
     {
       label: t('dashboard.disk'),
       data: props.history.map((p) => p.diskPercent),
-      borderColor: 'var(--color-warning)',
-      backgroundColor: 'color-mix(in srgb, var(--color-warning) 15%, transparent)',
+      borderColor: chartWarningColor.value.value,
+      backgroundColor: chartWarningFill.value,
       tension: 0.3,
       pointRadius: 0,
       fill: true,

@@ -342,6 +342,19 @@ describe('appearance-background.store', () => {
 
       expect(document.documentElement.style.getPropertyValue('--app-bg-color')).toBe('#123456');
     });
+
+    it('应用主题后应派发 appearance-theme-applied 事件', () => {
+      const deps = createMockDeps();
+      const store = createBackgroundStore(deps);
+
+      const listener = vi.fn();
+      window.addEventListener('appearance-theme-applied', listener);
+
+      store.applyUiTheme({ '--app-bg-color': '#123456' });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+      window.removeEventListener('appearance-theme-applied', listener);
+    });
   });
 
   describe('safeJsonParse', () => {

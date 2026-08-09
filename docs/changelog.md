@@ -6,10 +6,14 @@
 
 ### 改进
 
-- 🔇 前端日志输出统一收口：useWebRTCTunnel（3 处）、AISettingsSection、AiAuditView 的直接 `console.debug/error` 全部改走统一 `log` 工具，前端源码不再绕过日志网关输出。
-- 🧹 App.vue Alt 快捷键热路径的 19 处 info 日志降级为 debug（dev 下需 `?log=debug` 才可见），消除每次按键的高频控制台噪音；PWA 低频事件日志保留 info。
-- ✅ 后端日志全面达标：logger 前缀模块化一致、英文残留为 0（L10-2 遗留项清零）、无高频循环噪音。
-- 🧪 修复 NL2CMD 单元测试依赖真实网络的问题：mock SSRF 防护的 DNS 解析，测试在无外网/受限 DNS 环境下稳定通过。
+- 📊 修复 Chart.js 图表颜色不随主题切换的问题：SessionDurationChart、SystemResourcesHistoryChart、StatusCharts 此前向 canvas 传入 `var(--color-*)`/`color-mix()` 字符串（canvas 无法解析，图表恒为 fallback 色）；现改为读取解析后的实际色值，浅色/深色主题切换后图表配色即时刷新。
+- 🎨 新增响应式 CSS 变量工具 `useCssVar`/`hexToRgba`（含 11 测试）：统一图表颜色读取逻辑、消除重复实现，并治理主题应用事件监听泄漏（由组件生命周期统一管理）。
+- 🔔 应用自定义 UI 主题后派发 `appearance-theme-applied` 事件，供依赖 CSS 变量实际值的模块（图表等）感知刷新。
+- 🧪 为三个图表组件补齐渲染测试（验证数据集/刻度颜色为实际色值而非 `var()` 字符串）。
+- 🔇 前端日志输出统一收口：useWebRTCTunnel（3 处）、AISettingsSection、AiAuditView 的直接 `console.*` 全部改走统一 `log` 工具。
+- 🧹 App.vue Alt 快捷键热路径的 19 处 info 日志降级为 debug，消除每次按键的高频控制台噪音。
+- ✅ 后端日志全面达标：logger 前缀模块化一致、英文残留为 0（L10-2 遗留项清零）。
+- 🧪 修复 NL2CMD 单元测试依赖真实网络的问题：mock SSRF 防护的 DNS 解析。
 - 🔤 前端英文日志全面统一为中文：apiClient、组件、Store、View 等 40+ 处。
 - 📏 提取共享 `utils/formatBytes.ts` 字节格式化工具（含测试），消除重复实现及 GB 精度不一致。
 - 🗄️ 后端 `i18n.ts` 模块导入阶段的 `console.*` 统一为惰性初始化的 pino logger。

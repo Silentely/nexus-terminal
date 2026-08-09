@@ -180,6 +180,10 @@ export function createBackgroundStore(deps: BackgroundDeps) {
     for (const [key, value] of Object.entries(theme)) {
       root.style.setProperty(key, value);
     }
+    // 通知依赖 CSS 变量实际值的模块（如图表组件）刷新缓存
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('appearance-theme-applied'));
+    }
   }
 
   /** 应用页面背景设置到 body 元素 */

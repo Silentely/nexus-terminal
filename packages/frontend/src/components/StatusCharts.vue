@@ -63,6 +63,7 @@ import { useI18n } from 'vue-i18n';
 import { Line } from 'vue-chartjs';
 import { useSessionStore } from '../stores/session.store';
 import { storeToRefs } from 'pinia';
+import { useCssVarWithLifecycle } from '../composables/useCssVar';
 import {
   Chart as ChartJS,
   Title,
@@ -106,15 +107,12 @@ const MAX_DATA_POINTS = 60;
 const KB_TO_MB_THRESHOLD = 1024; // For network
 const MB_TO_GB_THRESHOLD = 1024; // For memory
 
-// 读取 CSS 变量的实际值，Chart.js 不支持直接使用 CSS 变量
-const getCssVar = (varName: string): string => {
-  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-};
-
-// 图表颜色从 CSS 变量读取，确保主题一致性
-const chartTickColor = computed(() => getCssVar('--text-color-secondary') || '#9CA3AF');
+// 图表颜色从 CSS 变量读取实际值（Chart.js 不支持直接使用 CSS 变量）；
+// 响应式读取确保浅色/深色主题切换后图表配色同步刷新
+const chartTickColorRef = useCssVarWithLifecycle('--text-color-secondary', '#9CA3AF');
+const chartTickColor = computed(() => chartTickColorRef.value.value);
 const chartGridColor = computed(() => {
-  const base = getCssVar('--text-color-secondary') || '156, 163, 175';
+  const base = chartTickColorRef.value.value || '156, 163, 175';
   // 提取 RGB 值用于半透明网格线
   const rgbMatch = base.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
   if (rgbMatch) {

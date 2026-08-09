@@ -9,6 +9,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Bar } from 'vue-chartjs';
 import { useAppearanceStore } from '../../stores/appearance.store';
+import { useCssVarWithLifecycle } from '../../composables/useCssVar';
 import {
   Chart as ChartJS,
   BarElement,
@@ -35,6 +36,13 @@ const textColorSecondary = computed(
 );
 const borderColor = computed(() => appearanceStore.currentUiTheme['--border-color'] || '#cccccc');
 
+// Chart.js 无法解析 CSS 变量字符串，必须读取解析后的实际色值；
+// 响应式读取确保浅色/深色主题切换后图表配色同步刷新
+const chartSuccessColor = useCssVarWithLifecycle('--color-success', '#10b981');
+const chartWarningColor = useCssVarWithLifecycle('--color-warning', '#f59e0b');
+const chartErrorColor = useCssVarWithLifecycle('--color-error', '#ef4444');
+const chartMutedColor = useCssVarWithLifecycle('--text-color-secondary', '#909399');
+
 const values = computed(() => [
   props.distribution.lt5min ?? 0,
   props.distribution['5min-30min'] ?? 0,
@@ -54,10 +62,10 @@ const chartData = computed<ChartData<'bar'>>(() => ({
       label: t('dashboard.stats.sessionDuration'),
       data: values.value,
       backgroundColor: [
-        'var(--color-success, #67c23a)',
-        'var(--color-warning, #e6a23c)',
-        'var(--color-error, #f56c6c)',
-        'var(--text-color-secondary, #909399)',
+        chartSuccessColor.value.value,
+        chartWarningColor.value.value,
+        chartErrorColor.value.value,
+        chartMutedColor.value.value,
       ],
       borderRadius: 6,
     },

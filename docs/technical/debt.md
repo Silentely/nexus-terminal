@@ -48,6 +48,23 @@
 
 ---
 
+## 2026-08-08 图表主题化与响应式工具打磨迭代（10 轮）
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | 提取 useCssVar/hexToRgba 共享工具 | 新增 `composables/useCssVar.ts`：响应式读取 CSS 变量实际值 + 十六进制转 rgba；11 测试 |
+| R2 | 修复 3 个 Chart.js 图表颜色主题化 | SessionDurationChart/SystemResourcesHistoryChart/StatusCharts 的 `var(--color-*)`、`color-mix()` 字符串（canvas 无法解析）→ 读取实际色值，主题切换即时刷新 |
+| R3 | var() 传递问题扫描 | 确认 useAddConnectionFormTest/TerminalTabBar/FileEditorOverlay 的 var() 均在 DOM 上下文（可解析），合法 |
+| R4 | SessionDurationChart 渲染测试 | mock vue-chartjs，验证数据渲染与颜色为实际值 |
+| R5 | SystemResourcesHistoryChart 渲染测试 | 同上，验证 3 数据集颜色非 var()/color-mix()，填充色为 rgba |
+| R6 | StatusCharts 渲染测试 | mock session store，验证 CPU/网络图表渲染与刻度颜色 |
+| R7 | 主题事件派发 | `appearance-background.store` applyUiTheme 后派发 `appearance-theme-applied` 事件；补事件断言测试 |
+| R8 | 监听泄漏治理 | `useCssVar` 不再模块级注册监听（纯读取+缓存），统一由 `useCssVarWithLifecycle` 组件生命周期管理；补生命周期测试 |
+| R9 | 重绘机制核查 + 全量测试 | vue-chartjs 响应式 props 变化自动 update；图表相关 68 测试全过 |
+| R10 | 全量验证与自查 | 前端 2742 + 后端 2699 测试全过；tsc/eslint/prettier/debt/locale 零错误；回填本表 |
+
+---
+
 ## 2026-08-08 日志收口与降噪打磨迭代（10 轮）
 
 | 轮次 | 内容 | 产物 |
