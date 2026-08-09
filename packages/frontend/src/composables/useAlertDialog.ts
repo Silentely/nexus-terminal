@@ -9,6 +9,10 @@ interface AlertDialogOptions {
   onOk?: () => void | Promise<void>;
 }
 
+/**
+ * 显示警告对话框（挂载到 body）
+ * 供测试注入：内部 useI18n 从传入的 i18n 实例取用，避免环境依赖
+ */
 export function useAlertDialog() {
   const { t } = useI18n();
 

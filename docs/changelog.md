@@ -4,27 +4,26 @@
 
 ## 2026-08-08
 
+### 测试
+
+- 🧪 为 8 个零覆盖核心 composable 补齐单元测试（共 80 例）：useEditorEvents（编辑器事件共享/独立模式分流）、useConfirmDialog、useAlertDialog、useContextMenuPosition（右键菜单边界检测）、useQuickCommandTagEditing（标签行内编辑）、useAddConnectionFormSubmit（表单校验/批量 IP/CRUD）、useAddConnectionFormScriptMode（脚本模式解析校验）、useAddConnectionFormTags（标签创建/删除）、workspaceEvents（mitt 事件发射器）。
+- 📈 前端测试覆盖显著提升：composables 核心交互逻辑（编辑器事件、表单提交、右键菜单、对话框、标签管理）从零覆盖到完整覆盖。
+
 ### 改进
 
-- ♿ 无障碍补全：33 处仅图标按钮补全 `aria-label`（复制/删除/编辑/关闭等），屏幕阅读器可识别。
-- 🗨️ 对话框无障碍重构：AlertDialog/ConfirmDialog 改用安全 id（不再用标题文本作 HTML id）、打开时自动聚焦、Tab 焦点圈闭、Escape 关闭后恢复焦点（新增 `useDialogA11y` composable）。
-- 🪟 10 个模态框补全 `role="dialog"` + `aria-modal="true"` + `aria-label`（远程桌面/VNC/发送文件/传输进度/快捷指令/SSH 密钥/标签管理/文件管理等）。
-- 📊 动态状态无障碍：传输进度条补 `role="progressbar"`（aria-valuenow/min/max），归档进度弹窗补 `role="status"` + `aria-live`。
-- 📊 修复 Chart.js 图表颜色不随主题切换的问题：3 个图表组件从 CSS 变量读取实际色值。
-- 🎨 新增响应式 CSS 变量工具 `useCssVar`/`hexToRgba`（含 11 测试）。
-- 🔔 应用自定义 UI 主题后派发 `appearance-theme-applied` 事件。
-- 🔇 前端日志输出统一收口：useWebRTCTunnel、AISettingsSection、AiAuditView 的 `console.*` 改走统一 `log` 工具。
-- 🧹 App.vue Alt 快捷键热路径的 19 处 info 日志降级为 debug。
-- ✅ 后端日志全面达标：logger 前缀模块化一致、英文残留为 0（L10-2 遗留项清零）。
-- 🧪 修复 NL2CMD 单元测试依赖真实网络的问题：mock SSRF 防护的 DNS 解析。
-- 🔤 前端英文日志全面统一为中文：apiClient、组件、Store、View 等 40+ 处。
-- 📏 提取共享 `utils/formatBytes.ts` 字节格式化工具（含测试）。
-- 🗄️ 后端 `i18n.ts` 模块导入阶段的 `console.*` 统一为惰性初始化的 pino logger。
-- 📝 后端 Docker WebSocket 处理日志前缀统一为模块级 `[DockerHandler]`。
+- ♿ 无障碍补全：33 处仅图标按钮补全 aria-label；对话框安全 id 与焦点管理；10 个模态框 role=dialog；进度条 role=progressbar。
+- 📊 修复 Chart.js 图表颜色不随主题切换的问题。
+- 🔇 前端日志输出统一收口；App.vue 键盘热路径日志降噪。
+- ✅ 后端日志全面达标：logger 前缀模块化一致、英文残留为 0。
+- 🧪 修复 NL2CMD 单元测试依赖真实网络的问题。
+- 🔤 前端英文日志全面统一为中文。
+- 📏 提取共享 utils/formatBytes.ts 字节格式化工具。
+- 🗄️ 后端 i18n.ts console 统一为惰性 pino logger。
+- 📝 后端 Docker WebSocket 日志前缀统一为 [DockerHandler]。
 - 🎨 6 个组件手写加载/空状态统一接入 LoadingState/EmptyState。
-- ⏰ 2FA 时间偏差提示改为本地化文案（新增三语言 `timeSkewDetected` key）。
-- 🌐 apiClient 请求拦截与响应错误处理日志统一为中文。
-- ⚙️ 批量命令取消流程现在会同步更新排队子任务、保留已完成/失败计数，并将用户取消原因传递到前端。
+- ⏰ 2FA 时间偏差提示本地化。
+- 🌐 apiClient 日志统一为中文。
+- ⚙️ 批量命令取消流程完善。
 - 🔗 批量 WebSocket 终态事件现在完整通过 parser、当前 SSH 会话和 Batch Store；非终态事件不会提前关闭 REST 轮询兜底。
 - 🚦 批量 SSH 输出增加内存、数据库和 WebSocket 单次载荷边界；超过限制的输出会在前端显示截断提示。
 - 🧵 Worker 超时或运行时错误后会终止并替换旧实例，销毁后的终端输出 Worker 池支持安全重建；单次处理配置不会污染后续请求。

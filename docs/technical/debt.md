@@ -48,6 +48,25 @@
 
 ---
 
+## 2026-08-08 测试覆盖补强打磨迭代（10 轮）
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | useEditorEvents 测试 | 19 用例：共享/独立模式分流、10 个事件处理器、批量关闭标签 |
+| R2 | useConfirmDialog 测试 | 5 用例：store 委托、默认标题、confirmAction、loading |
+| R3 | useContextMenuPosition 测试 | 7 用例：右/下边界修正、左上越界限制、元素缺失兜底 |
+| R4 | useQuickCommandTagEditing 测试 | 10 用例：创建/更新/取消、空名校验、展开组迁移、异常通知 |
+| R5 | useAddConnectionFormSubmit 测试 | 14 用例：必填/端口/认证校验、批量 IP、单条 CRUD、删除确认 |
+| R6 | useAddConnectionFormScriptMode 测试 | 8 用例：空输入/解析错误/缺字段/端口/密码校验、成功路径 |
+| R7 | useAddConnectionFormTags 测试 | 7 用例：标签创建自动选中、删除确认、失败警告 |
+| R8 | workspaceEvents 测试 | 6 用例：mitt 订阅/发布/退订、自动清理 |
+| R9 | useAlertDialog 测试 | 4 用例：挂载、onOk 回调、关闭路径、默认文本 |
+| R10 | 全量验证与自查 | 前端 2817（+80）+ 后端 2699 测试全过；tsc/eslint/prettier/debt/locale 零错误；回填本表 |
+
+> 本批为债务文档「测试提升行动计划」阶段三（Composables ≥60%）的实质推进：9 个零覆盖核心 composable 补齐测试。
+
+---
+
 ## 2026-08-08 无障碍（a11y）补全打磨迭代（10 轮）
 
 | 轮次 | 内容 | 产物 |

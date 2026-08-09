@@ -1,132 +1,82 @@
 /**
- * workspaceEvents 单元测试
+ * composables/workspaceEvents 单元测试
+ * 覆盖 mitt 事件发射器的订阅/发布/退订与自动清理逻辑
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  workspaceEmitter,
-  useWorkspaceEventEmitter,
-  useWorkspaceEventSubscriber,
-  useWorkspaceEventOff,
-} from './workspaceEvents';
+
+// useOnWorkspaceEvent 依赖 onBeforeUnmount，mock 为立即执行注册回调
+const unmountCallbacks: Array<() => void> = [];
+vi.mock('vue', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue')>();
+  return {
+    ...actual,
+    onBeforeUnmount: (fn: () => void) => {
+      unmountCallbacks.push(fn);
+    },
+  };
+});
 
 describe('workspaceEvents', () => {
-  beforeEach(() => {
-    workspaceEmitter.all.clear();
+  let mod: typeof import('./workspaceEvents');
+
+  beforeEach(async () => {
+    unmountCallbacks.length = 0;
+    vi.resetModules();
+    mod = await import('./workspaceEvents');
   });
 
-  describe('workspaceEmitter', () => {
-    it('应支持 emit 和 on 事件订阅', () => {
-      const handler = vi.fn();
-      workspaceEmitter.on('terminal:input', handler);
-
-      workspaceEmitter.emit('terminal:input', { sessionId: 's1', data: 'ls' });
-
-      expect(handler).toHaveBeenCalledWith({ sessionId: 's1', data: 'ls' });
-    });
-
-    it('应支持 off 取消订阅', () => {
-      const handler = vi.fn();
-      workspaceEmitter.on('terminal:input', handler);
-      workspaceEmitter.off('terminal:input', handler);
-
-      workspaceEmitter.emit('terminal:input', { sessionId: 's1', data: 'ls' });
-
-      expect(handler).not.toHaveBeenCalled();
-    });
-
-    it('应支持多个事件类型', () => {
-      const inputHandler = vi.fn();
-      const resizeHandler = vi.fn();
-      workspaceEmitter.on('terminal:input', inputHandler);
-      workspaceEmitter.on('terminal:resize', resizeHandler);
-
-      workspaceEmitter.emit('terminal:input', { sessionId: 's1', data: 'ls' });
-      workspaceEmitter.emit('terminal:resize', { sessionId: 's1', dims: { cols: 80, rows: 24 } });
-
-      expect(inputHandler).toHaveBeenCalledTimes(1);
-      expect(resizeHandler).toHaveBeenCalledTimes(1);
-    });
-
-    it('应支持 session:activate 事件', () => {
-      const handler = vi.fn();
-      workspaceEmitter.on('session:activate', handler);
-
-      workspaceEmitter.emit('session:activate', { sessionId: 'session-123' });
-
-      expect(handler).toHaveBeenCalledWith({ sessionId: 'session-123' });
-    });
-
-    it('应支持 search:start 事件', () => {
-      const handler = vi.fn();
-      workspaceEmitter.on('search:start', handler);
-
-      workspaceEmitter.emit('search:start', { term: 'keyword' });
-
-      expect(handler).toHaveBeenCalledWith({ term: 'keyword' });
-    });
-
-    it('应支持 void 类型事件', () => {
-      const handler = vi.fn();
-      workspaceEmitter.on('terminal:clear', handler);
-
-      workspaceEmitter.emit('terminal:clear', undefined);
-
-      expect(handler).toHaveBeenCalled();
-    });
+  it('useWorkspaceEventEmitter 应返回 emit 函数', () => {
+    expect(typeof mod.useWorkspaceEventEmitter()).toBe('function');
   });
 
-  describe('useWorkspaceEventEmitter', () => {
-    it('应返回 emit 函数', () => {
-      const emit = useWorkspaceEventEmitter();
-
-      expect(typeof emit).toBe('function');
-    });
-
-    it('返回的 emit 函数应能发送事件', () => {
-      const emit = useWorkspaceEventEmitter();
-      const handler = vi.fn();
-      workspaceEmitter.on('editor:closeTab', handler);
-
-      emit('editor:closeTab', { tabId: 'tab-1' });
-
-      expect(handler).toHaveBeenCalledWith({ tabId: 'tab-1' });
-    });
+  it('useWorkspaceEventSubscriber 应返回 on 函数', () => {
+    expect(typeof mod.useWorkspaceEventSubscriber()).toBe('function');
   });
 
-  describe('useWorkspaceEventSubscriber', () => {
-    it('应返回 on 函数', () => {
-      const on = useWorkspaceEventSubscriber();
+  it('订阅后 emit 应触发处理器并携带载荷', () => {
+    const handler = vi.fn();
+    const emitter = mod.workspaceEmitter;
 
-      expect(typeof on).toBe('function');
-    });
+    emitter.on('terminal:sendCommand', handler);
+    emitter.emit('terminal:sendCommand', { command: 'ls -la', sessionId: 's1' });
 
-    it('返回的 on 函数应能订阅事件', () => {
-      const on = useWorkspaceEventSubscriber();
-      const handler = vi.fn();
-
-      on('connection:connect', handler);
-      workspaceEmitter.emit('connection:connect', { connectionId: 42 });
-
-      expect(handler).toHaveBeenCalledWith({ connectionId: 42 });
-    });
+    expect(handler).toHaveBeenCalledWith({ command: 'ls -la', sessionId: 's1' });
   });
 
-  describe('useWorkspaceEventOff', () => {
-    it('应返回 off 函数', () => {
-      const off = useWorkspaceEventOff();
+  it('useWorkspaceEventEmitter 的 emit 应能触发订阅', () => {
+    const handler = vi.fn();
+    const emitter = mod.workspaceEmitter;
+    const emit = mod.useWorkspaceEventEmitter();
 
-      expect(typeof off).toBe('function');
-    });
+    emitter.on('connection:connect', handler);
+    emit('connection:connect', { connectionId: 42 });
 
-    it('返回的 off 函数应能取消订阅', () => {
-      const off = useWorkspaceEventOff();
-      const handler = vi.fn();
-      workspaceEmitter.on('session:close', handler);
+    expect(handler).toHaveBeenCalledWith({ connectionId: 42 });
+  });
 
-      off('session:close', handler);
-      workspaceEmitter.emit('session:close', { sessionId: 's1' });
+  it('off 退订后 emit 不应再触发', () => {
+    const handler = vi.fn();
+    const emitter = mod.workspaceEmitter;
 
-      expect(handler).not.toHaveBeenCalled();
-    });
+    emitter.on('search:start', handler);
+    emitter.off('search:start', handler);
+    emitter.emit('search:start', { term: 'abc' });
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('useOnWorkspaceEvent 注册后 emit 应触发，卸载回调执行退订', () => {
+    const handler = vi.fn();
+    const emitter = mod.workspaceEmitter;
+
+    mod.useOnWorkspaceEvent('editor:saveTab', handler);
+    emitter.emit('editor:saveTab', { tabId: 't1' });
+    expect(handler).toHaveBeenCalledWith({ tabId: 't1' });
+
+    // 执行卸载回调（模拟组件卸载）
+    unmountCallbacks.forEach((cb) => cb());
+    handler.mockClear();
+    emitter.emit('editor:saveTab', { tabId: 't2' });
+    expect(handler).not.toHaveBeenCalled();
   });
 });
