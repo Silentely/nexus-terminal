@@ -48,6 +48,62 @@
 
 ---
 
+## 2026-08-08 日志收口与降噪打磨迭代（10 轮）
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | useWebRTCTunnel console 收口 | 3 处 `console.debug` → `log.debug`（DataChannel 关闭/信令连接/SDP Answer） |
+| R2 | 组件/视图 console 收口 | AISettingsSection `[AI Test]` 与 AiAuditView 删除报告 2 处 `console.error` → `log.error`，补齐 log import |
+| R3 | 键盘热路径日志降噪 | App.vue Alt 快捷键 19 处 `log.info` → `log.debug`（每次按键高频输出），PWA 低频事件保留 info |
+| R4 | 后端日志前缀一致性 | transfers/sftp/auth/websocket 前缀均模块化（类名主导），变量名出现属正常，无改动 |
+| R5 | 后端英文残留清零 | 全后端 `logger.*` 英文残留 0 处（L10-2 遗留项实质清零） |
+| R6 | 前端日志用法一致性 | 504 处字符串首参 + 6 处结构化对象并存，均为 log 工具支持形式 |
+| R7 | 后端日志噪音扫描 | transfers/sftp 日志已 debug/info 分层，任务创建等 info 日志低频有价值，保留 |
+| R8 | 前端英文日志清零 | 全前端 `log.*` 英文残留 0 处 |
+| R9 | 文档与 locale 同步 | 三语言 key 一致、注释无英文残留 |
+| R10 | 全量验证与自查 | 前端 2724 + 后端 2699 测试全过；tsc/eslint/prettier/debt/locale 零错误 |
+
+---
+
+## 2026-08-08 日志统一与工具去重打磨迭代（10 轮）
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R0 | **预存问题修复** | `nl2cmd.service.test.ts` 22 例失败根因：测试 mock 了 axios 但未 mock SSRF 防护的 `resolveAndValidatePublicHost`，沙箱 DNS 无法解析 OpenAI 域名。新增 `vi.mock('../utils/url')` 返回测试地址，消除真实 DNS 依赖 | 30 测试全过 |
+| R1 | 前端英文日志统一（组件类） | BatchEditConnectionForm / FileManagerActionModal / FileManagerContextMenu / NotificationSettingForm / NotificationSettings / SendFilesModal / VncModal / WorkspaceConnectionList 8 处 → 中文 |
+| R2 | 前端英文日志统一（store/view/composable） | useTerminalFit / main.ts(3) / auth.store / sshKeys.store / ConnectionsView / LoginView(2) / SetupView / auth.store `Passkeys fetched` 等 10+ 处 → 中文 |
+| R3 | 提取共享 formatBytes 工具 | 新增 `utils/formatBytes.ts`（分级精度：KB/MB 与 GB 可分别配置小数位）+ 7 测试，消除 GB 精度不一致（formatSize 1 位 vs dashboard 2 位） |
+| R4 | dashboard.store 接入共享工具 | 本地 `formatBytes` 删除，改用 `formatBytes(bytes, 1, 2)` 保留原语义；对外 API 不变 |
+| R5 | fileManagerDisplayUtils 接入共享工具 | 本地 `formatSize` 删除，改用 `formatBytes(size, 1, 1)` 保留原语义 |
+| R6 | 后端 i18n.ts console 统一为 logger | 模块导入阶段 3 处 `console.info/error/warn` → 惰性 pino logger（首次调用时 dotenv 已加载，安全）；后端模块级 console 输出清零 |
+| R7 | 重复工具扫描 | 确认 formatMode 唯一实现、2 处手写错误提取（Blob/failureCount 特殊逻辑）不适用 extractErrorMessage，保留合理 |
+| R8 | 前端硬编码扫描 | 仅 reCAPTCHA 品牌名与 API URL 占位，合法保留 |
+| R9 | 后端 logger 一致性抽查 | 130 文件统一 `utils/logger`，无旧 import、无模块级 console |
+| R10 | 全量验证与自查 | 前端 2724 + 后端 2699 测试全过；tsc/eslint/prettier/debt/locale 零错误；回填本表 |
+
+> 备注：`status-monitor.service.test.ts` 在全量并发时偶发 1 例失败（单独运行稳定通过），根因疑似 `createMockStream` 的 `process.nextTick` 在 fake timers + 高并发下的时序抖动，属低频 flaky 预存问题，本次未改动测试基建以免引入新不稳定，留待后续观察。
+
+---
+
+## 2026-08-08 组件状态与日志打磨迭代（10 轮）
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | apiClient 日志统一为中文 | `utils/apiClient.ts` 8 处英文日志（Request error/Response warning/Unauthorized/Forbidden/404/500 等）改为中文，与前端日志风格一致 |
+| R2 | 2FA 时间偏差文案本地化 | `useTwoFactorAuth.ts` 硬编码中文时间偏差提示 → i18n；三语言新增 `settings.twoFactor.error.timeSkewDetected` |
+| R3 | StatusMonitor 加载态统一 | 手写 spinner → `LoadingState`（full 模式） |
+| R4 | NotificationSettings 状态统一 | 手写加载/空态 → `LoadingState`/`EmptyState` |
+| R5 | ProxyList 状态统一 | 手写加载/空态 → `LoadingState`/`EmptyState` |
+| R6 | WorkspaceConnectionList 加载态统一 | 手写 spinner → `LoadingState`（full 模式） |
+| R7 | ManageTag/DockerManager 加载态统一 | 两处手写 spinner → `LoadingState`（compact/full） |
+| R8 | 后端 Docker 日志前缀规范化 | `docker.handler.ts` 13 处 `[fetchRemoteDockerStatus]` → `[DockerHandler]`，与同目录 `[WebSocket]` 等模块级前缀风格一致 |
+| R9 | 局部加载态补缺 | FavoritePathsModal / PathHistoryDropdown / SendFilesModal 三处手写加载态 → `LoadingState`（compact） |
+| R10 | 全量验证与自查 | 前端 2716 + 后端 2669（排除环境性 NL2CMD 网络失败）测试全过；tsc/eslint/prettier/debt/locale 零错误；回填本表 |
+
+> 说明：R10 验证时 `nl2cmd.service.test.ts` 22 例失败经 stash 复现确认与本次改动无关，根因为沙箱环境 DNS 无法解析 OpenAI 域名（`resolveAndValidatePublicHost` 拦截），属环境性预存失败。
+
+---
+
 ## 2026-08-08 轮询与文案打磨迭代（10 轮）
 
 | 轮次 | 内容 | 产物 |

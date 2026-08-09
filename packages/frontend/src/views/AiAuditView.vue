@@ -474,6 +474,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { log } from '@/utils/log';
 import { useI18n } from 'vue-i18n';
 import { useAiAuditStore } from '../stores/ai-audit.store';
 import type { AuditReport, ReportType, ReportStatus } from '../types/ai-audit.types';
@@ -620,7 +621,7 @@ async function handleDeleteReport(reportId: number) {
       selectedReport.value = null;
     }
   } catch (err) {
-    console.error('删除报告失败:', err);
+    log.error('删除报告失败:', err);
   }
 }
 

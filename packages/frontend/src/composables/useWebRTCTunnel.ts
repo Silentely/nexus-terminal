@@ -328,7 +328,7 @@ export class WebRTCTunnel {
     };
 
     this.dc.onclose = () => {
-      console.debug(`[WebRTCTunnel] DataChannel 已关闭, sessionId=${this.sessionId}`);
+      log.debug(`[WebRTCTunnel] DataChannel 已关闭, sessionId=${this.sessionId}`);
       if (this.state === 'connected') {
         this.handleError('DataChannel 意外关闭');
       }
@@ -411,7 +411,7 @@ export class WebRTCTunnel {
       this.signalingWs = new WebSocket(this.config.signalingUrl);
 
       this.signalingWs.onopen = () => {
-        console.debug('[WebRTCTunnel] 信令 WebSocket 已连接');
+        log.debug('[WebRTCTunnel] 信令 WebSocket 已连接');
 
         // 生成 SDP offer 并发送
         this.createAndSendOffer(data);
@@ -493,7 +493,7 @@ export class WebRTCTunnel {
     try {
       this.sessionId = message.sessionId || null;
       await this.pc.setRemoteDescription(message.payload as RTCSessionDescriptionInit);
-      console.debug(`[WebRTCTunnel] SDP Answer 已设置, sessionId=${this.sessionId}`);
+      log.debug(`[WebRTCTunnel] SDP Answer 已设置, sessionId=${this.sessionId}`);
 
       // flush 缓存的本地 ICE 候选（answer 前 onicecandidate 产生的）
       this.flushPendingLocalIceCandidates();

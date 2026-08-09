@@ -236,6 +236,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
+import { log } from '@/utils/log';
 import { storeToRefs } from 'pinia';
 import { useAISettingsStore } from '../../stores/aiSettings.store';
 import { useAIStore } from '../../stores/ai.store';
@@ -379,7 +380,7 @@ async function handleTest() {
     if (result.success) {
       setStatus('连接测试成功！AI 服务可用', true);
     } else {
-      console.error('[AI Test] 连接测试失败，错误详情:', result.errorDetail);
+      log.error('[AI Test] 连接测试失败，错误详情:', result.errorDetail);
       setStatus('连接测试失败，请检查配置（详情请查看浏览器控制台）', false);
     }
   } catch (error: unknown) {

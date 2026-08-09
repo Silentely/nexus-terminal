@@ -6,6 +6,17 @@
 
 ### 改进
 
+- 🔇 前端日志输出统一收口：useWebRTCTunnel（3 处）、AISettingsSection、AiAuditView 的直接 `console.debug/error` 全部改走统一 `log` 工具，前端源码不再绕过日志网关输出。
+- 🧹 App.vue Alt 快捷键热路径的 19 处 info 日志降级为 debug（dev 下需 `?log=debug` 才可见），消除每次按键的高频控制台噪音；PWA 低频事件日志保留 info。
+- ✅ 后端日志全面达标：logger 前缀模块化一致、英文残留为 0（L10-2 遗留项清零）、无高频循环噪音。
+- 🧪 修复 NL2CMD 单元测试依赖真实网络的问题：mock SSRF 防护的 DNS 解析，测试在无外网/受限 DNS 环境下稳定通过。
+- 🔤 前端英文日志全面统一为中文：apiClient、组件、Store、View 等 40+ 处。
+- 📏 提取共享 `utils/formatBytes.ts` 字节格式化工具（含测试），消除重复实现及 GB 精度不一致。
+- 🗄️ 后端 `i18n.ts` 模块导入阶段的 `console.*` 统一为惰性初始化的 pino logger。
+- 📝 后端 Docker WebSocket 处理日志前缀统一为模块级 `[DockerHandler]`。
+- 🎨 6 个组件手写加载/空状态统一接入 LoadingState/EmptyState。
+- ⏰ 2FA 时间偏差提示改为本地化文案（新增三语言 `timeSkewDetected` key）。
+- 🌐 apiClient 请求拦截与响应错误处理日志统一为中文。
 - ⚙️ 批量命令取消流程现在会同步更新排队子任务、保留已完成/失败计数，并将用户取消原因传递到前端。
 - 🔗 批量 WebSocket 终态事件现在完整通过 parser、当前 SSH 会话和 Batch Store；非终态事件不会提前关闭 REST 轮询兜底。
 - 🚦 批量 SSH 输出增加内存、数据库和 WebSocket 单次载荷边界；超过限制的输出会在前端显示截断提示。
