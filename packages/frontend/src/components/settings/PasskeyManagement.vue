@@ -79,6 +79,7 @@
                   @click="startEditPasskeyName(key.credentialID, key.name || '')"
                   class="ml-2 p-1 text-text-secondary hover:text-foreground focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out"
                   :title="$t('settings.passkey.editNameTooltip', '编辑名称')"
+                  :aria-label="$t('settings.passkey.editNameTooltip', '编辑名称')"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

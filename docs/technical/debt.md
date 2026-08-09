@@ -48,6 +48,23 @@
 
 ---
 
+## 2026-08-08 无障碍（a11y）补全打磨迭代（10 轮）
+
+| 轮次 | 内容 | 产物 |
+| --- | --- | --- |
+| R1 | icon-only 按钮 aria-label 补全 | 33 处仅图标按钮（复制/删除/编辑/关闭/排序等）补 `:aria-label`，屏幕阅读器可识别用途 |
+| R2 | 对话框无障碍重构 | 新增 `useDialogA11y` composable：安全标题 id（非标题文本）、打开自动聚焦、Tab 焦点圈闭、关闭恢复焦点；AlertDialog/ConfirmDialog 接入 |
+| R3 | 模态框 role=dialog | 10 个模态框遮罩补 `role="dialog"` + `aria-modal="true"`（远程桌面/VNC/发送文件/传输进度/快捷指令/SSH 密钥/标签管理/文件管理等） |
+| R4 | 模态框回归测试 | 7 文件 143 测试全过，`role="dialog"` 添加不破坏既有断言 |
+| R5 | 模态框 aria-label 关联 | 10 个模态框补静态 `aria-label`（无障碍名称），替代复杂的动态 id 关联 |
+| R6 | 回归 + ESLint | aria-label 插入导致的格式问题经 `eslint --fix` 清零 |
+| R7 | 表单标签核查 | 122 处表单控件经抽查均已有 `<label for>` 关联（脚本误报排除），无需改动 |
+| R8 | 动态状态无障碍 | TransferProgressModal 进度条补 `role="progressbar"`（aria-valuenow/min/max）；ArchiveProgressPopup 补 `role="status"` + `aria-live="polite"` |
+| R9 | 进度条扫描 | FileUploadPopup 已用原生 `<progress>`（自带语义），其余 width:100% 为布局非进度条 |
+| R10 | 全量验证与自查 | 前端 2749（+7 对话框测试）+ 后端 2699 测试全过；tsc/eslint/prettier/debt/locale 零错误；回填本表 |
+
+---
+
 ## 2026-08-08 图表主题化与响应式工具打磨迭代（10 轮）
 
 | 轮次 | 内容 | 产物 |

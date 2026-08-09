@@ -220,6 +220,7 @@ const handleDeleteTagGlobally = (tagToDelete: GenericTag) => {
             class="ml-1 p-0 bg-transparent border-none cursor-pointer text-text-alt hover:text-error text-xs leading-none"
             @click.stop="handleDeleteTagGlobally(tag)"
             :title="t('tags.deleteTagGlobally')"
+            :aria-label="t('tags.deleteTagGlobally')"
           >
             <i class="fas fa-trash-alt"></i>
           </button>

@@ -67,6 +67,9 @@ onMounted(() => {
   <div
     v-if="isVisible"
     class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="快捷指令"
     @click.self="closeModal"
   >
     <div

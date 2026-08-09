@@ -692,6 +692,9 @@ const stopResize = () => {
       isMinimized ? '' : 'bg-overlay',
       isMinimized ? 'pointer-events-none' : '', // 允许恢复按钮接收事件
     ]"
+    role="dialog"
+    aria-modal="true"
+    aria-label="远程桌面"
   >
     <button
       ref="restoreButtonRef"

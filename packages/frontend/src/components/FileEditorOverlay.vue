@@ -651,6 +651,7 @@ onBeforeUnmount(() => {
             @click="handleOpenSearch"
             class="search-btn"
             :title="t('fileManager.actions.search', 'Search')"
+            :aria-label="t('fileManager.actions.search', 'Search')"
           >
             <i class="fas fa-search"></i>
           </button>

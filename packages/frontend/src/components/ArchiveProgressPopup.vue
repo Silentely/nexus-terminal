@@ -28,6 +28,8 @@ const displayFileName = computed(() => {
     <div
       v-if="progress.active"
       class="fixed bottom-4 left-4 bg-background border border-border rounded-md shadow-md p-3 max-w-sm z-[1001] text-sm"
+      role="status"
+      aria-live="polite"
     >
       <div class="flex items-center gap-2 mb-1.5">
         <span class="animate-spin text-base">⚙️</span>

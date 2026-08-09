@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useDialogTitleId, useDialogFocus } from '../../composables/useDialogA11y';
 
 interface Props {
   visible: boolean;
@@ -17,6 +18,7 @@ const emit = defineEmits(['confirm', 'cancel', 'update:visible']);
 const { t } = useI18n();
 
 const dialogVisible = ref(props.visible);
+const titleId = useDialogTitleId('confirm-dialog');
 
 watch(
   () => props.visible,
@@ -49,13 +51,21 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 };
 
-watch(dialogVisible, (isVisible) => {
-  if (isVisible) {
-    document.addEventListener('keydown', handleKeydown);
-  } else {
-    document.removeEventListener('keydown', handleKeydown);
-  }
-});
+watch(
+  dialogVisible,
+  (isVisible) => {
+    if (isVisible) {
+      document.addEventListener('keydown', handleKeydown);
+    } else {
+      document.removeEventListener('keydown', handleKeydown);
+    }
+  },
+  { immediate: true },
+);
+
+// 无障碍：Tab 焦点圈闭 + 打开时聚焦取消按钮（避免默认聚焦主操作导致误触发）
+const cancelButtonRef = ref<HTMLButtonElement | null>(null);
+useDialogFocus(dialogVisible, () => cancelButtonRef.value);
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown);
@@ -73,9 +83,9 @@ onBeforeUnmount(() => {
         class="bg-background text-foreground p-5 rounded-lg shadow-xl border border-border w-full max-w-md flex flex-col"
         role="dialog"
         aria-modal="true"
-        :aria-labelledby="props.title"
+        :aria-labelledby="titleId"
       >
-        <h3 class="text-xl font-semibold mb-4 text-center flex-shrink-0" :id="props.title">
+        <h3 class="text-xl font-semibold mb-4 text-center flex-shrink-0" :id="titleId">
           {{ props.title }}
         </h3>
         <div class="flex-grow mb-6 text-sm">
@@ -85,6 +95,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="flex justify-end gap-3 flex-shrink-0">
           <button
+            ref="cancelButtonRef"
             @click="handleCancel"
             :disabled="props.isLoading"
             type="button"

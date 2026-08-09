@@ -100,6 +100,7 @@ const closeManagementModal = () => {
         :disabled="isLoading"
         class="px-3 py-2 border border-border rounded-md text-sm font-medium text-text-secondary bg-background hover:bg-border focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
         :title="t('sshKeys.selector.manageKeysTitle')"
+        :aria-label="t('sshKeys.selector.manageKeysTitle')"
       >
         <i class="fas fa-cog"></i>
       </button>

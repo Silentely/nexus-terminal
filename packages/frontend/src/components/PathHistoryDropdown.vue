@@ -49,6 +49,7 @@
             @click.stop="copyPathToClipboard(entry.path)"
             class="p-1.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 text-text-secondary hover:text-primary"
             :title="$t('pathHistory.copy', '复制路径')"
+            :aria-label="$t('pathHistory.copy', '复制路径')"
           >
             <i class="fas fa-copy text-xs"></i>
           </button>
@@ -57,6 +58,7 @@
             @click.stop="deleteHistoryEntry(entry.id)"
             class="ml-1 p-1.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 text-text-secondary hover:text-error"
             :title="$t('pathHistory.delete', '删除此条历史')"
+            :aria-label="$t('pathHistory.delete', '删除此条历史')"
           >
             <i class="fas fa-times text-xs"></i>
           </button>

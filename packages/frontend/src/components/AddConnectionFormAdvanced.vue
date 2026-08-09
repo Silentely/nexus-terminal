@@ -227,6 +227,7 @@ const getAvailableJumpHostsForIndex = (currentIndex: number): ConnectionInfo[] =
             @click="props.removeJumpHost(index)"
             class="p-1.5 text-destructive hover:text-destructive/80 focus:outline-none focus:ring-1 focus:ring-destructive rounded-md"
             :title="t('connections.form.removeJumpHostTitle', '移除此跳板机')"
+            :aria-label="t('connections.form.removeJumpHostTitle', '移除此跳板机')"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -528,6 +528,7 @@ onBeforeUnmount(() => {
           { 'bg-primary text-white hover:bg-primary-dark': activeLeftSidebarPane === pane },
         ]"
         :title="paneLabels[pane] || pane"
+        :aria-label="paneLabels[pane] || pane"
       >
         <i :class="getIconClasses(pane)"></i>
       </button>
@@ -889,6 +890,7 @@ onBeforeUnmount(() => {
           { 'bg-primary text-white hover:bg-primary-dark': activeRightSidebarPane === pane },
         ]"
         :title="paneLabels[pane] || pane"
+        :aria-label="paneLabels[pane] || pane"
       >
         <i :class="getIconClasses(pane)"></i>
       </button>

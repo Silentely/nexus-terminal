@@ -2,6 +2,9 @@
   <div
     v-if="visible"
     class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="发送文件"
     @click.self="handleCancel"
   >
     <div

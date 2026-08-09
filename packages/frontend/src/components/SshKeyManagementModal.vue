@@ -133,7 +133,12 @@ const cancelForm = () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4">
+  <div
+    class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="SSH 密钥管理"
+  >
     <div
       class="bg-background text-foreground p-6 rounded-lg shadow-xl border border-border w-full max-w-3xl max-h-[80vh] flex flex-col"
     >
@@ -203,6 +208,7 @@ const cancelForm = () => {
                     class="text-primary hover:text-primary-hover disabled:opacity-50"
                     :disabled="isLoading"
                     :title="t('sshKeys.modal.edit')"
+                    :aria-label="t('sshKeys.modal.edit')"
                   >
                     <i class="fas fa-pencil-alt"></i>
                   </button>
@@ -211,6 +217,7 @@ const cancelForm = () => {
                     class="text-error hover:text-error-hover disabled:opacity-50"
                     :disabled="isLoading"
                     :title="t('sshKeys.modal.delete')"
+                    :aria-label="t('sshKeys.modal.delete')"
                   >
                     <i class="fas fa-trash-alt"></i>
                   </button>

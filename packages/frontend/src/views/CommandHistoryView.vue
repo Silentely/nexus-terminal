@@ -21,6 +21,7 @@
           @click="confirmClearAll"
           class="w-8 h-8 border border-border/50 rounded-lg text-text-secondary hover:bg-error/10 hover:text-error hover:border-error/50 transition-colors duration-150 flex-shrink-0 flex items-center justify-center"
           :title="$t('commandHistory.clear', '清空')"
+          :aria-label="$t('commandHistory.clear', '清空')"
         >
           <!-- Use w-8 h-8 -->
           <i class="fas fa-trash-alt text-base"></i>
@@ -67,6 +68,7 @@
                   @click.stop="copyCommand(entry.command)"
                   class="p-1.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 text-text-secondary hover:text-primary"
                   :title="$t('commandHistory.copy', '复制')"
+                  :aria-label="$t('commandHistory.copy', '复制')"
                 >
                   <i class="fas fa-copy text-sm"></i>
                 </button>
@@ -75,6 +77,7 @@
                   @click.stop="deleteSingleCommand(entry.id)"
                   class="ml-1 p-1.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 text-text-secondary hover:text-error"
                   :title="$t('commandHistory.delete', '删除')"
+                  :aria-label="$t('commandHistory.delete', '删除')"
                 >
                   <i class="fas fa-times text-sm"></i>
                 </button>

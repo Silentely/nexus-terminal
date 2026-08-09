@@ -689,6 +689,7 @@ const scrollToHighlighted = async () => {
           class="ml-2 w-8 h-8 bg-primary text-white border-none rounded-lg text-sm font-semibold cursor-pointer shadow-md transition-colors duration-200 ease-in-out hover:bg-button-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-70 flex-shrink-0 flex items-center justify-center"
           @click="handleMenuAction('add')"
           :title="t('connections.addConnection')"
+          :aria-label="t('connections.addConnection')"
         >
           <i class="fas fa-plus text-white"></i>
         </button>
@@ -793,6 +794,7 @@ const scrollToHighlighted = async () => {
                   @click.stop="handleTagMenuAction('manageTag', groupData)"
                   class="ml-2 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded text-text-secondary hover:text-primary hover:bg-black/10 dark:hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-150 focus:outline-none"
                   :title="t('workspaceConnectionList.manageTags.menuItem')"
+                  :aria-label="t('workspaceConnectionList.manageTags.menuItem')"
                 >
                   <i class="fas fa-edit fa-xs"></i>
                 </button>

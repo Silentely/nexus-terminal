@@ -12,6 +12,7 @@
         @click="confirmClearAll"
         class="ml-2 p-1 text-text-secondary hover:text-error transition-colors duration-150"
         :title="$t('commandHistory.clear', '清空')"
+        :aria-label="$t('commandHistory.clear', '清空')"
       >
         <i class="fas fa-trash-alt text-base"></i>
       </button>
@@ -37,6 +38,7 @@
               @click.stop="copyCommand(entry.command)"
               class="p-1 text-text-secondary hover:text-primary transition-colors duration-150"
               :title="$t('commandHistory.copy', '复制')"
+              :aria-label="$t('commandHistory.copy', '复制')"
             >
               <i class="fas fa-copy text-xs"></i>
             </button>
@@ -44,6 +46,7 @@
               @click.stop="deleteSingleCommand(entry.id)"
               class="ml-1 p-1 text-text-secondary hover:text-error transition-colors duration-150"
               :title="$t('commandHistory.delete', '删除')"
+              :aria-label="$t('commandHistory.delete', '删除')"
             >
               <i class="fas fa-times text-xs"></i>
             </button>

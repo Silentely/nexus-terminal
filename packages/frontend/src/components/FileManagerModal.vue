@@ -137,6 +137,9 @@ defineExpose({
     class="fixed inset-0 flex items-center justify-center z-50 p-4"
     :style="{ backgroundColor: 'var(--overlay-bg-color)' }"
     @click.self="closeFileManagerModal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="文件管理器"
   >
     <div
       class="bg-background rounded-lg shadow-xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden border border-border"

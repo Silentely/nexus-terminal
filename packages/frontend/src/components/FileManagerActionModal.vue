@@ -208,6 +208,9 @@ onUnmounted(() => {
   <div
     v-if="isVisible"
     class="fixed inset-0 bg-overlay flex justify-center items-center z-[100] p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="文件操作"
     @click.self="closeModal"
   >
     <div
@@ -218,6 +221,7 @@ onUnmounted(() => {
         class="absolute top-3 right-3 p-1 text-text-secondary hover:text-foreground z-10"
         @click="closeModal"
         :title="t('fileManager.modals.buttons.close', 'Close')"
+        :aria-label="t('fileManager.modals.buttons.close', 'Close')"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

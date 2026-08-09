@@ -294,6 +294,9 @@ const handleCancelTask = async (taskId: string) => {
   <div
     v-if="internalVisible"
     class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="传输进度"
     @click.self="handleClose"
   >
     <div
@@ -421,7 +424,14 @@ const handleCancelTask = async (taskId: string) => {
                 <span>{{ t('transferProgressModal.task.overallProgress', '整体进度') }}</span>
                 <span>{{ task.overallProgress }}%</span>
               </div>
-              <div class="w-full bg-border rounded-full h-1.5">
+              <div
+                class="w-full bg-border rounded-full h-1.5"
+                role="progressbar"
+                :aria-valuenow="task.overallProgress"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                :aria-label="t('transferProgressModal.task.overallProgress', '整体进度')"
+              >
                 <div
                   class="bg-primary h-1.5 rounded-full"
                   :style="{ width: task.overallProgress + '%' }"

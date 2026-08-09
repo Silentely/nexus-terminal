@@ -135,6 +135,7 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
           v-if="node.type === 'container'"
           @click="toggleDirection"
           :title="t('layoutNodeEditor.toggleDirection')"
+          :aria-label="t('layoutNodeEditor.toggleDirection')"
           class="action-button"
         >
           <i class="fas fa-sync-alt"></i>
@@ -158,6 +159,7 @@ const handleChildRemove = (payload: { parentNodeId: string | undefined; nodeInde
         <button
           @click="removeSelf"
           :title="t('layoutNodeEditor.removeNode')"
+          :aria-label="t('layoutNodeEditor.removeNode')"
           class="action-button remove-button"
           :disabled="!parentNode"
         >

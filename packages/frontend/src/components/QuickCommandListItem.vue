@@ -58,6 +58,7 @@
         :class="isCompactMode ? 'p-1' : 'p-1.5'"
         class="rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 text-text-secondary hover:text-primary"
         :title="$t('commandHistory.copy', '复制')"
+        :aria-label="$t('commandHistory.copy', '复制')"
       >
         <i
           class="fas fa-copy"
@@ -73,6 +74,7 @@
         :class="isCompactMode ? 'p-1' : 'p-1.5'"
         class="rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 text-text-secondary hover:text-primary"
         :title="$t('common.edit', '编辑')"
+        :aria-label="$t('common.edit', '编辑')"
       >
         <i
           class="fas fa-edit"
@@ -88,6 +90,7 @@
         :class="isCompactMode ? 'p-1' : 'p-1.5'"
         class="rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 text-text-secondary hover:text-error"
         :title="$t('common.delete', '删除')"
+        :aria-label="$t('common.delete', '删除')"
       >
         <i
           class="fas fa-times"

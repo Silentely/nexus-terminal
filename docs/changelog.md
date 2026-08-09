@@ -6,16 +6,19 @@
 
 ### 改进
 
-- 📊 修复 Chart.js 图表颜色不随主题切换的问题：SessionDurationChart、SystemResourcesHistoryChart、StatusCharts 此前向 canvas 传入 `var(--color-*)`/`color-mix()` 字符串（canvas 无法解析，图表恒为 fallback 色）；现改为读取解析后的实际色值，浅色/深色主题切换后图表配色即时刷新。
-- 🎨 新增响应式 CSS 变量工具 `useCssVar`/`hexToRgba`（含 11 测试）：统一图表颜色读取逻辑、消除重复实现，并治理主题应用事件监听泄漏（由组件生命周期统一管理）。
-- 🔔 应用自定义 UI 主题后派发 `appearance-theme-applied` 事件，供依赖 CSS 变量实际值的模块（图表等）感知刷新。
-- 🧪 为三个图表组件补齐渲染测试（验证数据集/刻度颜色为实际色值而非 `var()` 字符串）。
-- 🔇 前端日志输出统一收口：useWebRTCTunnel（3 处）、AISettingsSection、AiAuditView 的直接 `console.*` 全部改走统一 `log` 工具。
-- 🧹 App.vue Alt 快捷键热路径的 19 处 info 日志降级为 debug，消除每次按键的高频控制台噪音。
+- ♿ 无障碍补全：33 处仅图标按钮补全 `aria-label`（复制/删除/编辑/关闭等），屏幕阅读器可识别。
+- 🗨️ 对话框无障碍重构：AlertDialog/ConfirmDialog 改用安全 id（不再用标题文本作 HTML id）、打开时自动聚焦、Tab 焦点圈闭、Escape 关闭后恢复焦点（新增 `useDialogA11y` composable）。
+- 🪟 10 个模态框补全 `role="dialog"` + `aria-modal="true"` + `aria-label`（远程桌面/VNC/发送文件/传输进度/快捷指令/SSH 密钥/标签管理/文件管理等）。
+- 📊 动态状态无障碍：传输进度条补 `role="progressbar"`（aria-valuenow/min/max），归档进度弹窗补 `role="status"` + `aria-live`。
+- 📊 修复 Chart.js 图表颜色不随主题切换的问题：3 个图表组件从 CSS 变量读取实际色值。
+- 🎨 新增响应式 CSS 变量工具 `useCssVar`/`hexToRgba`（含 11 测试）。
+- 🔔 应用自定义 UI 主题后派发 `appearance-theme-applied` 事件。
+- 🔇 前端日志输出统一收口：useWebRTCTunnel、AISettingsSection、AiAuditView 的 `console.*` 改走统一 `log` 工具。
+- 🧹 App.vue Alt 快捷键热路径的 19 处 info 日志降级为 debug。
 - ✅ 后端日志全面达标：logger 前缀模块化一致、英文残留为 0（L10-2 遗留项清零）。
 - 🧪 修复 NL2CMD 单元测试依赖真实网络的问题：mock SSRF 防护的 DNS 解析。
 - 🔤 前端英文日志全面统一为中文：apiClient、组件、Store、View 等 40+ 处。
-- 📏 提取共享 `utils/formatBytes.ts` 字节格式化工具（含测试），消除重复实现及 GB 精度不一致。
+- 📏 提取共享 `utils/formatBytes.ts` 字节格式化工具（含测试）。
 - 🗄️ 后端 `i18n.ts` 模块导入阶段的 `console.*` 统一为惰性初始化的 pino logger。
 - 📝 后端 Docker WebSocket 处理日志前缀统一为模块级 `[DockerHandler]`。
 - 🎨 6 个组件手写加载/空状态统一接入 LoadingState/EmptyState。

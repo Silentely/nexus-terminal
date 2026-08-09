@@ -64,6 +64,9 @@ onUnmounted(() => {
   <div
     v-if="isVisible"
     class="fixed inset-0 bg-overlay flex justify-center items-center z-50 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-label="挂起的 SSH 会话"
     @click.self="closeModal"
   >
     <div
@@ -74,6 +77,7 @@ onUnmounted(() => {
         class="absolute top-2 right-2 p-1 text-text-secondary hover:text-foreground z-10"
         @click="closeModal"
         :title="t('common.close', '关闭')"
+        :aria-label="t('common.close', '关闭')"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

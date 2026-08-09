@@ -526,6 +526,7 @@ const handleQuickCommandExecute = (command: string) => {
           :disabled="nl2cmdLoading"
           class="absolute right-1 top-1/2 transform -translate-y-1/2 w-7 h-7 flex items-center justify-center text-text-secondary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           :title="t('aiOps.generateCommand', '生成命令')"
+          :aria-label="t('aiOps.generateCommand', '生成命令')"
         >
           <i v-if="!nl2cmdLoading" class="fas fa-paper-plane text-xs"></i>
           <i v-else class="fas fa-spinner fa-spin text-xs"></i>

@@ -180,6 +180,7 @@
                     @click.stop="handleDeleteReport(report.id)"
                     class="text-text-secondary hover:text-error opacity-0 group-hover:opacity-100 transition-opacity p-1"
                     :title="t('common.delete', '删除')"
+                    :aria-label="t('common.delete', '删除')"
                   >
                     <i class="fas fa-trash-alt text-xs"></i>
                   </button>
