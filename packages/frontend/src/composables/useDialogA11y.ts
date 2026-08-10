@@ -7,7 +7,7 @@
  * 3. 焦点圈闭：Tab 循环停留在对话框内，防止焦点逃逸到背景
  * 4. Escape 关闭时恢复焦点到打开前的元素
  */
-import { ref, watch, onBeforeUnmount, nextTick, type Ref } from 'vue';
+import { watch, onBeforeUnmount, nextTick, type Ref } from 'vue';
 
 let dialogIdCounter = 0;
 

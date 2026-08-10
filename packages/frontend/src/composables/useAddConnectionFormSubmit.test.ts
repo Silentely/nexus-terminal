@@ -3,7 +3,7 @@
  * 覆盖连接表单提交的校验分支、批量 IP 创建、单条 CRUD 与删除
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ref, computed, type Ref, type ComputedRef } from 'vue';
+import { ref, computed } from 'vue';
 import {
   createSubmitHandler,
   createDeleteHandler,
