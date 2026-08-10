@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { handleUnauthorizedLogout } from './authRuntimeBridge';
 import { log } from '@/utils/log';
+import { sleep } from './sleep';
 
 export const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 export const AI_REQUEST_TIMEOUT_MS = 60_000;
@@ -76,7 +77,7 @@ apiClient.interceptors.response.use(
         log.warn(
           `[apiClient] 瞬时错误 ${status}，第 ${retryCount + 1}/${MAX_TRANSIENT_RETRIES} 次重试，延迟 ${delay}ms: ${requestMethod} ${requestUrl}`,
         );
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await sleep(delay);
         return apiClient.request(requestConfig);
       }
 

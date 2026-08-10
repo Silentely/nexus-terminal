@@ -4,25 +4,18 @@
 
 ## 2026-08-08
 
-### 测试
-
-- 🧪 为 8 个零覆盖核心 composable 补齐单元测试（共 80 例）：useEditorEvents（编辑器事件共享/独立模式分流）、useConfirmDialog、useAlertDialog、useContextMenuPosition（右键菜单边界检测）、useQuickCommandTagEditing（标签行内编辑）、useAddConnectionFormSubmit（表单校验/批量 IP/CRUD）、useAddConnectionFormScriptMode（脚本模式解析校验）、useAddConnectionFormTags（标签创建/删除）、workspaceEvents（mitt 事件发射器）。
-- 📈 前端测试覆盖显著提升：composables 核心交互逻辑（编辑器事件、表单提交、右键菜单、对话框、标签管理）从零覆盖到完整覆盖。
-
 ### 改进
 
-- ♿ 无障碍补全：33 处仅图标按钮补全 aria-label；对话框安全 id 与焦点管理；10 个模态框 role=dialog；进度条 role=progressbar。
+- ⏱️ 提取共享 `utils/sleep.ts` 延迟工具（含可取消版本与 4 测试），统一 apiClient 重试等处的重复 `new Promise(setTimeout)` 实现。
+- 🎨 style.css 新增 @layer components 语义类 `.btn-primary`/`.form-input`，设置页 15 处主按钮与验证码表单 4 处输入框接入，新组件可复用。
+- ⌨️ 上下文菜单键盘支持：连接右键菜单补 role=menu/menuitem、tabindex、Enter 触发与打开聚焦；快捷指令/标签组菜单补 Esc 关闭。
+- ♿ 无障碍补全：33 处仅图标按钮补全 aria-label；对话框安全 id 与焦点管理；10 个模态框 role=dialog。
 - 📊 修复 Chart.js 图表颜色不随主题切换的问题。
 - 🔇 前端日志输出统一收口；App.vue 键盘热路径日志降噪。
 - ✅ 后端日志全面达标：logger 前缀模块化一致、英文残留为 0。
 - 🧪 修复 NL2CMD 单元测试依赖真实网络的问题。
 - 🔤 前端英文日志全面统一为中文。
-- 📏 提取共享 utils/formatBytes.ts 字节格式化工具。
 - 🗄️ 后端 i18n.ts console 统一为惰性 pino logger。
-- 📝 后端 Docker WebSocket 日志前缀统一为 [DockerHandler]。
-- 🎨 6 个组件手写加载/空状态统一接入 LoadingState/EmptyState。
-- ⏰ 2FA 时间偏差提示本地化。
-- 🌐 apiClient 日志统一为中文。
 - ⚙️ 批量命令取消流程完善。
 - 🔗 批量 WebSocket 终态事件现在完整通过 parser、当前 SSH 会话和 Batch Store；非终态事件不会提前关闭 REST 轮询兜底。
 - 🚦 批量 SSH 输出增加内存、数据库和 WebSocket 单次载荷边界；超过限制的输出会在前端显示截断提示。
