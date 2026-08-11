@@ -398,16 +398,15 @@ const executeBatch = async () => {
     });
 
     if (taskId) {
-      // L5: 记录命令历史
-      try {
-        const { useCommandHistoryStore } = await import('../../stores/commandHistory.store');
-        const historyStore = useCommandHistoryStore();
-        if (historyStore.addCommand) {
-          historyStore.addCommand(command.value.trim());
-        }
-      } catch {
-        // 命令历史模块不可用时静默忽略
-      }
+      // L5: 记录命令历史（异步执行，不阻塞降级轮询启动；模块不可用时静默忽略）
+      void import('../../stores/commandHistory.store')
+        .then(({ useCommandHistoryStore }) => {
+          const historyStore = useCommandHistoryStore();
+          historyStore.addCommand?.(command.value.trim());
+        })
+        .catch(() => {
+          // 命令历史模块不可用时静默忽略
+        });
 
       // H4: 启动降级轮询
       startPolling(taskId);
