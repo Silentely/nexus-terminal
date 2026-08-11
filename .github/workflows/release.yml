@@ -76,74 +76,42 @@ jobs:
             echo "VERSION=$VERSION"
           } >> "$GITHUB_OUTPUT"
 
-      - name: 等待 kittylog.app 更新（最多 5 分钟）
-        id: wait_kittylog
-        env:
-          VERSION: ${{ steps.release_meta.outputs.VERSION }}
-        run: |
-          echo "⏳ 等待 kittylog.app 生成 v${VERSION} 更新日志..."
-          KITTYLOG_URL="https://kittylog.app/c/Silentely/nexus-terminal"
-          MAX_ATTEMPTS=5  # 每分钟轮询一次，最多 5 分钟
-          POLL_INTERVAL=60
-
-          for i in $(seq 1 $MAX_ATTEMPTS); do
-            echo "  📡 轮询 [$i/$MAX_ATTEMPTS]..."
-
-            PAGE=$(curl -sL --max-time 5 "$KITTYLOG_URL" 2>/dev/null || true)
-
-            if echo "$PAGE" | grep -qi "v${VERSION}"; then
-              echo "✅ kittylog.app 已包含 v${VERSION} 更新日志"
-              echo "found=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-
-            if [ "$i" -lt "$MAX_ATTEMPTS" ]; then
-              echo "  ⏳ 未找到，${POLL_INTERVAL}s 后重试..."
-              sleep $POLL_INTERVAL
-            fi
-          done
-
-          echo "⚠️ 等待超时（${MAX_ATTEMPTS} 分钟），将使用 AI 保底生成"
-          echo "found=false" >> "$GITHUB_OUTPUT"
-
-      - name: 从 kittylog.app 提取更新日志
-        if: steps.wait_kittylog.outputs.found == 'true'
-        id: kittylog_extract
+      - name: 从 docs/changelog.md 提取更新日志
+        id: docs_changelog_extract
         env:
           VERSION: ${{ steps.release_meta.outputs.VERSION }}
         run: |
           set -euo pipefail
-          KITTYLOG_URL="https://kittylog.app/c/Silentely/nexus-terminal"
 
           # 设置默认值，防止步骤失败时输出为空
           echo "found=false" >> "$GITHUB_OUTPUT"
 
-          PAGE=$(curl -sL --max-time 30 "$KITTYLOG_URL" 2>/dev/null || true)
+          CHANGELOG_FILE="docs/changelog.md"
 
-          if [ -z "$PAGE" ]; then
-            echo "⚠️ 无法访问 kittylog.app"
+          if [ ! -f "$CHANGELOG_FILE" ]; then
+            echo "⚠️ docs/changelog.md 不存在，将使用 AI 兜底生成"
             exit 0
           fi
 
-          # 提取指定版本的更新日志块
-          # kittylog.app 使用 Markdown 格式，版本标题为 ## vX.Y.Z
-          BODY=$(echo "$PAGE" | awk -v tag="$VERSION" '
+          # 提取指定版本的更新日志块：从 "## vX.Y.Z" 标题开始，到下一个版本标题结束
+          # 精确匹配版本号后跟全角/半角括号、空白或行尾，避免 v1.5 误匹配 v1.5.4
+          BODY=$(awk -v ver="v${VERSION}" '
             BEGIN { found=0 }
             /^## v/ {
               if (found) { exit }
-              if (index($0, tag) > 0) {
+              if ($0 ~ "^## " ver "([（(]|[[:space:]]|$)") {
                 found=1
                 print $0
                 next
               }
             }
-            found && NF { print }
-          ')
+            found { print }
+          ' "$CHANGELOG_FILE")
 
           if [ -n "$BODY" ]; then
             # 使用随机 delimiter 避免内容冲突
             DELIM="changelog_$(openssl rand -hex 8)"
-            echo "✅ 从 kittylog.app 提取到 v${VERSION} 更新日志"
+            echo "✅ 从 docs/changelog.md 提取到 v${VERSION} 更新日志"
             {
               echo "body<<${DELIM}"
               echo "$BODY"
@@ -151,11 +119,11 @@ jobs:
             } >> "$GITHUB_OUTPUT"
             echo "found=true" >> "$GITHUB_OUTPUT"
           else
-            echo "⚠️ kittylog.app 未找到 v${VERSION} 内容"
+            echo "⚠️ docs/changelog.md 未找到 v${VERSION} 内容，将使用 AI 兜底生成"
           fi
 
       - name: AI 生成更新日志（兜底）
-        if: steps.kittylog_extract.outputs.found != 'true'
+        if: steps.docs_changelog_extract.outputs.found != 'true'
         id: ai_changelog
         env:
           VERSION: ${{ steps.release_meta.outputs.VERSION }}
@@ -262,16 +230,16 @@ jobs:
       - name: 合并更新日志内容
         id: release_notes
         env:
-          KITTYLOG_FOUND: ${{ steps.kittylog_extract.outputs.found }}
-          KITTYLOG_BODY: ${{ steps.kittylog_extract.outputs.body }}
+          DOCS_FOUND: ${{ steps.docs_changelog_extract.outputs.found }}
+          DOCS_BODY: ${{ steps.docs_changelog_extract.outputs.body }}
           AI_FOUND: ${{ steps.ai_changelog.outputs.found }}
           AI_BODY: ${{ steps.ai_changelog.outputs.body }}
           RELEASE_TAG: ${{ steps.release_meta.outputs.TAG }}
         run: |
-          # 优先级：kittylog.app > AI 生成 > 暂无内容
-          if [[ "$KITTYLOG_FOUND" == "true" ]]; then
-            BODY="$KITTYLOG_BODY"
-            SOURCE="kittylog.app"
+          # 优先级：docs/changelog.md > AI 生成 > 暂无内容
+          if [[ "$DOCS_FOUND" == "true" ]]; then
+            BODY="$DOCS_BODY"
+            SOURCE="docs/changelog.md"
           elif [[ "$AI_FOUND" == "true" ]]; then
             BODY="$AI_BODY"
             SOURCE="AI 生成"
@@ -301,6 +269,7 @@ jobs:
           echo "CHANGELOG_URL=$CHANGELOG_URL" >> "$GITHUB_OUTPUT"
 
       - name: 同步更新日志到 docs/changelog.md
+        if: steps.docs_changelog_extract.outputs.found != 'true'
         env:
           VERSION: ${{ steps.release_meta.outputs.VERSION }}
           RELEASE_BODY: ${{ steps.release_notes.outputs.body }}
