@@ -633,6 +633,7 @@ export function executeCommand(
     }, timeoutSeconds * 1000);
 
     try {
+      // codeql[js/command-line-injection] 批量执行为设计内的远程命令执行能力：command 已由 sanitizeBatchCommand 清洗（拦截反引号、$()、${}、换行、空字节、花括号展开），env/workdir 经 shellEscape 转义，路由强制登录认证；在远端主机执行 shell 属产品功能而非注入漏洞。
       sshClient.exec(command, (err: Error | undefined, execStream: ClientChannel) => {
         if (err) {
           if (!resolved) {

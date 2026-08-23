@@ -553,17 +553,40 @@ describe('NotificationService', () => {
     });
   });
 
-  describe('_escapeBasicMarkdown (通过 Telegram 测试间接验证)', () => {
+  describe('_escapeBasicMarkdown', () => {
     beforeEach(() => {
       mockGetSetting.mockResolvedValue('zh-CN');
     });
 
-    it('应转义 Markdown 特殊字符', async () => {
+    const escape = (text: string) => (service as any)._escapeBasicMarkdown(text);
+
+    it('应转义 Markdown 特殊字符 * _ ` [', () => {
+      expect(escape('*bold* _it_ `code` [link]')).toBe('\\*bold\\* \\_it\\_ \\`code\\` \\[link]');
+    });
+
+    it('应转义反斜杠本身，防止绕过转义', () => {
+      // 输入 \*：旧实现只转义 *，输出 \\*，反斜杠未被转义
+      expect(escape('\\*')).toBe('\\\\\\*');
+    });
+
+    it('含反斜杠的普通文本应整体转义', () => {
+      expect(escape('a\\b')).toBe('a\\\\b');
+    });
+
+    it('普通文本应原样返回', () => {
+      expect(escape('plain text 123')).toBe('plain text 123');
+    });
+
+    it('非字符串输入应返回空字符串', () => {
+      expect((service as any)._escapeBasicMarkdown(null)).toBe('');
+      expect((service as any)._escapeBasicMarkdown(undefined)).toBe('');
+    });
+
+    it('应通过 Telegram 测试间接验证转义生效', async () => {
       mockAxiosPost.mockResolvedValue({ data: { ok: true } });
 
       await service.testSetting('telegram', mockTelegramConfig);
 
-      // 验证 Telegram 消息被正确发送
       expect(mockAxiosPost).toHaveBeenCalled();
     });
   });
