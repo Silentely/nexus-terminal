@@ -793,10 +793,15 @@ function setPath(obj, path, value) {
   const parts = path.split('.');
   let cur = obj;
   for (let i = 0; i < parts.length - 1; i++) {
-    if (typeof cur[parts[i]] !== 'object' || cur[parts[i]] === null) cur[parts[i]] = {};
-    cur = cur[parts[i]];
+    const key = parts[i];
+    // 防护原型污染：拒绝 __proto__ / constructor / prototype 链
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') return;
+    if (typeof cur[key] !== 'object' || cur[key] === null) cur[key] = {};
+    cur = cur[key];
   }
-  cur[parts[parts.length - 1]] = value;
+  const lastKey = parts[parts.length - 1];
+  if (lastKey === '__proto__' || lastKey === 'constructor' || lastKey === 'prototype') return;
+  cur[lastKey] = value;
 }
 
 for (const lang of ['zh-CN', 'en-US', 'ja-JP']) {

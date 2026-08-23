@@ -472,7 +472,8 @@ export class NotificationService {
   private _escapeBasicMarkdown(text: string): string {
     if (typeof text !== 'string') return '';
 
-    return text.replace(/([*_`\[])/g, '\\$1');
+    // 先转义反斜杠，避免输入中的 \ 中和后续转义，导致 Markdown 注入
+    return text.replace(/([\\*_`\[])/g, '\\$1');
   }
 
   private async _sendWebhook(
